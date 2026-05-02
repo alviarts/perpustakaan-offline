@@ -80,9 +80,9 @@ class SettingsView(ctk.CTkFrame):
     def _save_identitas(self) -> None:
         try:
             settings_repo.set_many({k: f.get() for k, f in self.id_fields.items()})
-            widgets.info(self, t("toast.saved"))
+            widgets.show_toast(self, t("toast.saved"), kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal simpan identitas")
 
     def _pick_logo(self) -> None:
         path = filedialog.askopenfilename(
@@ -111,8 +111,11 @@ class SettingsView(ctk.CTkFrame):
         self.kta_text.insert("1.0", settings_repo.get_value("kta.peraturan") or "")
 
     def _save_kta(self) -> None:
-        settings_repo.set_value("kta.peraturan", self.kta_text.get("1.0", "end").strip())
-        widgets.info(self, t("toast.saved"))
+        try:
+            settings_repo.set_value("kta.peraturan", self.kta_text.get("1.0", "end").strip())
+            widgets.show_toast(self, t("toast.saved"), kind="success")
+        except Exception as e:
+            widgets.report_exception(self, e, "Gagal simpan teks KTA")
 
     # ------------------ Transaksi ------------------
     def _build_transaksi(self, parent) -> None:
@@ -145,9 +148,9 @@ class SettingsView(ctk.CTkFrame):
                 int(v or 0)  # validasi
                 data[k] = v or "0"
             settings_repo.set_many(data)
-            widgets.info(self, t("toast.saved"))
+            widgets.show_toast(self, t("toast.saved"), kind="success")
         except ValueError:
-            widgets.warn(self, "Semua field harus berupa angka.")
+            widgets.show_toast(self, "Semua field harus berupa angka.", kind="warning")
 
     # ------------------ Akun ------------------
     def _build_akun(self, parent) -> None:
@@ -186,15 +189,16 @@ class SettingsView(ctk.CTkFrame):
             return
         cur = auth_service.current_user()
         if cur and int(sel["id"]) == cur.id:
-            widgets.warn(self, "Tidak bisa menghapus akun yang sedang login.")
+            widgets.show_toast(self, "Tidak bisa menghapus akun yang sedang login.", kind="warning")
             return
         if not widgets.confirm(self, t("toast.confirm_delete")):
             return
         try:
             auth_service.delete_user(int(sel["id"]))
             self._reload_akun()
+            widgets.show_toast(self, t("toast.deleted_one"), kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal hapus akun")
 
     def _change_pw(self) -> None:
         ChangePasswordDialog(self).wait_window()
@@ -295,7 +299,7 @@ class SettingsView(ctk.CTkFrame):
     def _do_export(self) -> None:
         path = self.sync_credentials_path.get().strip()
         if not path:
-            widgets.warn(self, "Pilih credentials.json terlebih dahulu.")
+            widgets.show_toast(self, "Pilih credentials.json terlebih dahulu.", kind="warning")
             return
         try:
             from perpustakaan.services import sheets_service

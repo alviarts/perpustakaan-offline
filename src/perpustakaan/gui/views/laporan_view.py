@@ -79,18 +79,18 @@ class LaporanView(ctk.CTkFrame):
     def _do_backup_db(self) -> None:
         try:
             path = backup_service.backup_db()
-            widgets.info(self, f"Backup tersimpan:\n{path}")
+            widgets.show_toast(self, f"Backup tersimpan: {path.name}", kind="success", duration_ms=4500)
             _open_folder(path)
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal backup database", use_modal=True)
 
     def _do_export_xlsx(self) -> None:
         try:
             path = excel_service.export_all_workbook()
-            widgets.info(self, f"Ekspor tersimpan:\n{path}")
+            widgets.show_toast(self, f"Ekspor tersimpan: {path.name}", kind="success", duration_ms=4500)
             _open_folder(path)
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal ekspor workbook", use_modal=True)
 
     def _do_reset_safe(self) -> None:
         if not widgets.confirm(
@@ -101,9 +101,9 @@ class LaporanView(ctk.CTkFrame):
             return
         try:
             backup_service.reset_transaksi(keep_outstanding=True)
-            widgets.info(self, "Reset selesai.")
+            widgets.show_toast(self, "Reset transaksi selesai.", kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal reset transaksi", use_modal=True)
 
     def _do_reset_full(self) -> None:
         if not widgets.confirm(
@@ -114,9 +114,9 @@ class LaporanView(ctk.CTkFrame):
             return
         try:
             backup_service.reset_transaksi(keep_outstanding=False)
-            widgets.info(self, "Reset total selesai.")
+            widgets.show_toast(self, "Reset total selesai.", kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal reset total", use_modal=True)
 
     # ----------------- Grafik Kunjungan -----------------
     def _build_grafik(self, parent) -> None:
@@ -144,7 +144,7 @@ class LaporanView(ctk.CTkFrame):
         try:
             tahun = int(self.graf_tahun.get())
         except ValueError:
-            widgets.warn(self, "Tahun harus angka.")
+            widgets.show_toast(self, "Tahun harus angka.", kind="warning")
             return
         bulan_str = self.graf_bulan.get().strip()
         if bulan_str:
@@ -152,7 +152,7 @@ class LaporanView(ctk.CTkFrame):
                 bulan = int(bulan_str)
                 fig = report_service.figure_kunjungan_bulanan(tahun, bulan)
             except ValueError:
-                widgets.warn(self, "Bulan harus 1-12.")
+                widgets.show_toast(self, "Bulan harus 1-12.", kind="warning")
                 return
         else:
             fig = report_service.figure_kunjungan_tahunan(tahun)
@@ -261,8 +261,9 @@ class LaporanView(ctk.CTkFrame):
         try:
             kas_repo.delete(int(sel["id"]))
             self._reload_kas()
+            widgets.show_toast(self, t("toast.deleted_one"), kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal hapus baris kas")
 
 
 class KasDialog(ctk.CTkToplevel):
@@ -310,10 +311,11 @@ class KasDialog(ctk.CTkToplevel):
             )
             self.destroy()
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal simpan baris kas")
 
 
 def _open_folder(path) -> None:
+    import logging as _logging
     try:
         if sys.platform.startswith("win"):
             os.startfile(str(path.parent))  # type: ignore[attr-defined]
@@ -321,5 +323,7 @@ def _open_folder(path) -> None:
             os.system(f'open "{path.parent}"')
         else:
             os.system(f'xdg-open "{path.parent}"')
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        _logging.getLogger("perpustakaan.gui").warning(
+            "Gagal buka folder %s: %s", path, exc
+        )

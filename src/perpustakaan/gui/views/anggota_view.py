@@ -144,20 +144,20 @@ class AnggotaView(ctk.CTkFrame):
     def _save(self) -> None:
         data = {k: f.get() or None for k, f in self.fields.items()}
         if not data.get("nama"):
-            widgets.warn(self, t("toast.required", field="nama"))
+            widgets.show_toast(self, t("toast.required", field="nama"), kind="warning")
             return
         try:
             if self._editing_id:
                 anggota_repo.update(self._editing_id, data)
-                widgets.info(self, t("toast.updated"))
+                widgets.show_toast(self, t("toast.updated"), kind="success")
             else:
                 new_id = anggota_repo.create(data)
                 self._editing_id = new_id
-                widgets.info(self, t("toast.saved"))
+                widgets.show_toast(self, t("toast.saved"), kind="success")
             self._reset_form()
             self._reload()
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal simpan anggota")
 
     def _delete(self) -> None:
         sel = self.table.selected()
@@ -169,32 +169,34 @@ class AnggotaView(ctk.CTkFrame):
             anggota_repo.delete(int(sel["id"]))
             self._reset_form()
             self._reload()
-            widgets.info(self, t("toast.deleted_one"))
+            widgets.show_toast(self, t("toast.deleted_one"), kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal hapus anggota")
 
     # ---------------- Cetak ----------------
     def _cetak_kta(self) -> None:
         sel = self.table.selected()
         if sel is None:
-            widgets.warn(self, "Pilih anggota terlebih dahulu.")
+            widgets.show_toast(self, "Pilih anggota terlebih dahulu.", kind="warning")
             return
         try:
             path = pdf_service.cetak_kta(sel)
             _open_file(path)
+            widgets.show_toast(self, f"KTA tersimpan: {path.name}", kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal cetak KTA")
 
     def _cetak_bebas(self) -> None:
         sel = self.table.selected()
         if sel is None:
-            widgets.warn(self, "Pilih anggota terlebih dahulu.")
+            widgets.show_toast(self, "Pilih anggota terlebih dahulu.", kind="warning")
             return
         try:
             path = pdf_service.cetak_bebas_pustaka(sel)
             _open_file(path)
+            widgets.show_toast(self, f"Surat Bebas Pustaka: {path.name}", kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal cetak surat bebas pustaka")
 
     # ---------------- Import / Template ----------------
     def _do_import(self) -> None:
@@ -213,18 +215,19 @@ class AnggotaView(ctk.CTkFrame):
             )
             self._reload()
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal impor Excel anggota", use_modal=True)
 
     def _download_template(self) -> None:
         try:
             path = excel_service.template_anggota()
-            widgets.info(self, f"Template disimpan di:\n{path}")
+            widgets.show_toast(self, f"Template disimpan: {path}", kind="success", duration_ms=4500)
             _open_file(path)
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal generate template Excel")
 
 
 def _open_file(path) -> None:
+    import logging as _logging
     try:
         if sys.platform.startswith("win"):
             os.startfile(str(path))  # type: ignore[attr-defined]
@@ -232,5 +235,7 @@ def _open_file(path) -> None:
             os.system(f'open "{path}"')
         else:
             os.system(f'xdg-open "{path}"')
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 - tidak ada handler tersedia di sini
+        _logging.getLogger("perpustakaan.gui").warning(
+            "Gagal buka file %s: %s", path, exc
+        )
