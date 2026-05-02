@@ -157,6 +157,7 @@ Beberapa flow di v0.1 cuma ada di backend; UI-nya belum lengkap.
 
 | Versi | Tanggal | Highlights |
 |-------|---------|-----------|
+| **v0.3.1** | 2026-05-02 | docs: manual.md update + 4 screenshot fitur v0.3.0 · docs: review Google Sheets setup guide · docs: demo screencast 4 menit (`docs/demo/`) · docs: quickstart 1-pager PDF (`docs/quickstart.pdf`) · installer: bump Inno Setup AppVersion ke v0.3.1 + bundle quickstart docs |
 | **v0.3.0** | 2026-05-02 | feat(gui): UI Naik Kelas batch · feat(gui): Bebas Pustaka validasi peminjaman aktif · feat(gui): Cetak Nota di Peminjaman & Pengembalian · feat(gui): Cek Data Ganda (Settings → Tools) · feat(gui): Reminder jatuh tempo otomatis saat login · feat(gui): Audit Log viewer (Settings → Audit Log) |
 | **v0.2.0** | 2026-05-02 | feat(seed): `--demo` flag untuk seed 5 anggota + 10 buku + 2 peminjaman aktif · feat(gui): toast notification non-blocking + exception reporter dengan log ke `app.log` · test: full GUI smoke test passed di Xvfb (17 test cases) · fix: StyledTreeview crash pada duplicate iid · ci: Linux build artifact ditambahkan ke release |
 | **v0.1.1** | 2026-05-02 | docs: user manual + Google Sheets setup guide + Inno Setup installer |
