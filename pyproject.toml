@@ -1,0 +1,93 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "perpustakaan-offline"
+version = "0.1.0"
+description = "Aplikasi perpustakaan offline (Sistem Informasi Manajemen Perpustakaan / SIM-Perpus) berbasis Python + SQLite, dikemas ke .exe Windows. Inspirasi: SIM-Perpus by Kang Sur."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "alviarts" }
+]
+keywords = ["perpustakaan", "library", "sim-perpus", "sekolah", "madrasah", "tkinter", "sqlite", "offline"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Indonesian",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    "customtkinter>=5.2.2",
+    "Pillow>=10.3.0",
+    "python-barcode>=0.15.1",
+    "reportlab>=4.2.0",
+    "openpyxl>=3.1.2",
+    "matplotlib>=3.8.0",
+    "bcrypt>=4.1.2",
+    "tkcalendar>=1.6.1",
+    "gspread>=6.1.0",
+    "google-auth>=2.30.0",
+    "google-auth-oauthlib>=1.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "ruff>=0.4.4",
+    "pyinstaller>=6.6.0",
+]
+
+[project.scripts]
+perpustakaan = "perpustakaan.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/alviarts/perpustakaan-offline"
+Issues = "https://github.com/alviarts/perpustakaan-offline/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+perpustakaan = ["assets/*", "db/*.sql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "SIM", # simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "N806",  # variable in function should be lowercase (Indonesian var names common)
+    "N803",  # argument should be lowercase
+    "N802",  # function name should be lowercase
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B", "N"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+pythonpath = ["src"]
