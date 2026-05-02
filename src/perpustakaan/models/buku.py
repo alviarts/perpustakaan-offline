@@ -195,6 +195,37 @@ def list_eksemplar(buku_id: int, db: Database | None = None) -> list[dict]:
     )
 
 
+def find_duplicates(db: Database | None = None) -> list[dict]:
+    """Cari buku duplikat berdasarkan ISBN atau kombinasi judul + pengarang."""
+    db = db or get_db()
+    by_isbn = db.query_all(
+        "SELECT isbn, COUNT(*) AS jumlah, "
+        "GROUP_CONCAT(kode_buku, ', ') AS kode_list, "
+        "MIN(judul) AS judul "
+        "FROM buku "
+        "WHERE isbn IS NOT NULL AND isbn != '' "
+        "GROUP BY isbn HAVING COUNT(*) > 1 "
+        "ORDER BY jumlah DESC"
+    )
+    by_title = db.query_all(
+        "SELECT judul, pengarang, COUNT(*) AS jumlah, "
+        "GROUP_CONCAT(kode_buku, ', ') AS kode_list "
+        "FROM buku "
+        "WHERE judul IS NOT NULL AND judul != '' "
+        "GROUP BY LOWER(judul), LOWER(COALESCE(pengarang, '')) "
+        "HAVING COUNT(*) > 1 "
+        "ORDER BY jumlah DESC"
+    )
+    results: list[dict] = []
+    for r in by_isbn:
+        r["match_type"] = "ISBN"
+        results.append(r)
+    for r in by_title:
+        r["match_type"] = "Judul+Pengarang"
+        results.append(r)
+    return results
+
+
 def list_penerbit(db: Database | None = None) -> list[str]:
     db = db or get_db()
     rows = db.query_all(

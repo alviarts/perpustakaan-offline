@@ -152,6 +152,20 @@ def count(db: Database | None = None, *, aktif: bool | None = None) -> int:
     )
 
 
+def find_duplicates(db: Database | None = None) -> list[dict]:
+    """Cari anggota duplikat berdasarkan kombinasi nama + kelas."""
+    db = db or get_db()
+    return db.query_all(
+        "SELECT nama, kelas, COUNT(*) AS jumlah, "
+        "GROUP_CONCAT(kode_anggota, ', ') AS kode_list "
+        "FROM anggota "
+        "WHERE nama IS NOT NULL AND nama != '' "
+        "GROUP BY LOWER(nama), LOWER(COALESCE(kelas, '')) "
+        "HAVING COUNT(*) > 1 "
+        "ORDER BY jumlah DESC"
+    )
+
+
 def list_distinct_kelas(db: Database | None = None) -> list[str]:
     """Daftar kelas unik yang ada di tabel anggota, sorted."""
     db = db or get_db()

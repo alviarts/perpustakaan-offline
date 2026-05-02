@@ -9,6 +9,8 @@ import customtkinter as ctk
 from perpustakaan.gui import widgets
 from perpustakaan.gui.widgets import LabeledEntry, StyledTreeview, configure_theme
 from perpustakaan.i18n import LOCALE_NAMES, set_locale, t
+from perpustakaan.models import anggota as anggota_repo
+from perpustakaan.models import buku as buku_repo
 from perpustakaan.models import settings as settings_repo
 from perpustakaan.services import auth as auth_service
 
@@ -31,6 +33,7 @@ class SettingsView(ctk.CTkFrame):
         self.tabs.add(t("menu.setting.akun"))
         self.tabs.add(t("menu.setting.bahasa"))
         self.tabs.add(t("menu.setting.sync"))
+        self.tabs.add("Tools")
 
         self._build_identitas(self.tabs.tab(t("menu.setting.identitas")))
         self._build_kta(self.tabs.tab(t("menu.setting.kta")))
@@ -38,6 +41,7 @@ class SettingsView(ctk.CTkFrame):
         self._build_akun(self.tabs.tab(t("menu.setting.akun")))
         self._build_bahasa(self.tabs.tab(t("menu.setting.bahasa")))
         self._build_sync(self.tabs.tab(t("menu.setting.sync")))
+        self._build_tools(self.tabs.tab("Tools"))
 
     def on_show(self) -> None:
         self._load_identitas()
@@ -46,6 +50,7 @@ class SettingsView(ctk.CTkFrame):
         self._reload_akun()
         self._load_bahasa()
         self._load_sync()
+        self._reload_tools()
 
     # ------------------ Identitas ------------------
     def _build_identitas(self, parent) -> None:
@@ -320,6 +325,80 @@ class SettingsView(ctk.CTkFrame):
             self._load_sync()
         except Exception as e:
             self.sync_result.configure(text=f"Error: {e}", text_color="#ef4444")
+
+    # ------------------ Tools (Cek Data Ganda) ------------------
+    def _build_tools(self, parent) -> None:
+        wrap = ctk.CTkFrame(parent, fg_color="transparent")
+        wrap.pack(fill="both", expand=True, padx=10, pady=10)
+
+        ctk.CTkLabel(
+            wrap, text="Cek Data Ganda",
+            font=ctk.CTkFont(size=14, weight="bold"),
+        ).pack(anchor="w", pady=(0, 4))
+
+        ctk.CTkLabel(
+            wrap,
+            text="Deteksi entri duplikat anggota (nama+kelas) dan buku (ISBN / judul+pengarang).",
+            text_color=("#6b7280", "#9ca3af"),
+        ).pack(anchor="w", pady=(0, 8))
+
+        ctk.CTkButton(
+            wrap, text="Scan Duplikat", width=140, command=self._reload_tools
+        ).pack(anchor="w", pady=(0, 8))
+
+        ctk.CTkLabel(
+            wrap, text="Duplikat Anggota (Nama + Kelas):",
+            font=ctk.CTkFont(size=12, weight="bold"),
+        ).pack(anchor="w", pady=(8, 2))
+        self.dup_anggota_table = StyledTreeview(
+            wrap,
+            columns=[
+                ("nama", "Nama", 220),
+                ("kelas", "Kelas", 100),
+                ("jumlah", "Jumlah", 70),
+                ("kode_list", "Kode Anggota", 300),
+            ],
+            height=6,
+        )
+        self.dup_anggota_table.pack(fill="x", pady=2)
+
+        ctk.CTkLabel(
+            wrap, text="Duplikat Buku (ISBN / Judul+Pengarang):",
+            font=ctk.CTkFont(size=12, weight="bold"),
+        ).pack(anchor="w", pady=(12, 2))
+        self.dup_buku_table = StyledTreeview(
+            wrap,
+            columns=[
+                ("match_type", "Tipe", 120),
+                ("judul", "Judul", 260),
+                ("isbn", "ISBN", 140),
+                ("jumlah", "Jumlah", 70),
+                ("kode_list", "Kode Buku", 300),
+            ],
+            height=6,
+        )
+        self.dup_buku_table.pack(fill="x", pady=2)
+
+        self.dup_summary = ctk.CTkLabel(wrap, text="", anchor="w")
+        self.dup_summary.pack(anchor="w", pady=(8, 0))
+
+    def _reload_tools(self) -> None:
+        with contextlib.suppress(Exception):
+            dup_a = anggota_repo.find_duplicates()
+            self.dup_anggota_table.set_rows(dup_a)
+            dup_b = buku_repo.find_duplicates()
+            self.dup_buku_table.set_rows(dup_b)
+            total = len(dup_a) + len(dup_b)
+            if total == 0:
+                self.dup_summary.configure(
+                    text="Tidak ada data ganda ditemukan.",
+                    text_color="#10b981",
+                )
+            else:
+                self.dup_summary.configure(
+                    text=f"Ditemukan {len(dup_a)} grup anggota + {len(dup_b)} grup buku duplikat.",
+                    text_color="#f59e0b",
+                )
 
 
 # ---------------------------------------------------------------------------
