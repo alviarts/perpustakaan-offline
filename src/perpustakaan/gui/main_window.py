@@ -103,9 +103,15 @@ class MainWindow(ctk.CTk):
     # Tombol "?" untuk replay tour menu yang sedang dibuka.
     # ------------------------------------------------------------------
     def _build_help_button(self) -> None:
+        # Help button pakai Lucide icon "circle-question-mark" supaya konsisten
+        # dgn tombol "?" inline di HeadingBar tiap view.
+        from perpustakaan.gui.icons import lucide_icon
+
+        help_img = lucide_icon("circle-question-mark", size=18, color=("#3730a3", "#c7d2fe"))
         self._help_btn = ctk.CTkButton(
             self.content,
-            text="?",
+            text="" if help_img else "?",
+            image=help_img,
             width=32, height=32,
             corner_radius=16,
             fg_color=("#e0e7ff", "#312e81"),
@@ -259,26 +265,30 @@ class MainWindow(ctk.CTk):
             text_color=("#6b7280", "#9ca3af"),
         ).pack(padx=20, anchor="w", pady=(0, 16))
 
-        sections: list[tuple[str, list[tuple[str, str, str]]]] = [
-            ("", [("dashboard", t("menu.dashboard"), "📊")]),
+        # 4-tuple: (key, label, lucide_name, fallback_emoji)
+        sections: list[tuple[str, list[tuple[str, str, str, str]]]] = [
+            ("", [("dashboard", t("menu.dashboard"), "layout-dashboard", "📊")]),
             (
                 t("menu.master"),
                 [
-                    ("anggota", t("menu.master.anggota"), "👥"),
-                    ("buku", t("menu.master.buku"), "📚"),
+                    ("anggota", t("menu.master.anggota"), "users", "👥"),
+                    ("buku", t("menu.master.buku"), "book-open", "📚"),
                 ],
             ),
             (
                 t("menu.transaksi"),
                 [
-                    ("kunjungan", t("menu.transaksi.kunjungan"), "🚪"),
-                    ("peminjaman", t("menu.transaksi.peminjaman"), "📤"),
-                    ("pengembalian", t("menu.transaksi.pengembalian"), "📥"),
+                    ("kunjungan", t("menu.transaksi.kunjungan"), "calendar-days", "🚪"),
+                    ("peminjaman", t("menu.transaksi.peminjaman"), "arrow-right-left", "📤"),
+                    ("pengembalian", t("menu.transaksi.pengembalian"), "rotate-ccw", "📥"),
                 ],
             ),
-            ("", [("laporan", t("menu.laporan"), "📈")]),
-            ("", [("setting", t("menu.setting"), "⚙️")]),
+            ("", [("laporan", t("menu.laporan"), "chart-bar", "📈")]),
+            ("", [("setting", t("menu.setting"), "settings", "⚙️")]),
         ]
+        from perpustakaan.gui.icons import lucide_icon
+
+        sidebar_icon_color = ("#1f2937", "#e5e7eb")
         for section_label, items in sections:
             if section_label:
                 ctk.CTkLabel(
@@ -287,7 +297,7 @@ class MainWindow(ctk.CTk):
                     font=ctk.CTkFont(size=10, weight="bold"),
                     text_color=("#9ca3af", "#6b7280"),
                 ).pack(padx=20, pady=(12, 4), anchor="w")
-            for key, label, icon in items:
+            for key, label, lucide_name, emoji in items:
                 # Container per item supaya bisa kasih indicator bar di kiri.
                 row = ctk.CTkFrame(self.sidebar, fg_color="transparent")
                 row.pack(fill="x", padx=10, pady=2)
@@ -298,9 +308,13 @@ class MainWindow(ctk.CTk):
                 )
                 indicator.pack(side="left", padx=(0, 6))
                 indicator.pack_propagate(False)
+
+                icon_img = lucide_icon(lucide_name, size=18, color=sidebar_icon_color)
                 btn = ctk.CTkButton(
                     row,
-                    text=f"  {icon}   {label}",
+                    text=f"  {label}" if icon_img else f"  {emoji}   {label}",
+                    image=icon_img,
+                    compound="left",
                     anchor="w",
                     height=36,
                     corner_radius=8,
@@ -314,9 +328,12 @@ class MainWindow(ctk.CTk):
                 self._sidebar_indicators[key] = indicator
 
         # Logout di bawah
+        logout_img = lucide_icon("log-out", size=18, color="#ef4444")
         ctk.CTkButton(
             self.sidebar,
-            text=f"  ↩   {t('menu.logout')}",
+            text=f"  {t('menu.logout')}" if logout_img else f"  ↩   {t('menu.logout')}",
+            image=logout_img,
+            compound="left",
             anchor="w",
             height=36,
             corner_radius=8,

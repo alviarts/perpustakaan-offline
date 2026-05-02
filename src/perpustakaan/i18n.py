@@ -230,6 +230,22 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
     "anggota.bebas_pustaka": {"id": "Surat Bebas Pustaka", "en": "Library Clearance Letter"},
     "anggota.naik_kelas": {"id": "Naik Kelas", "en": "Promote Class"},
     "anggota.rekap": {"id": "Rekap Anggota", "en": "Member Recap"},
+    "anggota.empty.title": {
+        "id": "Belum ada anggota",
+        "en": "No members yet",
+    },
+    "anggota.empty.desc": {
+        "id": "Tambahkan anggota baru dengan mengisi form di sebelah kiri, atau impor dari Excel.",
+        "en": "Add a new member using the form on the left, or import from Excel.",
+    },
+    "anggota.empty.search.title": {
+        "id": "Tidak ada hasil",
+        "en": "No results",
+    },
+    "anggota.empty.search.desc": {
+        "id": "Coba kata kunci yang berbeda atau hapus filter pencarian.",
+        "en": "Try a different keyword or clear the search filter.",
+    },
     # ----------------------------- buku ------------------------------------
     "buku.kode": {"id": "Kode Buku", "en": "Book Code"},
     "buku.judul": {"id": "Judul", "en": "Title"},
@@ -244,6 +260,40 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
     "buku.cover": {"id": "Cover", "en": "Cover"},
     "buku.cetak_label": {"id": "Cetak Label & Barcode", "en": "Print Label & Barcode"},
     "buku.transfer_penerbit": {"id": "Transfer Penerbit", "en": "Transfer Publishers"},
+    "buku.empty.title": {"id": "Belum ada buku", "en": "No books yet"},
+    "buku.empty.desc": {
+        "id": "Tambahkan koleksi buku dengan mengisi form di sebelah kiri, atau impor dari Excel.",
+        "en": "Add books using the form on the left, or import from Excel.",
+    },
+    "buku.empty.search.title": {"id": "Tidak ada hasil", "en": "No results"},
+    "buku.empty.search.desc": {
+        "id": "Coba kata kunci atau kategori yang berbeda.",
+        "en": "Try a different keyword or category.",
+    },
+    "trx.empty.peminjaman.title": {
+        "id": "Belum ada peminjaman aktif",
+        "en": "No active loans yet",
+    },
+    "trx.empty.peminjaman.desc": {
+        "id": "Catat peminjaman buku baru dengan memilih anggota dan buku di form kiri.",
+        "en": "Record a new book loan by selecting a member and book in the left form.",
+    },
+    "trx.empty.pengembalian.title": {
+        "id": "Tidak ada peminjaman untuk dikembalikan",
+        "en": "Nothing to return",
+    },
+    "trx.empty.pengembalian.desc": {
+        "id": "Cari nomor peminjaman atau scan barcode untuk mulai proses pengembalian.",
+        "en": "Search for a loan number or scan a barcode to begin returning.",
+    },
+    "trx.empty.kunjungan.title": {
+        "id": "Belum ada kunjungan",
+        "en": "No visits logged",
+    },
+    "trx.empty.kunjungan.desc": {
+        "id": "Catat kunjungan anggota dengan memilih anggota di form di atas.",
+        "en": "Log a member visit using the form above.",
+    },
     # ----------------------------- transaksi -------------------------------
     "trx.no_pinjam": {"id": "No. Peminjaman", "en": "Borrow No."},
     "trx.tgl_pinjam": {"id": "Tanggal Pinjam", "en": "Borrow Date"},

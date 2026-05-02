@@ -132,8 +132,9 @@ def init_db(db_path: Path | str | None = None, *, force: bool = False) -> Databa
 
     Setelah schema.sql dijalankan, ``_ensure_columns()`` dipanggil untuk
     menambah kolom baru ke tabel existing (mis. ``security_question`` di
-    ``users`` untuk PR-C v0.4.4) — karena ``CREATE TABLE IF NOT EXISTS``
+    ``users`` untuk PR-C v0.5.2) — karena ``CREATE TABLE IF NOT EXISTS``
     tidak akan menambah kolom kalau tabel-nya sudah ada.
+
 
     :param db_path: override default DB path (untuk tests).
     :param force: dipertahankan utk kompat; tidak mengubah perilaku.

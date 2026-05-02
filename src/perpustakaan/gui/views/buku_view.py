@@ -30,22 +30,24 @@ class BukuView(ctk.CTkFrame):
         self.search = ctk.CTkEntry(toolbar, placeholder_text=t("common.search"), width=260)
         self.search.pack(side="left")
         self.search.bind("<Return>", lambda _e: self._reload())
-        ctk.CTkButton(toolbar, text=t("common.refresh"), width=90, command=self._reload).pack(
-            side="left", padx=4
-        )
+        widgets.icon_button(
+            toolbar, text=t("common.refresh"), lucide="refresh-cw",
+            width=110, command=self._reload,
+        ).pack(side="left", padx=4)
         widgets.permission_button(
-            toolbar, text=t("common.import"), width=90,
+            toolbar, text=t("common.import"), lucide="upload", width=110,
             permission="buku.import", command=self._do_import,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text="Template", width=90, command=self._download_template
+        widgets.icon_button(
+            toolbar, text="Template", lucide="file-text",
+            width=110, command=self._download_template,
         ).pack(side="right", padx=2)
         widgets.permission_button(
-            toolbar, text=t("buku.cetak_label"), width=170,
+            toolbar, text=t("buku.cetak_label"), lucide="printer", width=180,
             permission="buku.cetak_label", command=self._cetak_label,
         ).pack(side="right", padx=2)
         widgets.permission_button(
-            toolbar, text=t("buku.transfer_penerbit"), width=140,
+            toolbar, text=t("buku.transfer_penerbit"), lucide="copy", width=150,
             permission="buku.edit", command=self._transfer_penerbit,
         ).pack(side="right", padx=2)
 
@@ -89,19 +91,30 @@ class BukuView(ctk.CTkFrame):
 
         btn_row = ctk.CTkFrame(form, fg_color="transparent")
         btn_row.pack(fill="x", padx=8, pady=(8, 4))
-        self.btn_save = ctk.CTkButton(btn_row, text=t("common.add"), command=self._save)
+        self.btn_save = widgets.icon_button(
+            btn_row, text=t("common.add"), lucide="plus",
+            command=self._save,
+        )
         self.btn_save.pack(side="left", padx=2)
-        ctk.CTkButton(
-            btn_row, text=t("common.new"), command=self._reset_form,
+        widgets.icon_button(
+            btn_row, text=t("common.new"), lucide="file-text",
+            command=self._reset_form,
             fg_color="transparent", border_width=1,
         ).pack(side="left", padx=2)
-        ctk.CTkButton(
-            btn_row, text=t("common.delete"), command=self._delete,
+        widgets.icon_button(
+            btn_row, text=t("common.delete"), lucide="trash-2",
+            command=self._delete,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=2)
 
+        # Wrapper utk table + empty state — sama pattern dgn anggota_view.
+        table_wrapper = ctk.CTkFrame(body, fg_color="transparent")
+        table_wrapper.grid(row=0, column=1, sticky="nsew")
+        table_wrapper.grid_columnconfigure(0, weight=1)
+        table_wrapper.grid_rowconfigure(0, weight=1)
+
         self.table = StyledTreeview(
-            body,
+            table_wrapper,
             columns=[
                 ("kode_buku", t("buku.kode"), 100),
                 ("judul", t("buku.judul"), 280),
@@ -114,7 +127,9 @@ class BukuView(ctk.CTkFrame):
             ],
             on_double_click=self._on_select,
         )
-        self.table.grid(row=0, column=1, sticky="nsew")
+        self.table.grid(row=0, column=0, sticky="nsew")
+        self._table_wrapper = table_wrapper
+        self._empty_state: widgets.EmptyState | None = None
 
     # ----------------------------------------------------------------
     def on_show(self) -> None:
@@ -123,13 +138,49 @@ class BukuView(ctk.CTkFrame):
     def _reload(self) -> None:
         rows = buku_repo.list_all(search=self.search.get().strip())
         self.table.set_rows(rows)
+        self._toggle_empty_state(empty=not rows)
+
+    def _toggle_empty_state(self, *, empty: bool) -> None:
+        if empty:
+            if self._empty_state is None:
+                is_search = bool(self.search.get().strip())
+                self._empty_state = widgets.EmptyState(
+                    self._table_wrapper,
+                    title=(
+                        t("buku.empty.search.title")
+                        if is_search
+                        else t("buku.empty.title")
+                    ),
+                    description=(
+                        t("buku.empty.search.desc")
+                        if is_search
+                        else t("buku.empty.desc")
+                    ),
+                    icon="frown" if is_search else "book-open",
+                    icon_size=64,
+                    illustration=(
+                        "empty-buku-search" if is_search else "empty-buku"
+                    ),
+                    illustration_size=(360, 220),
+                )
+                self._empty_state.grid(row=0, column=0, sticky="nsew")
+            self._empty_state.lift()
+        else:
+            if self._empty_state is not None:
+                self._empty_state.destroy()
+                self._empty_state = None
 
     def _reset_form(self) -> None:
         self._editing_id = None
         for f in self.fields.values():
             f.set("")
         self.deskripsi.delete("1.0", "end")
-        self.btn_save.configure(text=t("common.add"))
+        try:
+            from perpustakaan.gui.icons import lucide_icon
+            plus_img = lucide_icon("plus", size=16)
+        except Exception:  # noqa: BLE001
+            plus_img = None
+        self.btn_save.configure(text=t("common.add"), image=plus_img)
 
     def _on_select(self, row: dict) -> None:
         self._editing_id = int(row["id"])
@@ -137,7 +188,12 @@ class BukuView(ctk.CTkFrame):
             f.set(row.get(k, ""))
         self.deskripsi.delete("1.0", "end")
         self.deskripsi.insert("1.0", row.get("deskripsi", "") or "")
-        self.btn_save.configure(text=t("common.update"))
+        try:
+            from perpustakaan.gui.icons import lucide_icon
+            save_img = lucide_icon("save", size=16)
+        except Exception:  # noqa: BLE001
+            save_img = None
+        self.btn_save.configure(text=t("common.update"), image=save_img)
 
     def _pick_cover(self) -> None:
         path = filedialog.askopenfilename(

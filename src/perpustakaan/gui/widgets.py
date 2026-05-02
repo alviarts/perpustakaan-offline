@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import tkinter as tk
 from collections.abc import Callable, Iterable
 from tkinter import ttk
 from typing import Any
@@ -175,7 +176,19 @@ class StatCard(ctk.CTkFrame):
         *,
         color: str = "#3b82f6",
         icon: str = "•",
+        lucide: str | None = None,
     ) -> None:
+        """Stat card.
+
+        Args:
+            title: label di atas angka.
+            value: angka / teks utama.
+            color: warna brand utk icon bubble + value text.
+            icon: emoji / glyph fallback (dipakai kalau ``lucide`` ``None``
+                atau gagal load).
+            lucide: nama Lucide icon (mis. ``"users"``) — kalau di-set, icon
+                bubble pakai gambar Lucide putih di atas warna ``color``.
+        """
         super().__init__(
             parent,
             corner_radius=14,
@@ -205,11 +218,22 @@ class StatCard(ctk.CTkFrame):
             _icon_font = ctk.CTkFont(size=14, weight="bold")
             _title_font = ctk.CTkFont(size=11, weight="bold")
             _value_font = ctk.CTkFont(size=26, weight="bold")
+
+        # Icon bubble: try Lucide first, fallback ke emoji.
+        bubble_image = None
+        if lucide:
+            try:
+                from perpustakaan.gui.icons import lucide_icon as _lucide
+
+                bubble_image = _lucide(lucide, size=18, color="#ffffff")
+            except Exception:  # noqa: BLE001
+                bubble_image = None
         self._icon_bubble = ctk.CTkLabel(
             header,
-            text=icon,
-            width=30, height=30,
-            corner_radius=15,
+            text="" if bubble_image is not None else icon,
+            image=bubble_image,
+            width=32, height=32,
+            corner_radius=16,
             fg_color=color,
             text_color="white",
             font=_icon_font,
@@ -510,6 +534,64 @@ class HeadingBar(ctk.CTkFrame):
             self._title.configure(text=text)
 
 
+def icon_button(
+    parent: Any,
+    *,
+    text: str = "",
+    lucide: str | None = None,
+    icon_size: int = 16,
+    icon_color: str | tuple[str, str] | None = None,
+    command: Callable[[], None] | None = None,
+    width: int = 0,
+    height: int = 32,
+    corner_radius: int = 8,
+    compound: str = "left",
+    **kwargs: Any,
+) -> ctk.CTkButton:
+    """CTkButton helper dengan Lucide icon di kiri text.
+
+    Implementasi: load icon via :func:`perpustakaan.gui.icons.lucide_icon`,
+    pass sebagai ``image=`` ke ``CTkButton``. Kalau icon gagal load, tetap
+    bikin button dengan text saja (graceful degradation).
+
+    Args:
+        parent: parent widget.
+        text: label text. Empty string = icon-only button.
+        lucide: nama icon Lucide (mis. ``"plus"``, ``"trash-2"``).
+        icon_size: ukuran icon dalam pixel — pakai ``ICON_SIZE.sm`` (16) utk
+            button standard atau ``ICON_SIZE.md`` (20) utk button besar.
+        icon_color: warna icon. ``None`` → ikut text_color CTk default
+            (bisa di-tune via theme JSON), atau spec eksplisit.
+        command: callback klik.
+        width / height / corner_radius: sesuai CTkButton.
+        compound: posisi icon vs text — ``"left"`` (default), ``"top"``,
+            ``"right"``, ``"bottom"``.
+        **kwargs: passthrough ke ``CTkButton.__init__`` (mis. ``fg_color``,
+            ``hover_color``, ``font``).
+    """
+    img = None
+    if lucide:
+        try:
+            from perpustakaan.gui.icons import lucide_icon
+            img = lucide_icon(lucide, size=icon_size, color=icon_color)
+        except Exception:  # noqa: BLE001
+            img = None
+
+    btn_kwargs: dict[str, Any] = {
+        "text": text,
+        "command": command,
+        "height": height,
+        "corner_radius": corner_radius,
+    }
+    if width:
+        btn_kwargs["width"] = width
+    if img is not None:
+        btn_kwargs["image"] = img
+        btn_kwargs["compound"] = compound
+    btn_kwargs.update(kwargs)
+    return ctk.CTkButton(parent, **btn_kwargs)
+
+
 def fmt_rupiah(value: int | float) -> str:
     try:
         return f"Rp {int(value):,}".replace(",", ".")
@@ -525,6 +607,9 @@ def permission_button(
     *,
     text: str,
     permission: str,
+    lucide: str | None = None,
+    icon_size: int = 16,
+    icon_color: str | tuple[str, str] | None = None,
     command: Callable[[], None] | None = None,
     **kwargs: Any,
 ) -> ctk.CTkButton:
@@ -535,7 +620,10 @@ def permission_button(
     Pakai sebagai pengganti ``ctk.CTkButton`` untuk aksi yang protected::
 
         permission_button(toolbar, text="+ Tambah", permission="anggota.tambah",
-                          command=self._add)
+                          lucide="plus", command=self._add)
+
+    Kalau ``lucide`` diberikan, ikon Lucide ditampilkan di kiri text (memakai
+    helper ``icon_button`` di belakang layar — tetap dgn permission gating).
     """
     try:
         from perpustakaan.services import permissions as permissions_service
@@ -558,7 +646,19 @@ def permission_button(
         if command is not None:
             command()
 
-    btn = ctk.CTkButton(parent, text=text, command=_wrapped, **kwargs)
+    if lucide:
+        # Reuse icon_button untuk dapat lucide rendering + recolor theme-aware
+        btn = icon_button(
+            parent,
+            text=text,
+            lucide=lucide,
+            icon_size=icon_size,
+            icon_color=icon_color,
+            command=_wrapped,
+            **kwargs,
+        )
+    else:
+        btn = ctk.CTkButton(parent, text=text, command=_wrapped, **kwargs)
     if not allowed:
         with contextlib.suppress(Exception):
             btn.configure(state="disabled")
@@ -584,3 +684,199 @@ def require_permission_or_toast(parent: Any, permission: str) -> bool:
             kind="warning",
         )
     return False
+
+
+# ---------------------------------------------------------------------------
+# Empty state — hero pictogram + title + description + optional action
+# ---------------------------------------------------------------------------
+class EmptyState(ctk.CTkFrame):
+    """Placeholder visual saat list/dashboard kosong.
+
+    Layout::
+
+        ┌────────────────────────────────┐
+        │           [icon 48px]          │
+        │                                │
+        │       Belum ada data           │
+        │   Penjelasan singkat di sini   │
+        │                                │
+        │      [ + Tambah data ]         │
+        └────────────────────────────────┘
+
+    Default ikon dipilih dari Lucide ("inbox") tapi bisa di-override.
+    """
+
+    def __init__(
+        self,
+        parent: Any,
+        *,
+        title: str,
+        description: str = "",
+        icon: str = "inbox",
+        icon_size: int = 48,
+        illustration: str | None = None,
+        illustration_size: tuple[int, int] = (320, 200),
+        action_label: str | None = None,
+        action_command: Callable[[], None] | None = None,
+    ) -> None:
+        """Empty state placeholder.
+
+        Visual layer order (first match wins):
+
+        1. ``illustration`` — name dari ``assets/illustrations/<name>.png``.
+           Kalau file ada, dipakai sebagai hero visual (sebelum Lucide icon).
+        2. ``icon`` — Lucide icon name. Default ``"inbox"``. Dipakai sebagai
+           fallback kalau illustration tidak tersedia.
+
+        Param ``illustration_size`` adalah max bound ``(w, h)``; aspect ratio
+        original akan dipertahankan via ``Image.thumbnail``.
+        """
+        super().__init__(parent, fg_color="transparent")
+
+        # Lazy import supaya widgets.py tidak hard-depend ke icons.py kalau
+        # asset belum ada (mis. di test environment minimal).
+        img = None
+        if illustration:
+            try:
+                from perpustakaan.gui.illustrations import load_illustration
+
+                img = load_illustration(illustration, size=illustration_size)
+            except Exception:  # noqa: BLE001
+                img = None
+        if img is None:
+            try:
+                from perpustakaan.gui.icons import lucide_icon
+
+                img = lucide_icon(icon, size=icon_size)
+            except Exception:  # noqa: BLE001
+                img = None
+
+        try:
+            from perpustakaan.gui.fonts import body_font, section_font
+            _title_font = section_font()
+            _body_font = body_font()
+        except Exception:  # noqa: BLE001
+            _title_font = ctk.CTkFont(size=15, weight="bold")
+            _body_font = ctk.CTkFont(size=12)
+
+        # Icon / illustration (kalau ada)
+        if img is not None:
+            self._icon_lbl = ctk.CTkLabel(self, text="", image=img)
+            self._icon_lbl.pack(pady=(8, 12))
+
+        self._title_lbl = ctk.CTkLabel(
+            self,
+            text=title,
+            font=_title_font,
+            text_color=("#0f172a", "#f1f5f9"),
+        )
+        self._title_lbl.pack(pady=(0, 4))
+
+        if description:
+            self._desc_lbl = ctk.CTkLabel(
+                self,
+                text=description,
+                font=_body_font,
+                text_color=("#64748b", "#94a3b8"),
+                wraplength=420,
+                justify="center",
+            )
+            self._desc_lbl.pack(pady=(0, 16))
+
+        if action_label and action_command:
+            self._action_btn = ctk.CTkButton(
+                self,
+                text=action_label,
+                command=action_command,
+                width=180, height=36,
+                corner_radius=8,
+                font=ctk.CTkFont(size=13, weight="bold"),
+            )
+            self._action_btn.pack(pady=(0, 8))
+
+
+# ---------------------------------------------------------------------------
+# Tooltip — hover label borderless toplevel
+# ---------------------------------------------------------------------------
+class Tooltip:
+    """Tooltip ringan ala native macOS — tampil saat hover ≥500ms.
+
+    Pemakaian::
+
+        btn = ctk.CTkButton(parent, text="", image=img)
+        Tooltip(btn, text="Tambah anggota")
+
+    Tidak butuh subclass; cukup ``Tooltip(widget, text=...)`` setelah pack/grid.
+    Tooltip auto-destroy saat widget destroy (event bind ``<Destroy>``).
+    """
+
+    _DELAY_MS = 500
+    _OFFSET_X = 12
+    _OFFSET_Y = 22
+
+    def __init__(self, widget: Any, *, text: str) -> None:
+        self._widget = widget
+        self._text = text
+        self._after_id: str | None = None
+        self._tip: tk.Toplevel | None = None
+        widget.bind("<Enter>", self._schedule, add=True)
+        widget.bind("<Leave>", self._hide, add=True)
+        widget.bind("<ButtonPress>", self._hide, add=True)
+        widget.bind("<Destroy>", self._cleanup, add=True)
+
+    def _schedule(self, _event: Any = None) -> None:
+        self._cancel()
+        try:
+            self._after_id = self._widget.after(self._DELAY_MS, self._show)
+        except Exception:  # noqa: BLE001
+            self._after_id = None
+
+    def _cancel(self) -> None:
+        if self._after_id is not None:
+            with contextlib.suppress(Exception):
+                self._widget.after_cancel(self._after_id)
+            self._after_id = None
+
+    def _show(self) -> None:
+        if self._tip is not None or not self._text:
+            return
+        try:
+            x = self._widget.winfo_rootx() + self._OFFSET_X
+            y = self._widget.winfo_rooty() + self._widget.winfo_height() + 4
+            tip = tk.Toplevel(self._widget)
+            tip.wm_overrideredirect(True)
+            tip.wm_geometry(f"+{x}+{y}")
+            tip.attributes("-topmost", True)
+            # Match light/dark dengan deteksi mode aktif (best-effort).
+            try:
+                mode = ctk.get_appearance_mode().lower()
+                bg = "#1f2937" if mode == "light" else "#e5e7eb"
+                fg = "#f9fafb" if mode == "light" else "#0f172a"
+            except Exception:  # noqa: BLE001
+                bg, fg = "#1f2937", "#f9fafb"
+            lbl = tk.Label(
+                tip,
+                text=self._text,
+                background=bg,
+                foreground=fg,
+                padx=10,
+                pady=5,
+                font=("TkDefaultFont", 10),
+                relief="flat",
+                borderwidth=0,
+            )
+            lbl.pack()
+            self._tip = tip
+        except Exception:  # noqa: BLE001
+            self._tip = None
+
+    def _hide(self, _event: Any = None) -> None:
+        self._cancel()
+        if self._tip is not None:
+            with contextlib.suppress(Exception):
+                self._tip.destroy()
+            self._tip = None
+
+    def _cleanup(self, _event: Any = None) -> None:
+        self._hide()
+
