@@ -182,139 +182,508 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
     "theme.dark": {"id": "Gelap", "en": "Dark"},
     "theme.applied": {"id": "Tema diterapkan.", "en": "Theme applied."},
     # ----------------------------- tutorial / guided tour ------------------
+    "tour.button.skip": {"id": "Lewati", "en": "Skip"},
+    "tour.button.prev": {"id": "Sebelumnya", "en": "Previous"},
+    "tour.button.next": {"id": "Berikutnya", "en": "Next"},
+    "tour.button.finish": {"id": "Selesai", "en": "Finish"},
+    "tour.progress": {"id": "Langkah {current} dari {total}", "en": "Step {current} of {total}"},
+    "tour.restart": {"id": "Mulai Ulang Semua Tutorial", "en": "Restart All Tutorials"},
+    "tour.restart.help": {
+        "id": (
+            "Reset status tutorial supaya panduan otomatis muncul lagi saat "
+            "kamu membuka tiap menu. Kamu juga bisa kapan saja menekan tombol "
+            "“?” di pojok kanan-atas untuk memutar ulang tutorial menu yang "
+            "sedang dibuka."
+        ),
+        "en": (
+            "Reset the tutorial flags so the contextual onboarding appears "
+            "again when you visit each menu. You can also press the “?” "
+            "button at the top-right anytime to replay the tutorial for the "
+            "currently open menu."
+        ),
+    },
+    "tour.restart.applied": {
+        "id": "Status tutorial direset. Buka menu untuk melihat panduan lagi.",
+        "en": "Tutorial flags reset. Open menus to see the guides again.",
+    },
+    # Welcome (first-run, dashboard)
     "tour.welcome.title": {
         "id": "Selamat datang di Perpustakaan Offline!",
         "en": "Welcome to Library Offline!",
     },
     "tour.welcome.body": {
         "id": (
-            "Tutorial singkat ini akan menjelaskan menu utama dan tombol "
-            "penting. Klik 'Berikutnya' untuk lanjut, atau 'Lewati' untuk "
-            "menutup tutorial. Kamu bisa mengulang tutorial ini kapan saja "
-            "dari Setting → Bahasa & Tema."
+            "Tutorial singkat ini cuma menjelaskan dasar-dasar Dashboard. "
+            "Setiap kali kamu membuka menu baru (Anggota, Buku, Peminjaman, "
+            "dst.), panduan kontekstual akan muncul otomatis. Klik "
+            "'Berikutnya' untuk lanjut, atau 'Lewati' untuk menutup."
         ),
         "en": (
-            "This short tour will walk you through the main menus and key "
-            "buttons. Click 'Next' to continue or 'Skip' to dismiss. You can "
-            "replay this tour anytime from Settings → Language & Theme."
+            "This short tour just covers the Dashboard basics. Whenever you "
+            "open a new menu (Members, Books, Loans, ...) a contextual guide "
+            "will appear automatically. Click 'Next' to continue or 'Skip' "
+            "to dismiss."
         ),
     },
-    "tour.dashboard.title": {"id": "Menu Dashboard", "en": "Dashboard"},
-    "tour.dashboard.body": {
-        "id": "Ringkasan harian: total anggota, buku, peminjaman aktif, terlambat, dan kunjungan hari ini.",
-        "en": "Daily summary: total members, books, active loans, overdue, and visits today.",
+    # Help button
+    "tour.help.title": {
+        "id": "Tombol “?” — putar ulang tutorial",
+        "en": "“?” button — replay tutorials",
     },
-    "tour.anggota.title": {"id": "Data Anggota", "en": "Members"},
-    "tour.anggota.body": {
+    "tour.help.body": {
         "id": (
-            "Kelola data anggota: tambah, edit, hapus, import Excel, cetak "
-            "kartu (KTA). Tombol 'Naik Kelas' di toolbar memindahkan kelas "
-            "siswa secara batch. 'Surat Bebas Pustaka' mencetak surat keterangan "
-            "untuk anggota yang sudah lunas."
+            "Lihat tombol “?” bulat di sebelah kiri toggle tema? Klik kapan "
+            "saja untuk memutar ulang tutorial menu yang sedang kamu buka. "
+            "Tombol ini selalu muncul di setiap menu."
         ),
         "en": (
-            "Manage member data: add, edit, delete, import Excel, print member "
-            "cards (KTA). The 'Promote Class' toolbar button moves students to "
-            "a new class in batch. 'Library Clearance Letter' prints clearance "
-            "letters for cleared members."
+            "See the round “?” button to the left of the theme toggle? Click "
+            "it anytime to replay the tutorial for the menu you are currently "
+            "viewing. The button is visible on every menu."
         ),
     },
-    "tour.buku.title": {"id": "Data Buku", "en": "Books"},
-    "tour.buku.body": {
+    # Dashboard
+    "tour.dashboard.cards.title": {"id": "Kartu Statistik", "en": "Stat Cards"},
+    "tour.dashboard.cards.body": {
         "id": (
-            "Kelola koleksi buku: input judul, ISBN, klasifikasi DDC, jumlah "
-            "eksemplar. Cetak label & barcode tiap eksemplar. Tombol 'Transfer "
-            "Penerbit' membantu menyatukan data ganda akibat penulisan penerbit "
-            "yang beda-beda."
+            "Kartu di sini menunjukkan ringkasan harian: total anggota, buku, "
+            "eksemplar, peminjaman aktif, terlambat, dan kunjungan hari ini. "
+            "Arahkan kursor ke kartu untuk melihat efek hover."
         ),
         "en": (
-            "Manage your book collection: title, ISBN, DDC classification, "
-            "number of copies. Print labels and barcodes per copy. The "
-            "'Transfer Publishers' button helps unify duplicate publisher "
-            "spellings."
+            "These cards show the daily summary: total members, books, "
+            "copies, active loans, overdue, and today's visits. Hover a card "
+            "to see the lift effect."
         ),
     },
-    "tour.peminjaman.title": {"id": "Peminjaman", "en": "Borrow"},
-    "tour.peminjaman.body": {
+    # Anggota
+    "tour.anggota.intro.title": {"id": "Menu Data Anggota", "en": "Members menu"},
+    "tour.anggota.intro.body": {
         "id": (
-            "Catat peminjaman buku: scan barcode atau pilih manual, atur "
-            "jatuh tempo, dan langsung cetak nota peminjaman PDF."
+            "Di menu ini kamu mengelola data anggota perpustakaan (siswa/guru). "
+            "Tutorial ini akan menyorot tombol-tombol penting di toolbar."
         ),
         "en": (
-            "Record book loans: scan barcode or pick manually, set the due "
-            "date, and instantly print a borrow receipt PDF."
+            "In this menu you manage library member data (students/teachers). "
+            "This tutorial will highlight key toolbar buttons."
         ),
     },
-    "tour.pengembalian.title": {"id": "Pengembalian", "en": "Return"},
-    "tour.pengembalian.body": {
+    "tour.anggota.add.title": {"id": "Tambah / Simpan Anggota", "en": "Add / save member"},
+    "tour.anggota.add.body": {
         "id": (
-            "Proses pengembalian dengan denda otomatis kalau terlambat. "
-            "Setelah simpan, nota pengembalian PDF langsung tersedia."
+            "Isi form di kiri lalu klik tombol Simpan/Tambah untuk menambah "
+            "anggota baru. Untuk edit, klik baris di tabel sebelah kanan."
         ),
         "en": (
-            "Process returns with automatic late fines. After saving, the "
-            "return receipt PDF is ready for printing."
+            "Fill the form on the left then click Save/Add to insert a new "
+            "member. To edit, click a row in the table on the right."
         ),
     },
-    "tour.laporan.title": {"id": "Laporan", "en": "Reports"},
-    "tour.laporan.body": {
+    "tour.anggota.naik_kelas.title": {"id": "Naik Kelas (batch)", "en": "Promote Class (batch)"},
+    "tour.anggota.naik_kelas.body": {
         "id": (
-            "Backup database manual, ekspor semua data ke Excel, lihat grafik "
-            "kunjungan tahunan/bulanan, top peminjam, top buku, dan laporan "
-            "kas."
+            "Tombol ini memindahkan banyak siswa sekaligus ke kelas baru di "
+            "akhir tahun ajaran (mis. VII → VIII). Kamu bisa pilih kelas asal "
+            "dan kelas tujuan, lalu konfirmasi."
         ),
         "en": (
-            "Manual database backup, export everything to Excel, view yearly/"
-            "monthly visit charts, top borrowers, top books, and cash reports."
+            "This button bulk-moves students to a new class at the end of the "
+            "school year (e.g. VII → VIII). Pick the source and target class, "
+            "then confirm."
         ),
     },
-    "tour.setting.title": {"id": "Setting", "en": "Settings"},
-    "tour.setting.body": {
+    "tour.anggota.cetak_kta.title": {"id": "Cetak Kartu Anggota (KTA)", "en": "Print Member Card"},
+    "tour.anggota.cetak_kta.body": {
         "id": (
-            "Identitas perpustakaan, kartu anggota, parameter transaksi (lama "
-            "pinjam, denda), manajemen akun, bahasa & tema, sync Google Sheets, "
-            "Backup Terjadwal, Cek Data Ganda, dan Audit Log."
+            "Cetak Kartu Tanda Anggota (KTA) untuk anggota terpilih dalam "
+            "format PDF siap cetak. Layout & logo bisa diatur di Setting → "
+            "Kartu Anggota."
         ),
         "en": (
-            "Library identity, member card, transaction parameters (loan "
-            "duration, fines), account management, language & theme, Google "
-            "Sheets sync, Scheduled Backup, Duplicate Check, and Audit Log."
+            "Print Member ID Cards (KTA) for selected members as a print-"
+            "ready PDF. Layout & logo can be configured in Settings → Member "
+            "Card."
         ),
     },
-    "tour.theme.title": {"id": "Tema Terang / Gelap", "en": "Light / Dark Theme"},
-    "tour.theme.body": {
+    "tour.anggota.bebas_pustaka.title": {"id": "Surat Bebas Pustaka", "en": "Library Clearance"},
+    "tour.anggota.bebas_pustaka.body": {
         "id": (
-            "Tombol ini selalu ada di pojok kanan atas, di menu manapun. "
-            "Pilih 'Sistem' (ikut OS), 'Terang', atau 'Gelap' sesuai "
-            "kenyamanan mata kamu."
+            "Cetak surat keterangan bebas pustaka untuk anggota yang sudah "
+            "tidak punya pinjaman aktif. Cocok untuk syarat kelulusan."
         ),
         "en": (
-            "This control is always pinned to the top-right corner, on every "
-            "menu. Choose 'System' (follow OS), 'Light', or 'Dark' depending "
-            "on what's most comfortable."
+            "Print a library clearance letter for members with no active "
+            "loans. Useful for graduation prerequisites."
         ),
     },
-    "tour.done.title": {"id": "Tutorial Selesai!", "en": "Tour Complete!"},
-    "tour.done.body": {
+    "tour.anggota.import.title": {"id": "Import dari Excel", "en": "Import from Excel"},
+    "tour.anggota.import.body": {
         "id": (
-            "Selamat menggunakan Perpustakaan Offline. Kamu bisa mengulang "
-            "tutorial ini kapan saja dari Setting → Bahasa & Tema → 'Mulai "
-            "Ulang Tutorial'."
+            "Import banyak anggota sekaligus dari file Excel/.xlsx. Klik "
+            "tombol 'Template' di sebelah untuk mengunduh template kolom "
+            "yang valid."
         ),
         "en": (
-            "Enjoy using Library Offline. You can replay this tour anytime "
-            "from Settings → Language & Theme → 'Restart Tutorial'."
+            "Import many members at once from an Excel/.xlsx file. Click the "
+            "'Template' button next to it to download the valid column template."
         ),
     },
-    "tour.button.skip": {"id": "Lewati", "en": "Skip"},
-    "tour.button.prev": {"id": "Sebelumnya", "en": "Previous"},
-    "tour.button.next": {"id": "Berikutnya", "en": "Next"},
-    "tour.button.finish": {"id": "Selesai", "en": "Finish"},
-    "tour.progress": {"id": "Langkah {current} dari {total}", "en": "Step {current} of {total}"},
-    "tour.restart": {"id": "Mulai Ulang Tutorial", "en": "Restart Tutorial"},
-    "tour.restart.help": {
-        "id": "Buka kembali tour singkat untuk mengenal menu dan fitur penting.",
-        "en": "Replay the short tour explaining menus and key features.",
+    # Buku
+    "tour.buku.intro.title": {"id": "Menu Data Buku", "en": "Books menu"},
+    "tour.buku.intro.body": {
+        "id": (
+            "Kelola koleksi buku: judul, ISBN, klasifikasi DDC, jumlah "
+            "eksemplar, harga, rak, kategori. Tutorial ini menyorot tombol "
+            "kunci."
+        ),
+        "en": (
+            "Manage your collection: title, ISBN, DDC classification, copy "
+            "count, price, shelf, category. This tour highlights key buttons."
+        ),
+    },
+    "tour.buku.add.title": {"id": "Tambah / Simpan Buku", "en": "Add / save book"},
+    "tour.buku.add.body": {
+        "id": (
+            "Isi form di kiri lalu klik Simpan/Tambah. Untuk edit, klik baris "
+            "di tabel kanan."
+        ),
+        "en": (
+            "Fill the form on the left then click Save/Add. To edit, click a "
+            "row in the right table."
+        ),
+    },
+    "tour.buku.cetak_label.title": {"id": "Cetak Label & Barcode", "en": "Print Labels & Barcode"},
+    "tour.buku.cetak_label.body": {
+        "id": (
+            "Buat lembar label/barcode siap potong untuk eksemplar buku. "
+            "Tiap eksemplar dapat barcode unik yang bisa di-scan saat "
+            "peminjaman."
+        ),
+        "en": (
+            "Generate ready-to-cut label/barcode sheets for book copies. "
+            "Each copy gets a unique barcode usable at the loan counter."
+        ),
+    },
+    "tour.buku.transfer_penerbit.title": {
+        "id": "Transfer Penerbit (dedupe)",
+        "en": "Transfer Publishers (dedupe)",
+    },
+    "tour.buku.transfer_penerbit.body": {
+        "id": (
+            "Sering ada penerbit yang ditulis beda-beda (mis. 'Erlangga' vs "
+            "'PT Erlangga'). Tombol ini membantu memindahkan semua buku dari "
+            "satu nama penerbit ke nama lain agar data terkonsolidasi."
+        ),
+        "en": (
+            "Publishers are often spelled inconsistently (e.g. 'Erlangga' vs "
+            "'PT Erlangga'). This button moves all books from one publisher "
+            "name to another so the data is consolidated."
+        ),
+    },
+    "tour.buku.import.title": {"id": "Import dari Excel", "en": "Import from Excel"},
+    "tour.buku.import.body": {
+        "id": (
+            "Import banyak buku dari file Excel. Gunakan template yang "
+            "tersedia agar kolomnya cocok."
+        ),
+        "en": (
+            "Import many books from Excel. Use the provided template so the "
+            "columns match."
+        ),
+    },
+    # Kunjungan
+    "tour.kunjungan.intro.title": {"id": "Catatan Kunjungan", "en": "Visits log"},
+    "tour.kunjungan.intro.body": {
+        "id": (
+            "Catat kunjungan harian ke perpustakaan, baik perorangan (scan "
+            "kartu anggota) maupun kunjungan kelas batch."
+        ),
+        "en": (
+            "Log daily library visits, either per-person (scan member card) "
+            "or as a batch class visit."
+        ),
+    },
+    "tour.kunjungan.search.title": {"id": "Pilih Anggota", "en": "Pick member"},
+    "tour.kunjungan.search.body": {
+        "id": (
+            "Scan barcode kartu anggota atau ketik kode/nama. Kosongkan "
+            "kalau ingin mencatat kunjungan kelas batch (tanpa nama "
+            "individu)."
+        ),
+        "en": (
+            "Scan the member card barcode or type a code/name. Leave it "
+            "empty for batch class visits (no individual name)."
+        ),
+    },
+    "tour.kunjungan.kelas.title": {"id": "Kunjungan Kelas Batch", "en": "Batch class visit"},
+    "tour.kunjungan.kelas.body": {
+        "id": (
+            "Untuk pelajaran masuk perpus, pilih sumber 'kelas' dan isi "
+            "kelas + jumlah orang. Cocok untuk laporan kunjungan rombongan."
+        ),
+        "en": (
+            "For class-led library sessions, pick source 'kelas' and fill "
+            "class + headcount. Useful for group visit reports."
+        ),
+    },
+    "tour.kunjungan.save.title": {"id": "Simpan Kunjungan", "en": "Save visit"},
+    "tour.kunjungan.save.body": {
+        "id": "Klik Simpan untuk mencatat. Kunjungan langsung tampil di tabel di kanan.",
+        "en": "Click Save to record. The visit appears immediately in the right table.",
+    },
+    # Peminjaman
+    "tour.peminjaman.intro.title": {"id": "Alur Peminjaman", "en": "Loan flow"},
+    "tour.peminjaman.intro.body": {
+        "id": (
+            "Catat peminjaman buku dalam 4 langkah: pilih anggota → cari buku "
+            "→ tambah ke item → simpan. Tutorial ini akan memandu setiap "
+            "langkah."
+        ),
+        "en": (
+            "Record a loan in 4 steps: pick member → find book → add to "
+            "items → save. This tutorial walks you through each step."
+        ),
+    },
+    "tour.peminjaman.anggota.title": {"id": "1. Pilih Anggota", "en": "1. Pick member"},
+    "tour.peminjaman.anggota.body": {
+        "id": (
+            "Scan barcode kartu anggota atau ketik kode/nama lalu klik Cari. "
+            "Nama anggota akan muncul di bawah kalau cocok."
+        ),
+        "en": (
+            "Scan the member card barcode or type a code/name then click "
+            "Search. The member's name appears below when matched."
+        ),
+    },
+    "tour.peminjaman.buku.title": {"id": "2. Cari Buku", "en": "2. Find book"},
+    "tour.peminjaman.buku.body": {
+        "id": (
+            "Scan barcode buku atau ketik kode/judul. Tekan Enter / klik "
+            "Tambah Item untuk menambahkannya ke daftar pinjam."
+        ),
+        "en": (
+            "Scan the book barcode or type a code/title. Press Enter / click "
+            "Add Item to put it in the loan list."
+        ),
+    },
+    "tour.peminjaman.add_item.title": {"id": "3. Tambah Item", "en": "3. Add item"},
+    "tour.peminjaman.add_item.body": {
+        "id": (
+            "Buku yang sudah ditambah akan tampil di tabel kanan. Aplikasi "
+            "akan menolak otomatis kalau eksemplar tidak tersedia atau "
+            "anggota sudah melewati batas pinjaman."
+        ),
+        "en": (
+            "Added books appear in the right table. The app auto-rejects "
+            "when stock is unavailable or the member has hit the loan limit."
+        ),
+    },
+    "tour.peminjaman.kunjungan.title": {
+        "id": "Catat Kunjungan Sekalian",
+        "en": "Auto-log visit",
+    },
+    "tour.peminjaman.kunjungan.body": {
+        "id": (
+            "Centang ini untuk otomatis mencatat kunjungan saat peminjaman "
+            "disimpan. Berguna kalau perpus belum punya alur scan masuk "
+            "terpisah."
+        ),
+        "en": (
+            "Tick this to automatically log a visit when the loan is saved. "
+            "Useful when the library has no separate entry-scan flow."
+        ),
+    },
+    "tour.peminjaman.simpan.title": {"id": "4. Simpan & Cetak Nota", "en": "4. Save & print receipt"},
+    "tour.peminjaman.simpan.body": {
+        "id": (
+            "Klik Simpan untuk menyelesaikan peminjaman. Kamu akan ditawari "
+            "cetak nota peminjaman PDF langsung setelah simpan berhasil."
+        ),
+        "en": (
+            "Click Save to finalize the loan. You will be offered to print "
+            "the loan receipt PDF right after a successful save."
+        ),
+    },
+    # Pengembalian
+    "tour.pengembalian.intro.title": {"id": "Alur Pengembalian", "en": "Return flow"},
+    "tour.pengembalian.intro.body": {
+        "id": (
+            "Proses kembalikan buku + tandai buku hilang. Denda terlambat "
+            "dihitung otomatis berdasarkan parameter di Setting → Transaksi."
+        ),
+        "en": (
+            "Process returns + mark lost books. Overdue fines are calculated "
+            "automatically using parameters in Settings → Transactions."
+        ),
+    },
+    "tour.pengembalian.search.title": {"id": "Cari Anggota", "en": "Find member"},
+    "tour.pengembalian.search.body": {
+        "id": (
+            "Mulai dengan scan / cari anggota. Daftar buku yang sedang "
+            "dipinjam anggota akan langsung muncul."
+        ),
+        "en": (
+            "Start by scanning / searching the member. The list of books "
+            "currently borrowed by them appears immediately."
+        ),
+    },
+    "tour.pengembalian.list.title": {"id": "Daftar Pinjaman Aktif", "en": "Active loan list"},
+    "tour.pengembalian.list.body": {
+        "id": (
+            "Pilih satu baris pinjaman aktif, lalu pakai tombol di bawah "
+            "untuk melanjutkan: Kembalikan (normal) atau Buku Hilang."
+        ),
+        "en": (
+            "Select an active loan row, then use the buttons below to "
+            "continue: Return (normal) or Lost Book."
+        ),
+    },
+    "tour.pengembalian.kembali.title": {
+        "id": "Pengembalian Normal",
+        "en": "Normal return",
+    },
+    "tour.pengembalian.kembali.body": {
+        "id": (
+            "Tombol ini membuka dialog pengembalian: cek kondisi buku, "
+            "kalkulasi denda otomatis kalau lewat jatuh tempo, dan input "
+            "bayar denda. Setelah simpan, nota PDF tersedia."
+        ),
+        "en": (
+            "Opens the return dialog: check book condition, auto-calculate "
+            "fines if overdue, and input fine payment. After saving, a PDF "
+            "receipt is ready."
+        ),
+    },
+    "tour.pengembalian.hilang.title": {"id": "Buku Hilang", "en": "Lost book"},
+    "tour.pengembalian.hilang.body": {
+        "id": (
+            "Pakai tombol ini kalau buku tidak bisa dikembalikan (hilang/"
+            "rusak berat). Sistem akan mencatat dan menetapkan denda "
+            "penggantian sesuai kebijakan."
+        ),
+        "en": (
+            "Use this when the book cannot be returned (lost/severely "
+            "damaged). The system records it and assigns a replacement fine "
+            "per policy."
+        ),
+    },
+    # Laporan
+    "tour.laporan.intro.title": {"id": "Pusat Laporan", "en": "Report center"},
+    "tour.laporan.intro.body": {
+        "id": (
+            "Backup manual, ekspor Excel, grafik kunjungan, top peminjam, "
+            "top buku, dan kas perpustakaan — semua dalam tab di sini."
+        ),
+        "en": (
+            "Manual backup, Excel export, visit charts, top borrowers, top "
+            "books, and library cash — all under tabs here."
+        ),
+    },
+    "tour.laporan.tabs.title": {"id": "Tab Laporan", "en": "Report tabs"},
+    "tour.laporan.tabs.body": {
+        "id": (
+            "Pilih tab di atas untuk berpindah jenis laporan. Setiap tab "
+            "punya filter periode sendiri."
+        ),
+        "en": (
+            "Pick a tab above to switch report type. Each tab has its own "
+            "period filter."
+        ),
+    },
+    "tour.laporan.export.title": {"id": "Ekspor Excel", "en": "Excel export"},
+    "tour.laporan.export.body": {
+        "id": (
+            "Tombol ini mengekspor SEMUA tabel database ke satu file Excel "
+            "(.xlsx) — satu sheet per tabel. Cocok buat arsip / analisis "
+            "manual lebih lanjut."
+        ),
+        "en": (
+            "This button exports ALL database tables to a single Excel "
+            "(.xlsx) file — one sheet per table. Useful for archives / "
+            "further manual analysis."
+        ),
+    },
+    # Setting
+    "tour.setting.intro.title": {"id": "Pengaturan Aplikasi", "en": "Application settings"},
+    "tour.setting.intro.body": {
+        "id": (
+            "Semua konfigurasi aplikasi ada di tab-tab berikut. Tutorial "
+            "akan berpindah tab otomatis untuk memperkenalkan tiap area."
+        ),
+        "en": (
+            "All app configuration lives under these tabs. The tutorial "
+            "will auto-switch tabs to introduce each area."
+        ),
+    },
+    "tour.setting.identitas.title": {"id": "Tab Identitas", "en": "Identity tab"},
+    "tour.setting.identitas.body": {
+        "id": (
+            "Atur nama sekolah/perpus, alamat, logo, dan kepala perpustakaan. "
+            "Data ini muncul di kop nota & laporan PDF."
+        ),
+        "en": (
+            "Configure school/library name, address, logo, and head "
+            "librarian. This appears in PDF receipt & report letterheads."
+        ),
+    },
+    "tour.setting.transaksi.title": {"id": "Tab Transaksi", "en": "Transactions tab"},
+    "tour.setting.transaksi.body": {
+        "id": (
+            "Atur lama pinjam (hari), maks. eksemplar per anggota, denda per "
+            "hari, denda buku hilang, dan toleransi keterlambatan."
+        ),
+        "en": (
+            "Configure loan duration (days), max copies per member, daily "
+            "fine, lost-book fine, and grace days."
+        ),
+    },
+    "tour.setting.akun.title": {"id": "Tab Manajemen Akun", "en": "Account management"},
+    "tour.setting.akun.body": {
+        "id": (
+            "Tambah / nonaktifkan akun pustakawan/admin. Setiap akun punya "
+            "role (admin / pustakawan / siswa) yang membatasi akses fitur."
+        ),
+        "en": (
+            "Add / deactivate librarian/admin accounts. Each account has a "
+            "role (admin / librarian / student) limiting feature access."
+        ),
+    },
+    "tour.setting.bahasa.title": {"id": "Tab Bahasa & Tema", "en": "Language & theme"},
+    "tour.setting.bahasa.body": {
+        "id": (
+            "Pilih bahasa antarmuka (ID/EN), tema (Sistem/Terang/Gelap), warna "
+            "aksen, dan tombol 'Mulai Ulang Semua Tutorial' kalau kamu mau "
+            "mengulang panduan dari awal."
+        ),
+        "en": (
+            "Pick the UI language (ID/EN), theme (System/Light/Dark), accent "
+            "color, and the 'Restart All Tutorials' button if you want to "
+            "replay the onboarding."
+        ),
+    },
+    "tour.setting.backup.title": {"id": "Tab Backup Terjadwal", "en": "Scheduled Backup tab"},
+    "tour.setting.backup.body": {
+        "id": (
+            "Atur backup otomatis harian/mingguan dengan retensi otomatis. "
+            "Lihat status backup terakhir, jadwal berikutnya, dan list file "
+            "backup."
+        ),
+        "en": (
+            "Configure automatic daily/weekly backups with automatic "
+            "retention. See last backup status, next schedule, and the list "
+            "of backup files."
+        ),
+    },
+    "tour.setting.audit.title": {"id": "Tab Audit Log", "en": "Audit Log tab"},
+    "tour.setting.audit.body": {
+        "id": (
+            "Lihat catatan aktivitas penting: login, perubahan data, "
+            "backup. Filter per tanggal / user / aksi untuk audit trail."
+        ),
+        "en": (
+            "View key activity records: logins, data changes, backups. "
+            "Filter by date / user / action for an audit trail."
+        ),
     },
     # ----------------------------- backup ----------------------------------
     "backup.tab.title": {"id": "Backup Terjadwal", "en": "Scheduled Backup"},
