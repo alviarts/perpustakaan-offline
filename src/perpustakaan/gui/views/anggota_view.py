@@ -32,23 +32,29 @@ class AnggotaView(ctk.CTkFrame):
         self.search = ctk.CTkEntry(toolbar, placeholder_text=t("common.search"), width=260)
         self.search.pack(side="left")
         self.search.bind("<Return>", lambda _e: self._reload())
-        ctk.CTkButton(toolbar, text=t("common.refresh"), width=90, command=self._reload).pack(
-            side="left", padx=4
-        )
-        ctk.CTkButton(
-            toolbar, text=t("common.import"), width=90, command=self._do_import
+        widgets.icon_button(
+            toolbar, text=t("common.refresh"), lucide="refresh-cw",
+            width=110, command=self._reload,
+        ).pack(side="left", padx=4)
+        widgets.icon_button(
+            toolbar, text=t("common.import"), lucide="upload",
+            width=110, command=self._do_import,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text="Template", width=90, command=self._download_template
+        widgets.icon_button(
+            toolbar, text="Template", lucide="file-text",
+            width=110, command=self._download_template,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text=t("anggota.cetak_kta"), width=130, command=self._cetak_kta
+        widgets.icon_button(
+            toolbar, text=t("anggota.cetak_kta"), lucide="printer",
+            width=140, command=self._cetak_kta,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text=t("anggota.bebas_pustaka"), width=160, command=self._cetak_bebas
+        widgets.icon_button(
+            toolbar, text=t("anggota.bebas_pustaka"), lucide="clipboard-list",
+            width=170, command=self._cetak_bebas,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text=t("anggota.naik_kelas"), width=130, command=self._naik_kelas
+        widgets.icon_button(
+            toolbar, text=t("anggota.naik_kelas"), lucide="arrow-right",
+            width=140, command=self._naik_kelas,
         ).pack(side="right", padx=2)
 
         # Body: split form (kiri) + table (kanan)
@@ -87,14 +93,19 @@ class AnggotaView(ctk.CTkFrame):
 
         btn_row = ctk.CTkFrame(form, fg_color="transparent")
         btn_row.pack(fill="x", padx=8, pady=(8, 4))
-        self.btn_save = ctk.CTkButton(btn_row, text=t("common.add"), command=self._save)
+        self.btn_save = widgets.icon_button(
+            btn_row, text=t("common.add"), lucide="plus",
+            command=self._save,
+        )
         self.btn_save.pack(side="left", padx=2)
-        ctk.CTkButton(
-            btn_row, text=t("common.new"), command=self._reset_form,
+        widgets.icon_button(
+            btn_row, text=t("common.new"), lucide="file-text",
+            command=self._reset_form,
             fg_color="transparent", border_width=1,
         ).pack(side="left", padx=2)
-        ctk.CTkButton(
-            btn_row, text=t("common.delete"), command=self._delete,
+        widgets.icon_button(
+            btn_row, text=t("common.delete"), lucide="trash-2",
+            command=self._delete,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=2)
 
@@ -167,13 +178,24 @@ class AnggotaView(ctk.CTkFrame):
         self._editing_id = None
         for f in self.fields.values():
             f.set("")
-        self.btn_save.configure(text=t("common.add"))
+        # Reset save button: ganti label + icon kembali ke "Tambah".
+        try:
+            from perpustakaan.gui.icons import lucide_icon
+            plus_img = lucide_icon("plus", size=16)
+        except Exception:  # noqa: BLE001
+            plus_img = None
+        self.btn_save.configure(text=t("common.add"), image=plus_img)
 
     def _on_select(self, row: dict) -> None:
         self._editing_id = int(row["id"])
         for k, f in self.fields.items():
             f.set(row.get(k, ""))
-        self.btn_save.configure(text=t("common.update"))
+        try:
+            from perpustakaan.gui.icons import lucide_icon
+            save_img = lucide_icon("save", size=16)
+        except Exception:  # noqa: BLE001
+            save_img = None
+        self.btn_save.configure(text=t("common.update"), image=save_img)
 
     def _pick_foto(self) -> None:
         path = filedialog.askopenfilename(
