@@ -145,9 +145,24 @@ def main_window(smoke_env):
         sys.modules.pop(mod, None)
 
     from perpustakaan.gui.main_window import MainWindow
-    from perpustakaan.services.auth import login
+    from perpustakaan.services.auth import (
+        hash_password as _hash_pw,
+    )
+    from perpustakaan.services.auth import (
+        login,
+    )
 
     user = login("admin", "admin123")
+
+    # Pre-seed security question agar first-login wizard (PR-C) tidak block
+    # smoke test. Wizard hanya dipicu kalau user belum pernah set
+    # security_question / security_answer_hash.
+    from perpustakaan.db.connection import get_db
+    db = get_db()
+    db.execute(
+        "UPDATE users SET security_question = ?, security_answer_hash = ? WHERE id = ?",
+        ("Smoke test default", _hash_pw("smoke"), user.id),
+    )
 
     win = MainWindow(user)
     _pump(win, 1000)

@@ -12,7 +12,7 @@
 
 #define MyAppName "Perpustakaan Offline"
 #define MyAppShortName "PerpustakaanOffline"
-#define MyAppVersion "0.5.1"
+#define MyAppVersion "0.5.2"
 #define MyAppPublisher "alviarts"
 #define MyAppURL "https://github.com/alviarts/perpustakaan-offline"
 #define MyAppExeName "PerpustakaanOffline.exe"
@@ -60,7 +60,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; Single-file PyInstaller .exe — semua dependency (Python runtime, libs) sudah embedded
+; Single-file PyInstaller .exe — semua dependency (Python runtime, libs) sudah embedded.
+; Pengguna TIDAK perlu install Python — runtime python3.11 + standard library + semua
+; pip dependencies (customtkinter, Pillow, bcrypt, dll) sudah ada di dalam .exe ini.
 Source: "..\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
@@ -78,6 +80,12 @@ Source: "..\assets\fonts\Inter-SemiBold.otf"; DestDir: "{autofonts}"; FontInstal
 Source: "..\assets\fonts\Inter-Bold.otf"; DestDir: "{autofonts}"; FontInstall: "Inter Bold"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "..\assets\fonts\Inter-LICENSE.txt"; DestDir: "{app}\assets\fonts"; Flags: ignoreversion
 
+; Microsoft Visual C++ 2015-2022 Redistributable (x64) — di-bundle untuk auto-install
+; kalau belum ada di sistem user. Sumber: https://aka.ms/vs/17/release/vc_redist.x64.exe
+; Di-extract ke {tmp}, dijalankan via [Run], lalu dihapus (deleteafterinstall).
+; File ini didownload oleh CI workflow ke installer\redist\ sebelum kompilasi Inno Setup.
+Source: "redist\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Check: VCRedistNeedsInstall
+
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autoprograms}\Manual Pengguna"; Filename: "{app}\docs\manual.md"
@@ -86,6 +94,12 @@ Name: "{autoprograms}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
+; Auto-install VC++ Runtime kalau dirasa perlu (cek registry via VCRedistNeedsInstall).
+; /install /passive /norestart -> tampil progress bar minimal, tidak reboot otomatis.
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /passive /norestart"; \
+  StatusMsg: "Memasang Microsoft Visual C++ Runtime (x64)..."; \
+  Check: VCRedistNeedsInstall; Flags: waituntilterminated
+
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
@@ -94,6 +108,24 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 Type: filesandordirs; Name: "{app}\__pycache__"
 
 [Code]
+// ---------------------------------------------------------------------------
+// VC++ Redistributable check — return True kalau perlu install
+// ---------------------------------------------------------------------------
+// Kunci registry yang ditulis Microsoft VC++ 2015-2022 Redist (x64) saat terinstall:
+//   HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64\Installed = 1
+// Path tersebut konsisten utk semua versi 14.x (2015 / 2017 / 2019 / 2022).
+function VCRedistNeedsInstall(): Boolean;
+var
+  installed: Cardinal;
+begin
+  Result := True;
+  if RegQueryDWordValue(HKLM, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Installed', installed) then
+  begin
+    if installed = 1 then
+      Result := False;
+  end;
+end;
+
 // Cek apakah versi lama sudah terinstall
 function GetUninstallString(): String;
 var
