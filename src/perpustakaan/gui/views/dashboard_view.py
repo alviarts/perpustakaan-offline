@@ -32,23 +32,27 @@ class DashboardView(ctk.CTkFrame):
         for c in range(4):
             cards_frame.grid_columnconfigure(c, weight=1, uniform="card")
 
+        # 4-tuple: (key, label, color, fallback_emoji, lucide_icon_name)
         defs = [
-            ("anggota_total", t("dash.total_anggota"), "#3b82f6", "👥"),
-            ("buku_total", t("dash.total_buku"), "#8b5cf6", "📚"),
-            ("eksemplar_total", t("dash.eksemplar"), "#06b6d4", "📦"),
-            ("dipinjam", t("dash.dipinjam"), "#f59e0b", "📤"),
-            ("dikembalikan", t("dash.dikembalikan"), "#10b981", "📥"),
-            ("terlambat", t("dash.terlambat"), "#ef4444", "⏰"),
-            ("hilang", t("dash.hilang"), "#dc2626", "❌"),
-            ("kunjungan_hari", t("dash.kunjungan_hari"), "#0ea5e9", "🚪"),
+            ("anggota_total", t("dash.total_anggota"), "#3b82f6", "👥", "users"),
+            ("buku_total", t("dash.total_buku"), "#8b5cf6", "📚", "book-open"),
+            ("eksemplar_total", t("dash.eksemplar"), "#06b6d4", "📦", "library"),
+            ("dipinjam", t("dash.dipinjam"), "#f59e0b", "📤", "upload"),
+            ("dikembalikan", t("dash.dikembalikan"), "#10b981", "📥", "download"),
+            ("terlambat", t("dash.terlambat"), "#ef4444", "⏰", "clock"),
+            ("hilang", t("dash.hilang"), "#dc2626", "❌", "circle-x"),
+            ("kunjungan_hari", t("dash.kunjungan_hari"), "#0ea5e9", "🚪", "calendar-days"),
         ]
-        for idx, (key, label, color, icon) in enumerate(defs):
-            card = StatCard(cards_frame, label, "0", color=color, icon=icon)
+        for idx, (key, label, color, icon, lucide) in enumerate(defs):
+            card = StatCard(
+                cards_frame, label, "0", color=color, icon=icon, lucide=lucide,
+            )
             card.grid(row=idx // 4, column=idx % 4, padx=8, pady=8, sticky="nsew")
             self.cards[key] = card
 
         self.kas_card = StatCard(
-            cards_frame, t("dash.kas_saldo"), "Rp 0", color="#16a34a", icon="💰"
+            cards_frame, t("dash.kas_saldo"), "Rp 0",
+            color="#16a34a", icon="💰", lucide="sparkles",
         )
         self.kas_card.grid(row=2, column=0, columnspan=4, padx=8, pady=8, sticky="ew")
 

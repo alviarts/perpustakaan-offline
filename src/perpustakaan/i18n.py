@@ -115,6 +115,22 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
     "anggota.bebas_pustaka": {"id": "Surat Bebas Pustaka", "en": "Library Clearance Letter"},
     "anggota.naik_kelas": {"id": "Naik Kelas", "en": "Promote Class"},
     "anggota.rekap": {"id": "Rekap Anggota", "en": "Member Recap"},
+    "anggota.empty.title": {
+        "id": "Belum ada anggota",
+        "en": "No members yet",
+    },
+    "anggota.empty.desc": {
+        "id": "Tambahkan anggota baru dengan mengisi form di sebelah kiri, atau impor dari Excel.",
+        "en": "Add a new member using the form on the left, or import from Excel.",
+    },
+    "anggota.empty.search.title": {
+        "id": "Tidak ada hasil",
+        "en": "No results",
+    },
+    "anggota.empty.search.desc": {
+        "id": "Coba kata kunci yang berbeda atau hapus filter pencarian.",
+        "en": "Try a different keyword or clear the search filter.",
+    },
     # ----------------------------- buku ------------------------------------
     "buku.kode": {"id": "Kode Buku", "en": "Book Code"},
     "buku.judul": {"id": "Judul", "en": "Title"},
