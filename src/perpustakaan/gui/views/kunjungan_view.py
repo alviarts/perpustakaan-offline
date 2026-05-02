@@ -120,6 +120,6 @@ class KunjunganView(ctk.CTkFrame):
             self.kelas.delete(0, "end")
             self.jumlah.delete(0, "end")
             self._reload()
-            widgets.info(self, t("toast.saved"))
+            widgets.show_toast(self, t("toast.saved"), kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal simpan kunjungan")

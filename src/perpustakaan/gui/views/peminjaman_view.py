@@ -177,10 +177,10 @@ class PeminjamanView(ctk.CTkFrame):
     # ---------------- Submit ----------------
     def _submit(self) -> None:
         if self._anggota is None:
-            widgets.warn(self, "Cari anggota dulu.")
+            widgets.show_toast(self, "Cari anggota dulu.", kind="warning")
             return
         if not self._items:
-            widgets.warn(self, "Tambah minimal 1 buku.")
+            widgets.show_toast(self, "Tambah minimal 1 buku.", kind="warning")
             return
         try:
             from perpustakaan.services import auth as auth_service
@@ -192,11 +192,12 @@ class PeminjamanView(ctk.CTkFrame):
                 petugas_id=user.id if user else None,
                 tambah_kunjungan=bool(self.add_kunjungan.get()),
             )
-            widgets.info(
+            widgets.show_toast(
                 self,
-                f"Peminjaman tersimpan (ID #{pid}). "
-                f"{len(self._items)} buku dipinjam oleh {self._anggota['nama']}.",
+                f"Peminjaman #{pid} tersimpan: {len(self._items)} buku oleh {self._anggota['nama']}.",
+                kind="success",
+                duration_ms=4500,
             )
             self._reset()
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal simpan peminjaman")

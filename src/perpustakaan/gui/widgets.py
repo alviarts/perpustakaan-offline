@@ -6,6 +6,7 @@ list data dengan scrollbar) — CustomTkinter belum punya tabel data nativ.
 from __future__ import annotations
 
 import contextlib
+import logging
 from collections.abc import Callable, Iterable
 from tkinter import ttk
 from typing import Any
@@ -13,6 +14,8 @@ from typing import Any
 import customtkinter as ctk
 
 from perpustakaan.i18n import t
+
+_log = logging.getLogger("perpustakaan.gui")
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +198,78 @@ class StatCard(ctk.CTkFrame):
 
 
 # ---------------------------------------------------------------------------
-# Toast / messagebox
+# Toast (non-blocking, auto-dismiss)
+# ---------------------------------------------------------------------------
+_TOAST_COLORS = {
+    "info":    {"bg": ("#dbeafe", "#1e3a8a"), "fg": ("#1e3a8a", "#dbeafe"), "border": "#2563eb"},
+    "success": {"bg": ("#dcfce7", "#14532d"), "fg": ("#14532d", "#dcfce7"), "border": "#16a34a"},
+    "warning": {"bg": ("#fef3c7", "#78350f"), "fg": ("#78350f", "#fef3c7"), "border": "#d97706"},
+    "error":   {"bg": ("#fee2e2", "#7f1d1d"), "fg": ("#7f1d1d", "#fee2e2"), "border": "#dc2626"},
+}
+
+
+def show_toast(
+    parent: Any,
+    message: str,
+    *,
+    kind: str = "info",
+    duration_ms: int = 3000,
+) -> None:
+    """Tampilkan toast notification non-blocking di pojok kanan-bawah window.
+
+    Args:
+        parent: widget atau window induk.
+        message: teks pesan (max ~200 karakter).
+        kind: ``"info"`` / ``"success"`` / ``"warning"`` / ``"error"``.
+        duration_ms: durasi tampil dalam milidetik sebelum auto-dismiss.
+    """
+    palette = _TOAST_COLORS.get(kind, _TOAST_COLORS["info"])
+    try:
+        # Cari toplevel-nya parent (kasus parent berupa frame nested)
+        top = parent.winfo_toplevel()
+    except Exception:  # noqa: BLE001 - widget belum di-realize
+        _log.warning("show_toast: parent tidak punya toplevel, fallback log: %s", message)
+        return
+
+    toast = ctk.CTkFrame(
+        top,
+        fg_color=palette["bg"],
+        border_color=palette["border"],
+        border_width=2,
+        corner_radius=8,
+    )
+    label = ctk.CTkLabel(
+        toast,
+        text=message,
+        text_color=palette["fg"],
+        font=ctk.CTkFont(size=13, weight="bold"),
+        anchor="w",
+        justify="left",
+        wraplength=320,
+    )
+    label.pack(padx=14, pady=10)
+
+    def _place() -> None:
+        try:
+            top.update_idletasks()
+            tw = max(toast.winfo_reqwidth(), 200)
+            th = max(toast.winfo_reqheight(), 40)
+            tlx = max(top.winfo_width() - tw - 16, 16)
+            tly = max(top.winfo_height() - th - 16, 16)
+            toast.place(x=tlx, y=tly)
+        except Exception:  # noqa: BLE001
+            toast.place(relx=1.0, rely=1.0, x=-16, y=-16, anchor="se")
+
+    def _dismiss() -> None:
+        with contextlib.suppress(Exception):
+            toast.destroy()
+
+    _place()
+    top.after(max(duration_ms, 500), _dismiss)
+
+
+# ---------------------------------------------------------------------------
+# Modal dialog (info / warn / error / confirm)
 # ---------------------------------------------------------------------------
 def info(parent: Any, message: str, title: str | None = None) -> None:
     from tkinter import messagebox
@@ -221,6 +295,53 @@ def confirm(parent: Any, message: str, title: str | None = None) -> bool:
     return bool(
         messagebox.askyesno(title or t("common.confirm"), message, parent=parent)
     )
+
+
+# ---------------------------------------------------------------------------
+# Exception reporter — log + show user-friendly toast / modal
+# ---------------------------------------------------------------------------
+# Exception types yang biasanya berarti "user input error" — pesan singkat
+# saja sudah cukup, tidak perlu modal merah dan tidak perlu link ke log.
+_USER_INPUT_EXC = (ValueError, TypeError, KeyError)
+
+
+def report_exception(
+    parent: Any,
+    exc: BaseException,
+    context: str = "",
+    *,
+    use_modal: bool = False,
+) -> None:
+    """Log full exception ke ``app.log`` lalu tampilkan toast/modal user-friendly.
+
+    Args:
+        parent: widget induk untuk toast/modal.
+        exc: exception yang ditangkap.
+        context: deskripsi singkat operasi (mis "simpan anggota") — akan
+            ditampilkan ke user sebagai prefix supaya jelas operasi mana.
+        use_modal: kalau True, pakai messagebox modal (untuk error kritis
+            yang user wajib acknowledge). Default False = toast.
+    """
+    _log.exception("[%s] %s", context or "operation failed", exc)
+
+    if isinstance(exc, _USER_INPUT_EXC):
+        msg = str(exc) or t("common.error")
+        kind = "warning"
+    else:
+        # Exception tidak terduga — kasih hint ke log
+        msg = (
+            f"{context or 'Terjadi kesalahan'}: {exc}\n"
+            f"Detail tersimpan di app.log."
+        )
+        kind = "error"
+
+    if use_modal:
+        if kind == "error":
+            error(parent, msg)
+        else:
+            warn(parent, msg)
+    else:
+        show_toast(parent, msg, kind=kind, duration_ms=4500)
 
 
 def fmt_rupiah(value: int | float) -> str:

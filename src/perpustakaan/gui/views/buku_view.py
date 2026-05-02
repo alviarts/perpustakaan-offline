@@ -160,19 +160,19 @@ class BukuView(ctk.CTkFrame):
         data["deskripsi"] = self.deskripsi.get("1.0", "end").strip() or None
 
         if not data.get("judul"):
-            widgets.warn(self, t("toast.required", field="judul"))
+            widgets.show_toast(self, t("toast.required", field="judul"), kind="warning")
             return
         try:
             if self._editing_id:
                 buku_repo.update(self._editing_id, data)
-                widgets.info(self, t("toast.updated"))
+                widgets.show_toast(self, t("toast.updated"), kind="success")
             else:
                 buku_repo.create(data)
-                widgets.info(self, t("toast.saved"))
+                widgets.show_toast(self, t("toast.saved"), kind="success")
             self._reset_form()
             self._reload()
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal simpan buku")
 
     def _delete(self) -> None:
         sel = self.table.selected()
@@ -184,28 +184,29 @@ class BukuView(ctk.CTkFrame):
             buku_repo.delete(int(sel["id"]))
             self._reset_form()
             self._reload()
-            widgets.info(self, t("toast.deleted_one"))
+            widgets.show_toast(self, t("toast.deleted_one"), kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal hapus buku")
 
     # ---------------- Cetak ----------------
     def _cetak_label(self) -> None:
         sel = self.table.selected()
         if sel is None:
-            widgets.warn(self, "Pilih buku terlebih dahulu.")
+            widgets.show_toast(self, "Pilih buku terlebih dahulu.", kind="warning")
             return
         try:
             path = pdf_service.cetak_label_buku(sel)
             _open_file(path)
+            widgets.show_toast(self, f"Label tersimpan: {path.name}", kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal cetak label buku")
 
     def _transfer_penerbit(self) -> None:
         try:
             n = buku_repo.transfer_penerbit()
-            widgets.info(self, f"{n} penerbit ditambahkan ke master.")
+            widgets.show_toast(self, f"{n} penerbit ditambahkan ke master.", kind="success")
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal transfer penerbit")
 
     # ---------------- Import / Template ----------------
     def _do_import(self) -> None:
@@ -224,18 +225,19 @@ class BukuView(ctk.CTkFrame):
             )
             self._reload()
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal impor Excel buku", use_modal=True)
 
     def _download_template(self) -> None:
         try:
             path = excel_service.template_buku()
-            widgets.info(self, f"Template disimpan di:\n{path}")
+            widgets.show_toast(self, f"Template disimpan: {path}", kind="success", duration_ms=4500)
             _open_file(path)
         except Exception as e:
-            widgets.error(self, str(e))
+            widgets.report_exception(self, e, "Gagal generate template Excel")
 
 
 def _open_file(path) -> None:
+    import logging as _logging
     try:
         if sys.platform.startswith("win"):
             os.startfile(str(path))  # type: ignore[attr-defined]
@@ -243,5 +245,7 @@ def _open_file(path) -> None:
             os.system(f'open "{path}"')
         else:
             os.system(f'xdg-open "{path}"')
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        _logging.getLogger("perpustakaan.gui").warning(
+            "Gagal buka file %s: %s", path, exc
+        )
