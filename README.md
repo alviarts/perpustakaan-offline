@@ -129,12 +129,12 @@ Pastikan release yang sudah keluar benar-benar tahan dipakai user awam.
 
 Beberapa flow di v0.1 cuma ada di backend; UI-nya belum lengkap.
 
-- [ ] **UI Naik Kelas batch** — backend `models/anggota.py::naik_kelas()` ada; bikin form di `gui/views/anggota_view.py` untuk pilih mapping kelas lama → baru
-- [ ] **Bebas Pustaka full flow** — validasi otomatis: blokir kalau ada peminjaman aktif, generate PDF surat dari `services/pdf_service.py::generate_bebas_pustaka()`
-- [ ] **Cetak Nota peminjaman/pengembalian dari UI** — `pdf_service` sudah ada `generate_nota_peminjaman()`; tinggal tambah tombol "Cetak Nota" di `gui/views/peminjaman_view.py` & `pengembalian_view.py`
-- [ ] **Cek Data Ganda** — deteksi anggota/buku duplikat (by NISN, NIK, ISBN, kombinasi nama+kelas) hasil import Excel; UI table di Settings → Tools
-- [ ] **Reminder jatuh tempo otomatis** — popup notifikasi di dashboard saat login, list peminjaman jatuh tempo H+0, H+1, H+3
-- [ ] **Audit log viewer** — table `audit_log` sudah ada di schema; bikin view tab di Settings untuk inspeksi siapa-melakukan-apa-kapan
+- [x] **UI Naik Kelas batch** — dialog mapping kelas lama → baru di toolbar Anggota (PR #9)
+- [x] **Bebas Pustaka full flow** — validasi otomatis: blokir kalau ada peminjaman aktif (PR #10)
+- [x] **Cetak Nota peminjaman/pengembalian dari UI** — prompt cetak nota PDF setelah simpan/proses (PR #11)
+- [x] **Cek Data Ganda** — deteksi duplikat anggota (nama+kelas) dan buku (ISBN/judul+pengarang); UI di Settings → Tools (PR #12)
+- [x] **Reminder jatuh tempo otomatis** — toast popup di dashboard saat login, list H+0 s/d H+3 (PR #13)
+- [x] **Audit log viewer** — tab Audit Log di Settings: siapa-melakukan-apa-kapan dengan search (PR #14)
 
 ### Jalur C — Dokumentasi & Onboarding (~0.5 hari)
 
@@ -157,6 +157,7 @@ Beberapa flow di v0.1 cuma ada di backend; UI-nya belum lengkap.
 
 | Versi | Tanggal | Highlights |
 |-------|---------|-----------|
+| **v0.3.0** | 2026-05-02 | feat(gui): UI Naik Kelas batch · feat(gui): Bebas Pustaka validasi peminjaman aktif · feat(gui): Cetak Nota di Peminjaman & Pengembalian · feat(gui): Cek Data Ganda (Settings → Tools) · feat(gui): Reminder jatuh tempo otomatis saat login · feat(gui): Audit Log viewer (Settings → Audit Log) |
 | **v0.2.0** | 2026-05-02 | feat(seed): `--demo` flag untuk seed 5 anggota + 10 buku + 2 peminjaman aktif · feat(gui): toast notification non-blocking + exception reporter dengan log ke `app.log` · test: full GUI smoke test passed di Xvfb (17 test cases) · fix: StyledTreeview crash pada duplicate iid · ci: Linux build artifact ditambahkan ke release |
 | **v0.1.1** | 2026-05-02 | docs: user manual + Google Sheets setup guide + Inno Setup installer |
 | **v0.1.0** | 2026-05-02 | Initial scaffold lengkap, semua menu functional, DB SQLite + seed DDC, .exe Windows tersedia di [Releases](https://github.com/alviarts/perpustakaan-offline/releases) |
