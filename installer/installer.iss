@@ -12,7 +12,7 @@
 
 #define MyAppName "Perpustakaan Offline"
 #define MyAppShortName "PerpustakaanOffline"
-#define MyAppVersion "0.4.1"
+#define MyAppVersion "0.4.2"
 #define MyAppPublisher "alviarts"
 #define MyAppURL "https://github.com/alviarts/perpustakaan-offline"
 #define MyAppExeName "PerpustakaanOffline.exe"
@@ -68,6 +68,15 @@ Source: "..\docs\manual.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifs
 Source: "..\docs\google-sheets-setup.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\docs\quickstart.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\docs\quickstart.pdf"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
+
+; Font Inter (modern UI font) — install ke user fonts dir supaya UI lebih enak dilihat.
+; PrivilegesRequired=lowest -> {autofonts} resolve ke per-user fonts (Win10+).
+; Flags onlyifdoesntexist + uninsneveruninstall: aman, tidak hapus font saat uninstall.
+Source: "..\assets\fonts\Inter-Regular.otf"; DestDir: "{autofonts}"; FontInstall: "Inter"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "..\assets\fonts\Inter-Medium.otf"; DestDir: "{autofonts}"; FontInstall: "Inter Medium"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "..\assets\fonts\Inter-SemiBold.otf"; DestDir: "{autofonts}"; FontInstall: "Inter SemiBold"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "..\assets\fonts\Inter-Bold.otf"; DestDir: "{autofonts}"; FontInstall: "Inter Bold"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "..\assets\fonts\Inter-LICENSE.txt"; DestDir: "{app}\assets\fonts"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import customtkinter as ctk
 
-from perpustakaan.gui.widgets import StatCard, StyledTreeview, fmt_rupiah
+from perpustakaan.gui.widgets import HeadingBar, StatCard, StyledTreeview, fmt_rupiah
 from perpustakaan.i18n import t
 from perpustakaan.models import dashboard
 from perpustakaan.models import peminjaman as peminjaman_repo
@@ -16,14 +16,13 @@ class DashboardView(ctk.CTkFrame):
         self._first_show = True
 
         # Header
-        header = ctk.CTkFrame(self, fg_color="transparent")
+        header = HeadingBar(
+            self, text=t("menu.dashboard"),
+            menu_key="dashboard", main_window=app,
+        )
         header.pack(fill="x", padx=24, pady=(20, 8))
-        ctk.CTkLabel(
-            header, text=t("menu.dashboard"),
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(side="left")
         ctk.CTkButton(
-            header, text=t("common.refresh"), width=100, command=self.on_show
+            header.extras, text=t("common.refresh"), width=100, command=self.on_show
         ).pack(side="right")
 
         # Stat cards (3 baris x 4 kolom = 9 cards)

@@ -22,12 +22,10 @@ class PeminjamanView(ctk.CTkFrame):
         self._anggota: dict | None = None
         self._items: list[dict] = []  # buku_id -> dict
 
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=24, pady=(20, 8))
-        ctk.CTkLabel(
-            header, text=t("menu.transaksi.peminjaman"),
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(side="left")
+        widgets.HeadingBar(
+            self, text=t("menu.transaksi.peminjaman"),
+            menu_key="peminjaman", main_window=app,
+        ).pack(fill="x", padx=24, pady=(20, 8))
 
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.pack(fill="both", expand=True, padx=24, pady=8)

@@ -21,10 +21,10 @@ class LaporanView(ctk.CTkFrame):
         super().__init__(parent, fg_color="transparent")
         self.app = app
 
-        ctk.CTkLabel(
+        widgets.HeadingBar(
             self, text=t("menu.laporan"),
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(anchor="w", padx=24, pady=(20, 8))
+            menu_key="laporan", main_window=app,
+        ).pack(fill="x", padx=24, pady=(20, 8))
 
         self.tabs = ctk.CTkTabview(self)
         self.tabs.pack(fill="both", expand=True, padx=24, pady=8)

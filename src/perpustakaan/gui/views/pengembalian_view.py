@@ -24,12 +24,10 @@ class PengembalianView(ctk.CTkFrame):
         self.app = app
         self._anggota: dict | None = None
 
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=24, pady=(20, 8))
-        ctk.CTkLabel(
-            header, text=f"{t('menu.transaksi.pengembalian')} & {t('menu.transaksi.buku_hilang')}",
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(side="left")
+        widgets.HeadingBar(
+            self, text=f"{t('menu.transaksi.pengembalian')} & {t('menu.transaksi.buku_hilang')}",
+            menu_key="pengembalian", main_window=app,
+        ).pack(fill="x", padx=24, pady=(20, 8))
 
         # Search anggota
         toolbar = ctk.CTkFrame(self, fg_color="transparent")

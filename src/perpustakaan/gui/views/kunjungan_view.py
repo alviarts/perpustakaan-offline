@@ -15,12 +15,10 @@ class KunjunganView(ctk.CTkFrame):
         super().__init__(parent, fg_color="transparent")
         self.app = app
 
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=24, pady=(20, 8))
-        ctk.CTkLabel(
-            header, text=t("menu.transaksi.kunjungan"),
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(side="left")
+        widgets.HeadingBar(
+            self, text=t("menu.transaksi.kunjungan"),
+            menu_key="kunjungan", main_window=app,
+        ).pack(fill="x", padx=24, pady=(20, 8))
 
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.pack(fill="both", expand=True, padx=24, pady=8)
