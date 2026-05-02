@@ -16,7 +16,7 @@ from typing import Final
 
 APP_NAME: Final = "PerpustakaanOffline"
 APP_DISPLAY_NAME: Final = "Perpustakaan Offline"
-APP_VERSION: Final = "0.2.0"
+APP_VERSION: Final = "0.3.0"
 
 
 # ---------------------------------------------------------------------------
