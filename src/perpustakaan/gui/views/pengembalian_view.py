@@ -5,6 +5,9 @@ scan eksemplar -> input bayar -> simpan.
 """
 from __future__ import annotations
 
+import os
+import sys
+
 import customtkinter as ctk
 
 from perpustakaan.gui import widgets
@@ -12,6 +15,7 @@ from perpustakaan.gui.widgets import StyledTreeview, fmt_rupiah
 from perpustakaan.i18n import t
 from perpustakaan.models import anggota as anggota_repo
 from perpustakaan.models import peminjaman as peminjaman_repo
+from perpustakaan.services import pdf_service
 
 
 class PengembalianView(ctk.CTkFrame):
@@ -187,6 +191,46 @@ class ProsesDialog(ctk.CTkToplevel):
                     text=f"Buku ditandai hilang. Denda: {fmt_rupiah(res['denda'])}",
                     text_color="#f59e0b",
                 )
-            self.after(1000, self.destroy)
+            self._offer_nota(res)
+            self.after(1500, self.destroy)
         except Exception as e:
             self.message.configure(text=str(e), text_color="#ef4444")
+
+    def _offer_nota(self, res: dict) -> None:
+        if not widgets.confirm(self, "Cetak nota pengembalian?"):
+            return
+        try:
+            peminjaman_id = int(self.item.get("peminjaman_id") or self.item.get("id", 0))
+            header = peminjaman_repo.get_header(peminjaman_id)
+            if header is None:
+                return
+            items = peminjaman_repo.list_items(peminjaman_id)
+            anggota = {}
+            if self.parent_view._anggota:
+                anggota = self.parent_view._anggota
+            path = pdf_service.cetak_nota(
+                judul_nota="Nota Pengembalian",
+                nomor=header["nomor_pinjam"],
+                tanggal=header.get("tanggal_kembali") or header["tanggal_pinjam"],
+                anggota=anggota,
+                items=items,
+                total_denda=int(res.get("denda", 0)),
+            )
+            _open_file(path)
+        except Exception as e:
+            widgets.report_exception(self, e, "Gagal cetak nota")
+
+
+def _open_file(path) -> None:
+    import logging as _logging
+    try:
+        if sys.platform.startswith("win"):
+            os.startfile(str(path))  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            os.system(f'open "{path}"')
+        else:
+            os.system(f'xdg-open "{path}"')
+    except Exception as exc:  # noqa: BLE001
+        _logging.getLogger("perpustakaan.gui").warning(
+            "Gagal buka file %s: %s", path, exc
+        )

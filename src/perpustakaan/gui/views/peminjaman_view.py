@@ -1,6 +1,9 @@
 """View transaksi peminjaman."""
 from __future__ import annotations
 
+import os
+import sys
+
 import customtkinter as ctk
 
 from perpustakaan.gui import widgets
@@ -9,6 +12,7 @@ from perpustakaan.i18n import t
 from perpustakaan.models import anggota as anggota_repo
 from perpustakaan.models import buku as buku_repo
 from perpustakaan.models import peminjaman as peminjaman_repo
+from perpustakaan.services import pdf_service
 
 
 class PeminjamanView(ctk.CTkFrame):
@@ -198,6 +202,42 @@ class PeminjamanView(ctk.CTkFrame):
                 kind="success",
                 duration_ms=4500,
             )
+            self._cetak_nota_peminjaman(pid)
             self._reset()
         except Exception as e:
             widgets.report_exception(self, e, "Gagal simpan peminjaman")
+
+    def _cetak_nota_peminjaman(self, peminjaman_id: int) -> None:
+        if not widgets.confirm(self, "Cetak nota peminjaman?"):
+            return
+        try:
+            header = peminjaman_repo.get_header(peminjaman_id)
+            if header is None:
+                return
+            items = peminjaman_repo.list_items(peminjaman_id)
+            path = pdf_service.cetak_nota(
+                judul_nota="Nota Peminjaman",
+                nomor=header["nomor_pinjam"],
+                tanggal=header["tanggal_pinjam"],
+                anggota=self._anggota or {},
+                items=items,
+            )
+            _open_file(path)
+            widgets.show_toast(self, f"Nota tersimpan: {path.name}", kind="success")
+        except Exception as e:
+            widgets.report_exception(self, e, "Gagal cetak nota peminjaman")
+
+
+def _open_file(path) -> None:
+    import logging as _logging
+    try:
+        if sys.platform.startswith("win"):
+            os.startfile(str(path))  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            os.system(f'open "{path}"')
+        else:
+            os.system(f'xdg-open "{path}"')
+    except Exception as exc:  # noqa: BLE001
+        _logging.getLogger("perpustakaan.gui").warning(
+            "Gagal buka file %s: %s", path, exc
+        )
