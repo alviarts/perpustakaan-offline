@@ -107,14 +107,74 @@ perpustakaan-offline/
 
 ## Roadmap
 
-| Versi | Fokus |
-|-------|-------|
-| **v0.1** (sekarang) | Scaffold lengkap, CRUD anggota/buku, transaksi peminjaman/pengembalian, dashboard, settings dasar |
-| **v0.2** | Cetak KTA + Label Barcode + Invoice (PDF), import Excel, grafik kunjungan, laporan kas |
-| **v0.3** | Bebas Pustaka, Naik Kelas, Kunjungan Kelas, cek data ganda, reminder jatuh tempo |
-| **v0.4** | Manual export ke Google Sheets (Opsi C) |
-| **v0.5** | Auto 2-way sync ke spreadsheet pribadi user (Opsi A) — opsional |
-| **v1.0** | Polish UI, multi-bahasa lengkap, dokumentasi user manual |
+Roadmap dikelompokkan ke dalam **4 jalur kerja paralel** supaya gampang diambil
+sebagian-sebagian (oleh kontributor manusia maupun AI agent seperti Devin).
+Tiap item bisa dikerjakan tanpa menunggu jalur lain selesai.
+
+### Jalur A — Hardening & Validasi (highest ROI, ~1 hari)
+
+Pastikan release yang sudah keluar benar-benar tahan dipakai user awam.
+
+- [ ] End-to-end smoke test: jalankan `.exe` di Windows asli, klik semua menu, verifikasi tiap CRUD + peminjaman + dashboard, dokumentasikan bug
+- [ ] Tambah **seed demo data** (5 anggota dummy + 10 buku dummy) di `src/perpustakaan/db/seed.py` flag `--demo`, sehingga user yang baru download bisa langsung coba alur peminjaman tanpa input data dulu
+- [ ] **Polish error handling** — banyak `try/except` yang masih silent; ganti jadi toast notification user-friendly via `gui/widgets.show_toast(...)`
+- [ ] **Auto-release workflow** — tambah job di `.github/workflows/ci.yml` yang trigger `on: push: tags: ['v*']` → otomatis bikin GitHub Release + upload `.exe` + installer. Tinggal `git tag v0.x.0 && git push --tags`
+- [ ] CI matrix tambahin macOS (kalau perlu) dan Linux build (untuk distribusi non-Windows)
+
+### Jalur B — Lengkapi Fitur Skeleton (~2-3 hari)
+
+Beberapa flow di v0.1 cuma ada di backend; UI-nya belum lengkap.
+
+- [ ] **UI Naik Kelas batch** — backend `models/anggota.py::naik_kelas()` ada; bikin form di `gui/views/anggota_view.py` untuk pilih mapping kelas lama → baru
+- [ ] **Bebas Pustaka full flow** — validasi otomatis: blokir kalau ada peminjaman aktif, generate PDF surat dari `services/pdf_service.py::generate_bebas_pustaka()`
+- [ ] **Cetak Nota peminjaman/pengembalian dari UI** — `pdf_service` sudah ada `generate_nota_peminjaman()`; tinggal tambah tombol "Cetak Nota" di `gui/views/peminjaman_view.py` & `pengembalian_view.py`
+- [ ] **Cek Data Ganda** — deteksi anggota/buku duplikat (by NISN, NIK, ISBN, kombinasi nama+kelas) hasil import Excel; UI table di Settings → Tools
+- [ ] **Reminder jatuh tempo otomatis** — popup notifikasi di dashboard saat login, list peminjaman jatuh tempo H+0, H+1, H+3
+- [ ] **Audit log viewer** — table `audit_log` sudah ada di schema; bikin view tab di Settings untuk inspeksi siapa-melakukan-apa-kapan
+
+### Jalur C — Dokumentasi & Onboarding (~0.5 hari)
+
+- [ ] **User manual** lengkap di `docs/manual.md` (bilingual ID/EN) dengan screenshot tiap menu
+- [ ] **Setup guide Google Sheets** di `docs/google-sheets-setup.md` (langkah dapatkan `client_secret.json` dari Google Cloud Console)
+- [ ] **Demo screencast** 3-5 menit (alur peminjaman end-to-end) di-attach ke release page
+- [ ] **Quickstart** untuk pustakawan yang gak technical (1-pager PDF)
+- [ ] **Inno Setup installer** (`installer/installer.iss`) — Windows installer dengan Setup wizard, Start Menu shortcut, registered uninstaller
+
+### Jalur D — Fitur Lanjutan (~3-5 hari, opsional)
+
+- [ ] **Opsi A: Sync 2-arah Google Sheets** — auto-sync background, conflict resolution last-write-wins by `updated_at`. Sebagai upgrade dari Opsi C yang sudah ada
+- [ ] **Multi-perpustakaan / multi-cabang** — kalau sekolah punya >1 perpus
+- [ ] **Mobile companion (PWA)** — siswa lihat status peminjaman sendiri, scan QR untuk pinjam mandiri
+- [ ] **Backup terjadwal** — auto-backup harian/mingguan ke folder lokal atau cloud
+- [ ] **Import dari SIM-Perpus.xlsb asli** — script konversi data lama → SQLite untuk migrasi user existing
+- [ ] **Code signing certificate** — sign `.exe` supaya Windows Defender / SmartScreen tidak warning
+
+### Versi yang sudah dirilis
+
+| Versi | Tanggal | Highlights |
+|-------|---------|-----------|
+| **v0.1.0** | 2026-05-02 | Initial scaffold lengkap, semua menu functional, DB SQLite + seed DDC, .exe Windows tersedia di [Releases](https://github.com/alviarts/perpustakaan-offline/releases) |
+
+---
+
+## Untuk Kontributor / AI Agent
+
+Kalau kamu meneruskan kerjaan dari titik ini:
+
+1. **Baca dulu** `docs/manual.md` (kalau sudah ada) atau eksplor `src/perpustakaan/` untuk paham struktur
+2. **Pilih satu item** dari roadmap di atas (preferensi: Jalur A → B → C → D), atau buat issue baru
+3. **Setup environment**: `python -m venv .venv && pip install -r requirements.txt`
+4. **Run tests**: `pytest tests/ -q` (harus all green sebelum & sesudah perubahan)
+5. **Lint**: `ruff check src/ tests/` (harus clean)
+6. **Run app lokal**: `python -m perpustakaan` (login `admin` / `admin123`)
+7. **PR** ke `main` dengan deskripsi yang jelas dan checkbox testing — CI di `.github/workflows/ci.yml` otomatis verify lint + pytest + Windows build
+8. **Tag baru**: setelah merge, kalau perlu rilis: `git tag vX.Y.Z && git push --tags` lalu manual upload `.exe` ke Release page (auto-release workflow di Jalur A masih TODO)
+
+Konvensi:
+- Tanggal/waktu disimpan sebagai TEXT ISO-8601, uang INTEGER rupiah
+- Kode anggota auto `A0001`, kode buku auto `B0001`, kode eksemplar `B0001-01`/`-02`/...
+- DB path runtime: lihat `src/perpustakaan/config.py::_user_data_root()` (handles Windows/macOS/Linux)
+- **JANGAN commit** `client_secret.json`, `token.json`, `*.db`, atau file binary apa pun
 
 ---
 

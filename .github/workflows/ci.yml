@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -40,10 +41,10 @@ jobs:
         run: pytest tests/ -q
 
   build-windows:
-    name: Build .exe (Windows)
+    name: Build .exe + Installer (Windows)
     needs: lint-test
     runs-on: windows-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     steps:
       - uses: actions/checkout@v4
 
@@ -58,13 +59,66 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build with PyInstaller
+      - name: Build portable .exe (PyInstaller)
         run: pyinstaller build.spec --noconfirm
 
-      - name: Upload artifact
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Compile installer (Inno Setup)
+        shell: cmd
+        run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\installer.iss'
+
+      - name: Upload portable .exe artifact
         uses: actions/upload-artifact@v4
         with:
           name: perpustakaan-offline-windows
           path: dist/PerpustakaanOffline.exe
           if-no-files-found: error
           retention-days: 30
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perpustakaan-offline-installer
+          path: installer/Output/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download portable .exe
+        uses: actions/download-artifact@v4
+        with:
+          name: perpustakaan-offline-windows
+          path: artifacts/portable
+
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: perpustakaan-offline-installer
+          path: artifacts/installer
+
+      - name: List artifacts
+        run: |
+          ls -la artifacts/portable/
+          ls -la artifacts/installer/
+
+      - name: Create / update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          files: |
+            artifacts/portable/PerpustakaanOffline.exe
+            artifacts/installer/*.exe
