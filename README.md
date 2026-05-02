@@ -149,7 +149,7 @@ Beberapa flow di v0.1 cuma ada di backend; UI-nya belum lengkap.
 - [ ] **Opsi A: Sync 2-arah Google Sheets** — auto-sync background, conflict resolution last-write-wins by `updated_at`. Sebagai upgrade dari Opsi C yang sudah ada
 - [ ] **Multi-perpustakaan / multi-cabang** — kalau sekolah punya >1 perpus
 - [ ] **Mobile companion (PWA)** — siswa lihat status peminjaman sendiri, scan QR untuk pinjam mandiri
-- [ ] **Backup terjadwal** — auto-backup harian/mingguan ke folder lokal atau cloud
+- [x] **Backup terjadwal** — auto-backup harian/mingguan ke folder lokal (v0.4.0)
 - [ ] **Import dari SIM-Perpus.xlsb asli** — script konversi data lama → SQLite untuk migrasi user existing
 - [ ] **Code signing certificate** — sign `.exe` supaya Windows Defender / SmartScreen tidak warning
 
@@ -157,6 +157,7 @@ Beberapa flow di v0.1 cuma ada di backend; UI-nya belum lengkap.
 
 | Versi | Tanggal | Highlights |
 |-------|---------|-----------|
+| **v0.4.0** | 2026-05-02 | feat(backup): backup terjadwal harian/mingguan dengan retensi otomatis, catch-up saat startup, audit log + toast tiap selesai backup · feat(ui): tombol toggle tema **Sistem / Terang / Gelap** mengambang di pojok kanan atas — selalu visible di menu manapun · feat(ui): tutorial / guided tour interaktif yang muncul otomatis di first-run dengan tombol Lewati / Sebelumnya / Berikutnya, juga bisa diulang dari Setting → Bahasa & Tema |
 | **v0.3.1** | 2026-05-02 | docs: manual.md update + 4 screenshot fitur v0.3.0 · docs: review Google Sheets setup guide · docs: demo screencast 4 menit (`docs/demo/`) · docs: quickstart 1-pager PDF (`docs/quickstart.pdf`) · installer: bump Inno Setup AppVersion ke v0.3.1 + bundle quickstart docs |
 | **v0.3.0** | 2026-05-02 | feat(gui): UI Naik Kelas batch · feat(gui): Bebas Pustaka validasi peminjaman aktif · feat(gui): Cetak Nota di Peminjaman & Pengembalian · feat(gui): Cek Data Ganda (Settings → Tools) · feat(gui): Reminder jatuh tempo otomatis saat login · feat(gui): Audit Log viewer (Settings → Audit Log) |
 | **v0.2.0** | 2026-05-02 | feat(seed): `--demo` flag untuk seed 5 anggota + 10 buku + 2 peminjaman aktif · feat(gui): toast notification non-blocking + exception reporter dengan log ke `app.log` · test: full GUI smoke test passed di Xvfb (17 test cases) · fix: StyledTreeview crash pada duplicate iid · ci: Linux build artifact ditambahkan ke release |

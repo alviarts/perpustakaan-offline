@@ -1,7 +1,10 @@
-"""View Setting: identitas, KTA, transaksi, akun, bahasa/tema, sync."""
+"""View Setting: identitas, KTA, transaksi, akun, bahasa/tema, sync, backup."""
 from __future__ import annotations
 
 import contextlib
+import os
+import sys
+from pathlib import Path
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -14,6 +17,15 @@ from perpustakaan.models import audit_log as audit_log_repo
 from perpustakaan.models import buku as buku_repo
 from perpustakaan.models import settings as settings_repo
 from perpustakaan.services import auth as auth_service
+from perpustakaan.services import backup_service
+from perpustakaan.services.backup_scheduler import (
+    SCHEDULE_DAILY,
+    SCHEDULE_OFF,
+    SCHEDULE_WEEKLY,
+    BackupConfig,
+    compute_next_run,
+    get_scheduler,
+)
 
 
 class SettingsView(ctk.CTkFrame):
@@ -34,6 +46,7 @@ class SettingsView(ctk.CTkFrame):
         self.tabs.add(t("menu.setting.akun"))
         self.tabs.add(t("menu.setting.bahasa"))
         self.tabs.add(t("menu.setting.sync"))
+        self.tabs.add(t("backup.tab.title"))
         self.tabs.add("Tools")
         self.tabs.add("Audit Log")
 
@@ -43,6 +56,7 @@ class SettingsView(ctk.CTkFrame):
         self._build_akun(self.tabs.tab(t("menu.setting.akun")))
         self._build_bahasa(self.tabs.tab(t("menu.setting.bahasa")))
         self._build_sync(self.tabs.tab(t("menu.setting.sync")))
+        self._build_backup(self.tabs.tab(t("backup.tab.title")))
         self._build_tools(self.tabs.tab("Tools"))
         self._build_audit_log(self.tabs.tab("Audit Log"))
 
@@ -53,6 +67,7 @@ class SettingsView(ctk.CTkFrame):
         self._reload_akun()
         self._load_bahasa()
         self._load_sync()
+        self._load_backup()
         self._reload_tools()
         self._reload_audit_log()
 
@@ -237,6 +252,22 @@ class SettingsView(ctk.CTkFrame):
             row=3, column=1, padx=4, pady=12, sticky="e"
         )
 
+        # Tutorial restart
+        ctk.CTkLabel(
+            wrap, text=t("tour.restart.help"), wraplength=520, justify="left",
+            text_color=("#6b7280", "#9ca3af"),
+        ).grid(row=4, column=0, columnspan=2, padx=4, pady=(16, 2), sticky="w")
+        ctk.CTkButton(
+            wrap, text=t("tour.restart"), command=self._restart_tour,
+        ).grid(row=5, column=0, columnspan=2, padx=4, pady=(2, 12), sticky="w")
+
+    def _restart_tour(self) -> None:
+        # Reset flag completed lalu mulai tour ulang.
+        with contextlib.suppress(Exception):
+            settings_repo.set_value("tutorial.completed", "")
+        with contextlib.suppress(Exception):
+            self.app.start_tour()
+
     def _load_bahasa(self) -> None:
         cur_locale = settings_repo.get_value("ui.locale", "id") or "id"
         self.bahasa_menu.set(f"{cur_locale} — {LOCALE_NAMES.get(cur_locale, cur_locale)}")
@@ -329,6 +360,281 @@ class SettingsView(ctk.CTkFrame):
             self._load_sync()
         except Exception as e:
             self.sync_result.configure(text=f"Error: {e}", text_color="#ef4444")
+
+    # ------------------ Backup Terjadwal ------------------
+    _FREQ_OPTIONS = (SCHEDULE_OFF, SCHEDULE_DAILY, SCHEDULE_WEEKLY)
+
+    def _freq_label(self, key: str) -> str:
+        return {
+            SCHEDULE_OFF: t("backup.freq.off"),
+            SCHEDULE_DAILY: t("backup.freq.daily"),
+            SCHEDULE_WEEKLY: t("backup.freq.weekly"),
+        }.get(key, key)
+
+    def _freq_key(self, label: str) -> str:
+        for k in self._FREQ_OPTIONS:
+            if self._freq_label(k) == label:
+                return k
+        return SCHEDULE_OFF
+
+    def _weekday_label(self, idx: int) -> str:
+        return t(f"backup.weekday.{idx}")
+
+    def _weekday_idx(self, label: str) -> int:
+        for i in range(7):
+            if self._weekday_label(i) == label:
+                return i
+        return 0
+
+    @staticmethod
+    def _fmt_size(size_bytes: int) -> str:
+        size = float(size_bytes)
+        for unit in ("B", "KB", "MB", "GB"):
+            if size < 1024:
+                return f"{size:,.1f} {unit}" if unit != "B" else f"{int(size)} {unit}"
+            size /= 1024
+        return f"{size:,.1f} TB"
+
+    def _build_backup(self, parent) -> None:
+        wrap = ctk.CTkScrollableFrame(parent)
+        wrap.pack(fill="both", expand=True, padx=10, pady=10)
+
+        ctk.CTkLabel(
+            wrap, text=t("backup.help"), wraplength=720, justify="left",
+            text_color=("#374151", "#d1d5db"),
+        ).pack(anchor="w", pady=(4, 12))
+
+        # Frekuensi
+        row = ctk.CTkFrame(wrap, fg_color="transparent")
+        row.pack(fill="x", padx=4, pady=4)
+        ctk.CTkLabel(row, text=t("backup.frequency") + ":", width=180, anchor="w").pack(side="left")
+        self.backup_freq_menu = ctk.CTkOptionMenu(
+            row,
+            values=[self._freq_label(k) for k in self._FREQ_OPTIONS],
+            command=lambda _v: self._update_backup_visibility(),
+            width=200,
+        )
+        self.backup_freq_menu.pack(side="left", padx=4)
+
+        # Jam (HH:MM)
+        row = ctk.CTkFrame(wrap, fg_color="transparent")
+        row.pack(fill="x", padx=4, pady=4)
+        ctk.CTkLabel(row, text=t("backup.time") + ":", width=180, anchor="w").pack(side="left")
+        self.backup_time_entry = ctk.CTkEntry(row, width=120, placeholder_text="02:00")
+        self.backup_time_entry.pack(side="left", padx=4)
+
+        # Hari (weekly)
+        self.backup_weekday_row = ctk.CTkFrame(wrap, fg_color="transparent")
+        self.backup_weekday_row.pack(fill="x", padx=4, pady=4)
+        ctk.CTkLabel(
+            self.backup_weekday_row, text=t("backup.weekday") + ":", width=180, anchor="w",
+        ).pack(side="left")
+        self.backup_weekday_menu = ctk.CTkOptionMenu(
+            self.backup_weekday_row,
+            values=[self._weekday_label(i) for i in range(7)],
+            width=200,
+        )
+        self.backup_weekday_menu.pack(side="left", padx=4)
+
+        # Folder tujuan
+        row = ctk.CTkFrame(wrap, fg_color="transparent")
+        row.pack(fill="x", padx=4, pady=4)
+        ctk.CTkLabel(row, text=t("backup.folder") + ":", width=180, anchor="w").pack(side="left")
+        self.backup_folder_entry = ctk.CTkEntry(row, width=380)
+        self.backup_folder_entry.pack(side="left", padx=4)
+        ctk.CTkButton(
+            row, text="…", width=32, command=self._pick_backup_folder,
+        ).pack(side="left", padx=2)
+        ctk.CTkLabel(
+            wrap, text=t("backup.folder.default"),
+            text_color=("#6b7280", "#9ca3af"), font=ctk.CTkFont(size=11),
+        ).pack(anchor="w", padx=(184, 4), pady=(0, 4))
+
+        # Retensi
+        row = ctk.CTkFrame(wrap, fg_color="transparent")
+        row.pack(fill="x", padx=4, pady=4)
+        ctk.CTkLabel(row, text=t("backup.retention") + ":", width=180, anchor="w").pack(side="left")
+        self.backup_retention_entry = ctk.CTkEntry(row, width=80, placeholder_text="7")
+        self.backup_retention_entry.pack(side="left", padx=4)
+
+        # Tombol Simpan + Backup Sekarang
+        btnrow = ctk.CTkFrame(wrap, fg_color="transparent")
+        btnrow.pack(fill="x", padx=4, pady=12)
+        ctk.CTkButton(
+            btnrow, text=t("backup.button.save"),
+            command=self._save_backup, width=180,
+        ).pack(side="left", padx=2)
+        ctk.CTkButton(
+            btnrow, text=t("backup.button.now"),
+            command=self._do_backup_now, width=180,
+            fg_color="#10b981", hover_color="#059669",
+        ).pack(side="left", padx=2)
+        ctk.CTkButton(
+            btnrow, text=t("backup.button.open_folder"),
+            command=self._open_backup_folder, width=140,
+            fg_color="transparent", border_width=1,
+        ).pack(side="left", padx=2)
+
+        # Status terakhir + jadwal berikutnya
+        self.backup_last_label = ctk.CTkLabel(
+            wrap, text="", anchor="w", justify="left",
+        )
+        self.backup_last_label.pack(anchor="w", padx=4, pady=(2, 0))
+        self.backup_next_label = ctk.CTkLabel(
+            wrap, text="", anchor="w", justify="left",
+            text_color=("#6b7280", "#9ca3af"),
+        )
+        self.backup_next_label.pack(anchor="w", padx=4, pady=(0, 8))
+
+        # Daftar backup tersimpan
+        ctk.CTkLabel(
+            wrap, text=t("backup.list.title"),
+            font=ctk.CTkFont(size=13, weight="bold"),
+        ).pack(anchor="w", padx=4, pady=(8, 2))
+        self.backup_table = StyledTreeview(
+            wrap,
+            columns=[
+                ("name", t("backup.col.name"), 280),
+                ("size", t("backup.col.size"), 100),
+                ("mtime", t("backup.col.mtime"), 160),
+            ],
+            height=8,
+        )
+        self.backup_table.pack(fill="x", padx=4, pady=2)
+
+    def _update_backup_visibility(self) -> None:
+        freq_key = self._freq_key(self.backup_freq_menu.get())
+        if freq_key == SCHEDULE_WEEKLY:
+            if not self.backup_weekday_row.winfo_ismapped():
+                self.backup_weekday_row.pack(fill="x", padx=4, pady=4, before=self.backup_folder_entry.master)
+        else:
+            with contextlib.suppress(Exception):
+                self.backup_weekday_row.pack_forget()
+
+    def _load_backup(self) -> None:
+        cfg = BackupConfig.from_settings()
+        self.backup_freq_menu.set(self._freq_label(cfg.schedule))
+        self.backup_time_entry.delete(0, "end")
+        self.backup_time_entry.insert(0, f"{cfg.hour:02d}:{cfg.minute:02d}")
+        self.backup_weekday_menu.set(self._weekday_label(cfg.weekday))
+        self.backup_folder_entry.delete(0, "end")
+        self.backup_folder_entry.insert(0, cfg.folder)
+        self.backup_retention_entry.delete(0, "end")
+        self.backup_retention_entry.insert(0, str(cfg.retention))
+        self._update_backup_visibility()
+        self._refresh_backup_status(cfg)
+        self._refresh_backup_list(cfg)
+
+    def _refresh_backup_status(self, cfg: BackupConfig | None = None) -> None:
+        cfg = cfg or BackupConfig.from_settings()
+        last_at = settings_repo.get_value("backup.last_run_at") or ""
+        last_status = settings_repo.get_value("backup.last_run_status") or ""
+        if last_at:
+            status_label = (
+                t("backup.status.success") if last_status == "success"
+                else t("backup.status.failed")
+            )
+            self.backup_last_label.configure(
+                text=f"{t('backup.last_run')}: {last_at} — {status_label}",
+            )
+        else:
+            self.backup_last_label.configure(
+                text=f"{t('backup.last_run')}: {t('backup.never')}",
+            )
+        nxt = compute_next_run(cfg)
+        if nxt is None:
+            self.backup_next_label.configure(text=f"{t('backup.next_run')}: —")
+        else:
+            self.backup_next_label.configure(
+                text=f"{t('backup.next_run')}: {nxt.strftime('%Y-%m-%d %H:%M')}",
+            )
+
+    def _refresh_backup_list(self, cfg: BackupConfig | None = None) -> None:
+        cfg = cfg or BackupConfig.from_settings()
+        try:
+            rows = backup_service.list_backups(cfg.folder or None)
+        except Exception:  # noqa: BLE001
+            rows = []
+        display = [
+            {
+                "name": r["name"],
+                "size": self._fmt_size(r["size_bytes"]),
+                "mtime": r["mtime_str"],
+            }
+            for r in rows
+        ]
+        self.backup_table.set_rows(display)
+
+    def _pick_backup_folder(self) -> None:
+        path = filedialog.askdirectory(title=t("backup.folder"))
+        if path:
+            self.backup_folder_entry.delete(0, "end")
+            self.backup_folder_entry.insert(0, path)
+
+    def _open_backup_folder(self) -> None:
+        cfg = BackupConfig.from_settings()
+        folder = backup_service.resolve_backup_folder(cfg.folder or None)
+        with contextlib.suppress(OSError):
+            folder.mkdir(parents=True, exist_ok=True)
+        _open_path(folder)
+
+    def _save_backup(self) -> None:
+        time_str = self.backup_time_entry.get().strip()
+        try:
+            hh_str, mm_str = time_str.split(":", 1)
+            hh = int(hh_str)
+            mm = int(mm_str)
+            if not (0 <= hh <= 23 and 0 <= mm <= 59):
+                raise ValueError
+        except ValueError:
+            widgets.show_toast(self, t("backup.invalid_time"), kind="warning")
+            return
+        try:
+            retention = max(0, int(self.backup_retention_entry.get().strip() or "0"))
+        except ValueError:
+            retention = 7
+
+        freq_key = self._freq_key(self.backup_freq_menu.get())
+        weekday = self._weekday_idx(self.backup_weekday_menu.get())
+        folder = self.backup_folder_entry.get().strip()
+
+        settings_repo.set_many(
+            {
+                "backup.schedule": freq_key,
+                "backup.time": f"{hh:02d}:{mm:02d}",
+                "backup.weekday": str(weekday),
+                "backup.folder": folder,
+                "backup.retention": str(retention),
+            }
+        )
+        with contextlib.suppress(Exception):
+            get_scheduler().reload()
+        widgets.show_toast(self, t("toast.saved"), kind="success")
+        self._refresh_backup_status()
+
+    def _do_backup_now(self) -> None:
+        try:
+            user = auth_service.current_user()
+            uid = user.id if user else None
+            result = get_scheduler().trigger_now(user_id=uid)
+        except Exception as exc:  # noqa: BLE001
+            widgets.report_exception(self, exc, "Gagal backup", use_modal=True)
+            return
+        if result.get("status") == "success":
+            name = Path(result.get("path", "")).name or ""
+            msg = (
+                t("backup.toast.success", name=name)
+                if name
+                else t("backup.toast.success_noname")
+            )
+            widgets.show_toast(self, msg, kind="success", duration_ms=4500)
+        else:
+            widgets.show_toast(
+                self, t("backup.toast.failed", error=result.get("error", "")),
+                kind="error", duration_ms=6000,
+            )
+        self._refresh_backup_status()
+        self._refresh_backup_list()
 
     # ------------------ Tools (Cek Data Ganda) ------------------
     def _build_tools(self, parent) -> None:
@@ -545,3 +851,20 @@ class ChangePasswordDialog(ctk.CTkToplevel):
                 "password_too_short": "Password baru minimal 6 karakter.",
             }
             self.message.configure(text=mapping.get(str(e), str(e)))
+
+
+def _open_path(path) -> None:
+    """Buka folder di file manager native (cross-platform)."""
+    import logging as _logging
+    try:
+        target = str(path)
+        if sys.platform.startswith("win"):
+            os.startfile(target)  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            os.system(f"open \"{target}\"")
+        else:
+            os.system(f"xdg-open \"{target}\"")
+    except Exception as exc:  # noqa: BLE001
+        _logging.getLogger("perpustakaan.gui").warning(
+            "Gagal buka folder %s: %s", path, exc
+        )

@@ -176,6 +176,207 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
             "authorization."
         ),
     },
+    # ----------------------------- theme toggle ----------------------------
+    "theme.system": {"id": "Sistem", "en": "System"},
+    "theme.light": {"id": "Terang", "en": "Light"},
+    "theme.dark": {"id": "Gelap", "en": "Dark"},
+    "theme.applied": {"id": "Tema diterapkan.", "en": "Theme applied."},
+    # ----------------------------- tutorial / guided tour ------------------
+    "tour.welcome.title": {
+        "id": "Selamat datang di Perpustakaan Offline!",
+        "en": "Welcome to Library Offline!",
+    },
+    "tour.welcome.body": {
+        "id": (
+            "Tutorial singkat ini akan menjelaskan menu utama dan tombol "
+            "penting. Klik 'Berikutnya' untuk lanjut, atau 'Lewati' untuk "
+            "menutup tutorial. Kamu bisa mengulang tutorial ini kapan saja "
+            "dari Setting → Bahasa & Tema."
+        ),
+        "en": (
+            "This short tour will walk you through the main menus and key "
+            "buttons. Click 'Next' to continue or 'Skip' to dismiss. You can "
+            "replay this tour anytime from Settings → Language & Theme."
+        ),
+    },
+    "tour.dashboard.title": {"id": "Menu Dashboard", "en": "Dashboard"},
+    "tour.dashboard.body": {
+        "id": "Ringkasan harian: total anggota, buku, peminjaman aktif, terlambat, dan kunjungan hari ini.",
+        "en": "Daily summary: total members, books, active loans, overdue, and visits today.",
+    },
+    "tour.anggota.title": {"id": "Data Anggota", "en": "Members"},
+    "tour.anggota.body": {
+        "id": (
+            "Kelola data anggota: tambah, edit, hapus, import Excel, cetak "
+            "kartu (KTA). Tombol 'Naik Kelas' di toolbar memindahkan kelas "
+            "siswa secara batch. 'Surat Bebas Pustaka' mencetak surat keterangan "
+            "untuk anggota yang sudah lunas."
+        ),
+        "en": (
+            "Manage member data: add, edit, delete, import Excel, print member "
+            "cards (KTA). The 'Promote Class' toolbar button moves students to "
+            "a new class in batch. 'Library Clearance Letter' prints clearance "
+            "letters for cleared members."
+        ),
+    },
+    "tour.buku.title": {"id": "Data Buku", "en": "Books"},
+    "tour.buku.body": {
+        "id": (
+            "Kelola koleksi buku: input judul, ISBN, klasifikasi DDC, jumlah "
+            "eksemplar. Cetak label & barcode tiap eksemplar. Tombol 'Transfer "
+            "Penerbit' membantu menyatukan data ganda akibat penulisan penerbit "
+            "yang beda-beda."
+        ),
+        "en": (
+            "Manage your book collection: title, ISBN, DDC classification, "
+            "number of copies. Print labels and barcodes per copy. The "
+            "'Transfer Publishers' button helps unify duplicate publisher "
+            "spellings."
+        ),
+    },
+    "tour.peminjaman.title": {"id": "Peminjaman", "en": "Borrow"},
+    "tour.peminjaman.body": {
+        "id": (
+            "Catat peminjaman buku: scan barcode atau pilih manual, atur "
+            "jatuh tempo, dan langsung cetak nota peminjaman PDF."
+        ),
+        "en": (
+            "Record book loans: scan barcode or pick manually, set the due "
+            "date, and instantly print a borrow receipt PDF."
+        ),
+    },
+    "tour.pengembalian.title": {"id": "Pengembalian", "en": "Return"},
+    "tour.pengembalian.body": {
+        "id": (
+            "Proses pengembalian dengan denda otomatis kalau terlambat. "
+            "Setelah simpan, nota pengembalian PDF langsung tersedia."
+        ),
+        "en": (
+            "Process returns with automatic late fines. After saving, the "
+            "return receipt PDF is ready for printing."
+        ),
+    },
+    "tour.laporan.title": {"id": "Laporan", "en": "Reports"},
+    "tour.laporan.body": {
+        "id": (
+            "Backup database manual, ekspor semua data ke Excel, lihat grafik "
+            "kunjungan tahunan/bulanan, top peminjam, top buku, dan laporan "
+            "kas."
+        ),
+        "en": (
+            "Manual database backup, export everything to Excel, view yearly/"
+            "monthly visit charts, top borrowers, top books, and cash reports."
+        ),
+    },
+    "tour.setting.title": {"id": "Setting", "en": "Settings"},
+    "tour.setting.body": {
+        "id": (
+            "Identitas perpustakaan, kartu anggota, parameter transaksi (lama "
+            "pinjam, denda), manajemen akun, bahasa & tema, sync Google Sheets, "
+            "Backup Terjadwal, Cek Data Ganda, dan Audit Log."
+        ),
+        "en": (
+            "Library identity, member card, transaction parameters (loan "
+            "duration, fines), account management, language & theme, Google "
+            "Sheets sync, Scheduled Backup, Duplicate Check, and Audit Log."
+        ),
+    },
+    "tour.theme.title": {"id": "Tema Terang / Gelap", "en": "Light / Dark Theme"},
+    "tour.theme.body": {
+        "id": (
+            "Tombol ini selalu ada di pojok kanan atas, di menu manapun. "
+            "Pilih 'Sistem' (ikut OS), 'Terang', atau 'Gelap' sesuai "
+            "kenyamanan mata kamu."
+        ),
+        "en": (
+            "This control is always pinned to the top-right corner, on every "
+            "menu. Choose 'System' (follow OS), 'Light', or 'Dark' depending "
+            "on what's most comfortable."
+        ),
+    },
+    "tour.done.title": {"id": "Tutorial Selesai!", "en": "Tour Complete!"},
+    "tour.done.body": {
+        "id": (
+            "Selamat menggunakan Perpustakaan Offline. Kamu bisa mengulang "
+            "tutorial ini kapan saja dari Setting → Bahasa & Tema → 'Mulai "
+            "Ulang Tutorial'."
+        ),
+        "en": (
+            "Enjoy using Library Offline. You can replay this tour anytime "
+            "from Settings → Language & Theme → 'Restart Tutorial'."
+        ),
+    },
+    "tour.button.skip": {"id": "Lewati", "en": "Skip"},
+    "tour.button.prev": {"id": "Sebelumnya", "en": "Previous"},
+    "tour.button.next": {"id": "Berikutnya", "en": "Next"},
+    "tour.button.finish": {"id": "Selesai", "en": "Finish"},
+    "tour.progress": {"id": "Langkah {current} dari {total}", "en": "Step {current} of {total}"},
+    "tour.restart": {"id": "Mulai Ulang Tutorial", "en": "Restart Tutorial"},
+    "tour.restart.help": {
+        "id": "Buka kembali tour singkat untuk mengenal menu dan fitur penting.",
+        "en": "Replay the short tour explaining menus and key features.",
+    },
+    # ----------------------------- backup ----------------------------------
+    "backup.tab.title": {"id": "Backup Terjadwal", "en": "Scheduled Backup"},
+    "backup.help": {
+        "id": (
+            "Aplikasi bisa otomatis membuat backup database SQLite secara harian "
+            "atau mingguan ke folder lokal. File lama akan dihapus otomatis sesuai "
+            "jumlah retensi yang dipilih."
+        ),
+        "en": (
+            "The app can automatically back up the SQLite database daily or "
+            "weekly to a local folder. Older files are pruned automatically "
+            "based on the retention setting."
+        ),
+    },
+    "backup.frequency": {"id": "Frekuensi", "en": "Frequency"},
+    "backup.freq.off": {"id": "Mati", "en": "Off"},
+    "backup.freq.daily": {"id": "Harian", "en": "Daily"},
+    "backup.freq.weekly": {"id": "Mingguan", "en": "Weekly"},
+    "backup.time": {"id": "Jam (HH:MM, 24-jam)", "en": "Time (HH:MM, 24-hour)"},
+    "backup.weekday": {"id": "Hari", "en": "Day"},
+    "backup.folder": {"id": "Folder Tujuan", "en": "Target Folder"},
+    "backup.folder.default": {
+        "id": "Kosongkan untuk pakai folder backup default.",
+        "en": "Leave blank to use the default backup folder.",
+    },
+    "backup.retention": {"id": "Retensi (jumlah file disimpan)", "en": "Retention (files to keep)"},
+    "backup.button.save": {"id": "Simpan Pengaturan", "en": "Save Settings"},
+    "backup.button.now": {"id": "Backup Sekarang", "en": "Backup Now"},
+    "backup.button.open_folder": {"id": "Buka Folder", "en": "Open Folder"},
+    "backup.list.title": {"id": "Backup Tersimpan", "en": "Stored Backups"},
+    "backup.col.name": {"id": "Nama File", "en": "File Name"},
+    "backup.col.size": {"id": "Ukuran", "en": "Size"},
+    "backup.col.mtime": {"id": "Tanggal", "en": "Date"},
+    "backup.last_run": {"id": "Backup terakhir", "en": "Last backup"},
+    "backup.next_run": {"id": "Backup berikutnya", "en": "Next backup"},
+    "backup.never": {"id": "Belum pernah", "en": "Never"},
+    "backup.status.success": {"id": "Sukses", "en": "Success"},
+    "backup.status.failed": {"id": "Gagal", "en": "Failed"},
+    "backup.invalid_time": {
+        "id": "Format jam tidak valid. Gunakan HH:MM (mis. 02:00).",
+        "en": "Invalid time format. Use HH:MM (e.g. 02:00).",
+    },
+    "backup.toast.success": {
+        "id": "Backup terjadwal sukses: {name}",
+        "en": "Scheduled backup succeeded: {name}",
+    },
+    "backup.toast.success_noname": {
+        "id": "Backup terjadwal sukses.",
+        "en": "Scheduled backup succeeded.",
+    },
+    "backup.toast.failed": {
+        "id": "Backup terjadwal gagal: {error}",
+        "en": "Scheduled backup failed: {error}",
+    },
+    "backup.weekday.0": {"id": "Senin", "en": "Monday"},
+    "backup.weekday.1": {"id": "Selasa", "en": "Tuesday"},
+    "backup.weekday.2": {"id": "Rabu", "en": "Wednesday"},
+    "backup.weekday.3": {"id": "Kamis", "en": "Thursday"},
+    "backup.weekday.4": {"id": "Jumat", "en": "Friday"},
+    "backup.weekday.5": {"id": "Sabtu", "en": "Saturday"},
+    "backup.weekday.6": {"id": "Minggu", "en": "Sunday"},
     # ----------------------------- toasts ----------------------------------
     "toast.saved": {"id": "Data tersimpan.", "en": "Data saved."},
     "toast.updated": {"id": "Data diperbarui.", "en": "Data updated."},

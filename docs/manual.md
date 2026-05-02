@@ -15,20 +15,21 @@ sesuai urutan menu di sidebar.
 
 1. [Instalasi & Jalankan Pertama Kali](#instalasi--jalankan-pertama-kali)
 2. [Login & Akun](#login--akun)
-3. [Dashboard](#dashboard)
-4. [Master Data — Anggota](#master-data--anggota)
-5. [Master Data — Buku](#master-data--buku)
-6. [Transaksi — Kunjungan](#transaksi--kunjungan)
-7. [Transaksi — Peminjaman](#transaksi--peminjaman)
-8. [Transaksi — Pengembalian](#transaksi--pengembalian)
-9. [Laporan](#laporan)
-10. [Setting](#setting)
-11. [Tools — Cek Data Ganda](#tools--cek-data-ganda)
-12. [Audit Log Viewer](#audit-log-viewer)
-13. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
-14. [Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)](#cetak-kta-label-barcode-bebas-pustaka-nota)
-15. [Sync ke Google Sheets (Opsional)](#sync-ke-google-sheets-opsional)
-16. [Troubleshooting](#troubleshooting)
+3. [Tutorial Onboarding & Toggle Tema (v0.4.0)](#tutorial-onboarding--toggle-tema-v040)
+4. [Dashboard](#dashboard)
+5. [Master Data — Anggota](#master-data--anggota)
+6. [Master Data — Buku](#master-data--buku)
+7. [Transaksi — Kunjungan](#transaksi--kunjungan)
+8. [Transaksi — Peminjaman](#transaksi--peminjaman)
+9. [Transaksi — Pengembalian](#transaksi--pengembalian)
+10. [Laporan](#laporan)
+11. [Setting](#setting)
+12. [Tools — Cek Data Ganda](#tools--cek-data-ganda)
+13. [Audit Log Viewer](#audit-log-viewer)
+14. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
+15. [Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)](#cetak-kta-label-barcode-bebas-pustaka-nota)
+16. [Sync ke Google Sheets (Opsional)](#sync-ke-google-sheets-opsional)
+17. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -81,6 +82,45 @@ Klik **"More info"** → **"Run anyway"**. Ini normal untuk software open-source
 Klik **"Daftar Akun Baru"** di layar login untuk register operator/pustakawan tambahan.
 Akun pertama otomatis menjadi **administrator**; akun berikutnya berperan **operator**
 (tidak bisa hapus akun lain atau reset DB).
+
+---
+
+## Tutorial Onboarding & Toggle Tema (v0.4.0)
+
+### Tutorial Otomatis di First Run
+
+Saat aplikasi dibuka pertama kali, akan muncul **tour interaktif** yang
+menjelaskan tiap menu utama dan tombol penting satu per satu. Tiap popup
+nempel di tombol/menu yang sedang dijelaskan, dengan kontrol:
+
+- **Lewati** — tutup tutorial, tidak akan muncul lagi otomatis.
+- **Sebelumnya** — kembali ke step sebelumnya.
+- **Berikutnya** — lanjut ke step selanjutnya.
+- **Selesai** — di langkah terakhir; menutup tutorial.
+
+Tour mencakup: Dashboard → Anggota → Buku → Peminjaman → Pengembalian →
+Laporan → Setting → Toggle Tema, dengan deskripsi singkat untuk fitur-fitur
+penting di tiap menu (mis. tombol **Naik Kelas**, **Surat Bebas Pustaka**,
+**Cetak Label & Barcode**).
+
+### Mengulang Tutorial
+
+Buka **Setting → tab "Bahasa & Tema"**, lalu klik tombol
+**Mulai Ulang Tutorial** di paling bawah. Tour akan diputar ulang dari
+langkah pertama.
+
+### Toggle Tema (Sistem / Terang / Gelap)
+
+Di **pojok kanan atas window** ada tombol segmented dengan 3 pilihan:
+
+- **Sistem** — ikut setting OS (auto-switch siang/malam di Windows 10/11).
+- **Terang** — paksa light mode.
+- **Gelap** — paksa dark mode.
+
+Tombol ini **selalu muncul di menu manapun** (Dashboard, Anggota, Buku,
+Setting, dst.) sehingga kamu bisa ganti tema kapan saja tanpa harus
+buka Setting. Pilihan disimpan di tabel `settings` (`ui.theme`) dan
+diingat untuk sesi-sesi berikutnya.
 
 ---
 
@@ -407,6 +447,41 @@ Klik **Simpan** → UI berubah live tanpa restart.
 
 Untuk export manual ke Google Sheets — lihat
 [Sync ke Google Sheets](#sync-ke-google-sheets-opsional).
+
+### Tab "Backup Terjadwal" (v0.4.0)
+
+Aplikasi bisa **otomatis membuat backup database SQLite** secara harian atau
+mingguan ke folder lokal. File lama akan dihapus otomatis sesuai jumlah
+retensi yang dipilih.
+
+| Field          | Pilihan / Format                                            |
+|----------------|-------------------------------------------------------------|
+| Frekuensi      | `Mati` / `Harian` / `Mingguan`                              |
+| Jam            | `HH:MM` 24-jam (mis. `02:00`)                               |
+| Hari (mingguan)| `Senin` … `Minggu` — hanya muncul saat frekuensi mingguan   |
+| Folder Tujuan  | Path folder; kosongkan untuk pakai folder backup default    |
+| Retensi        | Jumlah file backup yang dipertahankan (sisanya dihapus)     |
+
+Tombol:
+- **Simpan Pengaturan** → menyimpan jadwal & folder, scheduler langsung memuat
+  ulang konfigurasi tanpa restart aplikasi.
+- **Backup Sekarang** → buat backup manual saat ini juga (juga di-prune sesuai
+  retensi). Sukses/gagal akan tampil sebagai toast notification.
+- **Buka Folder** → buka folder backup di File Explorer.
+
+Status terbawah menampilkan **Backup terakhir** (timestamp + status sukses/
+gagal) dan **Backup berikutnya** (perkiraan kapan scheduler akan jalan).
+Daftar file backup tersimpan ditampilkan di tabel paling bawah lengkap dengan
+ukuran & tanggal.
+
+**Catatan operasional:**
+- Scheduler berjalan sebagai daemon thread di dalam aplikasi — backup hanya
+  jalan saat aplikasi terbuka. Kalau jadwal terlewat (mis. PC dimatikan
+  semalam), saat aplikasi dibuka lagi backup akan langsung dijalankan
+  sebagai *catch-up*.
+- Setiap operasi backup tercatat di **Audit Log** dengan aksi `backup_ok`
+  atau `backup_failed`, lengkap dengan trigger (`scheduled` / `manual` /
+  `catchup`) dan jumlah file lama yang ter-prune.
 
 ### Tab "Tools"
 
