@@ -166,9 +166,9 @@ class ProsesDialog(ctk.CTkToplevel):
             command=self.destroy,
             fg_color="transparent", border_width=1,
         ).pack(side="right", padx=4)
-        widgets.icon_button(
+        widgets.permission_button(
             btnbar, text=t("common.save"), lucide="save",
-            command=self._submit,
+            permission="pengembalian.proses", command=self._submit,
         ).pack(side="right", padx=4)
 
     def _submit(self) -> None:

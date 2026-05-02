@@ -93,9 +93,10 @@ class SettingsView(ctk.CTkFrame):
         btnrow = ctk.CTkFrame(wrap, fg_color="transparent")
         btnrow.pack(fill="x", padx=8, pady=10)
         ctk.CTkButton(btnrow, text="Pilih Logo…", command=self._pick_logo).pack(side="left", padx=2)
-        ctk.CTkButton(btnrow, text=t("common.save"), command=self._save_identitas).pack(
-            side="right", padx=2
-        )
+        widgets.permission_button(
+            btnrow, text=t("common.save"),
+            permission="setting.identitas", command=self._save_identitas,
+        ).pack(side="right", padx=2)
 
     def _load_identitas(self) -> None:
         for key, field in self.id_fields.items():
@@ -126,9 +127,10 @@ class SettingsView(ctk.CTkFrame):
         self.kta_text = ctk.CTkTextbox(wrap, height=240)
         self.kta_text.pack(fill="both", expand=True)
 
-        ctk.CTkButton(wrap, text=t("common.save"), command=self._save_kta).pack(
-            anchor="e", pady=8
-        )
+        widgets.permission_button(
+            wrap, text=t("common.save"),
+            permission="setting.kta", command=self._save_kta,
+        ).pack(anchor="e", pady=8)
 
     def _load_kta(self) -> None:
         self.kta_text.delete("1.0", "end")
@@ -156,9 +158,10 @@ class SettingsView(ctk.CTkFrame):
             f = LabeledEntry(wrap, label)
             f.pack(fill="x", padx=8, pady=4)
             self.trx_fields[key] = f
-        ctk.CTkButton(wrap, text=t("common.save"), command=self._save_transaksi).pack(
-            anchor="e", padx=8, pady=10
-        )
+        widgets.permission_button(
+            wrap, text=t("common.save"),
+            permission="setting.transaksi", command=self._save_transaksi,
+        ).pack(anchor="e", padx=8, pady=10)
 
     def _load_transaksi(self) -> None:
         for k, f in self.trx_fields.items():
@@ -180,15 +183,24 @@ class SettingsView(ctk.CTkFrame):
     def _build_akun(self, parent) -> None:
         toolbar = ctk.CTkFrame(parent, fg_color="transparent")
         toolbar.pack(fill="x", padx=10, pady=8)
-        widgets.icon_button(
+        widgets.permission_button(
             toolbar, text="Akun Baru", lucide="user-plus",
+            permission="setting.akun",
             command=self._add_user,
         ).pack(side="left", padx=2)
-        widgets.icon_button(
+        widgets.permission_button(
             toolbar, text="Hapus Akun", lucide="trash-2",
+            permission="setting.akun",
             command=self._del_user,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="left", padx=2)
+        widgets.permission_button(
+            toolbar, text=t("permissions.action.edit"), lucide="shield",
+            permission="setting.akun",
+            command=self._edit_permissions,
+        ).pack(side="left", padx=2)
+        # "Ganti Password Saya" tidak protected — siapapun yang login boleh
+        # ganti password sendiri.
         widgets.icon_button(
             toolbar, text="Ganti Password Saya", lucide="key-round",
             command=self._change_pw,
@@ -199,6 +211,7 @@ class SettingsView(ctk.CTkFrame):
                 ("username", "Username", 140),
                 ("full_name", "Nama Lengkap", 220),
                 ("role", "Role", 120),
+                ("permission_count", t("permissions.dialog.col.granted"), 80),
                 ("aktif", "Aktif", 60),
                 ("last_login_at", "Login Terakhir", 160),
                 ("created_at", "Dibuat", 160),
@@ -230,6 +243,23 @@ class SettingsView(ctk.CTkFrame):
             widgets.show_toast(self, t("toast.deleted_one"), kind="success")
         except Exception as e:
             widgets.report_exception(self, e, "Gagal hapus akun")
+
+    def _edit_permissions(self) -> None:
+        sel = self.akun_table.selected()
+        if sel is None:
+            widgets.show_toast(
+                self, "Pilih akun yang mau di-edit hak aksesnya dulu.",
+                kind="warning",
+            )
+            return
+        dlg = PermissionsDialog(
+            self,
+            user_id=int(sel["id"]),
+            username=str(sel.get("username", "")),
+            role=str(sel.get("role", "")),
+        )
+        dlg.wait_window()
+        self._reload_akun()
 
     def _change_pw(self) -> None:
         ChangePasswordDialog(self).wait_window()
@@ -473,12 +503,14 @@ class SettingsView(ctk.CTkFrame):
         # Tombol Simpan + Backup Sekarang
         btnrow = ctk.CTkFrame(wrap, fg_color="transparent")
         btnrow.pack(fill="x", padx=4, pady=12)
-        ctk.CTkButton(
+        widgets.permission_button(
             btnrow, text=t("backup.button.save"),
+            permission="setting.backup",
             command=self._save_backup, width=180,
         ).pack(side="left", padx=2)
-        ctk.CTkButton(
+        widgets.permission_button(
             btnrow, text=t("backup.button.now"),
+            permission="setting.backup",
             command=self._do_backup_now, width=180,
             fg_color="#10b981", hover_color="#059669",
         ).pack(side="left", padx=2)
@@ -793,7 +825,8 @@ class AccountDialog(ctk.CTkToplevel):
         self.username.pack(fill="x", padx=20, pady=4)
         self.password = LabeledEntry(self, "Password", show="*")
         self.password.pack(fill="x", padx=20, pady=4)
-        self.role_menu = ctk.CTkOptionMenu(self, values=["admin", "pustakawan"])
+        self.role_menu = ctk.CTkOptionMenu(self, values=["admin", "pustakawan", "siswa"])
+        self.role_menu.set("pustakawan")
         self.role_menu.pack(fill="x", padx=20, pady=4)
 
         self.message = ctk.CTkLabel(self, text="", text_color="#ef4444")
@@ -876,6 +909,157 @@ class ChangePasswordDialog(ctk.CTkToplevel):
                 "password_too_short": "Password baru minimal 6 karakter.",
             }
             self.message.configure(text=mapping.get(str(e), str(e)))
+
+
+class PermissionsDialog(ctk.CTkToplevel):
+    """Dialog edit hak akses granular per user (RBAC v0.4.3).
+
+    Layout: header info + tombol preset (Admin / Pustakawan / Siswa / Kosong)
+    + scrollable frame berisi checkbox per permission, di-grup per area.
+    """
+
+    def __init__(
+        self,
+        parent: SettingsView,
+        *,
+        user_id: int,
+        username: str,
+        role: str,
+    ) -> None:
+        super().__init__(parent)
+        self.parent_view = parent
+        self.user_id = user_id
+        self.username = username
+        self.role = role
+        self.title(t("permissions.dialog.title", username=username))
+        self.geometry("680x640")
+        self.transient(parent)
+        self.grab_set()
+
+        from perpustakaan.services import permissions as permissions_service
+        from perpustakaan.services.permissions_registry import (
+            permissions_by_area,
+        )
+
+        self._svc = permissions_service
+        self._by_area = permissions_by_area()
+
+        # Header
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.pack(fill="x", padx=18, pady=(14, 4))
+        ctk.CTkLabel(
+            header,
+            text=t("permissions.dialog.title", username=username),
+            font=ctk.CTkFont(size=15, weight="bold"),
+            anchor="w",
+        ).pack(side="left", fill="x", expand=True)
+        ctk.CTkLabel(
+            header,
+            text=f"{t('permissions.dialog.col.role')}: {role}",
+            text_color=("#6b7280", "#9ca3af"),
+        ).pack(side="right")
+
+        ctk.CTkLabel(
+            self, text=t("permissions.dialog.help"),
+            wraplength=620, justify="left",
+            text_color=("#6b7280", "#9ca3af"),
+        ).pack(fill="x", padx=18, pady=(2, 8))
+
+        # Preset buttons
+        preset_bar = ctk.CTkFrame(self, fg_color="transparent")
+        preset_bar.pack(fill="x", padx=18, pady=(0, 6))
+        ctk.CTkButton(
+            preset_bar, text=t("permissions.dialog.preset.admin"),
+            command=lambda: self._apply_preset("admin"),
+        ).pack(side="left", padx=2)
+        ctk.CTkButton(
+            preset_bar, text=t("permissions.dialog.preset.pustakawan"),
+            command=lambda: self._apply_preset("pustakawan"),
+        ).pack(side="left", padx=2)
+        ctk.CTkButton(
+            preset_bar, text=t("permissions.dialog.preset.siswa"),
+            command=lambda: self._apply_preset("siswa"),
+        ).pack(side="left", padx=2)
+        ctk.CTkButton(
+            preset_bar, text=t("permissions.dialog.preset.none"),
+            command=lambda: self._apply_preset(None),
+            fg_color="transparent", border_width=1,
+        ).pack(side="left", padx=2)
+
+        # Scrollable checkbox tree
+        self._vars: dict[str, ctk.BooleanVar] = {}
+        scroll = ctk.CTkScrollableFrame(self)
+        scroll.pack(fill="both", expand=True, padx=18, pady=(4, 8))
+
+        current = set(self._svc.user_permissions(user_id))
+        for area, perms in self._by_area.items():
+            if not perms:
+                continue
+            area_label = t(f"permissions.area.{area}")
+            section = ctk.CTkFrame(scroll, fg_color=("#f3f4f6", "#1f2937"))
+            section.pack(fill="x", padx=2, pady=4)
+            ctk.CTkLabel(
+                section, text=area_label,
+                font=ctk.CTkFont(size=13, weight="bold"),
+                anchor="w",
+            ).pack(fill="x", padx=10, pady=(6, 2))
+            for p in perms:
+                var = ctk.BooleanVar(value=(p.key in current))
+                self._vars[p.key] = var
+                cb = ctk.CTkCheckBox(section, text=p.label, variable=var)
+                cb.pack(fill="x", padx=18, pady=2, anchor="w")
+
+        # Footer
+        footer = ctk.CTkFrame(self, fg_color="transparent")
+        footer.pack(fill="x", padx=18, pady=(2, 14))
+        ctk.CTkButton(
+            footer, text=t("common.cancel"), command=self.destroy,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=4)
+        ctk.CTkButton(
+            footer, text=t("common.save"), command=self._submit,
+        ).pack(side="right", padx=4)
+
+    def _apply_preset(self, preset: str | None) -> None:
+        from perpustakaan.services.permissions_registry import (
+            default_permissions_for_role,
+        )
+
+        target = (
+            default_permissions_for_role(preset) if preset else frozenset()
+        )
+        for key, var in self._vars.items():
+            var.set(key in target)
+
+    def _submit(self) -> None:
+        desired = [k for k, v in self._vars.items() if v.get()]
+        try:
+            granter = (
+                auth_service.current_user().id
+                if auth_service.current_user() is not None
+                else None
+            )
+            granted, revoked = self._svc.set_user_permissions(
+                self.user_id, desired, granted_by=granter,
+            )
+            if granted == 0 and revoked == 0:
+                widgets.show_toast(
+                    self.parent_view,
+                    t("permissions.toast.no_change"),
+                    kind="info",
+                )
+            else:
+                widgets.show_toast(
+                    self.parent_view,
+                    t(
+                        "permissions.toast.saved",
+                        granted=granted, revoked=revoked,
+                    ),
+                    kind="success",
+                )
+            self.destroy()
+        except Exception as exc:  # noqa: BLE001
+            widgets.report_exception(self, exc, "Gagal simpan hak akses")
 
 
 def _open_path(path) -> None:

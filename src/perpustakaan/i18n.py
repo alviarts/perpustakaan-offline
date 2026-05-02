@@ -796,6 +796,71 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
     "backup.weekday.4": {"id": "Jumat", "en": "Friday"},
     "backup.weekday.5": {"id": "Sabtu", "en": "Saturday"},
     "backup.weekday.6": {"id": "Minggu", "en": "Sunday"},
+    # ----------------------------- permissions / RBAC ----------------------
+    "permissions.dialog.title": {
+        "id": "Edit Hak Akses — {username}",
+        "en": "Edit Permissions — {username}",
+    },
+    "permissions.dialog.help": {
+        "id": (
+            "Centang permission yang diberikan ke user ini. Tombol terkait "
+            "permission yang tidak dicentang akan ter-disable saat user login."
+        ),
+        "en": (
+            "Tick permissions granted to this user. Buttons tied to "
+            "unchecked permissions will be disabled when the user logs in."
+        ),
+    },
+    "permissions.dialog.preset.admin": {
+        "id": "Pakai Default Admin",
+        "en": "Use Admin Defaults",
+    },
+    "permissions.dialog.preset.pustakawan": {
+        "id": "Pakai Default Pustakawan",
+        "en": "Use Librarian Defaults",
+    },
+    "permissions.dialog.preset.siswa": {
+        "id": "Pakai Default Siswa",
+        "en": "Use Student Defaults",
+    },
+    "permissions.dialog.preset.none": {
+        "id": "Kosongkan Semua",
+        "en": "Clear All",
+    },
+    "permissions.dialog.col.role": {"id": "Role", "en": "Role"},
+    "permissions.dialog.col.granted": {
+        "id": "Hak Aktif",
+        "en": "Active Grants",
+    },
+    "permissions.action.edit": {
+        "id": "Edit Hak Akses…",
+        "en": "Edit Permissions…",
+    },
+    "permissions.toast.saved": {
+        "id": "Hak akses tersimpan ({granted} ditambah, {revoked} dicabut).",
+        "en": "Permissions saved ({granted} added, {revoked} revoked).",
+    },
+    "permissions.toast.no_change": {
+        "id": "Tidak ada perubahan hak akses.",
+        "en": "No permission changes.",
+    },
+    "permissions.toast.denied": {
+        "id": "Akses ditolak: {permission}",
+        "en": "Access denied: {permission}",
+    },
+    "permissions.toast.denied_short": {
+        "id": "Anda tidak punya hak akses untuk aksi ini.",
+        "en": "You don't have permission for this action.",
+    },
+    # Area headings
+    "permissions.area.anggota": {"id": "Data Anggota", "en": "Members"},
+    "permissions.area.buku": {"id": "Data Buku", "en": "Books"},
+    "permissions.area.kunjungan": {"id": "Kunjungan", "en": "Visits"},
+    "permissions.area.peminjaman": {"id": "Peminjaman", "en": "Borrow"},
+    "permissions.area.pengembalian": {"id": "Pengembalian", "en": "Return"},
+    "permissions.area.laporan": {"id": "Laporan", "en": "Reports"},
+    "permissions.area.setting": {"id": "Setting", "en": "Settings"},
+    "permissions.area.audit_log": {"id": "Audit Log", "en": "Audit Log"},
     # ----------------------------- toasts ----------------------------------
     "toast.saved": {"id": "Data tersimpan.", "en": "Data saved."},
     "toast.updated": {"id": "Data diperbarui.", "en": "Data updated."},

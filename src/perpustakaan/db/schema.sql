@@ -243,6 +243,38 @@ CREATE INDEX IF NOT EXISTS idx_kas_tgl     ON kas(tanggal);
 CREATE INDEX IF NOT EXISTS idx_kas_jenis   ON kas(jenis);
 
 -- ----------------------------------------------------------------------------
+-- Permissions (RBAC v0.4.3) — katalog permission keys yang dikenal aplikasi.
+-- Diisi otomatis oleh seed_permissions() berdasarkan registry Python.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS permissions (
+    key         TEXT PRIMARY KEY,           -- ex: anggota.tambah, buku.hapus
+    label       TEXT NOT NULL,              -- label ringkas (Bahasa Indonesia default)
+    description TEXT,
+    area        TEXT NOT NULL,              -- anggota | buku | kunjungan | peminjaman | pengembalian | laporan | setting | audit_log
+    sort_order  INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_permissions_area ON permissions(area);
+
+-- ----------------------------------------------------------------------------
+-- User permissions (RBAC v0.4.3) — grant tabel many-to-many user × permission.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_permissions (
+    user_id        INTEGER NOT NULL,
+    permission_key TEXT    NOT NULL,
+    granted_by     INTEGER,                  -- user_id yg memberikan grant (NULL = sistem/seed)
+    granted_at     TEXT    NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, permission_key),
+    FOREIGN KEY (user_id)        REFERENCES users(id)         ON DELETE CASCADE,
+    FOREIGN KEY (permission_key) REFERENCES permissions(key)  ON DELETE CASCADE,
+    FOREIGN KEY (granted_by)     REFERENCES users(id)         ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_permissions_user ON user_permissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_permissions_key  ON user_permissions(permission_key);
+
+-- ----------------------------------------------------------------------------
 -- Audit log (siapa-melakukan-apa)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS audit_log (

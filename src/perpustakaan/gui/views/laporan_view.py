@@ -61,19 +61,27 @@ class LaporanView(ctk.CTkFrame):
             wraplength=720, justify="left",
         ).pack(anchor="w", pady=(4, 12))
 
-        ctk.CTkButton(
-            wrap, text="Backup Database (.db)", command=self._do_backup_db, width=240
+        widgets.permission_button(
+            wrap, text="Backup Database (.db)",
+            permission="setting.backup",
+            command=self._do_backup_db, width=240,
         ).pack(anchor="w", pady=4)
-        ctk.CTkButton(
-            wrap, text="Ekspor Semua Data (.xlsx)", command=self._do_export_xlsx, width=240
+        widgets.permission_button(
+            wrap, text="Ekspor Semua Data (.xlsx)",
+            permission="laporan.ekspor",
+            command=self._do_export_xlsx, width=240,
         ).pack(anchor="w", pady=4)
-        ctk.CTkButton(
+        widgets.permission_button(
             wrap, text="Reset Data Transaksi (aman)",
-            command=self._do_reset_safe, fg_color="#f59e0b", hover_color="#d97706", width=240,
+            permission="setting.backup",
+            command=self._do_reset_safe,
+            fg_color="#f59e0b", hover_color="#d97706", width=240,
         ).pack(anchor="w", pady=4)
-        ctk.CTkButton(
+        widgets.permission_button(
             wrap, text="Reset Total (HATI-HATI)",
-            command=self._do_reset_full, fg_color="#dc2626", hover_color="#991b1b", width=240,
+            permission="setting.backup",
+            command=self._do_reset_full,
+            fg_color="#dc2626", hover_color="#991b1b", width=240,
         ).pack(anchor="w", pady=(4, 8))
 
     def _do_backup_db(self) -> None:
@@ -215,18 +223,20 @@ class LaporanView(ctk.CTkFrame):
         )
         self.kas_summary.pack(side="left")
 
-        widgets.icon_button(
+        widgets.permission_button(
             toolbar, text="Pemasukan", lucide="plus",
+            permission="laporan.kas_tambah",
             command=lambda: self._add_kas("masuk"),
         ).pack(side="right", padx=4)
-        widgets.icon_button(
+        widgets.permission_button(
             toolbar, text="Pengeluaran", lucide="download",
+            permission="laporan.kas_tambah",
             command=lambda: self._add_kas("keluar"),
             fg_color="#f59e0b", hover_color="#d97706",
         ).pack(side="right", padx=4)
-        widgets.icon_button(
+        widgets.permission_button(
             toolbar, text=t("common.delete"), lucide="trash-2",
-            command=self._delete_kas,
+            permission="laporan.kas_hapus", command=self._delete_kas,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=4)
 

@@ -34,21 +34,21 @@ class BukuView(ctk.CTkFrame):
             toolbar, text=t("common.refresh"), lucide="refresh-cw",
             width=110, command=self._reload,
         ).pack(side="left", padx=4)
-        widgets.icon_button(
-            toolbar, text=t("common.import"), lucide="upload",
-            width=110, command=self._do_import,
+        widgets.permission_button(
+            toolbar, text=t("common.import"), lucide="upload", width=110,
+            permission="buku.import", command=self._do_import,
         ).pack(side="right", padx=2)
         widgets.icon_button(
             toolbar, text="Template", lucide="file-text",
             width=110, command=self._download_template,
         ).pack(side="right", padx=2)
-        widgets.icon_button(
-            toolbar, text=t("buku.cetak_label"), lucide="printer",
-            width=180, command=self._cetak_label,
+        widgets.permission_button(
+            toolbar, text=t("buku.cetak_label"), lucide="printer", width=180,
+            permission="buku.cetak_label", command=self._cetak_label,
         ).pack(side="right", padx=2)
-        widgets.icon_button(
-            toolbar, text=t("buku.transfer_penerbit"), lucide="copy",
-            width=150, command=self._transfer_penerbit,
+        widgets.permission_button(
+            toolbar, text=t("buku.transfer_penerbit"), lucide="copy", width=150,
+            permission="buku.edit", command=self._transfer_penerbit,
         ).pack(side="right", padx=2)
 
         body = ctk.CTkFrame(self, fg_color="transparent")
@@ -218,6 +218,9 @@ class BukuView(ctk.CTkFrame):
         if not data.get("judul"):
             widgets.show_toast(self, t("toast.required", field="judul"), kind="warning")
             return
+        needed = "buku.edit" if self._editing_id else "buku.tambah"
+        if not widgets.require_permission_or_toast(self, needed):
+            return
         try:
             if self._editing_id:
                 buku_repo.update(self._editing_id, data)
@@ -233,6 +236,8 @@ class BukuView(ctk.CTkFrame):
     def _delete(self) -> None:
         sel = self.table.selected()
         if sel is None:
+            return
+        if not widgets.require_permission_or_toast(self, "buku.hapus"):
             return
         if not widgets.confirm(self, t("toast.confirm_delete")):
             return

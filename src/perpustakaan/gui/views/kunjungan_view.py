@@ -61,9 +61,9 @@ class KunjunganView(ctk.CTkFrame):
         self.jumlah = ctk.CTkEntry(form, placeholder_text="1")
         self.jumlah.pack(fill="x", padx=12)
 
-        widgets.icon_button(
+        widgets.permission_button(
             form, text=t("common.save"), lucide="save",
-            command=self._save,
+            permission="kunjungan.tambah", command=self._save,
         ).pack(fill="x", padx=12, pady=14)
 
         # Tabel + empty state wrapper

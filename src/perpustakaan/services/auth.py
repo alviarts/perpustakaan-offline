@@ -104,7 +104,26 @@ def register(
             "VALUES (?, ?, ?, ?)",
             (username, pw_hash, full_name, role),
         )
-    return int(cur.lastrowid or 0)
+    new_id = int(cur.lastrowid or 0)
+    # Auto-grant default permission untuk role yang dipilih (RBAC v0.4.3).
+    # Import lokal supaya tidak circular dengan services.permissions yang
+    # mengimpor auth_service untuk current_user().
+    if new_id:
+        try:
+            from perpustakaan.services import permissions as permissions_service
+
+            granter = _current.id if _current is not None else None
+            permissions_service.apply_default_permissions_for_role(
+                new_id, role, granted_by=granter, db=db,
+            )
+        except Exception:  # noqa: BLE001 - jangan gagalkan register kalau audit error
+            import logging
+
+            logging.getLogger("perpustakaan.auth").warning(
+                "Gagal apply default permissions utk user %s", username,
+                exc_info=True,
+            )
+    return new_id
 
 
 def change_password(
@@ -137,6 +156,9 @@ def delete_user(user_id: int, db: Database | None = None) -> None:
 def list_users(db: Database | None = None) -> list[dict]:
     db = db or get_db()
     return db.query_all(
-        "SELECT id, username, full_name, role, aktif, last_login_at, created_at "
-        "FROM users ORDER BY username"
+        "SELECT u.id, u.username, u.full_name, u.role, u.aktif, "
+        "       u.last_login_at, u.created_at, "
+        "       (SELECT COUNT(*) FROM user_permissions up WHERE up.user_id = u.id) "
+        "         AS permission_count "
+        "FROM users u ORDER BY u.username"
     )
