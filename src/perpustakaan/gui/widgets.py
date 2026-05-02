@@ -188,6 +188,23 @@ class StatCard(ctk.CTkFrame):
         # Header row: icon bubble + title
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", padx=14, pady=(14, 0))
+        try:
+            from perpustakaan.gui.fonts import (
+                get_font as _get_font,
+            )
+            from perpustakaan.gui.fonts import (
+                small_font as _small_font,
+            )
+            from perpustakaan.gui.fonts import (
+                stat_value_font as _stat_value_font,
+            )
+            _icon_font = _get_font(14, weight="bold")
+            _title_font = _small_font()
+            _value_font = _stat_value_font()
+        except Exception:  # noqa: BLE001
+            _icon_font = ctk.CTkFont(size=14, weight="bold")
+            _title_font = ctk.CTkFont(size=11, weight="bold")
+            _value_font = ctk.CTkFont(size=26, weight="bold")
         self._icon_bubble = ctk.CTkLabel(
             header,
             text=icon,
@@ -195,13 +212,13 @@ class StatCard(ctk.CTkFrame):
             corner_radius=15,
             fg_color=color,
             text_color="white",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=_icon_font,
         )
         self._icon_bubble.pack(side="left", padx=(0, 10))
         self._title_lbl = ctk.CTkLabel(
             header,
             text=title,
-            font=ctk.CTkFont(size=11, weight="bold"),
+            font=_title_font,
             text_color=("#4b5563", "#d1d5db"),
             anchor="w",
         )
@@ -210,7 +227,7 @@ class StatCard(ctk.CTkFrame):
         self._value_lbl = ctk.CTkLabel(
             self,
             text=value,
-            font=ctk.CTkFont(size=26, weight="bold"),
+            font=_value_font,
             text_color=color,
             anchor="w",
         )
@@ -413,6 +430,84 @@ def report_exception(
             warn(parent, msg)
     else:
         show_toast(parent, msg, kind=kind, duration_ms=4500)
+
+
+# ---------------------------------------------------------------------------
+# HeadingBar
+# ---------------------------------------------------------------------------
+class HeadingBar(ctk.CTkFrame):
+    """Heading konsisten utk tiap view: judul besar + tombol "?" inline.
+
+    Layout::
+
+        ┌────────────────────────────────────────────┐
+        │  Data Anggota   [?]              (extras…) │
+        └────────────────────────────────────────────┘
+
+    - Klik tombol "?" memanggil ``on_help`` (mis. replay tour menu ini).
+    - ``extras`` adalah CTkFrame transparan di kanan untuk widget tambahan
+      view-specific (mis. tombol Refresh di Dashboard).
+    """
+
+    def __init__(
+        self,
+        parent: Any,
+        *,
+        text: str,
+        menu_key: str | None = None,
+        main_window: Any = None,
+        on_help: Callable[[], None] | None = None,
+    ) -> None:
+        """Heading konsisten dengan tombol "?" inline.
+
+        Salah satu mode harus dipilih:
+            - ``menu_key`` + ``main_window``: HeadingBar otomatis memanggil
+              ``start_menu_tour(main_window, menu_key)`` saat tombol "?" diklik.
+            - ``on_help``: callable kustom dipanggil saat klik "?".
+            - keduanya kosong: tombol "?" tidak ditampilkan.
+        """
+        super().__init__(parent, fg_color="transparent")
+        try:
+            from perpustakaan.gui.fonts import heading_font
+            font = heading_font()
+        except Exception:  # noqa: BLE001
+            font = ctk.CTkFont(size=22, weight="bold")
+        self._title = ctk.CTkLabel(self, text=text, font=font, anchor="w")
+        self._title.pack(side="left")
+
+        # Resolve callback
+        if on_help is None and menu_key and main_window is not None:
+            def _replay() -> None:
+                try:
+                    from perpustakaan.gui.tour import start_menu_tour
+
+                    start_menu_tour(main_window, menu_key)
+                except Exception:  # noqa: BLE001
+                    pass
+            on_help = _replay
+
+        if on_help is not None:
+            self._help_btn = ctk.CTkButton(
+                self,
+                text="?",
+                width=26, height=26,
+                corner_radius=13,
+                fg_color=("#e0e7ff", "#312e81"),
+                text_color=("#3730a3", "#c7d2fe"),
+                hover_color=("#c7d2fe", "#4338ca"),
+                font=ctk.CTkFont(size=12, weight="bold"),
+                command=on_help,
+            )
+            self._help_btn.pack(side="left", padx=(10, 0), pady=(2, 0))
+            with contextlib.suppress(Exception):
+                self._help_btn.configure(cursor="hand2")
+        # Frame slot di kanan utk extras (refresh button, dst.).
+        self.extras = ctk.CTkFrame(self, fg_color="transparent")
+        self.extras.pack(side="right")
+
+    def set_text(self, text: str) -> None:
+        with contextlib.suppress(Exception):
+            self._title.configure(text=text)
 
 
 def fmt_rupiah(value: int | float) -> str:

@@ -27,6 +27,11 @@ class MainWindow(ctk.CTk):
     def __init__(self, user: SessionUser) -> None:
         super().__init__()
         widgets.configure_theme()
+        # Font detection harus setelah Tk root (super().__init__) tersedia.
+        with contextlib.suppress(Exception):
+            from perpustakaan.gui.fonts import detect_default_family
+
+            detect_default_family(force=True)
         self.user = user
         self.logout_requested = False
 

@@ -20,12 +20,10 @@ class BukuView(ctk.CTkFrame):
         self.app = app
         self._editing_id: int | None = None
 
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=24, pady=(20, 8))
-        ctk.CTkLabel(
-            header, text=t("menu.master.buku"),
-            font=ctk.CTkFont(size=22, weight="bold"),
-        ).pack(side="left")
+        widgets.HeadingBar(
+            self, text=t("menu.master.buku"),
+            menu_key="buku", main_window=app,
+        ).pack(fill="x", padx=24, pady=(20, 8))
 
         toolbar = ctk.CTkFrame(self, fg_color="transparent")
         toolbar.pack(fill="x", padx=24, pady=4)
