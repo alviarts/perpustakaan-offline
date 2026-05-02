@@ -175,7 +175,19 @@ class StatCard(ctk.CTkFrame):
         *,
         color: str = "#3b82f6",
         icon: str = "•",
+        lucide: str | None = None,
     ) -> None:
+        """Stat card.
+
+        Args:
+            title: label di atas angka.
+            value: angka / teks utama.
+            color: warna brand utk icon bubble + value text.
+            icon: emoji / glyph fallback (dipakai kalau ``lucide`` ``None``
+                atau gagal load).
+            lucide: nama Lucide icon (mis. ``"users"``) — kalau di-set, icon
+                bubble pakai gambar Lucide putih di atas warna ``color``.
+        """
         super().__init__(
             parent,
             corner_radius=14,
@@ -205,11 +217,22 @@ class StatCard(ctk.CTkFrame):
             _icon_font = ctk.CTkFont(size=14, weight="bold")
             _title_font = ctk.CTkFont(size=11, weight="bold")
             _value_font = ctk.CTkFont(size=26, weight="bold")
+
+        # Icon bubble: try Lucide first, fallback ke emoji.
+        bubble_image = None
+        if lucide:
+            try:
+                from perpustakaan.gui.icons import lucide_icon as _lucide
+
+                bubble_image = _lucide(lucide, size=18, color="#ffffff")
+            except Exception:  # noqa: BLE001
+                bubble_image = None
         self._icon_bubble = ctk.CTkLabel(
             header,
-            text=icon,
-            width=30, height=30,
-            corner_radius=15,
+            text="" if bubble_image is not None else icon,
+            image=bubble_image,
+            width=32, height=32,
+            corner_radius=16,
             fg_color=color,
             text_color="white",
             font=_icon_font,
@@ -515,3 +538,89 @@ def fmt_rupiah(value: int | float) -> str:
         return f"Rp {int(value):,}".replace(",", ".")
     except (TypeError, ValueError):
         return "Rp 0"
+
+
+# ---------------------------------------------------------------------------
+# Empty state — hero pictogram + title + description + optional action
+# ---------------------------------------------------------------------------
+class EmptyState(ctk.CTkFrame):
+    """Placeholder visual saat list/dashboard kosong.
+
+    Layout::
+
+        ┌────────────────────────────────┐
+        │           [icon 48px]          │
+        │                                │
+        │       Belum ada data           │
+        │   Penjelasan singkat di sini   │
+        │                                │
+        │      [ + Tambah data ]         │
+        └────────────────────────────────┘
+
+    Default ikon dipilih dari Lucide ("inbox") tapi bisa di-override.
+    """
+
+    def __init__(
+        self,
+        parent: Any,
+        *,
+        title: str,
+        description: str = "",
+        icon: str = "inbox",
+        icon_size: int = 48,
+        action_label: str | None = None,
+        action_command: Callable[[], None] | None = None,
+    ) -> None:
+        super().__init__(parent, fg_color="transparent")
+
+        # Lazy import supaya widgets.py tidak hard-depend ke icons.py kalau
+        # asset belum ada (mis. di test environment minimal).
+        try:
+            from perpustakaan.gui.icons import lucide_icon
+
+            img = lucide_icon(icon, size=icon_size)
+        except Exception:  # noqa: BLE001
+            img = None
+
+        try:
+            from perpustakaan.gui.fonts import body_font, section_font
+            _title_font = section_font()
+            _body_font = body_font()
+        except Exception:  # noqa: BLE001
+            _title_font = ctk.CTkFont(size=15, weight="bold")
+            _body_font = ctk.CTkFont(size=12)
+
+        # Icon (kalau ada)
+        if img is not None:
+            self._icon_lbl = ctk.CTkLabel(self, text="", image=img)
+            self._icon_lbl.pack(pady=(8, 12))
+
+        self._title_lbl = ctk.CTkLabel(
+            self,
+            text=title,
+            font=_title_font,
+            text_color=("#0f172a", "#f1f5f9"),
+        )
+        self._title_lbl.pack(pady=(0, 4))
+
+        if description:
+            self._desc_lbl = ctk.CTkLabel(
+                self,
+                text=description,
+                font=_body_font,
+                text_color=("#64748b", "#94a3b8"),
+                wraplength=420,
+                justify="center",
+            )
+            self._desc_lbl.pack(pady=(0, 16))
+
+        if action_label and action_command:
+            self._action_btn = ctk.CTkButton(
+                self,
+                text=action_label,
+                command=action_command,
+                width=180, height=36,
+                corner_radius=8,
+                font=ctk.CTkFont(size=13, weight="bold"),
+            )
+            self._action_btn.pack(pady=(0, 8))

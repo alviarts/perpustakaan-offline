@@ -98,9 +98,16 @@ class AnggotaView(ctk.CTkFrame):
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=2)
 
+        # Wrapper utk table + empty state — grid overlay supaya empty state
+        # bisa di-show/hide tanpa mengganggu layout table.
+        table_wrapper = ctk.CTkFrame(body, fg_color="transparent")
+        table_wrapper.grid(row=0, column=1, sticky="nsew")
+        table_wrapper.grid_columnconfigure(0, weight=1)
+        table_wrapper.grid_rowconfigure(0, weight=1)
+
         # Table
         self.table = StyledTreeview(
-            body,
+            table_wrapper,
             columns=[
                 ("kode_anggota", t("anggota.kode"), 110),
                 ("nama", t("anggota.nama"), 220),
@@ -112,7 +119,9 @@ class AnggotaView(ctk.CTkFrame):
             ],
             on_double_click=self._on_select,
         )
-        self.table.grid(row=0, column=1, sticky="nsew")
+        self.table.grid(row=0, column=0, sticky="nsew")
+        self._table_wrapper = table_wrapper
+        self._empty_state: widgets.EmptyState | None = None
 
     # ----------------------------------------------------------------
     def on_show(self) -> None:
@@ -121,6 +130,38 @@ class AnggotaView(ctk.CTkFrame):
     def _reload(self) -> None:
         rows = anggota_repo.list_all(search=self.search.get().strip())
         self.table.set_rows(rows)
+        self._toggle_empty_state(empty=not rows)
+
+    def _toggle_empty_state(self, *, empty: bool) -> None:
+        """Tampilkan EmptyState saat tidak ada baris, sembunyikan saat ada.
+
+        EmptyState di-grid di kolom yang sama dengan table — kita lift()
+        salah satu sesuai state.
+        """
+        if empty:
+            if self._empty_state is None:
+                is_search = bool(self.search.get().strip())
+                self._empty_state = widgets.EmptyState(
+                    self._table_wrapper,
+                    title=(
+                        t("anggota.empty.search.title")
+                        if is_search
+                        else t("anggota.empty.title")
+                    ),
+                    description=(
+                        t("anggota.empty.search.desc")
+                        if is_search
+                        else t("anggota.empty.desc")
+                    ),
+                    icon="frown" if is_search else "users",
+                    icon_size=64,
+                )
+                self._empty_state.grid(row=0, column=0, sticky="nsew")
+            self._empty_state.lift()
+        else:
+            if self._empty_state is not None:
+                self._empty_state.destroy()
+                self._empty_state = None
 
     def _reset_form(self) -> None:
         self._editing_id = None
