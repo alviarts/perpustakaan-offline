@@ -10,6 +10,7 @@ from perpustakaan.gui import widgets
 from perpustakaan.gui.widgets import LabeledEntry, StyledTreeview, configure_theme
 from perpustakaan.i18n import LOCALE_NAMES, set_locale, t
 from perpustakaan.models import anggota as anggota_repo
+from perpustakaan.models import audit_log as audit_log_repo
 from perpustakaan.models import buku as buku_repo
 from perpustakaan.models import settings as settings_repo
 from perpustakaan.services import auth as auth_service
@@ -34,6 +35,7 @@ class SettingsView(ctk.CTkFrame):
         self.tabs.add(t("menu.setting.bahasa"))
         self.tabs.add(t("menu.setting.sync"))
         self.tabs.add("Tools")
+        self.tabs.add("Audit Log")
 
         self._build_identitas(self.tabs.tab(t("menu.setting.identitas")))
         self._build_kta(self.tabs.tab(t("menu.setting.kta")))
@@ -42,6 +44,7 @@ class SettingsView(ctk.CTkFrame):
         self._build_bahasa(self.tabs.tab(t("menu.setting.bahasa")))
         self._build_sync(self.tabs.tab(t("menu.setting.sync")))
         self._build_tools(self.tabs.tab("Tools"))
+        self._build_audit_log(self.tabs.tab("Audit Log"))
 
     def on_show(self) -> None:
         self._load_identitas()
@@ -51,6 +54,7 @@ class SettingsView(ctk.CTkFrame):
         self._load_bahasa()
         self._load_sync()
         self._reload_tools()
+        self._reload_audit_log()
 
     # ------------------ Identitas ------------------
     def _build_identitas(self, parent) -> None:
@@ -399,6 +403,53 @@ class SettingsView(ctk.CTkFrame):
                     text=f"Ditemukan {len(dup_a)} grup anggota + {len(dup_b)} grup buku duplikat.",
                     text_color="#f59e0b",
                 )
+
+    # ------------------ Audit Log ------------------
+    def _build_audit_log(self, parent) -> None:
+        wrap = ctk.CTkFrame(parent, fg_color="transparent")
+        wrap.pack(fill="both", expand=True, padx=10, pady=10)
+
+        toolbar = ctk.CTkFrame(wrap, fg_color="transparent")
+        toolbar.pack(fill="x", pady=(0, 8))
+
+        self.audit_search = ctk.CTkEntry(
+            toolbar, placeholder_text="Cari aksi / entitas / user…", width=260
+        )
+        self.audit_search.pack(side="left")
+        self.audit_search.bind("<Return>", lambda _e: self._reload_audit_log())
+        ctk.CTkButton(
+            toolbar, text=t("common.refresh"), width=90,
+            command=self._reload_audit_log,
+        ).pack(side="left", padx=4)
+
+        self.audit_count_label = ctk.CTkLabel(
+            toolbar, text="", text_color=("#6b7280", "#9ca3af"),
+        )
+        self.audit_count_label.pack(side="right", padx=4)
+
+        self.audit_table = StyledTreeview(
+            wrap,
+            columns=[
+                ("created_at", "Waktu", 160),
+                ("username", "User", 120),
+                ("aksi", "Aksi", 100),
+                ("entitas", "Entitas", 120),
+                ("entitas_id", "ID", 60),
+                ("detail", "Detail", 350),
+            ],
+            height=14,
+        )
+        self.audit_table.pack(fill="both", expand=True)
+
+    def _reload_audit_log(self) -> None:
+        with contextlib.suppress(Exception):
+            q = self.audit_search.get().strip()
+            rows = audit_log_repo.list_all(search=q)
+            self.audit_table.set_rows(rows)
+            total = audit_log_repo.count()
+            self.audit_count_label.configure(
+                text=f"Menampilkan {len(rows)} dari {total} entri"
+            )
 
 
 # ---------------------------------------------------------------------------
