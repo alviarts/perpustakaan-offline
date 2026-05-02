@@ -49,6 +49,9 @@ class AnggotaView(ctk.CTkFrame):
         ctk.CTkButton(
             toolbar, text=t("anggota.bebas_pustaka"), width=160, command=self._cetak_bebas
         ).pack(side="right", padx=2)
+        ctk.CTkButton(
+            toolbar, text=t("anggota.naik_kelas"), width=130, command=self._naik_kelas
+        ).pack(side="right", padx=2)
 
         # Body: split form (kiri) + table (kanan)
         body = ctk.CTkFrame(self, fg_color="transparent")
@@ -173,6 +176,11 @@ class AnggotaView(ctk.CTkFrame):
         except Exception as e:
             widgets.report_exception(self, e, "Gagal hapus anggota")
 
+    # ---------------- Naik Kelas ----------------
+    def _naik_kelas(self) -> None:
+        NaikKelasDialog(self).wait_window()
+        self._reload()
+
     # ---------------- Cetak ----------------
     def _cetak_kta(self) -> None:
         sel = self.table.selected()
@@ -224,6 +232,82 @@ class AnggotaView(ctk.CTkFrame):
             _open_file(path)
         except Exception as e:
             widgets.report_exception(self, e, "Gagal generate template Excel")
+
+
+class NaikKelasDialog(ctk.CTkToplevel):
+    """Dialog batch naik kelas: mapping kelas lama -> kelas baru."""
+
+    def __init__(self, parent: AnggotaView) -> None:
+        super().__init__(parent)
+        self.parent_view = parent
+        self.title(t("anggota.naik_kelas"))
+        self.geometry("520x460")
+        self.transient(parent)
+        self.grab_set()
+
+        ctk.CTkLabel(
+            self, text=t("anggota.naik_kelas"),
+            font=ctk.CTkFont(size=16, weight="bold"),
+        ).pack(pady=(14, 4))
+
+        ctk.CTkLabel(
+            self, text="Isi kelas baru untuk setiap kelas. Kosongkan jika tidak naik.",
+            text_color=("#6b7280", "#9ca3af"),
+        ).pack(pady=(0, 8))
+
+        kelas_list = anggota_repo.list_distinct_kelas()
+
+        scroll = ctk.CTkScrollableFrame(self, label_text="Mapping Kelas")
+        scroll.pack(fill="both", expand=True, padx=16, pady=4)
+
+        self._entries: dict[str, ctk.CTkEntry] = {}
+        for kelas in kelas_list:
+            row = ctk.CTkFrame(scroll, fg_color="transparent")
+            row.pack(fill="x", pady=2)
+            ctk.CTkLabel(row, text=kelas, width=140, anchor="w").pack(side="left", padx=(4, 8))
+            ctk.CTkLabel(row, text="→").pack(side="left", padx=4)
+            entry = ctk.CTkEntry(row, placeholder_text="Kelas baru", width=180)
+            entry.pack(side="left", padx=4)
+            self._entries[kelas] = entry
+
+        if not kelas_list:
+            ctk.CTkLabel(scroll, text="Tidak ada data kelas.").pack(pady=20)
+
+        btnbar = ctk.CTkFrame(self, fg_color="transparent")
+        btnbar.pack(fill="x", padx=16, pady=12)
+        ctk.CTkButton(
+            btnbar, text=t("common.cancel"), command=self.destroy,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=4)
+        ctk.CTkButton(
+            btnbar, text=t("common.save"), command=self._submit,
+        ).pack(side="right", padx=4)
+
+    def _submit(self) -> None:
+        mapping = {}
+        for lama, entry in self._entries.items():
+            baru = entry.get().strip()
+            if baru and baru != lama:
+                mapping[lama] = baru
+        if not mapping:
+            widgets.show_toast(self, "Tidak ada perubahan kelas.", kind="warning")
+            return
+        summary = "\n".join(f"  {old} → {new}" for old, new in mapping.items())
+        if not widgets.confirm(
+            self, f"Naik kelas batch:\n{summary}\n\nLanjutkan?"
+        ):
+            return
+        try:
+            total = anggota_repo.naik_kelas(mapping)
+            widgets.show_toast(
+                self.parent_view,
+                f"Berhasil update {total} anggota.",
+                kind="success",
+                duration_ms=4000,
+            )
+            self.destroy()
+        except Exception as e:
+            widgets.report_exception(self, e, "Gagal naik kelas batch")
 
 
 def _open_file(path) -> None:

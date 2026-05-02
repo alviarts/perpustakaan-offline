@@ -152,6 +152,15 @@ def count(db: Database | None = None, *, aktif: bool | None = None) -> int:
     )
 
 
+def list_distinct_kelas(db: Database | None = None) -> list[str]:
+    """Daftar kelas unik yang ada di tabel anggota, sorted."""
+    db = db or get_db()
+    rows = db.query_all(
+        "SELECT DISTINCT kelas FROM anggota WHERE kelas IS NOT NULL AND kelas != '' ORDER BY kelas"
+    )
+    return [r["kelas"] for r in rows]
+
+
 def naik_kelas(mapping: dict[str, str], db: Database | None = None) -> int:
     """Update batch kelas anggota.
 
