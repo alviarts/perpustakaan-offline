@@ -10,6 +10,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from perpustakaan.gui import widgets
+from perpustakaan.gui.password_dialogs import ChangePasswordDialog
 from perpustakaan.gui.widgets import LabeledEntry, StyledTreeview, configure_theme
 from perpustakaan.i18n import LOCALE_NAMES, set_locale, t
 from perpustakaan.models import anggota as anggota_repo
@@ -846,54 +847,6 @@ class AccountDialog(ctk.CTkToplevel):
             self.destroy()
         except auth_service.AuthError as e:
             self.message.configure(text=str(e))
-
-
-class ChangePasswordDialog(ctk.CTkToplevel):
-    def __init__(self, parent: SettingsView) -> None:
-        super().__init__(parent)
-        self.title("Ganti Password")
-        self.geometry("380x280")
-        self.transient(parent)
-        self.grab_set()
-        self.parent_view = parent
-
-        ctk.CTkLabel(self, text="Ganti Password", font=ctk.CTkFont(size=15, weight="bold")).pack(
-            pady=(14, 6)
-        )
-
-        self.old = LabeledEntry(self, "Password Lama", show="*")
-        self.old.pack(fill="x", padx=20, pady=4)
-        self.new1 = LabeledEntry(self, "Password Baru", show="*")
-        self.new1.pack(fill="x", padx=20, pady=4)
-        self.new2 = LabeledEntry(self, "Konfirmasi Baru", show="*")
-        self.new2.pack(fill="x", padx=20, pady=4)
-
-        self.message = ctk.CTkLabel(self, text="", text_color="#ef4444")
-        self.message.pack(pady=4)
-
-        btnbar = ctk.CTkFrame(self, fg_color="transparent")
-        btnbar.pack(fill="x", padx=20, pady=12)
-        ctk.CTkButton(btnbar, text=t("common.cancel"), command=self.destroy,
-                      fg_color="transparent", border_width=1).pack(side="right", padx=4)
-        ctk.CTkButton(btnbar, text=t("common.save"), command=self._submit).pack(side="right", padx=4)
-
-    def _submit(self) -> None:
-        if self.new1.get() != self.new2.get():
-            self.message.configure(text="Password baru tidak cocok.")
-            return
-        try:
-            user = auth_service.current_user()
-            if user is None:
-                self.message.configure(text="Tidak ada sesi aktif.")
-                return
-            auth_service.change_password(user.id, self.old.get(), self.new1.get())
-            self.destroy()
-        except auth_service.AuthError as e:
-            mapping = {
-                "invalid_credentials": "Password lama salah.",
-                "password_too_short": "Password baru minimal 6 karakter.",
-            }
-            self.message.configure(text=mapping.get(str(e), str(e)))
 
 
 class PermissionsDialog(ctk.CTkToplevel):

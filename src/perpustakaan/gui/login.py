@@ -56,14 +56,27 @@ class LoginWindow(ctk.CTk):
             container, text=t("login.button"), command=self._do_login, height=40
         ).pack(fill="x", pady=(20, 8))
 
+        # Link tombol kecil utk "Lupa Password?" (PR-C v0.4.4) dan "Daftar".
+        link_row = ctk.CTkFrame(container, fg_color="transparent")
+        link_row.pack(fill="x", pady=(0, 4))
         ctk.CTkButton(
-            container,
+            link_row,
+            text=t("login.forgot"),
+            command=self._open_forgot,
+            fg_color="transparent",
+            text_color=("#1d4ed8", "#60a5fa"),
+            hover=False,
+            width=120,
+        ).pack(side="left")
+        ctk.CTkButton(
+            link_row,
             text=t("login.register"),
             command=self._open_register,
             fg_color="transparent",
             text_color=("#1d4ed8", "#60a5fa"),
             hover=False,
-        ).pack(pady=(0, 8))
+            width=160,
+        ).pack(side="right")
 
         ctk.CTkLabel(
             container,
@@ -88,6 +101,13 @@ class LoginWindow(ctk.CTk):
 
     def _open_register(self) -> None:
         RegisterDialog(self)
+
+    def _open_forgot(self) -> None:
+        # Lazy import supaya login screen tidak depend ke modul yang
+        # mungkin belum siap saat startup awal.
+        from perpustakaan.gui.password_dialogs import ResetPasswordDialog
+
+        ResetPasswordDialog(self)
 
 
 class RegisterDialog(ctk.CTkToplevel):

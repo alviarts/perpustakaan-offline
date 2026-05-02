@@ -66,6 +66,121 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
         "id": "Login pertama: gunakan admin / admin123",
         "en": "First login: use admin / admin123",
     },
+    "login.forgot": {"id": "Lupa Password?", "en": "Forgot Password?"},
+    # ----------------------------- ganti password (header / settings) ------
+    "password.change.title": {"id": "Ganti Password", "en": "Change Password"},
+    "password.change.button": {"id": "Ganti Password", "en": "Change Password"},
+    "password.change.old": {"id": "Password Lama", "en": "Current Password"},
+    "password.change.new": {"id": "Password Baru", "en": "New Password"},
+    "password.change.confirm": {"id": "Konfirmasi Password Baru", "en": "Confirm New Password"},
+    "password.change.success": {"id": "Password berhasil diganti.", "en": "Password updated."},
+    "password.change.mismatch": {
+        "id": "Konfirmasi password tidak cocok.",
+        "en": "Password confirmation does not match.",
+    },
+    "password.change.too_short": {
+        "id": "Password baru minimal 6 karakter.",
+        "en": "New password must be at least 6 characters.",
+    },
+    "password.change.invalid_old": {
+        "id": "Password lama salah.",
+        "en": "Current password is incorrect.",
+    },
+    # ----------------------------- security question -----------------------
+    "security.title": {
+        "id": "Pertanyaan Keamanan",
+        "en": "Security Question",
+    },
+    "security.subtitle": {
+        "id": "Dipakai untuk reset password jika lupa.",
+        "en": "Used to reset your password if forgotten.",
+    },
+    "security.question.label": {
+        "id": "Pertanyaan",
+        "en": "Question",
+    },
+    "security.question.custom": {
+        "id": "(Tulis pertanyaan sendiri)",
+        "en": "(Write your own question)",
+    },
+    "security.question.custom_placeholder": {
+        "id": "Misalnya: Hobi favorit Anda?",
+        "en": "e.g. Your favorite hobby?",
+    },
+    "security.answer.label": {
+        "id": "Jawaban",
+        "en": "Answer",
+    },
+    "security.answer.hint": {
+        "id": "Catatan: jawaban tidak case-sensitive (BANDUNG = bandung).",
+        "en": "Note: answer is not case-sensitive (BANDUNG = bandung).",
+    },
+    "security.error.question_required": {
+        "id": "Pertanyaan wajib diisi.",
+        "en": "Question is required.",
+    },
+    "security.error.answer_too_short": {
+        "id": "Jawaban minimal 2 karakter.",
+        "en": "Answer must be at least 2 characters.",
+    },
+    "security.toast.saved": {
+        "id": "Pertanyaan keamanan tersimpan.",
+        "en": "Security question saved.",
+    },
+    # ----------------------------- first-login wizard ----------------------
+    "security.firstlogin.title": {
+        "id": "Lengkapi Pertanyaan Keamanan",
+        "en": "Complete Security Question",
+    },
+    "security.firstlogin.help": {
+        "id": (
+            "Demi keamanan akun Anda, mohon pilih satu pertanyaan keamanan "
+            "dan isi jawabannya. Jawaban ini akan dipakai jika Anda lupa "
+            "password dan butuh reset. Tidak bisa di-skip."
+        ),
+        "en": (
+            "For your account safety, please choose a security question "
+            "and provide an answer. This is used to reset your password "
+            "if you forget it. Cannot be skipped."
+        ),
+    },
+    # ----------------------------- forgot password / reset -----------------
+    "password.reset.title": {
+        "id": "Reset Password",
+        "en": "Reset Password",
+    },
+    "password.reset.step1.help": {
+        "id": "Masukkan username Anda untuk menampilkan pertanyaan keamanan.",
+        "en": "Enter your username to show your security question.",
+    },
+    "password.reset.step2.help": {
+        "id": "Jawab pertanyaan keamanan, lalu pilih password baru.",
+        "en": "Answer the security question, then choose a new password.",
+    },
+    "password.reset.continue": {"id": "Lanjut", "en": "Continue"},
+    "password.reset.back": {"id": "Kembali", "en": "Back"},
+    "password.reset.submit": {
+        "id": "Reset Password",
+        "en": "Reset Password",
+    },
+    "password.reset.success": {
+        "id": "Password berhasil direset. Silakan login dengan password baru.",
+        "en": "Password reset successful. Please sign in with your new password.",
+    },
+    "password.reset.invalid": {
+        "id": "Username atau jawaban salah.",
+        "en": "Invalid username or answer.",
+    },
+    "password.reset.no_question": {
+        "id": (
+            "Akun ini belum mengatur pertanyaan keamanan. Hubungi admin "
+            "untuk reset manual."
+        ),
+        "en": (
+            "This account has no security question set. Please contact "
+            "an admin for a manual reset."
+        ),
+    },
     # ----------------------------- main shell ------------------------------
     "menu.dashboard": {"id": "Dashboard", "en": "Dashboard"},
     "menu.master": {"id": "Master Data", "en": "Master Data"},

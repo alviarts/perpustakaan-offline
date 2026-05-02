@@ -31,15 +31,20 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Pengguna aplikasi (login)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    username      TEXT    NOT NULL UNIQUE,
-    password_hash TEXT    NOT NULL,
-    full_name     TEXT    NOT NULL,
-    role          TEXT    NOT NULL DEFAULT 'admin',  -- admin | pustakawan
-    aktif         INTEGER NOT NULL DEFAULT 1,
-    last_login_at TEXT,
-    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    username              TEXT    NOT NULL UNIQUE,
+    password_hash         TEXT    NOT NULL,
+    full_name             TEXT    NOT NULL,
+    role                  TEXT    NOT NULL DEFAULT 'admin',  -- admin | pustakawan | siswa
+    aktif                 INTEGER NOT NULL DEFAULT 1,
+    last_login_at         TEXT,
+    -- Security question utk reset password (PR-C v0.4.4). Nullable — user lama
+    -- yang upgrade akan dipaksa isi via first-login wizard sebelum bisa pakai
+    -- aplikasi. Jawaban di-hash bcrypt persis seperti password.
+    security_question     TEXT,
+    security_answer_hash  TEXT,
+    created_at            TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at            TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- ----------------------------------------------------------------------------

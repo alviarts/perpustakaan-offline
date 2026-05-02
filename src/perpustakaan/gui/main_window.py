@@ -61,6 +61,7 @@ class MainWindow(ctk.CTk):
         self._build_views()
         self._build_theme_toggle()
         self._build_help_button()
+        self._build_change_password_button()
         self.show("dashboard")
 
         # Hubungkan callback scheduler -> toast (marshal ke main thread).
@@ -70,6 +71,12 @@ class MainWindow(ctk.CTk):
         # Auto-launch tutorial Dashboard di first-run.
         with contextlib.suppress(Exception):
             self.after(800, self._maybe_autostart_tour)
+
+        # First-login wizard wajib utk user lama yang belum set pertanyaan
+        # keamanan (PR-C v0.4.4). Ditampilkan setelah window selesai render
+        # supaya modal punya parent yang sudah visible.
+        with contextlib.suppress(Exception):
+            self.after(400, self._maybe_force_security_setup)
 
     # ------------------------------------------------------------------
     # Theme toggle (selalu visible di pojok kanan-atas, terlepas dari menu)
@@ -119,6 +126,51 @@ class MainWindow(ctk.CTk):
 
         with contextlib.suppress(Exception):
             start_menu_tour(self, self._current_view_key)
+
+    # ------------------------------------------------------------------
+    # Tombol "Ganti Password" di header (PR-C v0.4.4) — selalu visible,
+    # tidak protected karena siapapun yang sudah login boleh ganti password
+    # akun-nya sendiri.
+    # ------------------------------------------------------------------
+    def _build_change_password_button(self) -> None:
+        self._change_pw_btn = ctk.CTkButton(
+            self.content,
+            text=t("password.change.button"),
+            width=140, height=32,
+            corner_radius=16,
+            fg_color=("#e0e7ff", "#312e81"),
+            text_color=("#3730a3", "#c7d2fe"),
+            hover_color=("#c7d2fe", "#4338ca"),
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self._on_change_password_clicked,
+        )
+        # Posisi: kiri dari tombol "?" (yang ada di x=-220).
+        # Kasih jarak 40px supaya tidak menempel.
+        self._change_pw_btn.place(relx=1.0, rely=0.0, x=-260, y=14, anchor="ne")
+        self._change_pw_btn.lift()
+        with contextlib.suppress(Exception):
+            self._change_pw_btn.configure(cursor="hand2")
+
+    def _on_change_password_clicked(self) -> None:
+        from perpustakaan.gui.password_dialogs import ChangePasswordDialog
+
+        with contextlib.suppress(Exception):
+            ChangePasswordDialog(self).wait_window()
+
+    # ------------------------------------------------------------------
+    # First-login wizard: paksa user lama isi pertanyaan keamanan
+    # (PR-C v0.4.4). Idempotent — kalau sudah set, no-op.
+    # ------------------------------------------------------------------
+    def _maybe_force_security_setup(self) -> None:
+        from perpustakaan.gui.password_dialogs import (
+            FirstLoginSecuritySetupDialog,
+        )
+        from perpustakaan.services import auth as auth_service
+
+        if not auth_service.needs_security_setup(self.user.id):
+            return
+        with contextlib.suppress(Exception):
+            FirstLoginSecuritySetupDialog(self, user_id=self.user.id).wait_window()
 
     def _label_to_theme_key(self, label: str) -> str:
         for k in _THEME_KEYS:

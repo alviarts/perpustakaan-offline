@@ -100,6 +100,27 @@ def get_db() -> Database:
     return _db
 
 
+def _ensure_columns(
+    db: Database, table: str, columns: dict[str, str]
+) -> None:
+    """Idempotent ``ALTER TABLE ADD COLUMN`` — tambah kolom kalau belum ada.
+
+    SQLite tidak punya ``ADD COLUMN IF NOT EXISTS`` sebelum 3.35, jadi kita
+    cek ``PRAGMA table_info`` manual. Dipakai untuk menambah kolom baru ke
+    tabel existing tanpa migration script terpisah.
+
+    :param table: nama tabel target.
+    :param columns: dict ``{nama_kolom: "TEXT" / "INTEGER NOT NULL DEFAULT 0"}``.
+    """
+    existing = {
+        row["name"] for row in db.query_all(f"PRAGMA table_info({table})")
+    }
+    for col, decl in columns.items():
+        if col in existing:
+            continue
+        db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+
+
 def init_db(db_path: Path | str | None = None, *, force: bool = False) -> Database:
     """Buat tabel + seed minimum kalau belum ada.
 
@@ -108,6 +129,11 @@ def init_db(db_path: Path | str | None = None, *, force: bool = False) -> Databa
     lama otomatis dapat tabel/index baru saat aplikasi di-upgrade. ``force``
     sekarang setara dengan default — flag tetap dipertahankan untuk backward
     compatibility.
+
+    Setelah schema.sql dijalankan, ``_ensure_columns()`` dipanggil untuk
+    menambah kolom baru ke tabel existing (mis. ``security_question`` di
+    ``users`` untuk PR-C v0.4.4) — karena ``CREATE TABLE IF NOT EXISTS``
+    tidak akan menambah kolom kalau tabel-nya sudah ada.
 
     :param db_path: override default DB path (untuk tests).
     :param force: dipertahankan utk kompat; tidak mengubah perilaku.
@@ -121,6 +147,16 @@ def init_db(db_path: Path | str | None = None, *, force: bool = False) -> Databa
 
     sql = SCHEMA_PATH.read_text(encoding="utf-8")
     db.connect().executescript(sql)
+
+    # Tambah kolom yang belum ada di tabel existing (untuk DB versi lama).
+    _ensure_columns(
+        db,
+        "users",
+        {
+            "security_question": "TEXT",
+            "security_answer_hash": "TEXT",
+        },
+    )
     return db
 
 
