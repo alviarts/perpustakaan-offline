@@ -1,7 +1,40 @@
 """Repository untuk tabel audit_log."""
 from __future__ import annotations
 
-from perpustakaan.db.connection import Database, get_db
+from perpustakaan.db.connection import Database, get_db, transaction
+
+
+def record(
+    *,
+    aksi: str,
+    entitas: str,
+    entitas_id: int | None = None,
+    detail: str | None = None,
+    user_id: int | None = None,
+    db: Database | None = None,
+) -> int:
+    """Tulis satu entri audit log.
+
+    Mengembalikan id baris yang dibuat. Tidak melempar — error di-log
+    via warning saja supaya operasi inti (mis. backup, login) tetap jalan
+    walau tabel audit_log kebetulan locked.
+    """
+    db = db or get_db()
+    try:
+        with transaction(db):
+            cur = db.execute(
+                "INSERT INTO audit_log (user_id, aksi, entitas, entitas_id, detail) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (user_id, aksi, entitas, entitas_id, detail),
+            )
+            return int(cur.lastrowid or 0)
+    except Exception:  # noqa: BLE001 - audit log harus tahan banting
+        import logging
+
+        logging.getLogger("perpustakaan.audit_log").warning(
+            "Gagal tulis audit log: %s/%s", aksi, entitas, exc_info=True
+        )
+        return 0
 
 
 def list_all(

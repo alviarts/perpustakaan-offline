@@ -16,7 +16,7 @@ from typing import Final
 
 APP_NAME: Final = "PerpustakaanOffline"
 APP_DISPLAY_NAME: Final = "Perpustakaan Offline"
-APP_VERSION: Final = "0.3.0"
+APP_VERSION: Final = "0.4.0"
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +107,20 @@ DEFAULT_SETTINGS: Final[dict[str, str]] = {
     "sync.last_export_at": "",
     "sync.spreadsheet_id": "",
     "app.first_run": "1",
+    # Backup terjadwal — schedule = "off" | "daily" | "weekly".
+    # weekday: 0=Senin, 1=Selasa, ..., 6=Minggu (hanya dipakai saat schedule=weekly).
+    # folder kosong = pakai BACKUPS_DIR default.
+    "backup.schedule": "off",
+    "backup.time": "02:00",
+    "backup.weekday": "0",
+    "backup.folder": "",
+    "backup.retention": "7",
+    "backup.last_run_at": "",
+    "backup.last_run_status": "",
+    "backup.last_run_path": "",
+    "backup.last_run_error": "",
+    # Tutorial / guided tour. "1" = sudah selesai, kosong = belum.
+    "tutorial.completed": "",
 }
 
 

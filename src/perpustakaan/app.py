@@ -55,6 +55,13 @@ def _apply_locale_from_settings() -> None:
         set_locale("id")
 
 
+def _start_backup_scheduler() -> None:
+    """Mulai daemon scheduler backup terjadwal."""
+    from perpustakaan.services.backup_scheduler import get_scheduler
+
+    get_scheduler().start()
+
+
 def run(demo: bool = False, headless: bool = False) -> int:
     """Entry point — return exit code.
 
@@ -90,8 +97,20 @@ def run(demo: bool = False, headless: bool = False) -> int:
         return 3
 
     try:
+        _start_backup_scheduler()
+    except Exception:  # noqa: BLE001 - scheduler tidak boleh blokir app
+        log.exception("Gagal start backup scheduler (lanjut tanpa backup terjadwal)")
+
+    try:
         return run_login_then_main()
     except Exception:  # pragma: no cover
         log.exception("Aplikasi crash")
         traceback.print_exc()
         return 1
+    finally:
+        try:
+            from perpustakaan.services.backup_scheduler import get_scheduler
+
+            get_scheduler().stop(timeout=1.0)
+        except Exception:  # noqa: BLE001
+            log.warning("Gagal stop backup scheduler", exc_info=True)

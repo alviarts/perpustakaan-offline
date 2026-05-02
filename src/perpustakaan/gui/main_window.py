@@ -16,7 +16,11 @@ from perpustakaan.gui.views.peminjaman_view import PeminjamanView
 from perpustakaan.gui.views.pengembalian_view import PengembalianView
 from perpustakaan.gui.views.settings_view import SettingsView
 from perpustakaan.i18n import t
+from perpustakaan.models import settings as settings_repo
 from perpustakaan.services.auth import SessionUser
+from perpustakaan.services.backup_scheduler import get_scheduler
+
+_THEME_KEYS = ("system", "light", "dark")
 
 
 class MainWindow(ctk.CTk):
@@ -48,7 +52,94 @@ class MainWindow(ctk.CTk):
         self._buttons: dict[str, ctk.CTkButton] = {}
         self._build_sidebar()
         self._build_views()
+        self._build_theme_toggle()
         self.show("dashboard")
+
+        # Hubungkan callback scheduler -> toast (marshal ke main thread).
+        with contextlib.suppress(Exception):
+            get_scheduler().set_callback(self._on_scheduled_backup)
+
+        # Auto-launch tutorial di first-run (kalau user belum pernah selesai).
+        with contextlib.suppress(Exception):
+            self.after(800, self._maybe_autostart_tour)
+
+    # ------------------------------------------------------------------
+    # Theme toggle (selalu visible di pojok kanan-atas, terlepas dari menu)
+    # ------------------------------------------------------------------
+    def _build_theme_toggle(self) -> None:
+        cur_theme = (settings_repo.get_value("ui.theme") or "system").lower()
+        if cur_theme not in _THEME_KEYS:
+            cur_theme = "system"
+        labels = [t(f"theme.{k}") for k in _THEME_KEYS]
+        self._theme_var = ctk.StringVar(value=t(f"theme.{cur_theme}"))
+        self._theme_btn = ctk.CTkSegmentedButton(
+            self.content,
+            values=labels,
+            variable=self._theme_var,
+            command=self._on_theme_changed,
+            font=ctk.CTkFont(size=12, weight="bold"),
+        )
+        # Anchor ke pojok kanan-atas content area.
+        self._theme_btn.place(relx=1.0, rely=0.0, x=-16, y=12, anchor="ne")
+        # Re-raise tiap kali user berpindah view supaya tetap di atas.
+        self._theme_btn.lift()
+
+    def _label_to_theme_key(self, label: str) -> str:
+        for k in _THEME_KEYS:
+            if t(f"theme.{k}") == label:
+                return k
+        return "system"
+
+    def _on_theme_changed(self, label: str) -> None:
+        key = self._label_to_theme_key(label)
+        color = settings_repo.get_value("ui.color_theme", "blue") or "blue"
+        with contextlib.suppress(Exception):
+            widgets.configure_theme(key, color)
+        with contextlib.suppress(Exception):
+            settings_repo.set_value("ui.theme", key)
+        with contextlib.suppress(Exception):
+            widgets.show_toast(self, t("theme.applied"), kind="success", duration_ms=2000)
+
+    # ------------------------------------------------------------------
+    # Tour
+    # ------------------------------------------------------------------
+    def _maybe_autostart_tour(self) -> None:
+        completed = (settings_repo.get_value("tutorial.completed") or "").strip()
+        if completed != "1":
+            self.start_tour()
+
+    def start_tour(self) -> None:
+        from perpustakaan.gui.tour import TourManager, build_default_steps
+
+        steps = build_default_steps(self)
+        TourManager(self, steps).start()
+
+    def _on_scheduled_backup(self, result: dict) -> None:
+        """Dipanggil dari worker thread saat backup terjadwal selesai."""
+        def _show() -> None:
+            with contextlib.suppress(Exception):
+                if result.get("status") == "success":
+                    name = ""
+                    path = result.get("path", "")
+                    if path:
+                        from pathlib import Path
+
+                        name = Path(path).name
+                    msg = (
+                        t("backup.toast.success", name=name)
+                        if name
+                        else t("backup.toast.success_noname")
+                    )
+                    widgets.show_toast(self, msg, kind="success", duration_ms=4500)
+                else:
+                    widgets.show_toast(
+                        self,
+                        t("backup.toast.failed", error=result.get("error", "")),
+                        kind="error",
+                        duration_ms=6000,
+                    )
+        with contextlib.suppress(Exception):
+            self.after(0, _show)
 
     # ------------------------------------------------------------------
     # Sidebar
@@ -164,9 +255,18 @@ class MainWindow(ctk.CTk):
                 btn.configure(fg_color=("#dbeafe", "#1e3a8a"))
             else:
                 btn.configure(fg_color="transparent")
+        # Pastikan theme toggle tetap di atas setelah view di-raise.
+        with contextlib.suppress(Exception):
+            self._theme_btn.lift()
 
     # ------------------------------------------------------------------
     def _do_logout(self) -> None:
         if widgets.confirm(self, t("toast.confirm_logout")):
             self.logout_requested = True
             self.destroy()
+
+    def destroy(self) -> None:
+        # Lepas callback supaya scheduler tidak panggil widget yang sudah hancur.
+        with contextlib.suppress(Exception):
+            get_scheduler().set_callback(None)
+        super().destroy()
