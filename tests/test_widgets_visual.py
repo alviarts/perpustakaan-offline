@@ -128,3 +128,65 @@ def test_available_illustrations_returns_list():
 
     names = available_illustrations()
     assert isinstance(names, list)
+
+
+def test_bundled_empty_state_illustrations_present():
+    """v0.5.1 bundles 7 procedural illustrations untuk empty state.
+
+    Generator: ``scripts/gen_illustrations.py``.
+    """
+    from perpustakaan.gui.illustrations import available_illustrations
+
+    expected = {
+        "empty-anggota",
+        "empty-anggota-search",
+        "empty-buku",
+        "empty-buku-search",
+        "empty-kunjungan",
+        "empty-peminjaman",
+        "empty-pengembalian",
+    }
+    actual = set(available_illustrations())
+    missing = expected - actual
+    assert not missing, f"Illustration tidak ter-bundle: {missing}"
+
+
+def test_load_bundled_illustration_returns_image():
+    import customtkinter as ctk
+
+    from perpustakaan.gui.illustrations import load_illustration
+
+    img = load_illustration("empty-anggota", size=(360, 220))
+    assert img is not None
+    assert isinstance(img, ctk.CTkImage)
+
+
+def test_empty_state_with_illustration(root):
+    """EmptyState pakai illustration loader saat name diberikan."""
+    from perpustakaan.gui.widgets import EmptyState
+
+    es = EmptyState(
+        root,
+        title="Belum ada anggota",
+        description="Tambah anggota pertama.",
+        illustration="empty-anggota",
+    )
+    assert es is not None
+    # Title + description label minimal — icon label cuma muncul kalau image
+    # ter-load (bisa skip kalau env minimal). Ambil yang penting: tidak crash.
+    children = es.winfo_children()
+    assert len(children) >= 2
+
+
+def test_empty_state_falls_back_to_lucide_when_illustration_missing(root):
+    """Kalau illustration name tidak ada → fallback ke lucide icon."""
+    from perpustakaan.gui.widgets import EmptyState
+
+    es = EmptyState(
+        root,
+        title="Test fallback",
+        description="Should use Lucide icon",
+        illustration="totally-does-not-exist",
+        icon="inbox",
+    )
+    assert es is not None

@@ -627,19 +627,42 @@ class EmptyState(ctk.CTkFrame):
         description: str = "",
         icon: str = "inbox",
         icon_size: int = 48,
+        illustration: str | None = None,
+        illustration_size: tuple[int, int] = (320, 200),
         action_label: str | None = None,
         action_command: Callable[[], None] | None = None,
     ) -> None:
+        """Empty state placeholder.
+
+        Visual layer order (first match wins):
+
+        1. ``illustration`` — name dari ``assets/illustrations/<name>.png``.
+           Kalau file ada, dipakai sebagai hero visual (sebelum Lucide icon).
+        2. ``icon`` — Lucide icon name. Default ``"inbox"``. Dipakai sebagai
+           fallback kalau illustration tidak tersedia.
+
+        Param ``illustration_size`` adalah max bound ``(w, h)``; aspect ratio
+        original akan dipertahankan via ``Image.thumbnail``.
+        """
         super().__init__(parent, fg_color="transparent")
 
         # Lazy import supaya widgets.py tidak hard-depend ke icons.py kalau
         # asset belum ada (mis. di test environment minimal).
-        try:
-            from perpustakaan.gui.icons import lucide_icon
+        img = None
+        if illustration:
+            try:
+                from perpustakaan.gui.illustrations import load_illustration
 
-            img = lucide_icon(icon, size=icon_size)
-        except Exception:  # noqa: BLE001
-            img = None
+                img = load_illustration(illustration, size=illustration_size)
+            except Exception:  # noqa: BLE001
+                img = None
+        if img is None:
+            try:
+                from perpustakaan.gui.icons import lucide_icon
+
+                img = lucide_icon(icon, size=icon_size)
+            except Exception:  # noqa: BLE001
+                img = None
 
         try:
             from perpustakaan.gui.fonts import body_font, section_font
@@ -649,7 +672,7 @@ class EmptyState(ctk.CTkFrame):
             _title_font = ctk.CTkFont(size=15, weight="bold")
             _body_font = ctk.CTkFont(size=12)
 
-        # Icon (kalau ada)
+        # Icon / illustration (kalau ada)
         if img is not None:
             self._icon_lbl = ctk.CTkLabel(self, text="", image=img)
             self._icon_lbl.pack(pady=(8, 12))
