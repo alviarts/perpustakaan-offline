@@ -13,6 +13,7 @@ class DashboardView(ctk.CTkFrame):
     def __init__(self, parent, app) -> None:
         super().__init__(parent, fg_color="transparent")
         self.app = app
+        self._first_show = True
 
         # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
@@ -82,4 +83,22 @@ class DashboardView(ctk.CTkFrame):
             self.cards[key].set_value(str(stats.get(key, 0)))
         self.kas_card.set_value(fmt_rupiah(stats.get("kas_saldo", 0)))
 
-        self.reminder.set_rows(peminjaman_repo.list_jatuh_tempo_segera(days_ahead=2))
+        overdue = peminjaman_repo.list_jatuh_tempo_segera(days_ahead=3)
+        self.reminder.set_rows(overdue)
+
+        if self._first_show and overdue:
+            self._first_show = False
+            terlambat = [r for r in overdue if int(r.get("sisa_hari", 0)) < 0]
+            segera = [r for r in overdue if int(r.get("sisa_hari", 0)) >= 0]
+            msg_parts = []
+            if terlambat:
+                msg_parts.append(f"{len(terlambat)} buku TERLAMBAT")
+            if segera:
+                msg_parts.append(f"{len(segera)} buku jatuh tempo dalam 3 hari")
+            from perpustakaan.gui import widgets
+            widgets.show_toast(
+                self, f"Reminder: {', '.join(msg_parts)}.",
+                kind="warning", duration_ms=6000,
+            )
+        elif self._first_show:
+            self._first_show = False
