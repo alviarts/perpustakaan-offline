@@ -40,6 +40,45 @@ jobs:
       - name: Pytest
         run: pytest tests/ -q
 
+  smoke-test:
+    name: Smoke Test GUI (Xvfb)
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Tk + Xvfb + ImageMagick
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            python3-tk xvfb imagemagick
+
+      - name: Install package + dev deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest pytest-timeout
+
+      - name: Run smoke tests on Xvfb
+        run: |
+          export XDG_DATA_HOME=$(mktemp -d)
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" \
+            python -m pytest tests/test_smoke_gui.py -v --timeout=120
+
+      - name: Upload smoke-test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-screenshots
+          path: docs/smoke-test/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
   build-windows:
     name: Build .exe + Installer (Windows)
     needs: lint-test
