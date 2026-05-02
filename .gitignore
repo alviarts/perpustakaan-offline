@@ -87,3 +87,6 @@ client_secret*.json
 # Local notes
 NOTES.local.md
 .ruff_cache/
+
+# Installer output
+installer/Output/
