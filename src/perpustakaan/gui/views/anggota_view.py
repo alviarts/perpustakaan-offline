@@ -195,9 +195,21 @@ class AnggotaView(ctk.CTkFrame):
             widgets.report_exception(self, e, "Gagal cetak KTA")
 
     def _cetak_bebas(self) -> None:
+        from perpustakaan.models import peminjaman as peminjaman_repo
+
         sel = self.table.selected()
         if sel is None:
             widgets.show_toast(self, "Pilih anggota terlebih dahulu.", kind="warning")
+            return
+        aktif = peminjaman_repo.list_aktif_anggota(int(sel["id"]))
+        if aktif:
+            judul_list = ", ".join(r.get("judul", "?") for r in aktif[:5])
+            widgets.warn(
+                self,
+                f"Anggota masih memiliki {len(aktif)} peminjaman aktif:\n"
+                f"{judul_list}\n\n"
+                "Selesaikan semua peminjaman terlebih dahulu.",
+            )
             return
         try:
             path = pdf_service.cetak_bebas_pustaka(sel)
