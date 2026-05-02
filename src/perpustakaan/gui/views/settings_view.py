@@ -180,12 +180,19 @@ class SettingsView(ctk.CTkFrame):
     def _build_akun(self, parent) -> None:
         toolbar = ctk.CTkFrame(parent, fg_color="transparent")
         toolbar.pack(fill="x", padx=10, pady=8)
-        ctk.CTkButton(toolbar, text="+ Akun Baru", command=self._add_user).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar, text="Hapus Akun", command=self._del_user,
-                      fg_color="#ef4444", hover_color="#dc2626").pack(side="left", padx=2)
-        ctk.CTkButton(toolbar, text="Ganti Password Saya", command=self._change_pw).pack(
-            side="left", padx=2
-        )
+        widgets.icon_button(
+            toolbar, text="Akun Baru", lucide="user-plus",
+            command=self._add_user,
+        ).pack(side="left", padx=2)
+        widgets.icon_button(
+            toolbar, text="Hapus Akun", lucide="trash-2",
+            command=self._del_user,
+            fg_color="#ef4444", hover_color="#dc2626",
+        ).pack(side="left", padx=2)
+        widgets.icon_button(
+            toolbar, text="Ganti Password Saya", lucide="key-round",
+            command=self._change_pw,
+        ).pack(side="left", padx=2)
         self.akun_table = StyledTreeview(
             parent,
             columns=[
@@ -794,9 +801,15 @@ class AccountDialog(ctk.CTkToplevel):
 
         btnbar = ctk.CTkFrame(self, fg_color="transparent")
         btnbar.pack(fill="x", padx=20, pady=12)
-        ctk.CTkButton(btnbar, text=t("common.cancel"), command=self.destroy,
-                      fg_color="transparent", border_width=1).pack(side="right", padx=4)
-        ctk.CTkButton(btnbar, text=t("common.save"), command=self._submit).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.cancel"), lucide="x",
+            command=self.destroy,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.save"), lucide="save",
+            command=self._submit,
+        ).pack(side="right", padx=4)
 
     def _submit(self) -> None:
         try:
@@ -836,9 +849,15 @@ class ChangePasswordDialog(ctk.CTkToplevel):
 
         btnbar = ctk.CTkFrame(self, fg_color="transparent")
         btnbar.pack(fill="x", padx=20, pady=12)
-        ctk.CTkButton(btnbar, text=t("common.cancel"), command=self.destroy,
-                      fg_color="transparent", border_width=1).pack(side="right", padx=4)
-        ctk.CTkButton(btnbar, text=t("common.save"), command=self._submit).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.cancel"), lucide="x",
+            command=self.destroy,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.save"), lucide="save",
+            command=self._submit,
+        ).pack(side="right", padx=4)
 
     def _submit(self) -> None:
         if self.new1.get() != self.new2.get():

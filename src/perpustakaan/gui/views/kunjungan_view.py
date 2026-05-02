@@ -61,13 +61,18 @@ class KunjunganView(ctk.CTkFrame):
         self.jumlah = ctk.CTkEntry(form, placeholder_text="1")
         self.jumlah.pack(fill="x", padx=12)
 
-        ctk.CTkButton(form, text=t("common.save"), command=self._save).pack(
-            fill="x", padx=12, pady=14
-        )
+        widgets.icon_button(
+            form, text=t("common.save"), lucide="save",
+            command=self._save,
+        ).pack(fill="x", padx=12, pady=14)
 
-        # Tabel
+        # Tabel + empty state wrapper
+        table_wrapper = ctk.CTkFrame(body, fg_color="transparent")
+        table_wrapper.grid(row=0, column=1, sticky="nsew")
+        table_wrapper.grid_columnconfigure(0, weight=1)
+        table_wrapper.grid_rowconfigure(0, weight=1)
         self.table = StyledTreeview(
-            body,
+            table_wrapper,
             columns=[
                 ("tanggal", "Tanggal", 100),
                 ("jam", "Jam", 80),
@@ -79,13 +84,30 @@ class KunjunganView(ctk.CTkFrame):
                 ("sumber", "Sumber", 100),
             ],
         )
-        self.table.grid(row=0, column=1, sticky="nsew")
+        self.table.grid(row=0, column=0, sticky="nsew")
+        self._table_wrapper = table_wrapper
+        self._empty_state: widgets.EmptyState | None = None
 
     def on_show(self) -> None:
         self._reload()
 
     def _reload(self) -> None:
-        self.table.set_rows(kunjungan_repo.list_recent(limit=200))
+        rows = kunjungan_repo.list_recent(limit=200)
+        self.table.set_rows(rows)
+        if not rows:
+            if self._empty_state is None:
+                self._empty_state = widgets.EmptyState(
+                    self._table_wrapper,
+                    title=t("trx.empty.kunjungan.title"),
+                    description=t("trx.empty.kunjungan.desc"),
+                    icon="calendar-days",
+                    icon_size=64,
+                )
+                self._empty_state.grid(row=0, column=0, sticky="nsew")
+            self._empty_state.lift()
+        elif self._empty_state is not None:
+            self._empty_state.destroy()
+            self._empty_state = None
 
     def _save(self) -> None:
         try:
