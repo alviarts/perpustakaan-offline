@@ -106,6 +106,9 @@ class StyledTreeview(ctk.CTkFrame):
         self._items_by_iid.clear()
         for r in rows:
             iid = str(r.get(self._key_field, r.get("id", id(r))))
+            if iid in self._items_by_iid:
+                fallback = r.get("id")
+                iid = str(fallback) if fallback is not None else f"{iid}_{id(r)}"
             values = [r.get(col_id, "") for col_id, _, _ in self._columns]
             self.tree.insert("", "end", iid=iid, values=values)
             self._items_by_iid[iid] = r
