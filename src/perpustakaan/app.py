@@ -26,12 +26,22 @@ def _setup_logging() -> None:
     )
 
 
-def _init_database() -> None:
+def _init_database(demo: bool = False) -> None:
     from perpustakaan.db.connection import init_db
-    from perpustakaan.db.seed import seed_all
+    from perpustakaan.db.seed import seed_all, seed_demo
 
     init_db()
     seed_all()
+    if demo:
+        log = logging.getLogger("perpustakaan.app")
+        result = seed_demo()
+        if any(result.values()):
+            log.info(
+                "Demo data seeded: %d anggota, %d buku, %d peminjaman",
+                result["anggota"], result["buku"], result["peminjaman"],
+            )
+        else:
+            log.info("Demo data dilewati (database sudah berisi data).")
 
 
 def _apply_locale_from_settings() -> None:
@@ -45,17 +55,28 @@ def _apply_locale_from_settings() -> None:
         set_locale("id")
 
 
-def run() -> int:
-    """Entry point — return exit code."""
+def run(demo: bool = False, headless: bool = False) -> int:
+    """Entry point — return exit code.
+
+    Args:
+        demo: kalau True, seed demo data (5 anggota + 10 buku + 2 peminjaman)
+            saat DB masih kosong. Idempotent — di-skip kalau sudah ada data.
+        headless: kalau True, tidak buka GUI; hanya init DB lalu exit
+            (berguna untuk CI / scripting).
+    """
     _setup_logging()
     log = logging.getLogger("perpustakaan.app")
     try:
-        _init_database()
+        _init_database(demo=demo)
         _apply_locale_from_settings()
     except Exception:  # pragma: no cover - bootstrap error
         log.exception("Gagal inisialisasi database")
         traceback.print_exc()
         return 2
+
+    if headless:
+        log.info("Mode --no-gui: inisialisasi selesai, exit.")
+        return 0
 
     try:
         from perpustakaan.gui.login import run_login_then_main

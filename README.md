@@ -49,6 +49,10 @@ pip install -r requirements.txt
 
 # 4. Jalankan aplikasi (DB + seed data otomatis dibuat saat pertama jalan)
 python -m perpustakaan
+
+# Atau dengan demo data (5 anggota + 10 buku + 2 peminjaman aktif)
+# berguna untuk training / demo tanpa input data manual
+python -m perpustakaan --demo
 ```
 
 Database (SQLite) akan dibuat otomatis di:
