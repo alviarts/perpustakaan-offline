@@ -102,6 +102,8 @@ class KunjunganView(ctk.CTkFrame):
                     description=t("trx.empty.kunjungan.desc"),
                     icon="calendar-days",
                     icon_size=64,
+                    illustration="empty-kunjungan",
+                    illustration_size=(360, 220),
                 )
                 self._empty_state.grid(row=0, column=0, sticky="nsew")
             self._empty_state.lift()

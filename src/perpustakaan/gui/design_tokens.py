@@ -175,4 +175,73 @@ class _ZIndex(NamedTuple):
 Z: Final[_ZIndex] = _ZIndex(base=0, raised=10, overlay=100, modal=1000)
 
 
-__all__ = ["COLOR", "SPACE", "RADIUS", "ICON_SIZE", "Z"]
+# ---------------------------------------------------------------------------
+# Illustration palette — subset palet utama, dipersempit supaya semua
+# ilustrasi (empty states, hero, feedback) share lighting yang sama.
+# Dipakai oleh ``scripts/gen_illustrations.py`` saat generate procedural PNG.
+# ---------------------------------------------------------------------------
+class _IllustrationTokens(NamedTuple):
+    primary: str          # outline / hero shape (match COLOR.primary[0])
+    primary_soft: str     # secondary fill / shadow
+    accent: str           # warm highlight kecil
+    bg_warm: str          # cream background utk light mode
+    bg_cool: str          # navy background utk dark mode
+    line: str             # outline stroke (light)
+    line_dark: str        # outline stroke (dark)
+
+
+ILLUSTRATION: Final[_IllustrationTokens] = _IllustrationTokens(
+    primary="#4f46e5",        # indigo-600
+    primary_soft="#a5b4fc",   # indigo-300
+    accent="#f59e0b",         # amber-500
+    bg_warm="#fef9f3",        # warm cream
+    bg_cool="#0b1120",        # match COLOR.bg[1]
+    line="#1e293b",           # slate-800
+    line_dark="#cbd5e1",      # slate-300 (untuk dark variant)
+)
+
+
+# ---------------------------------------------------------------------------
+# Shadow specs — Tk tidak punya box-shadow, jadi shadow di-emulasi via
+# (a) border tipis 1px (cheap, default), atau (b) PNG drop shadow layer
+# yang di-place behind frame (premium feel, untuk modal/toast besar).
+#
+# Tuple format: (offset_x, offset_y, blur_radius, alpha_percent)
+# Generator helper: ``scripts/gen_shadow.py`` (optional, belum bundled).
+# ---------------------------------------------------------------------------
+class _ShadowTokens(NamedTuple):
+    sm: tuple[int, int, int, int]      # subtle — input, list row hover
+    md: tuple[int, int, int, int]      # default — card, dropdown
+    lg: tuple[int, int, int, int]      # prominent — modal, toast
+    focus_ring: tuple[str, int]        # (color, ring_width_px)
+
+
+SHADOW: Final[_ShadowTokens] = _ShadowTokens(
+    sm=(0, 1, 2, 6),
+    md=(0, 4, 8, 8),
+    lg=(0, 12, 24, 12),
+    focus_ring=("#4f46e5", 2),
+)
+
+
+# ---------------------------------------------------------------------------
+# Motion / animation duration — pakai di gui.animations module.
+# Angka dipilih supaya cukup terasa premium tanpa terkesan lambat.
+# ---------------------------------------------------------------------------
+class _MotionTokens(NamedTuple):
+    instant: int      # 0    — no animation (a11y reduced motion)
+    fast: int         # 120  — micro-interaction (hover, focus)
+    base: int         # 200  — default transition (fade, slide)
+    slow: int         # 320  — emphasis / page transition
+    deliberate: int   # 480  — onboarding / large content reveal
+
+
+MOTION: Final[_MotionTokens] = _MotionTokens(
+    instant=0, fast=120, base=200, slow=320, deliberate=480,
+)
+
+
+__all__ = [
+    "COLOR", "SPACE", "RADIUS", "ICON_SIZE", "Z",
+    "ILLUSTRATION", "SHADOW", "MOTION",
+]

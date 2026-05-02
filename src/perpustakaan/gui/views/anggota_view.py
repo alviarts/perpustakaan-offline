@@ -166,6 +166,10 @@ class AnggotaView(ctk.CTkFrame):
                     ),
                     icon="frown" if is_search else "users",
                     icon_size=64,
+                    illustration=(
+                        "empty-anggota-search" if is_search else "empty-anggota"
+                    ),
+                    illustration_size=(360, 220),
                 )
                 self._empty_state.grid(row=0, column=0, sticky="nsew")
             self._empty_state.lift()

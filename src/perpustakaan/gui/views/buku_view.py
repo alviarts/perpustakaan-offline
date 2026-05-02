@@ -158,6 +158,10 @@ class BukuView(ctk.CTkFrame):
                     ),
                     icon="frown" if is_search else "book-open",
                     icon_size=64,
+                    illustration=(
+                        "empty-buku-search" if is_search else "empty-buku"
+                    ),
+                    illustration_size=(360, 220),
                 )
                 self._empty_state.grid(row=0, column=0, sticky="nsew")
             self._empty_state.lift()
