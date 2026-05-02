@@ -23,10 +23,12 @@ sesuai urutan menu di sidebar.
 8. [Transaksi — Pengembalian](#transaksi--pengembalian)
 9. [Laporan](#laporan)
 10. [Setting](#setting)
-11. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
-12. [Cetak (KTA, Label Barcode, Bebas Pustaka)](#cetak-kta-label-barcode-bebas-pustaka)
-13. [Sync ke Google Sheets (Opsional)](#sync-ke-google-sheets-opsional)
-14. [Troubleshooting](#troubleshooting)
+11. [Tools — Cek Data Ganda](#tools--cek-data-ganda)
+12. [Audit Log Viewer](#audit-log-viewer)
+13. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
+14. [Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)](#cetak-kta-label-barcode-bebas-pustaka-nota)
+15. [Sync ke Google Sheets (Opsional)](#sync-ke-google-sheets-opsional)
+16. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -101,8 +103,30 @@ Tampilan ringkasan operasional perpustakaan saat ini:
 | **Saldo Kas**            | Akumulasi denda + transaksi kas manual                              |
 
 **Tabel "Reminder Jatuh Tempo / Terlambat"** di bawah menampilkan peminjaman yang:
-- Akan jatuh tempo dalam 2 hari (warning)
-- Sudah terlambat (merah)
+- Akan jatuh tempo dalam 3 hari ke depan (warning)
+- Sudah terlambat (merah, dengan `sisa_hari` negatif)
+
+### Reminder Otomatis Saat Login (v0.3.0)
+
+Saat dashboard pertama kali ter-load setelah login, aplikasi akan otomatis menampilkan **toast notification** di pojok kanan bawah jika ada peminjaman yang:
+- **Sudah terlambat** (overdue)
+- **Jatuh tempo dalam 3 hari ke depan**
+
+Contoh pesan: *"Reminder: 2 buku TERLAMBAT, 3 buku jatuh tempo dalam 3 hari."*
+
+Reminder ini hanya muncul satu kali per sesi (saat dashboard dibuka pertama kali). Kalau ingin lihat ulang, klik tombol **Muat Ulang** di header dashboard.
+
+Kolom tabel reminder:
+
+| Kolom              | Penjelasan                                                  |
+|--------------------|-------------------------------------------------------------|
+| No. Pinjam         | Nomor unik transaksi peminjaman                             |
+| Kode Anggota       | Mis `A0001`                                                 |
+| Nama               | Nama lengkap peminjam                                       |
+| Kode Buku          | Mis `B0003`                                                 |
+| Judul              | Judul buku                                                  |
+| Jatuh Tempo        | Tanggal seharusnya dikembalikan                             |
+| Sisa Hari          | Negatif kalau sudah lewat (mis `-5` = terlambat 5 hari)     |
 
 Klik **Muat Ulang** kalau ada perubahan di komputer lain (misal multi-user).
 
@@ -120,6 +144,21 @@ Klik **Muat Ulang** kalau ada perubahan di komputer lain (misal multi-user).
 4. **Tanggal Lahir** format `YYYY-MM-DD` (mis `2010-08-15`)
 5. **Foto (path)** — boleh kosong, atau pilih file via tombol **"Pilih Foto..."** (akan dicopy ke folder data app)
 6. Klik **Tambahkan**
+
+### Naik Kelas (Batch)
+
+![Dialog Naik Kelas](screenshots/14-naik-kelas.png)
+
+Fitur untuk **menaikkan kelas semua siswa secara batch** di awal tahun ajaran baru — tidak perlu edit satu-satu.
+
+1. Di toolbar Master Anggota, klik tombol **Naik Kelas**
+2. Dialog akan menampilkan daftar **semua kelas yang ada** (mis `VII A`, `VII B`, `VIII A`, ...)
+3. Untuk setiap baris, isi **kelas baru** (mis `VII A` → `VIII A`)
+4. Kelas yang **dibiarkan kosong** akan tetap (tidak diubah)
+5. Untuk siswa kelas akhir (mis `IX A` di SMP, `XII IPA` di SMA), set kelas baru ke `Lulus` atau status keluar lainnya
+6. Klik **Simpan** → konfirmasi → semua anggota di kelas tsb otomatis ter-update
+
+> **Tip:** Backup database sebelum operasi batch (Laporan → Backup). Operasi naik kelas dijalankan dalam transaksi; kalau ada error di tengah, semua perubahan di-rollback otomatis.
 
 ### Edit Anggota
 
@@ -369,6 +408,79 @@ Klik **Simpan** → UI berubah live tanpa restart.
 Untuk export manual ke Google Sheets — lihat
 [Sync ke Google Sheets](#sync-ke-google-sheets-opsional).
 
+### Tab "Tools"
+
+Lihat bab terpisah: [Tools — Cek Data Ganda](#tools--cek-data-ganda).
+
+### Tab "Audit Log"
+
+Lihat bab terpisah: [Audit Log Viewer](#audit-log-viewer).
+
+---
+
+## Tools — Cek Data Ganda
+
+![Cek Data Ganda](screenshots/16-tools-duplikat.png)
+
+Fitur baru di v0.3.0 untuk **mendeteksi data duplikat** yang sering terjadi saat
+import Excel berulang atau saat dua operator input data anggota/buku yang sama
+secara bersamaan. Akses lewat **Setting → tab Tools**.
+
+### Cara Pakai
+
+1. **Setting → Tools**
+2. Klik tombol **Scan Duplikat**
+3. Tabel pertama (**Duplikat Anggota**) menampilkan grup anggota dengan **Nama + Kelas** identik (case-insensitive)
+4. Tabel kedua (**Duplikat Buku**) menampilkan grup buku dengan:
+   - **ISBN** sama persis (tipe: `ISBN`), atau
+   - **Judul + Pengarang** sama persis (tipe: `Judul+Pengarang`)
+5. Kolom **Kode Anggota** / **Kode Buku** berisi list kode yang duplikat (mis `A0001, A0098, A0099`)
+6. Status di bawah: *"Tidak ada data ganda"* (hijau) atau *"Ditemukan N grup"* (oranye)
+
+### Cara Bersihkan Duplikat
+
+Setelah kamu identifikasi grup duplikat:
+
+- **Anggota duplikat**: balik ke Master Anggota → cari per kode → pilih satu yang "asli" → hapus yang lain (atau merge manual sebelum hapus kalau punya peminjaman aktif)
+- **Buku duplikat**: balik ke Master Buku → cari per kode → kalau dua buku fisik memang sama, pertahankan satu dan tambahkan jumlah eksemplarnya, hapus duplikat. Kalau memang dua buku berbeda yang kebetulan ISBN-nya tertulis sama, perbaiki ISBN salah satu
+
+> **Saran:** Jalankan Cek Data Ganda **sebelum** dan **sesudah** import Excel besar untuk memastikan tidak ada duplikasi.
+
+---
+
+## Audit Log Viewer
+
+![Audit Log](screenshots/17-audit-log.png)
+
+Fitur baru di v0.3.0 untuk **melihat riwayat aksi siapa-melakukan-apa-kapan**. Akses
+lewat **Setting → tab Audit Log**.
+
+### Yang Tercatat
+
+| Kolom        | Penjelasan                                                       |
+|--------------|------------------------------------------------------------------|
+| **Waktu**    | Timestamp aksi (`YYYY-MM-DD HH:MM:SS`)                           |
+| **User**     | Username operator (atau `—` kalau user sudah dihapus)            |
+| **Aksi**     | `create` / `update` / `delete` / `login` / `naik_kelas` / dll   |
+| **Entitas**  | Nama tabel yang di-affect (`anggota`, `buku`, `peminjaman`, ...) |
+| **ID**       | ID record yang terkena aksi                                      |
+| **Detail**   | JSON detail (mis nama anggota, judul buku, dst)                  |
+
+### Search & Filter
+
+- **Field cari**: ketik kata kunci → tekan Enter atau klik **Muat Ulang**
+- Search match terhadap **Aksi**, **Entitas**, atau **Username** (case-insensitive substring)
+- Contoh: ketik `delete` → tampilkan semua aksi delete; ketik `admin` → tampilkan semua aksi user `admin`
+- Kosongkan field → tampilkan semua
+
+### Use Case
+
+- **Audit / kepala sekolah**: review aksi pustakawan harian/mingguan
+- **Investigasi**: "siapa yang menghapus anggota X?" → search `delete anggota`
+- **Compliance**: bukti aktivitas untuk laporan tahunan
+
+> Audit log tidak bisa dihapus dari UI — by design untuk integritas. Untuk reset (mis akhir tahun ajaran), gunakan tools developer atau backup + reset DB.
+
 ---
 
 ## Backup, Reset, & Lokasi Data
@@ -411,7 +523,7 @@ PerpustakaanOffline/
 
 ---
 
-## Cetak (KTA, Label Barcode, Bebas Pustaka)
+## Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)
 
 ### Format Output
 
@@ -420,7 +532,30 @@ PerpustakaanOffline/
 | KTA Anggota      | CR80 (kartu) | PDF               | Printer kartu PVC, atau A4 + laminating |
 | Label Buku       | 70×30mm grid 3×8 | PDF (A4)      | Kertas label sticker A4 (Tom & Jerry, Avery) |
 | Surat Bebas Pustaka | A4       | PDF               | Printer biasa               |
-| Nota Peminjaman  | 80mm thermal | PDF (struk)     | Printer thermal struk (opsional) |
+| Nota Peminjaman  | A5 / struk | PDF               | Printer biasa atau thermal struk |
+| Nota Pengembalian| A5 / struk | PDF               | Printer biasa atau thermal struk |
+
+### Cetak Nota Peminjaman / Pengembalian (v0.3.0)
+
+![Konfirmasi Cetak Nota](screenshots/15-cetak-nota.png)
+
+Setelah simpan transaksi peminjaman atau pengembalian, aplikasi akan otomatis
+menampilkan dialog konfirmasi **"Cetak nota peminjaman?"** (atau **"Cetak nota
+pengembalian?"**):
+
+1. Klik **Ya, Cetak** → PDF nota di-generate dan otomatis terbuka di PDF reader default OS
+2. Klik **Tidak** → transaksi tersimpan tapi tidak ada nota (bisa di-cetak ulang manual nanti)
+3. PDF nota disimpan di folder `exports/` di [folder data aplikasi](#lokasi-data)
+
+Isi nota:
+- **Header**: Nama perpustakaan + alamat (dari Setting → Identitas)
+- **Nomor transaksi**: mis `PJ-202405-001`
+- **Tanggal**: tanggal pinjam (atau tanggal kembali untuk nota pengembalian)
+- **Anggota**: nama, kelas, kode anggota
+- **Tabel item**: kode buku + judul + (jatuh tempo untuk peminjaman, atau denda untuk pengembalian)
+- **Footer**: total denda (kalau pengembalian), tanda tangan operator
+
+> **Tip:** Untuk printer thermal struk 58mm/80mm, ukuran PDF tetap A5 — printer driver akan auto-fit. Kalau output terpotong, atur margin printer atau cetak ke A4 lalu potong.
 
 ### Cetak Beberapa KTA Sekaligus
 
@@ -515,14 +650,24 @@ This is a translated short version of the manual. Indonesian version above is mo
 
 | Module           | Purpose                                                                |
 |------------------|------------------------------------------------------------------------|
-| **Dashboard**    | At-a-glance KPIs (members, books, active loans, fines, visits)         |
-| **Members**      | Student CRUD, ID card printing, member promotion (next class), clearance letter |
+| **Dashboard**    | At-a-glance KPIs + auto-popup reminder for overdue / due-soon loans     |
+| **Members**      | Student CRUD, ID card printing, **batch class promotion**, clearance letter |
 | **Books**        | Book CRUD, multi-copy management, DDC classification, label printing   |
 | **Visits**       | Daily visit log (individual or batch by class)                         |
-| **Borrow**       | Issue books to members (barcode scan or manual)                        |
-| **Return**       | Process returns, calculate overdue fines, mark lost books              |
+| **Borrow**       | Issue books, **prompt to print receipt** after save                    |
+| **Return**       | Process returns, calculate overdue fines, mark lost books, **print receipt** |
 | **Reports**      | Backup/Restore, charts, top borrowers, top books, finance ledger       |
 | **Settings**     | Library identity, transaction parameters, accounts, language, theme    |
+| **Settings → Tools** | **Duplicate scanner** (members & books) — detect data dupes      |
+| **Settings → Audit Log** | **Activity history viewer** — who-did-what-when, with search |
+
+## What's New in v0.3.0
+
+- **Batch class promotion** — toolbar button on Members; map old class → new class for all students at once
+- **Print receipt prompt** — after saving a borrow / return transaction, app asks if you want to generate a PDF receipt
+- **Duplicate detection (Tools)** — Settings → Tools → *Scan Duplicates*: finds members with same Name + Class, books with same ISBN or Title + Author
+- **Auto due-date reminder** — dashboard pops up a toast on first load if loans are overdue or due in 3 days
+- **Audit log viewer** — Settings → Audit Log: searchable history of create / update / delete / login actions
 
 ## Data Location
 
@@ -557,5 +702,12 @@ Adjust in **Setting → Transactions**.
 ---
 
 *Manual ini akan diperbarui mengikuti perkembangan aplikasi. Versi terakhir: untuk
-v0.1.x. Cek [Releases](https://github.com/alviarts/perpustakaan-offline/releases)
+v0.3.0. Cek [Releases](https://github.com/alviarts/perpustakaan-offline/releases)
 untuk catatan rilis terbaru.*
+
+## Riwayat Update Manual
+
+| Versi   | Tanggal     | Perubahan                                                                  |
+|---------|-------------|----------------------------------------------------------------------------|
+| v0.3.0  | 2026-05     | Tambah dokumentasi: Naik Kelas batch, Cetak Nota, Cek Data Ganda, Reminder Jatuh Tempo otomatis, Audit Log viewer + screenshot 14–17 |
+| v0.1.1  | 2025-09     | Versi awal manual (561 baris) — instalasi, login, dashboard, master data, transaksi, laporan, setting, backup, cetak, sync, troubleshooting |
