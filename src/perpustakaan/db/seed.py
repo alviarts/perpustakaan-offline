@@ -128,3 +128,91 @@ def seed_all(db: Database | None = None) -> None:
     seed_admin(db)
     seed_ddc(db)
     seed_kelas(db)
+
+
+_DEMO_ANGGOTA: list[dict[str, str]] = [
+    {"nama": "Aulia Rahma", "kelas": "VII A", "jenis_kelamin": "P",
+     "tempat_lahir": "Jakarta", "tanggal_lahir": "2011-03-12", "no_telp": "081234567001"},
+    {"nama": "Budi Pratama", "kelas": "VII A", "jenis_kelamin": "L",
+     "tempat_lahir": "Bandung", "tanggal_lahir": "2011-07-08", "no_telp": "081234567002"},
+    {"nama": "Citra Dewi", "kelas": "VIII B", "jenis_kelamin": "P",
+     "tempat_lahir": "Surabaya", "tanggal_lahir": "2010-11-23", "no_telp": "081234567003"},
+    {"nama": "Dimas Saputra", "kelas": "VIII B", "jenis_kelamin": "L",
+     "tempat_lahir": "Yogyakarta", "tanggal_lahir": "2010-05-19", "no_telp": "081234567004"},
+    {"nama": "Eka Putri", "kelas": "IX A", "jenis_kelamin": "P",
+     "tempat_lahir": "Medan", "tanggal_lahir": "2009-09-01", "no_telp": "081234567005"},
+]
+
+_DEMO_BUKU: list[dict[str, object]] = [
+    {"judul": "Bahasa Indonesia Kelas VII", "pengarang": "Tim Kemdikbud",
+     "isbn": "978-602-100-001-1", "kode_ddc": "410", "jumlah_eksemplar": 3, "harga": 50000},
+    {"judul": "Matematika Kelas VIII", "pengarang": "Tim Kemdikbud",
+     "isbn": "978-602-100-002-2", "kode_ddc": "510", "jumlah_eksemplar": 3, "harga": 55000},
+    {"judul": "IPA Terpadu Kelas IX", "pengarang": "Tim Kemdikbud",
+     "isbn": "978-602-100-003-3", "kode_ddc": "500", "jumlah_eksemplar": 3, "harga": 60000},
+    {"judul": "Sejarah Indonesia", "pengarang": "Marwati",
+     "isbn": "978-979-100-004-4", "kode_ddc": "959", "jumlah_eksemplar": 2, "harga": 65000},
+    {"judul": "Atlas Geografi Dunia", "pengarang": "Bambang H",
+     "isbn": "978-602-100-005-5", "kode_ddc": "912", "jumlah_eksemplar": 2, "harga": 75000},
+    {"judul": "Bumi Manusia", "pengarang": "Pramoedya Ananta Toer",
+     "isbn": "978-979-100-006-6", "kode_ddc": "813", "jumlah_eksemplar": 2, "harga": 85000},
+    {"judul": "Laskar Pelangi", "pengarang": "Andrea Hirata",
+     "isbn": "978-979-100-007-7", "kode_ddc": "813", "jumlah_eksemplar": 3, "harga": 70000},
+    {"judul": "Hujan", "pengarang": "Tere Liye",
+     "isbn": "978-602-100-008-8", "kode_ddc": "813", "jumlah_eksemplar": 2, "harga": 78000},
+    {"judul": "Bahasa Inggris untuk SMP", "pengarang": "Tim Erlangga",
+     "isbn": "978-602-100-009-9", "kode_ddc": "420", "jumlah_eksemplar": 3, "harga": 52000},
+    {"judul": "Pendidikan Pancasila", "pengarang": "Tim Kemdikbud",
+     "isbn": "978-602-100-010-0", "kode_ddc": "320", "jumlah_eksemplar": 2, "harga": 48000},
+]
+
+
+def seed_demo(db: Database | None = None) -> dict[str, int]:
+    """Insert demo data (5 anggota + 10 buku + 2 peminjaman aktif).
+
+    Idempotent: skip jika sudah ada anggota atau buku.
+    Return ringkasan jumlah baris yang berhasil di-insert.
+    """
+    db = db or get_db()
+    summary = {"anggota": 0, "buku": 0, "peminjaman": 0}
+
+    existing_anggota = int(db.scalar("SELECT COUNT(*) FROM anggota") or 0)
+    existing_buku = int(db.scalar("SELECT COUNT(*) FROM buku") or 0)
+    if existing_anggota > 0 or existing_buku > 0:
+        return summary
+
+    from perpustakaan.models import anggota as anggota_model
+    from perpustakaan.models import buku as buku_model
+    from perpustakaan.models import peminjaman as peminjaman_model
+
+    anggota_ids: list[int] = []
+    for data in _DEMO_ANGGOTA:
+        try:
+            new_id = anggota_model.create(dict(data), db=db)
+        except Exception:  # noqa: BLE001 - demo seed best-effort
+            continue
+        anggota_ids.append(new_id)
+        summary["anggota"] += 1
+
+    buku_ids: list[int] = []
+    for data in _DEMO_BUKU:
+        try:
+            new_id = buku_model.create(dict(data), db=db)
+        except Exception:  # noqa: BLE001 - demo seed best-effort
+            continue
+        buku_ids.append(new_id)
+        summary["buku"] += 1
+
+    if len(anggota_ids) >= 2 and len(buku_ids) >= 3:
+        try:
+            peminjaman_model.pinjam(anggota_ids[0], buku_ids[:2], db=db)
+            summary["peminjaman"] += 1
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            peminjaman_model.pinjam(anggota_ids[2], [buku_ids[2]], db=db)
+            summary["peminjaman"] += 1
+        except Exception:  # noqa: BLE001
+            pass
+
+    return summary
