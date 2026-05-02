@@ -515,3 +515,72 @@ def fmt_rupiah(value: int | float) -> str:
         return f"Rp {int(value):,}".replace(",", ".")
     except (TypeError, ValueError):
         return "Rp 0"
+
+
+# ---------------------------------------------------------------------------
+# Permission helpers (RBAC v0.4.3)
+# ---------------------------------------------------------------------------
+def permission_button(
+    parent: Any,
+    *,
+    text: str,
+    permission: str,
+    command: Callable[[], None] | None = None,
+    **kwargs: Any,
+) -> ctk.CTkButton:
+    """Build a CTkButton yang otomatis di-disable kalau user aktif tidak punya
+    ``permission``. Klik saat tidak punya hak tetap menampilkan toast
+    "Akses ditolak" (defense in depth — secara visual juga sudah greyed).
+
+    Pakai sebagai pengganti ``ctk.CTkButton`` untuk aksi yang protected::
+
+        permission_button(toolbar, text="+ Tambah", permission="anggota.tambah",
+                          command=self._add)
+    """
+    try:
+        from perpustakaan.services import permissions as permissions_service
+
+        allowed = permissions_service.current_has(permission)
+    except Exception:  # noqa: BLE001
+        # Kalau service tidak available (mis. tabel permissions belum ada),
+        # default = allow agar app tidak kunci semua tombol di skenario error.
+        allowed = True
+
+    def _wrapped() -> None:
+        if not allowed:
+            with contextlib.suppress(Exception):
+                show_toast(
+                    parent,
+                    t("permissions.toast.denied", permission=permission),
+                    kind="warning",
+                )
+            return
+        if command is not None:
+            command()
+
+    btn = ctk.CTkButton(parent, text=text, command=_wrapped, **kwargs)
+    if not allowed:
+        with contextlib.suppress(Exception):
+            btn.configure(state="disabled")
+    return btn
+
+
+def require_permission_or_toast(parent: Any, permission: str) -> bool:
+    """Helper imperative: ``True`` kalau user punya hak, ``False`` + toast
+    "Akses ditolak" kalau tidak. Cocok untuk aksi yang dipanggil dari
+    keyboard shortcut / context menu (tidak dari permission_button).
+    """
+    try:
+        from perpustakaan.services import permissions as permissions_service
+
+        if permissions_service.current_has(permission):
+            return True
+    except Exception:  # noqa: BLE001
+        return True
+    with contextlib.suppress(Exception):
+        show_toast(
+            parent,
+            t("permissions.toast.denied", permission=permission),
+            kind="warning",
+        )
+    return False

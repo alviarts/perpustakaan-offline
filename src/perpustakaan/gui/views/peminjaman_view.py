@@ -102,8 +102,10 @@ class PeminjamanView(ctk.CTkFrame):
         self.add_kunjungan = ctk.CTkCheckBox(action, text=t("trx.tambah_kunjungan"))
         self.add_kunjungan.select()
         self.add_kunjungan.pack(side="left", padx=10)
-        ctk.CTkButton(action, text=t("common.save"), width=120,
-                      command=self._submit).pack(side="right", padx=2)
+        widgets.permission_button(
+            action, text=t("common.save"), width=120,
+            permission="peminjaman.tambah", command=self._submit,
+        ).pack(side="right", padx=2)
 
     # ----------------------------------------------------------------
     def on_show(self) -> None:

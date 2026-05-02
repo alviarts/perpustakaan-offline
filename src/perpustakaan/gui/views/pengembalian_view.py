@@ -158,7 +158,10 @@ class ProsesDialog(ctk.CTkToplevel):
         btnbar.pack(fill="x", padx=20, pady=12)
         ctk.CTkButton(btnbar, text=t("common.cancel"), command=self.destroy,
                       fg_color="transparent", border_width=1).pack(side="right", padx=4)
-        ctk.CTkButton(btnbar, text=t("common.save"), command=self._submit).pack(side="right", padx=4)
+        widgets.permission_button(
+            btnbar, text=t("common.save"),
+            permission="pengembalian.proses", command=self._submit,
+        ).pack(side="right", padx=4)
 
     def _submit(self) -> None:
         try:

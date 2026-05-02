@@ -123,11 +123,80 @@ def seed_kelas(db: Database | None = None) -> None:
             )
 
 
+def seed_permissions(db: Database | None = None) -> int:
+    """Sync registry permission Python ke tabel ``permissions``.
+
+    Idempotent — di-call setiap startup. Permission baru otomatis
+    ditambahkan, label / sort_order yang berubah otomatis di-update.
+
+    Return jumlah row di registry (untuk referensi caller, mis. log).
+    """
+    from perpustakaan.models import permissions as permissions_repo
+    from perpustakaan.services.permissions_registry import PERMISSIONS
+
+    db = db or get_db()
+    for p in PERMISSIONS:
+        permissions_repo.upsert_permission(
+            key=p.key,
+            label=p.label,
+            description=p.description,
+            area=p.area,
+            sort_order=p.sort_order,
+            db=db,
+        )
+    return len(PERMISSIONS)
+
+
+def seed_default_user_permissions(db: Database | None = None) -> int:
+    """Auto-grant default permission ke user yang belum punya satupun grant.
+
+    Dipanggil di startup setelah :func:`seed_permissions`. Skenario yang
+    di-cover:
+
+    - Fresh install: admin default seed-an dapat **semua** permission.
+    - Upgrade dari v0.4.0–v0.4.2: existing user (admin / pustakawan / siswa)
+      dapat default sesuai role-nya — supaya tidak ada user yang tiba-tiba
+      kehilangan akses setelah upgrade.
+
+    User yang sudah pernah punya grant (walau cuma satu) tidak diapa-apakan,
+    karena admin mungkin sudah meng-customize hak aksesnya.
+
+    Return jumlah baris grant baru yang dimasukkan.
+    """
+    from perpustakaan.models import permissions as permissions_repo
+    from perpustakaan.services.permissions import grant_many
+
+    db = db or get_db()
+    rows = permissions_repo.users_without_grants(db=db)
+    if not rows:
+        return 0
+
+    from perpustakaan.services.permissions_registry import (
+        default_permissions_for_role,
+    )
+
+    inserted_total = 0
+    for row in rows:
+        role = row.get("role") or ""
+        defaults = default_permissions_for_role(role)
+        if not defaults:
+            continue
+        inserted_total += grant_many(
+            int(row["id"]),
+            defaults,
+            granted_by=None,  # sistem / seed
+            db=db,
+        )
+    return inserted_total
+
+
 def seed_all(db: Database | None = None) -> None:
     seed_settings(db)
     seed_admin(db)
     seed_ddc(db)
     seed_kelas(db)
+    seed_permissions(db)
+    seed_default_user_permissions(db)
 
 
 _DEMO_ANGGOTA: list[dict[str, str]] = [

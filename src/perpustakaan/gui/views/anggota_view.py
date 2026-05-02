@@ -35,20 +35,24 @@ class AnggotaView(ctk.CTkFrame):
         ctk.CTkButton(toolbar, text=t("common.refresh"), width=90, command=self._reload).pack(
             side="left", padx=4
         )
-        ctk.CTkButton(
-            toolbar, text=t("common.import"), width=90, command=self._do_import
+        widgets.permission_button(
+            toolbar, text=t("common.import"), width=90,
+            permission="anggota.import", command=self._do_import,
         ).pack(side="right", padx=2)
         ctk.CTkButton(
             toolbar, text="Template", width=90, command=self._download_template
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text=t("anggota.cetak_kta"), width=130, command=self._cetak_kta
+        widgets.permission_button(
+            toolbar, text=t("anggota.cetak_kta"), width=130,
+            permission="anggota.cetak_kta", command=self._cetak_kta,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text=t("anggota.bebas_pustaka"), width=160, command=self._cetak_bebas
+        widgets.permission_button(
+            toolbar, text=t("anggota.bebas_pustaka"), width=160,
+            permission="anggota.bebas_pustaka", command=self._cetak_bebas,
         ).pack(side="right", padx=2)
-        ctk.CTkButton(
-            toolbar, text=t("anggota.naik_kelas"), width=130, command=self._naik_kelas
+        widgets.permission_button(
+            toolbar, text=t("anggota.naik_kelas"), width=130,
+            permission="anggota.naik_kelas", command=self._naik_kelas,
         ).pack(side="right", padx=2)
 
         # Body: split form (kiri) + table (kanan)
@@ -147,6 +151,10 @@ class AnggotaView(ctk.CTkFrame):
         if not data.get("nama"):
             widgets.show_toast(self, t("toast.required", field="nama"), kind="warning")
             return
+        # Permission check: tambah vs edit dipilih berdasarkan _editing_id.
+        needed = "anggota.edit" if self._editing_id else "anggota.tambah"
+        if not widgets.require_permission_or_toast(self, needed):
+            return
         try:
             if self._editing_id:
                 anggota_repo.update(self._editing_id, data)
@@ -163,6 +171,8 @@ class AnggotaView(ctk.CTkFrame):
     def _delete(self) -> None:
         sel = self.table.selected()
         if sel is None:
+            return
+        if not widgets.require_permission_or_toast(self, "anggota.hapus"):
             return
         if not widgets.confirm(self, t("toast.confirm_delete")):
             return

@@ -61,9 +61,10 @@ class KunjunganView(ctk.CTkFrame):
         self.jumlah = ctk.CTkEntry(form, placeholder_text="1")
         self.jumlah.pack(fill="x", padx=12)
 
-        ctk.CTkButton(form, text=t("common.save"), command=self._save).pack(
-            fill="x", padx=12, pady=14
-        )
+        widgets.permission_button(
+            form, text=t("common.save"),
+            permission="kunjungan.tambah", command=self._save,
+        ).pack(fill="x", padx=12, pady=14)
 
         # Tabel
         self.table = StyledTreeview(

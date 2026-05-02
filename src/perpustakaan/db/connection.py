@@ -9,6 +9,13 @@ from pathlib import Path
 
 from perpustakaan.config import DB_PATH, SCHEMA_PATH, ensure_runtime_dirs
 
+__all__ = [
+    "Database",
+    "get_db",
+    "init_db",
+    "transaction",
+]
+
 
 def _row_factory(cursor: sqlite3.Cursor, row: tuple) -> dict:
     return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
@@ -96,25 +103,21 @@ def get_db() -> Database:
 def init_db(db_path: Path | str | None = None, *, force: bool = False) -> Database:
     """Buat tabel + seed minimum kalau belum ada.
 
+    Schema selalu dijalankan ulang (semua statement-nya idempotent: ``CREATE …
+    IF NOT EXISTS``, ``INSERT OR IGNORE``) supaya database existing dari versi
+    lama otomatis dapat tabel/index baru saat aplikasi di-upgrade. ``force``
+    sekarang setara dengan default — flag tetap dipertahankan untuk backward
+    compatibility.
+
     :param db_path: override default DB path (untuk tests).
-    :param force: jika True, jalankan ulang schema walau sudah ada.
+    :param force: dipertahankan utk kompat; tidak mengubah perilaku.
     """
+    _ = force  # kompat lama
     ensure_runtime_dirs()
     global _db
     if db_path is not None or _db is None:
         _db = Database(db_path)
     db = _db
-
-    # Cek apakah schema_version sudah ada
-    if not force:
-        try:
-            row = db.query_one(
-                "SELECT version FROM schema_version ORDER BY version DESC LIMIT 1"
-            )
-            if row is not None and int(row["version"]) >= 1:
-                return db
-        except sqlite3.OperationalError:
-            pass  # tabel belum ada, lanjut buat
 
     sql = SCHEMA_PATH.read_text(encoding="utf-8")
     db.connect().executescript(sql)
