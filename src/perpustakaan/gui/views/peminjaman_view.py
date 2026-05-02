@@ -1,0 +1,202 @@
+"""View transaksi peminjaman."""
+from __future__ import annotations
+
+import customtkinter as ctk
+
+from perpustakaan.gui import widgets
+from perpustakaan.gui.widgets import StyledTreeview
+from perpustakaan.i18n import t
+from perpustakaan.models import anggota as anggota_repo
+from perpustakaan.models import buku as buku_repo
+from perpustakaan.models import peminjaman as peminjaman_repo
+
+
+class PeminjamanView(ctk.CTkFrame):
+    def __init__(self, parent, app) -> None:
+        super().__init__(parent, fg_color="transparent")
+        self.app = app
+        self._anggota: dict | None = None
+        self._items: list[dict] = []  # buku_id -> dict
+
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.pack(fill="x", padx=24, pady=(20, 8))
+        ctk.CTkLabel(
+            header, text=t("menu.transaksi.peminjaman"),
+            font=ctk.CTkFont(size=22, weight="bold"),
+        ).pack(side="left")
+
+        body = ctk.CTkFrame(self, fg_color="transparent")
+        body.pack(fill="both", expand=True, padx=24, pady=8)
+        body.grid_columnconfigure(0, weight=1)
+        body.grid_columnconfigure(1, weight=1)
+
+        # ---------------- Kolom kiri: scan/search anggota dan buku ----------------
+        left = ctk.CTkFrame(body)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+
+        # Anggota
+        ctk.CTkLabel(left, text=t("menu.master.anggota"),
+                     font=ctk.CTkFont(size=13, weight="bold")).pack(
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        ang_row = ctk.CTkFrame(left, fg_color="transparent")
+        ang_row.pack(fill="x", padx=12)
+        self.anggota_search = ctk.CTkEntry(
+            ang_row, placeholder_text=f"{t('trx.scan_barcode')} / kode / nama"
+        )
+        self.anggota_search.pack(side="left", fill="x", expand=True)
+        self.anggota_search.bind("<Return>", lambda _e: self._find_anggota())
+        ctk.CTkButton(ang_row, text=t("common.search"), width=80,
+                      command=self._find_anggota).pack(side="left", padx=4)
+
+        self.anggota_label = ctk.CTkLabel(
+            left, text="—", anchor="w",
+            text_color=("#374151", "#d1d5db"),
+        )
+        self.anggota_label.pack(fill="x", padx=12, pady=(8, 6))
+
+        # Buku
+        ctk.CTkLabel(left, text=t("menu.master.buku"),
+                     font=ctk.CTkFont(size=13, weight="bold")).pack(
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        buku_row = ctk.CTkFrame(left, fg_color="transparent")
+        buku_row.pack(fill="x", padx=12)
+        self.buku_search = ctk.CTkEntry(
+            buku_row, placeholder_text=f"{t('trx.scan_barcode')} / kode / judul"
+        )
+        self.buku_search.pack(side="left", fill="x", expand=True)
+        self.buku_search.bind("<Return>", lambda _e: self._add_buku())
+        ctk.CTkButton(buku_row, text=t("trx.tambah_item"), width=120,
+                      command=self._add_buku).pack(side="left", padx=4)
+
+        # ---------------- Kolom kanan: daftar item ----------------
+        right = ctk.CTkFrame(body)
+        right.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
+        right.grid_rowconfigure(1, weight=1)
+        right.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(right, text="Item Peminjaman",
+                     font=ctk.CTkFont(size=13, weight="bold")).grid(
+            row=0, column=0, sticky="w", padx=12, pady=(12, 4)
+        )
+        self.items_table = StyledTreeview(
+            right,
+            columns=[
+                ("kode_buku", t("buku.kode"), 110),
+                ("judul", t("buku.judul"), 280),
+                ("jumlah_tersedia", "Tersedia", 80),
+            ],
+            height=12,
+        )
+        self.items_table.grid(row=1, column=0, sticky="nsew", padx=12)
+
+        action = ctk.CTkFrame(right, fg_color="transparent")
+        action.grid(row=2, column=0, sticky="ew", padx=12, pady=12)
+        ctk.CTkButton(action, text=t("trx.hapus_item"), command=self._remove_buku,
+                      fg_color="#ef4444", hover_color="#dc2626").pack(side="left", padx=2)
+        ctk.CTkButton(action, text=t("common.new"), command=self._reset,
+                      fg_color="transparent", border_width=1).pack(side="left", padx=2)
+        self.add_kunjungan = ctk.CTkCheckBox(action, text=t("trx.tambah_kunjungan"))
+        self.add_kunjungan.select()
+        self.add_kunjungan.pack(side="left", padx=10)
+        ctk.CTkButton(action, text=t("common.save"), width=120,
+                      command=self._submit).pack(side="right", padx=2)
+
+    # ----------------------------------------------------------------
+    def on_show(self) -> None:
+        self._reset()
+
+    def _reset(self) -> None:
+        self._anggota = None
+        self._items = []
+        self.anggota_search.delete(0, "end")
+        self.buku_search.delete(0, "end")
+        self.anggota_label.configure(text="—")
+        self.items_table.set_rows([])
+
+    # ---------------- Anggota ----------------
+    def _find_anggota(self) -> None:
+        q = self.anggota_search.get().strip()
+        if not q:
+            return
+        # Coba kode dulu
+        ang = anggota_repo.get_by_kode(q)
+        if ang is None:
+            results = anggota_repo.list_all(search=q, limit=1)
+            if results:
+                ang = results[0]
+        if ang is None:
+            widgets.warn(self, "Anggota tidak ditemukan.")
+            return
+        if not int(ang.get("aktif", 1)):
+            widgets.warn(self, "Anggota tidak aktif.")
+            return
+        self._anggota = ang
+        self.anggota_label.configure(
+            text=f"✓  {ang['kode_anggota']}  •  {ang['nama']}  •  {ang.get('kelas') or '-'}"
+        )
+
+    # ---------------- Buku ----------------
+    def _add_buku(self) -> None:
+        if self._anggota is None:
+            widgets.warn(self, "Cari/scan anggota terlebih dahulu.")
+            return
+        q = self.buku_search.get().strip()
+        if not q:
+            return
+        buku = buku_repo.get_by_kode(q)
+        # cek scan eksemplar (B0001-01) -> potong belakang
+        if buku is None and "-" in q:
+            kb = q.split("-", 1)[0]
+            buku = buku_repo.get_by_kode(kb)
+        if buku is None:
+            results = buku_repo.list_all(search=q, limit=1)
+            if results:
+                buku = results[0]
+        if buku is None:
+            widgets.warn(self, "Buku tidak ditemukan.")
+            return
+        if int(buku.get("jumlah_tersedia", 0)) <= 0:
+            widgets.warn(self, "Tidak ada eksemplar tersedia.")
+            return
+        if any(it["id"] == buku["id"] for it in self._items):
+            widgets.warn(self, "Buku sudah ada di daftar.")
+            return
+        self._items.append(buku)
+        self.items_table.set_rows(self._items)
+        self.buku_search.delete(0, "end")
+
+    def _remove_buku(self) -> None:
+        sel = self.items_table.selected()
+        if sel is None:
+            return
+        self._items = [it for it in self._items if it["id"] != sel["id"]]
+        self.items_table.set_rows(self._items)
+
+    # ---------------- Submit ----------------
+    def _submit(self) -> None:
+        if self._anggota is None:
+            widgets.warn(self, "Cari anggota dulu.")
+            return
+        if not self._items:
+            widgets.warn(self, "Tambah minimal 1 buku.")
+            return
+        try:
+            from perpustakaan.services import auth as auth_service
+
+            user = auth_service.current_user()
+            pid = peminjaman_repo.pinjam(
+                anggota_id=int(self._anggota["id"]),
+                buku_ids=[int(it["id"]) for it in self._items],
+                petugas_id=user.id if user else None,
+                tambah_kunjungan=bool(self.add_kunjungan.get()),
+            )
+            widgets.info(
+                self,
+                f"Peminjaman tersimpan (ID #{pid}). "
+                f"{len(self._items)} buku dipinjam oleh {self._anggota['nama']}.",
+            )
+            self._reset()
+        except Exception as e:
+            widgets.error(self, str(e))
