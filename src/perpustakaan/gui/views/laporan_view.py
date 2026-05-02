@@ -140,9 +140,10 @@ class LaporanView(ctk.CTkFrame):
         self.graf_bulan = ctk.CTkEntry(toolbar, width=60)
         self.graf_bulan.pack(side="left", padx=4)
 
-        ctk.CTkButton(toolbar, text=t("common.refresh"), command=self._render_grafik).pack(
-            side="left", padx=8
-        )
+        widgets.icon_button(
+            toolbar, text=t("common.refresh"), lucide="refresh-cw",
+            command=self._render_grafik,
+        ).pack(side="left", padx=8)
 
         self.graf_holder = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1f2937"))
         self.graf_holder.pack(fill="both", expand=True, padx=10, pady=4)
@@ -223,18 +224,18 @@ class LaporanView(ctk.CTkFrame):
         self.kas_summary.pack(side="left")
 
         widgets.permission_button(
-            toolbar, text="+ Pemasukan",
+            toolbar, text="Pemasukan", lucide="plus",
             permission="laporan.kas_tambah",
             command=lambda: self._add_kas("masuk"),
         ).pack(side="right", padx=4)
         widgets.permission_button(
-            toolbar, text="− Pengeluaran",
+            toolbar, text="Pengeluaran", lucide="download",
             permission="laporan.kas_tambah",
             command=lambda: self._add_kas("keluar"),
             fg_color="#f59e0b", hover_color="#d97706",
         ).pack(side="right", padx=4)
         widgets.permission_button(
-            toolbar, text=t("common.delete"),
+            toolbar, text=t("common.delete"), lucide="trash-2",
             permission="laporan.kas_hapus", command=self._delete_kas,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=4)
@@ -307,9 +308,15 @@ class KasDialog(ctk.CTkToplevel):
 
         btnbar = ctk.CTkFrame(self, fg_color="transparent")
         btnbar.pack(fill="x", padx=20, pady=14)
-        ctk.CTkButton(btnbar, text=t("common.cancel"), command=self.destroy,
-                      fg_color="transparent", border_width=1).pack(side="right", padx=4)
-        ctk.CTkButton(btnbar, text=t("common.save"), command=self._submit).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.cancel"), lucide="x",
+            command=self.destroy,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.save"), lucide="save",
+            command=self._submit,
+        ).pack(side="right", padx=4)
 
     def _submit(self) -> None:
         try:

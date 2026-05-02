@@ -38,8 +38,10 @@ class PengembalianView(ctk.CTkFrame):
         )
         self.anggota_search.pack(side="left")
         self.anggota_search.bind("<Return>", lambda _e: self._find_anggota())
-        ctk.CTkButton(toolbar, text=t("common.search"), width=90,
-                      command=self._find_anggota).pack(side="left", padx=4)
+        widgets.icon_button(
+            toolbar, text=t("common.search"), lucide="search",
+            width=110, command=self._find_anggota,
+        ).pack(side="left", padx=4)
 
         self.anggota_label = ctk.CTkLabel(self, text="—", anchor="w")
         self.anggota_label.pack(fill="x", padx=24, pady=(4, 0))
@@ -65,17 +67,20 @@ class PengembalianView(ctk.CTkFrame):
 
         action = ctk.CTkFrame(self, fg_color="transparent")
         action.pack(fill="x", padx=24, pady=(8, 16))
-        ctk.CTkButton(action, text=t("menu.transaksi.pengembalian"),
-                      command=lambda: self._open_proses(self.table.selected(), mode="kembali")).pack(
-            side="left", padx=2
-        )
-        ctk.CTkButton(action, text=t("menu.transaksi.buku_hilang"),
-                      command=lambda: self._open_proses(self.table.selected(), mode="hilang"),
-                      fg_color="#ef4444", hover_color="#dc2626").pack(side="left", padx=2)
-        ctk.CTkButton(action, text=t("common.refresh"),
-                      command=self._reload, fg_color="transparent", border_width=1).pack(
-            side="right", padx=2
-        )
+        widgets.icon_button(
+            action, text=t("menu.transaksi.pengembalian"), lucide="rotate-ccw",
+            command=lambda: self._open_proses(self.table.selected(), mode="kembali"),
+        ).pack(side="left", padx=2)
+        widgets.icon_button(
+            action, text=t("menu.transaksi.buku_hilang"), lucide="triangle-alert",
+            command=lambda: self._open_proses(self.table.selected(), mode="hilang"),
+            fg_color="#ef4444", hover_color="#dc2626",
+        ).pack(side="left", padx=2)
+        widgets.icon_button(
+            action, text=t("common.refresh"), lucide="refresh-cw",
+            command=self._reload,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=2)
 
     # ----------------------------------------------------------------
     def on_show(self) -> None:
@@ -156,10 +161,13 @@ class ProsesDialog(ctk.CTkToplevel):
 
         btnbar = ctk.CTkFrame(self, fg_color="transparent")
         btnbar.pack(fill="x", padx=20, pady=12)
-        ctk.CTkButton(btnbar, text=t("common.cancel"), command=self.destroy,
-                      fg_color="transparent", border_width=1).pack(side="right", padx=4)
+        widgets.icon_button(
+            btnbar, text=t("common.cancel"), lucide="x",
+            command=self.destroy,
+            fg_color="transparent", border_width=1,
+        ).pack(side="right", padx=4)
         widgets.permission_button(
-            btnbar, text=t("common.save"),
+            btnbar, text=t("common.save"), lucide="save",
             permission="pengembalian.proses", command=self._submit,
         ).pack(side="right", padx=4)
 

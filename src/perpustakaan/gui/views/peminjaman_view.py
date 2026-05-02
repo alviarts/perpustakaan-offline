@@ -48,8 +48,10 @@ class PeminjamanView(ctk.CTkFrame):
         )
         self.anggota_search.pack(side="left", fill="x", expand=True)
         self.anggota_search.bind("<Return>", lambda _e: self._find_anggota())
-        ctk.CTkButton(ang_row, text=t("common.search"), width=80,
-                      command=self._find_anggota).pack(side="left", padx=4)
+        widgets.icon_button(
+            ang_row, text=t("common.search"), lucide="search",
+            width=100, command=self._find_anggota,
+        ).pack(side="left", padx=4)
 
         self.anggota_label = ctk.CTkLabel(
             left, text="—", anchor="w",
@@ -69,8 +71,10 @@ class PeminjamanView(ctk.CTkFrame):
         )
         self.buku_search.pack(side="left", fill="x", expand=True)
         self.buku_search.bind("<Return>", lambda _e: self._add_buku())
-        ctk.CTkButton(buku_row, text=t("trx.tambah_item"), width=120,
-                      command=self._add_buku).pack(side="left", padx=4)
+        widgets.icon_button(
+            buku_row, text=t("trx.tambah_item"), lucide="plus",
+            width=140, command=self._add_buku,
+        ).pack(side="left", padx=4)
 
         # ---------------- Kolom kanan: daftar item ----------------
         right = ctk.CTkFrame(body)
@@ -95,15 +99,21 @@ class PeminjamanView(ctk.CTkFrame):
 
         action = ctk.CTkFrame(right, fg_color="transparent")
         action.grid(row=2, column=0, sticky="ew", padx=12, pady=12)
-        ctk.CTkButton(action, text=t("trx.hapus_item"), command=self._remove_buku,
-                      fg_color="#ef4444", hover_color="#dc2626").pack(side="left", padx=2)
-        ctk.CTkButton(action, text=t("common.new"), command=self._reset,
-                      fg_color="transparent", border_width=1).pack(side="left", padx=2)
+        widgets.icon_button(
+            action, text=t("trx.hapus_item"), lucide="trash-2",
+            command=self._remove_buku,
+            fg_color="#ef4444", hover_color="#dc2626",
+        ).pack(side="left", padx=2)
+        widgets.icon_button(
+            action, text=t("common.new"), lucide="file-text",
+            command=self._reset,
+            fg_color="transparent", border_width=1,
+        ).pack(side="left", padx=2)
         self.add_kunjungan = ctk.CTkCheckBox(action, text=t("trx.tambah_kunjungan"))
         self.add_kunjungan.select()
         self.add_kunjungan.pack(side="left", padx=10)
         widgets.permission_button(
-            action, text=t("common.save"), width=120,
+            action, text=t("common.save"), lucide="save", width=140,
             permission="peminjaman.tambah", command=self._submit,
         ).pack(side="right", padx=2)
 
