@@ -50,16 +50,19 @@ class MainWindow(ctk.CTk):
 
         self.views: dict[str, ctk.CTkFrame] = {}
         self._buttons: dict[str, ctk.CTkButton] = {}
+        self._sidebar_indicators: dict[str, ctk.CTkFrame] = {}
+        self._current_view_key: str = "dashboard"
         self._build_sidebar()
         self._build_views()
         self._build_theme_toggle()
+        self._build_help_button()
         self.show("dashboard")
 
         # Hubungkan callback scheduler -> toast (marshal ke main thread).
         with contextlib.suppress(Exception):
             get_scheduler().set_callback(self._on_scheduled_backup)
 
-        # Auto-launch tutorial di first-run (kalau user belum pernah selesai).
+        # Auto-launch tutorial Dashboard di first-run.
         with contextlib.suppress(Exception):
             self.after(800, self._maybe_autostart_tour)
 
@@ -84,6 +87,34 @@ class MainWindow(ctk.CTk):
         # Re-raise tiap kali user berpindah view supaya tetap di atas.
         self._theme_btn.lift()
 
+    # ------------------------------------------------------------------
+    # Tombol "?" untuk replay tour menu yang sedang dibuka.
+    # ------------------------------------------------------------------
+    def _build_help_button(self) -> None:
+        self._help_btn = ctk.CTkButton(
+            self.content,
+            text="?",
+            width=32, height=32,
+            corner_radius=16,
+            fg_color=("#e0e7ff", "#312e81"),
+            text_color=("#3730a3", "#c7d2fe"),
+            hover_color=("#c7d2fe", "#4338ca"),
+            font=ctk.CTkFont(size=14, weight="bold"),
+            command=self._on_help_clicked,
+        )
+        # Posisi: kiri dari theme toggle. Theme toggle ~190px wide @ x=-16.
+        self._help_btn.place(relx=1.0, rely=0.0, x=-220, y=14, anchor="ne")
+        self._help_btn.lift()
+        # Tooltip sederhana via Tk hint.
+        with contextlib.suppress(Exception):
+            self._help_btn.configure(cursor="hand2")
+
+    def _on_help_clicked(self) -> None:
+        from perpustakaan.gui.tour import start_menu_tour
+
+        with contextlib.suppress(Exception):
+            start_menu_tour(self, self._current_view_key)
+
     def _label_to_theme_key(self, label: str) -> str:
         for k in _THEME_KEYS:
             if t(f"theme.{k}") == label:
@@ -101,18 +132,22 @@ class MainWindow(ctk.CTk):
             widgets.show_toast(self, t("theme.applied"), kind="success", duration_ms=2000)
 
     # ------------------------------------------------------------------
-    # Tour
+    # Tour kontekstual per-menu
     # ------------------------------------------------------------------
     def _maybe_autostart_tour(self) -> None:
-        completed = (settings_repo.get_value("tutorial.completed") or "").strip()
-        if completed != "1":
-            self.start_tour()
+        """Auto-launch tour Dashboard saat pertama kali aplikasi dibuka."""
+        from perpustakaan.gui.tour import maybe_autostart_menu_tour
 
-    def start_tour(self) -> None:
-        from perpustakaan.gui.tour import TourManager, build_default_steps
+        with contextlib.suppress(Exception):
+            maybe_autostart_menu_tour(self, "dashboard")
 
-        steps = build_default_steps(self)
-        TourManager(self, steps).start()
+    def start_tour(self, menu_key: str | None = None) -> None:
+        """Mulai tour secara manual untuk ``menu_key`` (default: menu aktif)."""
+        from perpustakaan.gui.tour import start_menu_tour
+
+        target = menu_key or self._current_view_key or "dashboard"
+        with contextlib.suppress(Exception):
+            start_menu_tour(self, target)
 
     def _on_scheduled_backup(self, result: dict) -> None:
         """Dipanggil dari worker thread saat backup terjadwal selesai."""
@@ -196,8 +231,18 @@ class MainWindow(ctk.CTk):
                     text_color=("#9ca3af", "#6b7280"),
                 ).pack(padx=20, pady=(12, 4), anchor="w")
             for key, label, icon in items:
+                # Container per item supaya bisa kasih indicator bar di kiri.
+                row = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+                row.pack(fill="x", padx=10, pady=2)
+                indicator = ctk.CTkFrame(
+                    row, width=3, height=24,
+                    corner_radius=2,
+                    fg_color="transparent",
+                )
+                indicator.pack(side="left", padx=(0, 6))
+                indicator.pack_propagate(False)
                 btn = ctk.CTkButton(
-                    self.sidebar,
+                    row,
                     text=f"  {icon}   {label}",
                     anchor="w",
                     height=36,
@@ -207,8 +252,9 @@ class MainWindow(ctk.CTk):
                     hover_color=("#e5e7eb", "#1f2937"),
                     command=lambda k=key: self.show(k),
                 )
-                btn.pack(fill="x", padx=10, pady=2)
+                btn.pack(side="left", fill="x", expand=True)
                 self._buttons[key] = btn
+                self._sidebar_indicators[key] = indicator
 
         # Logout di bawah
         ctk.CTkButton(
@@ -252,12 +298,23 @@ class MainWindow(ctk.CTk):
                 view.on_show()
         for k, btn in self._buttons.items():
             if k == key:
-                btn.configure(fg_color=("#dbeafe", "#1e3a8a"))
+                btn.configure(fg_color=("#eef2ff", "#312e81"))
             else:
                 btn.configure(fg_color="transparent")
-        # Pastikan theme toggle tetap di atas setelah view di-raise.
+        for k, ind in self._sidebar_indicators.items():
+            ind.configure(fg_color="#6366f1" if k == key else "transparent")
+        # Pastikan kontrol global tetap di atas setelah view di-raise.
         with contextlib.suppress(Exception):
             self._theme_btn.lift()
+        with contextlib.suppress(Exception):
+            self._help_btn.lift()
+
+        self._current_view_key = key
+        # Auto-launch contextual tour kalau user belum pernah selesaikan menu ini.
+        from perpustakaan.gui.tour import maybe_autostart_menu_tour
+
+        with contextlib.suppress(Exception):
+            maybe_autostart_menu_tour(self, key)
 
     # ------------------------------------------------------------------
     def _do_logout(self) -> None:

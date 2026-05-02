@@ -160,7 +160,12 @@ class LabeledEntry(ctk.CTkFrame):
 
 
 class StatCard(ctk.CTkFrame):
-    """Kartu statistik utk dashboard."""
+    """Kartu statistik utk dashboard, dengan ikon bulat berwarna + hover lift."""
+
+    _NORMAL_FG: tuple[str, str] = ("white", "#1f2937")
+    _HOVER_FG: tuple[str, str] = ("#f9fafb", "#283344")
+    _NORMAL_BORDER: tuple[str, str] = ("#e5e7eb", "#374151")
+    _HOVER_BORDER: tuple[str, str] = ("#c7d2fe", "#4338ca")
 
     def __init__(
         self,
@@ -173,31 +178,61 @@ class StatCard(ctk.CTkFrame):
     ) -> None:
         super().__init__(
             parent,
-            corner_radius=12,
-            fg_color=("white", "#1f2937"),
+            corner_radius=14,
+            fg_color=self._NORMAL_FG,
             border_width=1,
-            border_color=("#e5e7eb", "#374151"),
+            border_color=self._NORMAL_BORDER,
         )
         self._color = color
+
+        # Header row: icon bubble + title
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.pack(fill="x", padx=14, pady=(14, 0))
+        self._icon_bubble = ctk.CTkLabel(
+            header,
+            text=icon,
+            width=30, height=30,
+            corner_radius=15,
+            fg_color=color,
+            text_color="white",
+            font=ctk.CTkFont(size=14, weight="bold"),
+        )
+        self._icon_bubble.pack(side="left", padx=(0, 10))
         self._title_lbl = ctk.CTkLabel(
-            self,
-            text=f"{icon}  {title}",
+            header,
+            text=title,
             font=ctk.CTkFont(size=11, weight="bold"),
-            text_color=("#374151", "#d1d5db"),
+            text_color=("#4b5563", "#d1d5db"),
             anchor="w",
         )
-        self._title_lbl.pack(fill="x", padx=14, pady=(12, 0))
+        self._title_lbl.pack(side="left", fill="x", expand=True)
+
         self._value_lbl = ctk.CTkLabel(
             self,
             text=value,
-            font=ctk.CTkFont(size=22, weight="bold"),
+            font=ctk.CTkFont(size=26, weight="bold"),
             text_color=color,
             anchor="w",
         )
-        self._value_lbl.pack(fill="x", padx=14, pady=(2, 12))
+        self._value_lbl.pack(fill="x", padx=14, pady=(6, 14))
+
+        # Hover lift: subtle bg/border change ketika kursor masuk.
+        self.bind("<Enter>", self._on_enter, add=True)
+        self.bind("<Leave>", self._on_leave, add=True)
+        for child in (header, self._title_lbl, self._value_lbl, self._icon_bubble):
+            child.bind("<Enter>", self._on_enter, add=True)
+            child.bind("<Leave>", self._on_leave, add=True)
 
     def set_value(self, value: str) -> None:
         self._value_lbl.configure(text=value)
+
+    def _on_enter(self, _event: Any = None) -> None:
+        with contextlib.suppress(Exception):
+            self.configure(fg_color=self._HOVER_FG, border_color=self._HOVER_BORDER)
+
+    def _on_leave(self, _event: Any = None) -> None:
+        with contextlib.suppress(Exception):
+            self.configure(fg_color=self._NORMAL_FG, border_color=self._NORMAL_BORDER)
 
 
 # ---------------------------------------------------------------------------
@@ -252,22 +287,55 @@ def show_toast(
     )
     label.pack(padx=14, pady=10)
 
-    def _place() -> None:
+    # Animasi slide-in dari kanan + dismiss halus dengan import lokal supaya
+    # tidak ada cycle import (animations butuh widgets-free saja).
+    from perpustakaan.gui.animations import slide_in_x
+
+    def _place_and_animate() -> None:
         try:
             top.update_idletasks()
             tw = max(toast.winfo_reqwidth(), 200)
             th = max(toast.winfo_reqheight(), 40)
-            tlx = max(top.winfo_width() - tw - 16, 16)
-            tly = max(top.winfo_height() - th - 16, 16)
-            toast.place(x=tlx, y=tly)
+            tw_total = max(top.winfo_width(), 1)
+            th_total = max(top.winfo_height(), 1)
+            target_x = max(tw_total - tw - 16, 16)
+            start_x = tw_total + 8  # mulai sedikit di luar layar kanan
+            target_y = max(th_total - th - 16, 16)
+            toast.place(x=start_x, y=target_y)
+            slide_in_x(
+                toast,
+                from_x=start_x,
+                to_x=target_x,
+                y=target_y,
+                duration_ms=220,
+                steps=12,
+            )
         except Exception:  # noqa: BLE001
             toast.place(relx=1.0, rely=1.0, x=-16, y=-16, anchor="se")
 
-    def _dismiss() -> None:
+    def _safe_destroy() -> None:
         with contextlib.suppress(Exception):
             toast.destroy()
 
-    _place()
+    def _dismiss() -> None:
+        # Slide keluar lalu destroy.
+        try:
+            cur_x = toast.winfo_x()
+            cur_y = toast.winfo_y()
+            tw_total = max(top.winfo_width(), cur_x + 100)
+            slide_in_x(
+                toast,
+                from_x=cur_x,
+                to_x=tw_total + 8,
+                y=cur_y,
+                duration_ms=180,
+                steps=8,
+                on_done=_safe_destroy,
+            )
+        except Exception:  # noqa: BLE001
+            _safe_destroy()
+
+    _place_and_animate()
     top.after(max(duration_ms, 500), _dismiss)
 
 

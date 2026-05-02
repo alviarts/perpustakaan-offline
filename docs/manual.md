@@ -15,7 +15,7 @@ sesuai urutan menu di sidebar.
 
 1. [Instalasi & Jalankan Pertama Kali](#instalasi--jalankan-pertama-kali)
 2. [Login & Akun](#login--akun)
-3. [Tutorial Onboarding & Toggle Tema (v0.4.0)](#tutorial-onboarding--toggle-tema-v040)
+3. [Tutorial Kontekstual & Toggle Tema (v0.4.1)](#tutorial-kontekstual--toggle-tema-v041)
 4. [Dashboard](#dashboard)
 5. [Master Data — Anggota](#master-data--anggota)
 6. [Master Data — Buku](#master-data--buku)
@@ -85,29 +85,62 @@ Akun pertama otomatis menjadi **administrator**; akun berikutnya berperan **oper
 
 ---
 
-## Tutorial Onboarding & Toggle Tema (v0.4.0)
+## Tutorial Kontekstual & Toggle Tema (v0.4.1)
 
-### Tutorial Otomatis di First Run
+> Mulai v0.4.1, tutorial **tidak lagi linear dari awal-akhir aplikasi**.
+> Sekarang tiap menu punya **panduan sendiri** yang muncul otomatis hanya
+> saat kamu pertama kali membuka menu itu.
 
-Saat aplikasi dibuka pertama kali, akan muncul **tour interaktif** yang
-menjelaskan tiap menu utama dan tombol penting satu per satu. Tiap popup
-nempel di tombol/menu yang sedang dijelaskan, dengan kontrol:
+### First-Run di Dashboard
 
-- **Lewati** — tutup tutorial, tidak akan muncul lagi otomatis.
+Saat aplikasi pertama kali dibuka, akan muncul **welcome tour singkat di
+Dashboard saja** (3 langkah: sambutan → kartu statistik → tombol `?`).
+Setelah itu tour menutup; tutorial menu lain akan muncul otomatis saat
+kamu mengunjungi menu itu pertama kali.
+
+Kontrol di tiap popup:
+
+- **Lewati** — tutup tour menu ini, tidak akan auto-muncul lagi.
 - **Sebelumnya** — kembali ke step sebelumnya.
 - **Berikutnya** — lanjut ke step selanjutnya.
-- **Selesai** — di langkah terakhir; menutup tutorial.
+- **Selesai** — di langkah terakhir; menutup tour.
 
-Tour mencakup: Dashboard → Anggota → Buku → Peminjaman → Pengembalian →
-Laporan → Setting → Toggle Tema, dengan deskripsi singkat untuk fitur-fitur
-penting di tiap menu (mis. tombol **Naik Kelas**, **Surat Bebas Pustaka**,
-**Cetak Label & Barcode**).
+### Tour Per Menu
 
-### Mengulang Tutorial
+Setiap menu di sidebar kiri punya tour kontekstual yang menjelaskan
+tombol-tombol pentingnya:
 
-Buka **Setting → tab "Bahasa & Tema"**, lalu klik tombol
-**Mulai Ulang Tutorial** di paling bawah. Tour akan diputar ulang dari
-langkah pertama.
+| Menu          | Yang dijelaskan                                                                          |
+|---------------|------------------------------------------------------------------------------------------|
+| **Anggota**   | tambah / simpan, **Naik Kelas** batch, **Cetak KTA**, **Surat Bebas Pustaka**, **Import Excel** |
+| **Buku**      | tambah / simpan, **Cetak Label & Barcode**, **Transfer Penerbit** (dedupe), **Import Excel** |
+| **Kunjungan** | pilih anggota / scan kartu, kunjungan kelas batch, simpan                                |
+| **Peminjaman**| **alur 4 langkah**: pilih anggota → cari buku → tambah item → simpan + cetak nota PDF    |
+| **Pengembalian** | cari anggota, daftar pinjam aktif, **Pengembalian Normal** vs **Buku Hilang**          |
+| **Laporan**   | tab-tab laporan, **Ekspor Excel**, grafik kunjungan / top peminjam / kas                 |
+| **Setting**   | tab Identitas → Transaksi → Akun → Bahasa & Tema → Backup Terjadwal → Audit Log (auto-switch tab) |
+
+### Tombol "?" — Memutar Ulang Tutorial Kapan Saja
+
+Di **pojok kanan atas window**, sebelahan kiri toggle tema, ada tombol
+bulat berisi tanda **`?`**. Klik tombol ini kapan saja untuk **memutar
+ulang tutorial menu yang sedang kamu buka**. Tombol selalu visible di
+setiap menu.
+
+### Mengulang Semua Tutorial Sekaligus
+
+Buka **Setting → tab "Bahasa & Tema"** lalu klik tombol
+**Mulai Ulang Semua Tutorial** di bagian bawah. Ini me-reset flag
+`tutorial.<menu>.completed` untuk semua menu sehingga panduan kontekstual
+auto-muncul lagi saat kamu mengunjungi tiap menu.
+
+### Animasi & Visual Polish
+
+- **Toast notification** kini meluncur masuk dari kanan (slide-in) dan keluar lagi saat hilang.
+- **Popup tutorial** muncul dengan **fade-in lembut** dan **spotlight ring**
+  (lingkaran indigo) yang menyorot tombol/widget yang sedang dijelaskan.
+- **Sidebar** punya **indicator bar indigo** di item aktif supaya jelas menu mana yang sedang dibuka.
+- **Kartu Dashboard** (Stat Card) punya efek **hover lift** halus dengan ikon dalam lingkaran berwarna.
 
 ### Toggle Tema (Sistem / Terang / Gelap)
 

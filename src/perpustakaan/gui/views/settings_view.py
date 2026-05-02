@@ -262,11 +262,17 @@ class SettingsView(ctk.CTkFrame):
         ).grid(row=5, column=0, columnspan=2, padx=4, pady=(2, 12), sticky="w")
 
     def _restart_tour(self) -> None:
-        # Reset flag completed lalu mulai tour ulang.
+        # Reset semua flag tutorial.<menu>.completed lalu mulai tour Dashboard.
+        from perpustakaan.gui.tour import reset_all_tutorial_flags
+
         with contextlib.suppress(Exception):
-            settings_repo.set_value("tutorial.completed", "")
+            reset_all_tutorial_flags()
         with contextlib.suppress(Exception):
-            self.app.start_tour()
+            self.app.start_tour("dashboard")
+        with contextlib.suppress(Exception):
+            widgets.show_toast(
+                self, t("tour.restart.applied"), kind="success", duration_ms=3000
+            )
 
     def _load_bahasa(self) -> None:
         cur_locale = settings_repo.get_value("ui.locale", "id") or "id"
