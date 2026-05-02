@@ -5,7 +5,7 @@ on:
     branches: [main]
     tags: ["v*"]
   pull_request:
-    branches: [main]
+    # Run CI on PRs to any branch (mendukung stacked PR / feature branches).
 
 jobs:
   lint-test:
