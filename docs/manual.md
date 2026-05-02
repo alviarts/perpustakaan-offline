@@ -628,7 +628,7 @@ Singkatnya:
 - **GitHub Discussions** (untuk pertanyaan umum): https://github.com/alviarts/perpustakaan-offline/discussions
 
 Saat lapor bug, sertakan:
-1. Versi aplikasi (ada di pojok kiri atas: `v0.1.0`)
+1. Versi aplikasi (ada di pojok kiri atas: `v0.3.1`)
 2. OS Windows (10 / 11)
 3. Langkah reproduksi
 4. Screenshot / error message

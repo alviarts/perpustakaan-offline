@@ -1,4 +1,4 @@
-# Quickstart 1-Pager — Perpustakaan Offline v0.3.0
+# Quickstart 1-Pager — Perpustakaan Offline v0.3.1
 
 > **Untuk pustakawan**: panduan singkat install + alur harian. Tidak butuh tahu komputer secara teknis.
 > Versi PDF: [`quickstart.pdf`](./quickstart.pdf).
@@ -7,7 +7,7 @@
 
 ## 1. Install (sekali saja)
 
-1. Download **`PerpustakaanOffline-Setup-v0.3.0.exe`** dari halaman rilis:
+1. Download **`PerpustakaanOffline-Setup-v0.3.1.exe`** dari halaman rilis:
    <https://github.com/alviarts/perpustakaan-offline/releases>
 2. Klik 2x file `.exe` → klik **Yes** di dialog Windows → **Next** → **Install**
 3. Setelah selesai, ada shortcut **"Perpustakaan Offline"** di Desktop. Klik 2x untuk buka.
@@ -70,4 +70,4 @@ Isi: `perpustakaan.db` (database SQLite), `backups/`, `exports/`, `photos/`, `co
 
 Manual lengkap: <https://github.com/alviarts/perpustakaan-offline/blob/main/docs/manual.md> · Demo video: `docs/demo/perpustakaan-offline-v0.3.0-demo.mp4` (~4 menit) · Setup sync Google Sheets (opsional): [`docs/google-sheets-setup.md`](./google-sheets-setup.md) · Lapor bug: <https://github.com/alviarts/perpustakaan-offline/issues>
 
-*Quickstart v0.3.0 — alviarts/perpustakaan-offline*
+*Quickstart v0.3.1 — alviarts/perpustakaan-offline*
