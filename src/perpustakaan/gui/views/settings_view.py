@@ -815,6 +815,8 @@ class AccountDialog(ctk.CTkToplevel):
         self.geometry("400x340")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         ctk.CTkLabel(self, text="Akun Baru", font=ctk.CTkFont(size=15, weight="bold")).pack(
             pady=(14, 6)
@@ -882,6 +884,8 @@ class PermissionsDialog(ctk.CTkToplevel):
         self.geometry("680x640")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         from perpustakaan.services import permissions as permissions_service
         from perpustakaan.services.permissions_registry import (

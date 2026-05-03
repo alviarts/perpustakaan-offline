@@ -136,6 +136,8 @@ class ChangePasswordDialog(ctk.CTkToplevel):
         self.geometry("420x340")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
         self.parent_widget = parent
 
         ctk.CTkLabel(
@@ -211,6 +213,8 @@ class FirstLoginSecuritySetupDialog(ctk.CTkToplevel):
         self.geometry("520x440")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
         # Disable close button (user tidak bisa skip).
         self.protocol("WM_DELETE_WINDOW", lambda: None)
         self.resizable(False, False)
@@ -273,6 +277,8 @@ class ResetPasswordDialog(ctk.CTkToplevel):
         self.transient(parent)
         self.grab_set()
         self.resizable(False, False)
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         ctk.CTkLabel(
             self, text=t("password.reset.title"),

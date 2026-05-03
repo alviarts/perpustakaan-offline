@@ -245,10 +245,19 @@ def test_github_links_point_to_correct_repo():
 # ---------------------------------------------------------------------------
 # Version bump propagation
 # ---------------------------------------------------------------------------
-def test_version_bumped_to_053():
-    """Memastikan version bump v0.5.3 sampai ke runtime config."""
+def test_version_at_least_053():
+    """Memastikan version bump >= v0.5.3 sampai ke runtime config.
+
+    PR-D shipped 0.5.3; PR-V4a bumped ke 0.6.0. Test pakai semver compare
+    supaya tidak perlu update tiap version bump.
+    """
     from perpustakaan import __version__
     from perpustakaan.config import APP_VERSION
 
-    assert __version__ == "0.5.3"
-    assert APP_VERSION == "0.5.3"
+    def _parse(v: str) -> tuple[int, ...]:
+        return tuple(int(x) for x in v.split(".") if x.isdigit())
+
+    assert _parse(__version__) >= (0, 5, 3)
+    assert _parse(APP_VERSION) >= (0, 5, 3)
+    # Konsistensi antara kedua sumber
+    assert __version__ == APP_VERSION

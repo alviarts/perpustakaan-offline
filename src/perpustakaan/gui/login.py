@@ -1,6 +1,8 @@
 """Login window + bootstrap ke main window."""
 from __future__ import annotations
 
+import contextlib
+
 import customtkinter as ctk
 
 from perpustakaan.config import APP_DISPLAY_NAME, APP_VERSION
@@ -17,6 +19,23 @@ class LoginWindow(ctk.CTk):
         self.geometry("420x520")
         self.resizable(False, False)
         self.user: auth.SessionUser | None = None
+
+        # Soft radial gradient bg (PR-V4a v0.6.0). Center kanan-atas dengan
+        # warna indigo subtle supaya kesan "spotlight" tanpa terlalu ramai.
+        # Aman: kalau Pillow gagal, login tetap render dengan bg default.
+        self._bg_label: ctk.CTkLabel | None = None
+        with contextlib.suppress(Exception):
+            from perpustakaan.gui.effects import make_radial_gradient
+
+            bg_image = make_radial_gradient(
+                width=420, height=520,
+                color_center=("#eef2ff", "#1e1b4b"),
+                color_outer=("#ffffff", "#0b1120"),
+                center_x_pct=80, center_y_pct=15,
+                radius_pct=110,
+            )
+            self._bg_label = ctk.CTkLabel(self, text="", image=bg_image)
+            self._bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=40, pady=30)
@@ -52,9 +71,13 @@ class LoginWindow(ctk.CTk):
         self.message = ctk.CTkLabel(container, text="", text_color="#ef4444")
         self.message.pack(pady=(8, 0))
 
-        ctk.CTkButton(
+        login_btn = ctk.CTkButton(
             container, text=t("login.button"), command=self._do_login, height=40
-        ).pack(fill="x", pady=(20, 8))
+        )
+        login_btn.pack(fill="x", pady=(20, 8))
+        with contextlib.suppress(Exception):
+            from perpustakaan.gui.animations import attach_press_feedback
+            attach_press_feedback(login_btn)
 
         # Link tombol kecil utk "Lupa Password?" (PR-C v0.4.4) dan "Daftar".
         link_row = ctk.CTkFrame(container, fg_color="transparent")
@@ -117,6 +140,8 @@ class RegisterDialog(ctk.CTkToplevel):
         self.geometry("400x360")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         ctk.CTkLabel(
             self, text=t("login.register"),

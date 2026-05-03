@@ -86,6 +86,9 @@ class HelpDialog(ctk.CTkToplevel):
         self.transient(parent)
         self.grab_set()
 
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
+
         # Header banner
         ctk.CTkLabel(
             self,

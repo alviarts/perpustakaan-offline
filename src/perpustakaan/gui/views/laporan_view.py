@@ -291,6 +291,8 @@ class KasDialog(ctk.CTkToplevel):
         self.geometry("380x280")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         ctk.CTkLabel(self, text="Keterangan:", anchor="w").pack(fill="x", padx=20, pady=(20, 0))
         self.keterangan = ctk.CTkEntry(self)

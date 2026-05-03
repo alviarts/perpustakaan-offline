@@ -327,6 +327,8 @@ class NaikKelasDialog(ctk.CTkToplevel):
         self.geometry("520x460")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         ctk.CTkLabel(
             self, text=t("anggota.naik_kelas"),
