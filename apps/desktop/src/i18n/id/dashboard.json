@@ -1,5 +1,36 @@
 {
   "title": "Dashboard",
   "greeting": "Halo, {{name}}",
-  "placeholder": "Dashboard akan dibuat di Devin Session 8 (revisi #9)."
+  "refreshed": "Real-time",
+  "loadError": "Gagal memuat data: {{msg}}",
+  "kpi": {
+    "anggota": "Total Anggota",
+    "buku": "Total Buku",
+    "dipinjam": "Buku Dipinjam"
+  },
+  "chart": {
+    "ddc": {
+      "title": "Distribusi Klasifikasi DDC",
+      "subtitle": "Sebaran kelas utama berdasarkan koleksi buku"
+    },
+    "kunjungan": {
+      "title": "Kunjungan 7 Hari Terakhir",
+      "subtitle": "Total kunjungan harian"
+    }
+  },
+  "featured": {
+    "peminjam": "Top Peminjam",
+    "peminjamHint": "5 anggota teraktif",
+    "buku": "Top Buku",
+    "bukuHint": "5 buku paling sering dipinjam",
+    "empty": "Belum ada data",
+    "unitPinjam": "pinjam",
+    "unitDipinjam": "kali"
+  },
+  "empty": {
+    "title": "Mulai isi data perpustakaan",
+    "subtitle": "Tambah data anggota & buku supaya dashboard berisi statistik real-time",
+    "ctaAnggota": "Tambah Anggota",
+    "ctaBuku": "Tambah Buku"
+  }
 }
