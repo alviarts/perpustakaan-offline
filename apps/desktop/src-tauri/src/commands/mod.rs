@@ -2,6 +2,7 @@ pub mod anggota;
 pub mod auth;
 pub mod backup;
 pub mod buku;
+pub mod close_behavior;
 pub mod dashboard;
 pub mod identity;
 pub mod kta;

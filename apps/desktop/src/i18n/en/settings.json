@@ -56,11 +56,19 @@
       "fields": {
         "theme": "Theme",
         "fontScale": "Font scale",
-        "density": "Density"
+        "density": "Density",
+        "closeBehavior": "When the X button is clicked",
+        "closeBehaviorHint": "Choose what happens when you close the main window."
       },
       "density": {
         "compact": "Compact",
         "comfortable": "Comfortable"
+      },
+      "closeBehavior": {
+        "exit": "Quit the application",
+        "tray": "Minimize to system tray",
+        "exitHint": "The app fully exits from Task Manager.",
+        "trayHint": "The app keeps running in the tray; click the icon to restore."
       }
     },
     "bahasa": {
