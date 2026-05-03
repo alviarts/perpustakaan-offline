@@ -1,4 +1,100 @@
 {
   "title": "Buku",
-  "placeholder": "CRUD buku akan dibuat di Devin Session 5."
+  "subtitle": "Kelola koleksi buku perpustakaan beserta eksemplarnya.",
+  "list": {
+    "addNew": "Tambah Buku",
+    "import": "Import Excel",
+    "searchPlaceholder": "Cari judul, kode, pengarang, ISBN…",
+    "filterAll": "Semua",
+    "filterKategori": "Kategori",
+    "filterBahasa": "Bahasa",
+    "empty": "Belum ada buku. Tambahkan buku pertama atau import dari Excel.",
+    "emptyFiltered": "Tidak ada buku yang cocok dengan filter.",
+    "showing": "Menampilkan {{from}}–{{to}} dari {{total}}",
+    "loadingDetail": "Memuat detail…"
+  },
+  "columns": {
+    "kode": "Kode",
+    "judul": "Judul",
+    "kategori": "Kategori",
+    "ddc": "DDC",
+    "tersedia": "Tersedia"
+  },
+  "fields": {
+    "kodeBuku": "Kode Buku",
+    "kodeBukuPlaceholder": "Mis. B0001",
+    "judul": "Judul",
+    "judulPlaceholder": "Judul lengkap buku",
+    "pengarang": "Pengarang",
+    "penerbit": "Penerbit",
+    "tahunTerbit": "Tahun Terbit",
+    "kodeDdc": "Kode DDC",
+    "kodeDdcPlaceholder": "Pilih kelasifikasi DDC",
+    "kategori": "Kategori",
+    "kategoriPlaceholder": "Fiksi / Non-fiksi / …",
+    "bahasa": "Bahasa",
+    "bahasaPlaceholder": "Pilih bahasa",
+    "isbn": "ISBN",
+    "jumlahEksemplar": "Jumlah Eksemplar",
+    "sumber": "Sumber",
+    "harga": "Harga (Rp)",
+    "rak": "Rak",
+    "deskripsi": "Deskripsi",
+    "coverPath": "Cover Path",
+    "coverPathHint": "Path file cover relatif ke %AppData%/PerpustakaanOffline/covers/."
+  },
+  "form": {
+    "newTitle": "Tambah Buku",
+    "newSubtitle": "Lengkapi data buku.",
+    "editTitle": "Detail Buku",
+    "editSubtitle": "Update atau hapus data buku.",
+    "submitCreate": "Simpan",
+    "submitUpdate": "Update",
+    "deleteButton": "Hapus Buku"
+  },
+  "validation": {
+    "kodeBukuRequired": "Kode buku wajib diisi",
+    "judulRequired": "Judul wajib diisi"
+  },
+  "delete": {
+    "title": "Hapus buku \"{{name}}\"?",
+    "description": "Tindakan ini juga menghapus seluruh eksemplar buku dan tidak dapat dibatalkan."
+  },
+  "import": {
+    "title": "Import Buku dari Excel",
+    "description": "Header yang dikenali: kode_buku, judul, pengarang, penerbit, tahun, ddc, kategori, isbn, jumlah, bahasa.",
+    "pickFile": "Pilih File",
+    "noFile": "Belum ada file dipilih.",
+    "filename": "File: {{name}}",
+    "previewTitle": "Preview ({{count}} baris)",
+    "previewSubtitle": "Maksimal 50 baris pertama ditampilkan di preview.",
+    "parseError": "Gagal membaca file: {{message}}",
+    "submit": "Import {{count}} buku",
+    "summary": "{{inserted}} disimpan, {{skipped}} dilewati."
+  },
+  "feedback": {
+    "loadError": "Gagal memuat data buku.",
+    "createSuccess": "Buku berhasil ditambahkan.",
+    "createError": "Gagal menambahkan buku: {{message}}",
+    "updateSuccess": "Buku berhasil diperbarui.",
+    "updateError": "Gagal memperbarui buku: {{message}}",
+    "deleteSuccess": "Buku berhasil dihapus.",
+    "deleteError": "Gagal menghapus buku.",
+    "importSuccess": "{{inserted}} buku diimport."
+  },
+  "detail": {
+    "emptyTitle": "Pilih buku untuk melihat detail",
+    "emptyHint": "Klik salah satu baris di tabel kiri untuk melihat eksemplar dan info lengkap.",
+    "edit": "Edit",
+    "kategori": "Kategori",
+    "bahasa": "Bahasa",
+    "kodeDdc": "DDC",
+    "tahunTerbit": "Tahun",
+    "penerbit": "Penerbit",
+    "isbn": "ISBN",
+    "rak": "Rak",
+    "sumber": "Sumber",
+    "eksemplarTitle": "Eksemplar ({{count}})",
+    "eksemplarEmpty": "Belum ada eksemplar fisik."
+  }
 }

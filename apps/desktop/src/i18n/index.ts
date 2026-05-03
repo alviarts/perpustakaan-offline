@@ -11,6 +11,7 @@ import idPengembalian from './id/pengembalian.json';
 import idKunjungan from './id/kunjungan.json';
 import idLaporan from './id/laporan.json';
 import idSettings from './id/settings.json';
+import idMasterData from './id/master-data.json';
 import idErrors from './id/errors.json';
 
 import enCommon from './en/common.json';
@@ -23,6 +24,7 @@ import enPengembalian from './en/pengembalian.json';
 import enKunjungan from './en/kunjungan.json';
 import enLaporan from './en/laporan.json';
 import enSettings from './en/settings.json';
+import enMasterData from './en/master-data.json';
 import enErrors from './en/errors.json';
 
 export const NAMESPACES = [
@@ -36,6 +38,7 @@ export const NAMESPACES = [
   'kunjungan',
   'laporan',
   'settings',
+  'masterData',
   'errors',
 ] as const;
 
@@ -54,6 +57,7 @@ const resources = {
     kunjungan: idKunjungan,
     laporan: idLaporan,
     settings: idSettings,
+    masterData: idMasterData,
     errors: idErrors,
   },
   en: {
@@ -67,6 +71,7 @@ const resources = {
     kunjungan: enKunjungan,
     laporan: enLaporan,
     settings: enSettings,
+    masterData: enMasterData,
     errors: enErrors,
   },
 } as const;

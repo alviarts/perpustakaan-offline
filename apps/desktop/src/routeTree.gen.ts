@@ -13,7 +13,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index'
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
+import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
+import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
+import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
 import { Route as AuthedAnggotaIdRouteImport } from './routes/_authed/anggota/$id'
 
@@ -36,9 +40,30 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedBukuIndexRoute = AuthedBukuIndexRouteImport.update({
+  id: '/buku/',
+  path: '/buku/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedAnggotaIndexRoute = AuthedAnggotaIndexRouteImport.update({
   id: '/anggota/',
   path: '/anggota/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsMasterDataRoute =
+  AuthedSettingsMasterDataRouteImport.update({
+    id: '/settings/master-data',
+    path: '/settings/master-data',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedBukuNewRoute = AuthedBukuNewRouteImport.update({
+  id: '/buku/new',
+  path: '/buku/new',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedBukuIdRoute = AuthedBukuIdRouteImport.update({
+  id: '/buku/$id',
+  path: '/buku/$id',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedAnggotaNewRoute = AuthedAnggotaNewRouteImport.update({
@@ -58,7 +83,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
+  '/buku/$id': typeof AuthedBukuIdRoute
+  '/buku/new': typeof AuthedBukuNewRoute
+  '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
+  '/buku/': typeof AuthedBukuIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -66,7 +95,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
+  '/buku/$id': typeof AuthedBukuIdRoute
+  '/buku/new': typeof AuthedBukuNewRoute
+  '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
+  '/buku': typeof AuthedBukuIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -76,7 +109,11 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
+  '/_authed/buku/$id': typeof AuthedBukuIdRoute
+  '/_authed/buku/new': typeof AuthedBukuNewRoute
+  '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
+  '/_authed/buku/': typeof AuthedBukuIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,7 +123,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/anggota/$id'
     | '/anggota/new'
+    | '/buku/$id'
+    | '/buku/new'
+    | '/settings/master-data'
     | '/anggota/'
+    | '/buku/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -94,7 +135,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/anggota/$id'
     | '/anggota/new'
+    | '/buku/$id'
+    | '/buku/new'
+    | '/settings/master-data'
     | '/anggota'
+    | '/buku'
   id:
     | '__root__'
     | '/'
@@ -103,7 +148,11 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/anggota/$id'
     | '/_authed/anggota/new'
+    | '/_authed/buku/$id'
+    | '/_authed/buku/new'
+    | '/_authed/settings/master-data'
     | '/_authed/anggota/'
+    | '/_authed/buku/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,11 +191,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/buku/': {
+      id: '/_authed/buku/'
+      path: '/buku'
+      fullPath: '/buku/'
+      preLoaderRoute: typeof AuthedBukuIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/anggota/': {
       id: '/_authed/anggota/'
       path: '/anggota'
       fullPath: '/anggota/'
       preLoaderRoute: typeof AuthedAnggotaIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/master-data': {
+      id: '/_authed/settings/master-data'
+      path: '/settings/master-data'
+      fullPath: '/settings/master-data'
+      preLoaderRoute: typeof AuthedSettingsMasterDataRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/buku/new': {
+      id: '/_authed/buku/new'
+      path: '/buku/new'
+      fullPath: '/buku/new'
+      preLoaderRoute: typeof AuthedBukuNewRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/buku/$id': {
+      id: '/_authed/buku/$id'
+      path: '/buku/$id'
+      fullPath: '/buku/$id'
+      preLoaderRoute: typeof AuthedBukuIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/anggota/new': {
@@ -170,14 +247,22 @@ interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
+  AuthedBukuIdRoute: typeof AuthedBukuIdRoute
+  AuthedBukuNewRoute: typeof AuthedBukuNewRoute
+  AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
   AuthedAnggotaIndexRoute: typeof AuthedAnggotaIndexRoute
+  AuthedBukuIndexRoute: typeof AuthedBukuIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
+  AuthedBukuIdRoute: AuthedBukuIdRoute,
+  AuthedBukuNewRoute: AuthedBukuNewRoute,
+  AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
   AuthedAnggotaIndexRoute: AuthedAnggotaIndexRoute,
+  AuthedBukuIndexRoute: AuthedBukuIndexRoute,
 }
 
 const AuthedRouteWithChildren =
