@@ -12,15 +12,22 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedLaporanRouteImport } from './routes/_authed/laporan'
 import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedPengembalianIndexRouteImport } from './routes/_authed/pengembalian/index'
 import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/peminjaman/index'
+import { Route as AuthedLaporanIndexRouteImport } from './routes/_authed/laporan/index'
 import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index'
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
 import { Route as AuthedPeminjamanNewRouteImport } from './routes/_authed/peminjaman/new'
 import { Route as AuthedPeminjamanIdRouteImport } from './routes/_authed/peminjaman/$id'
+import { Route as AuthedLaporanTopPeminjamRouteImport } from './routes/_authed/laporan/top-peminjam'
+import { Route as AuthedLaporanTopBukuRouteImport } from './routes/_authed/laporan/top-buku'
+import { Route as AuthedLaporanKasRouteImport } from './routes/_authed/laporan/kas'
+import { Route as AuthedLaporanGrafikRouteImport } from './routes/_authed/laporan/grafik'
+import { Route as AuthedLaporanBackupRouteImport } from './routes/_authed/laporan/backup'
 import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
 import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
@@ -39,6 +46,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedLaporanRoute = AuthedLaporanRouteImport.update({
+  id: '/laporan',
+  path: '/laporan',
+  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedKunjunganRoute = AuthedKunjunganRouteImport.update({
   id: '/kunjungan',
@@ -59,6 +71,11 @@ const AuthedPeminjamanIndexRoute = AuthedPeminjamanIndexRouteImport.update({
   id: '/peminjaman/',
   path: '/peminjaman/',
   getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedLaporanIndexRoute = AuthedLaporanIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedLaporanRoute,
 } as any)
 const AuthedBukuIndexRoute = AuthedBukuIndexRouteImport.update({
   id: '/buku/',
@@ -86,6 +103,32 @@ const AuthedPeminjamanIdRoute = AuthedPeminjamanIdRouteImport.update({
   path: '/peminjaman/$id',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedLaporanTopPeminjamRoute =
+  AuthedLaporanTopPeminjamRouteImport.update({
+    id: '/top-peminjam',
+    path: '/top-peminjam',
+    getParentRoute: () => AuthedLaporanRoute,
+  } as any)
+const AuthedLaporanTopBukuRoute = AuthedLaporanTopBukuRouteImport.update({
+  id: '/top-buku',
+  path: '/top-buku',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
+const AuthedLaporanKasRoute = AuthedLaporanKasRouteImport.update({
+  id: '/kas',
+  path: '/kas',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
+const AuthedLaporanGrafikRoute = AuthedLaporanGrafikRouteImport.update({
+  id: '/grafik',
+  path: '/grafik',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
+const AuthedLaporanBackupRoute = AuthedLaporanBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
 const AuthedBukuNewRoute = AuthedBukuNewRouteImport.update({
   id: '/buku/new',
   path: '/buku/new',
@@ -112,15 +155,22 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
+  '/laporan': typeof AuthedLaporanRouteWithChildren
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
   '/buku/new': typeof AuthedBukuNewRoute
+  '/laporan/backup': typeof AuthedLaporanBackupRoute
+  '/laporan/grafik': typeof AuthedLaporanGrafikRoute
+  '/laporan/kas': typeof AuthedLaporanKasRoute
+  '/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
+  '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
   '/buku/': typeof AuthedBukuIndexRoute
+  '/laporan/': typeof AuthedLaporanIndexRoute
   '/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/pengembalian/': typeof AuthedPengembalianIndexRoute
 }
@@ -133,11 +183,17 @@ export interface FileRoutesByTo {
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
   '/buku/new': typeof AuthedBukuNewRoute
+  '/laporan/backup': typeof AuthedLaporanBackupRoute
+  '/laporan/grafik': typeof AuthedLaporanGrafikRoute
+  '/laporan/kas': typeof AuthedLaporanKasRoute
+  '/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
+  '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
   '/buku': typeof AuthedBukuIndexRoute
+  '/laporan': typeof AuthedLaporanIndexRoute
   '/peminjaman': typeof AuthedPeminjamanIndexRoute
   '/pengembalian': typeof AuthedPengembalianIndexRoute
 }
@@ -148,15 +204,22 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/kunjungan': typeof AuthedKunjunganRoute
+  '/_authed/laporan': typeof AuthedLaporanRouteWithChildren
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
   '/_authed/buku/$id': typeof AuthedBukuIdRoute
   '/_authed/buku/new': typeof AuthedBukuNewRoute
+  '/_authed/laporan/backup': typeof AuthedLaporanBackupRoute
+  '/_authed/laporan/grafik': typeof AuthedLaporanGrafikRoute
+  '/_authed/laporan/kas': typeof AuthedLaporanKasRoute
+  '/_authed/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
+  '/_authed/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/_authed/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/_authed/peminjaman/new': typeof AuthedPeminjamanNewRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
   '/_authed/buku/': typeof AuthedBukuIndexRoute
+  '/_authed/laporan/': typeof AuthedLaporanIndexRoute
   '/_authed/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/_authed/pengembalian/': typeof AuthedPengembalianIndexRoute
 }
@@ -167,15 +230,22 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/kunjungan'
+    | '/laporan'
     | '/anggota/$id'
     | '/anggota/new'
     | '/buku/$id'
     | '/buku/new'
+    | '/laporan/backup'
+    | '/laporan/grafik'
+    | '/laporan/kas'
+    | '/laporan/top-buku'
+    | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
     | '/settings/master-data'
     | '/anggota/'
     | '/buku/'
+    | '/laporan/'
     | '/peminjaman/'
     | '/pengembalian/'
   fileRoutesByTo: FileRoutesByTo
@@ -188,11 +258,17 @@ export interface FileRouteTypes {
     | '/anggota/new'
     | '/buku/$id'
     | '/buku/new'
+    | '/laporan/backup'
+    | '/laporan/grafik'
+    | '/laporan/kas'
+    | '/laporan/top-buku'
+    | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
     | '/settings/master-data'
     | '/anggota'
     | '/buku'
+    | '/laporan'
     | '/peminjaman'
     | '/pengembalian'
   id:
@@ -202,15 +278,22 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authed/dashboard'
     | '/_authed/kunjungan'
+    | '/_authed/laporan'
     | '/_authed/anggota/$id'
     | '/_authed/anggota/new'
     | '/_authed/buku/$id'
     | '/_authed/buku/new'
+    | '/_authed/laporan/backup'
+    | '/_authed/laporan/grafik'
+    | '/_authed/laporan/kas'
+    | '/_authed/laporan/top-buku'
+    | '/_authed/laporan/top-peminjam'
     | '/_authed/peminjaman/$id'
     | '/_authed/peminjaman/new'
     | '/_authed/settings/master-data'
     | '/_authed/anggota/'
     | '/_authed/buku/'
+    | '/_authed/laporan/'
     | '/_authed/peminjaman/'
     | '/_authed/pengembalian/'
   fileRoutesById: FileRoutesById
@@ -244,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/laporan': {
+      id: '/_authed/laporan'
+      path: '/laporan'
+      fullPath: '/laporan'
+      preLoaderRoute: typeof AuthedLaporanRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/kunjungan': {
       id: '/_authed/kunjungan'
       path: '/kunjungan'
@@ -271,6 +361,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/peminjaman/'
       preLoaderRoute: typeof AuthedPeminjamanIndexRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/_authed/laporan/': {
+      id: '/_authed/laporan/'
+      path: '/'
+      fullPath: '/laporan/'
+      preLoaderRoute: typeof AuthedLaporanIndexRouteImport
+      parentRoute: typeof AuthedLaporanRoute
     }
     '/_authed/buku/': {
       id: '/_authed/buku/'
@@ -307,6 +404,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPeminjamanIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/laporan/top-peminjam': {
+      id: '/_authed/laporan/top-peminjam'
+      path: '/top-peminjam'
+      fullPath: '/laporan/top-peminjam'
+      preLoaderRoute: typeof AuthedLaporanTopPeminjamRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/top-buku': {
+      id: '/_authed/laporan/top-buku'
+      path: '/top-buku'
+      fullPath: '/laporan/top-buku'
+      preLoaderRoute: typeof AuthedLaporanTopBukuRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/kas': {
+      id: '/_authed/laporan/kas'
+      path: '/kas'
+      fullPath: '/laporan/kas'
+      preLoaderRoute: typeof AuthedLaporanKasRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/grafik': {
+      id: '/_authed/laporan/grafik'
+      path: '/grafik'
+      fullPath: '/laporan/grafik'
+      preLoaderRoute: typeof AuthedLaporanGrafikRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/backup': {
+      id: '/_authed/laporan/backup'
+      path: '/backup'
+      fullPath: '/laporan/backup'
+      preLoaderRoute: typeof AuthedLaporanBackupRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
     '/_authed/buku/new': {
       id: '/_authed/buku/new'
       path: '/buku/new'
@@ -338,9 +470,32 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedLaporanRouteChildren {
+  AuthedLaporanBackupRoute: typeof AuthedLaporanBackupRoute
+  AuthedLaporanGrafikRoute: typeof AuthedLaporanGrafikRoute
+  AuthedLaporanKasRoute: typeof AuthedLaporanKasRoute
+  AuthedLaporanTopBukuRoute: typeof AuthedLaporanTopBukuRoute
+  AuthedLaporanTopPeminjamRoute: typeof AuthedLaporanTopPeminjamRoute
+  AuthedLaporanIndexRoute: typeof AuthedLaporanIndexRoute
+}
+
+const AuthedLaporanRouteChildren: AuthedLaporanRouteChildren = {
+  AuthedLaporanBackupRoute: AuthedLaporanBackupRoute,
+  AuthedLaporanGrafikRoute: AuthedLaporanGrafikRoute,
+  AuthedLaporanKasRoute: AuthedLaporanKasRoute,
+  AuthedLaporanTopBukuRoute: AuthedLaporanTopBukuRoute,
+  AuthedLaporanTopPeminjamRoute: AuthedLaporanTopPeminjamRoute,
+  AuthedLaporanIndexRoute: AuthedLaporanIndexRoute,
+}
+
+const AuthedLaporanRouteWithChildren = AuthedLaporanRoute._addFileChildren(
+  AuthedLaporanRouteChildren,
+)
+
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedKunjunganRoute: typeof AuthedKunjunganRoute
+  AuthedLaporanRoute: typeof AuthedLaporanRouteWithChildren
   AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
   AuthedBukuIdRoute: typeof AuthedBukuIdRoute
@@ -357,6 +512,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedKunjunganRoute: AuthedKunjunganRoute,
+  AuthedLaporanRoute: AuthedLaporanRouteWithChildren,
   AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
   AuthedBukuIdRoute: AuthedBukuIdRoute,

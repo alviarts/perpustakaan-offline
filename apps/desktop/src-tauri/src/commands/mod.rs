@@ -1,9 +1,11 @@
 pub mod anggota;
 pub mod auth;
+pub mod backup;
 pub mod buku;
 pub mod dashboard;
 pub mod identity;
 pub mod kunjungan;
+pub mod laporan;
 pub mod master_data;
 pub mod peminjaman;
 pub mod window_state;

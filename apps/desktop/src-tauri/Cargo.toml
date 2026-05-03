@@ -30,6 +30,7 @@ env_logger = "0.11"
 rand = "0.8"
 hex = "0.4"
 chrono = { version = "0.4", features = ["clock"] }
+sha2 = "0.10"
 
 [features]
 default = ["custom-protocol"]

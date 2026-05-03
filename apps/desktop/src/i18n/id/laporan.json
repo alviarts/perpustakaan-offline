@@ -1,4 +1,74 @@
 {
   "title": "Laporan",
-  "placeholder": "Modul laporan akan dibuat di Devin Session 9."
+  "subtitle": "Statistik & ekspor data perpustakaan",
+  "empty": "Belum ada data pada rentang ini",
+  "nav": {
+    "grafik": "Grafik",
+    "topPeminjam": "Top Peminjam",
+    "topBuku": "Top Buku",
+    "kas": "Kas",
+    "backup": "Backup"
+  },
+  "error": {
+    "load": "Gagal memuat data"
+  },
+  "column": {
+    "tanggal": "Tanggal",
+    "nama": "Nama",
+    "kode": "Kode",
+    "kelas": "Kelas",
+    "judul": "Judul",
+    "pengarang": "Pengarang",
+    "pinjam": "Pinjam",
+    "buku": "Buku",
+    "jumlah": "Jumlah",
+    "keterangan": "Keterangan",
+    "nominal": "Nominal"
+  },
+  "grafik": {
+    "title": "Grafik Aktivitas",
+    "subtitle": "Kunjungan vs peminjaman per periode",
+    "granularity": "Resolusi",
+    "totalKunjungan": "Total Kunjungan",
+    "totalPeminjaman": "Total Peminjaman"
+  },
+  "topPeminjam": {
+    "title": "Top Peminjam",
+    "subtitle": "10 anggota teraktif pada rentang ini"
+  },
+  "topBuku": {
+    "title": "Top Buku",
+    "subtitle": "10 buku paling sering dipinjam"
+  },
+  "kas": {
+    "title": "Laporan Kas",
+    "masuk": "Total Masuk",
+    "keluar": "Total Keluar",
+    "saldo": "Saldo Akhir",
+    "breakdown": "Breakdown Pemasukan",
+    "breakdownHint": "Manual / denda / hilang / modal",
+    "detail": "Detail Transaksi"
+  },
+  "backup": {
+    "title": "Backup Database",
+    "subtitle": "Backup full SQLite + checksum SHA256 untuk verifikasi",
+    "currentDb": "File DB Aktif",
+    "createBtn": "Backup Sekarang",
+    "restoreBtn": "Restore dari File",
+    "pickFolder": "Pilih folder backup",
+    "pickRestoreFile": "Pilih file .db",
+    "success": "Backup berhasil",
+    "failed": "Backup gagal",
+    "restoreSuccess": "Restore berhasil",
+    "restoreFailed": "Restore gagal",
+    "lastBackup": "Backup terakhir",
+    "scheduleTitle": "Jadwal Backup Otomatis",
+    "scheduleHint": "Cron 5-field. Devin 12 akan menambahkan runner cron-like.",
+    "enableSchedule": "Aktifkan jadwal otomatis",
+    "cron": "Cron Expression",
+    "scheduleSave": "Simpan Jadwal",
+    "scheduleSaved": "Jadwal disimpan",
+    "scheduleFailed": "Gagal menyimpan jadwal",
+    "lastRun": "Terakhir berjalan"
+  }
 }
