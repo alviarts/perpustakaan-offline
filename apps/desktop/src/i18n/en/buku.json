@@ -96,5 +96,9 @@
     "sumber": "Source",
     "eksemplarTitle": "Copies ({{count}})",
     "eksemplarEmpty": "No physical copies yet."
+  },
+  "breadcrumb": {
+    "new": "Add",
+    "edit": "Edit"
   }
 }

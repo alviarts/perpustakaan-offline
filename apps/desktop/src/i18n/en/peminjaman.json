@@ -111,5 +111,9 @@
     "selectFirst": "Select a loan from search results",
     "allReturned": "All items already returned",
     "dendaPreview": "{{count}} days late · Rp {{denda}}"
+  },
+  "breadcrumb": {
+    "new": "New Loan",
+    "detail": "Details"
   }
 }

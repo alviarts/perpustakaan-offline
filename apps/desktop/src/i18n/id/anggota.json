@@ -93,5 +93,10 @@
     "deleteError": "Gagal menghapus anggota: {{message}}",
     "importSuccess": "Impor selesai: {{inserted}} anggota berhasil ditambahkan.",
     "loadError": "Gagal memuat data anggota."
+  },
+  "breadcrumb": {
+    "new": "Tambah",
+    "edit": "Edit",
+    "cetakKta": "Cetak KTA"
   }
 }

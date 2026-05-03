@@ -93,5 +93,10 @@
     "deleteError": "Failed to delete member: {{message}}",
     "importSuccess": "Import done: {{inserted}} members added.",
     "loadError": "Failed to load members."
+  },
+  "breadcrumb": {
+    "new": "Add",
+    "edit": "Edit",
+    "cetakKta": "Print ID Card"
   }
 }
