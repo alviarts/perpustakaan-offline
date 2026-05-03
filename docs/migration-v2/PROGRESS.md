@@ -54,7 +54,7 @@ sessions:
   - id: 4
     title: Data Anggota CRUD + autocomplete + live search + dropdown styled
     status: COMPLETED
-    pr: PENDING
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/41
     completed_at: 2026-05-03
     dependencies: [3]
 
@@ -122,7 +122,7 @@ sessions:
 | 1 | Bootstrap migration plan | COMPLETED | [#35](https://github.com/alviarts/perpustakaan-offline/pull/35) | 2026-05-03 | — |
 | 2 | Scaffolding + login + theme + i18n | COMPLETED | [#36](https://github.com/alviarts/perpustakaan-offline/pull/36) | 2026-05-03 | 1 |
 | 3 | Layout shell (sidebar + header + responsive) | COMPLETED | [#37](https://github.com/alviarts/perpustakaan-offline/pull/37) | 2026-05-03 | 2 |
-| 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | PENDING | 2026-05-03 | 3 |
+| 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | [#41](https://github.com/alviarts/perpustakaan-offline/pull/41) | 2026-05-03 | 3 |
 | 5 | Data Buku CRUD + Master Data | PENDING | PENDING | — | 4 |
 | 6 | Peminjaman + Pengembalian | PENDING | PENDING | — | 4, 5 |
 | 7 | Kunjungan redesign | PENDING | PENDING | — | 3, 4 |
