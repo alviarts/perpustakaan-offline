@@ -162,6 +162,11 @@ class BukuView(ctk.CTkFrame):
                         "empty-buku-search" if is_search else "empty-buku"
                     ),
                     illustration_size=(360, 220),
+                    # Saat empty (bukan search) tampilkan animasi bouncing book
+                    # supaya kelihatan hidup (PR-V4b v0.6.1).
+                    animation=None if is_search else "bounce_book",
+                    animation_size=(120, 120),
+                    animation_fps=20,
                 )
                 self._empty_state.grid(row=0, column=0, sticky="nsew")
             self._empty_state.lift()

@@ -352,8 +352,23 @@ def show_toast(
         border_width=2,
         corner_radius=8,
     )
+
+    # Optional: prepend animated icon untuk kind=success (PR-V4b v0.6.1)
+    inner = ctk.CTkFrame(toast, fg_color="transparent")
+    inner.pack(padx=14, pady=10)
+    if kind == "success":
+        with contextlib.suppress(Exception):
+            from perpustakaan.gui.animation_player import AnimationPlayer
+
+            anim = AnimationPlayer(
+                inner, name="success_check", size=(28, 28),
+                fps=24, loop=False,
+            )
+            anim.pack(side="left", padx=(0, 10))
+            anim.start()
+
     label = ctk.CTkLabel(
-        toast,
+        inner,
         text=message,
         text_color=palette["fg"],
         font=ctk.CTkFont(size=13, weight="bold"),
@@ -361,7 +376,7 @@ def show_toast(
         justify="left",
         wraplength=320,
     )
-    label.pack(padx=14, pady=10)
+    label.pack(side="left")
 
     # Animasi slide-in dari kanan + dismiss halus dengan import lokal supaya
     # tidak ada cycle import (animations butuh widgets-free saja).
@@ -751,6 +766,9 @@ class EmptyState(ctk.CTkFrame):
         icon_size: int = 48,
         illustration: str | None = None,
         illustration_size: tuple[int, int] = (320, 200),
+        animation: str | None = None,
+        animation_size: tuple[int, int] = (96, 96),
+        animation_fps: int = 24,
         action_label: str | None = None,
         action_command: Callable[[], None] | None = None,
     ) -> None:
@@ -758,9 +776,11 @@ class EmptyState(ctk.CTkFrame):
 
         Visual layer order (first match wins):
 
-        1. ``illustration`` — name dari ``assets/illustrations/<name>.png``.
+        1. ``animation`` \u2014 name dari ``assets/animations/<name>/`` (PR-V4b).
+           Kalau folder ada \u2192 looping AnimationPlayer di-render sebagai hero.
+        2. ``illustration`` \u2014 name dari ``assets/illustrations/<name>.png``.
            Kalau file ada, dipakai sebagai hero visual (sebelum Lucide icon).
-        2. ``icon`` — Lucide icon name. Default ``"inbox"``. Dipakai sebagai
+        3. ``icon`` \u2014 Lucide icon name. Default ``"inbox"``. Dipakai sebagai
            fallback kalau illustration tidak tersedia.
 
         Param ``illustration_size`` adalah max bound ``(w, h)``; aspect ratio
@@ -768,17 +788,44 @@ class EmptyState(ctk.CTkFrame):
         """
         super().__init__(parent, fg_color="transparent")
 
+        # Animation memiliki priority paling tinggi (lebih hidup daripada
+        # static illustration). Lazy import supaya widget tetap bisa render
+        # di env minimal tanpa Pillow / asset.
+        self._animation: Any = None
+        anim_loaded = False
+        if animation:
+            try:
+                from perpustakaan.gui.animation_player import (
+                    AnimationPlayer,
+                    load_animation_frames,
+                )
+
+                # Cek dulu ada frame-nya \u2014 supaya kita bisa fallback ke
+                # illustration kalau folder kosong.
+                frames = load_animation_frames(animation, animation_size)
+                if frames:
+                    anim_loaded = True
+                    # AnimationPlayer di-pack di bawah (perlu super().__init__ done).
+                    # Disini cukup tandai supaya skip illustration/icon path.
+                    self._animation = AnimationPlayer(
+                        self, name=animation, size=animation_size,
+                        fps=animation_fps, loop=True,
+                    )
+            except Exception:  # noqa: BLE001
+                anim_loaded = False
+                self._animation = None
+
         # Lazy import supaya widgets.py tidak hard-depend ke icons.py kalau
         # asset belum ada (mis. di test environment minimal).
         img = None
-        if illustration:
+        if not anim_loaded and illustration:
             try:
                 from perpustakaan.gui.illustrations import load_illustration
 
                 img = load_illustration(illustration, size=illustration_size)
             except Exception:  # noqa: BLE001
                 img = None
-        if img is None:
+        if not anim_loaded and img is None:
             try:
                 from perpustakaan.gui.icons import lucide_icon
 
@@ -794,8 +841,12 @@ class EmptyState(ctk.CTkFrame):
             _title_font = ctk.CTkFont(size=15, weight="bold")
             _body_font = ctk.CTkFont(size=12)
 
-        # Icon / illustration (kalau ada)
-        if img is not None:
+        # Animation (priority) / icon / illustration
+        if self._animation is not None:
+            self._animation.pack(pady=(8, 12))
+            with contextlib.suppress(Exception):
+                self._animation.start()
+        elif img is not None:
             self._icon_lbl = ctk.CTkLabel(self, text="", image=img)
             self._icon_lbl.pack(pady=(8, 12))
 
