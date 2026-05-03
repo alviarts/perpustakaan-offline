@@ -1,4 +1,54 @@
 import { isTauri } from '@/lib/auth';
+import { masterDataApi, type MasterTable } from '@/lib/masterData';
+
+export interface AnggotaFormOptions {
+  kelas: string[];
+  jurusan: string[];
+  agama: string[];
+}
+
+/**
+ * Merge a master-data list with free-text distinct values into a stable,
+ * deduplicated, alphabetically-sorted string array.
+ */
+function mergeOptionSources(master: string[], distinct: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const list of [master, distinct]) {
+    for (const v of list) {
+      if (typeof v !== 'string') continue;
+      const trimmed = v.trim();
+      if (!trimmed || seen.has(trimmed)) continue;
+      seen.add(trimmed);
+      out.push(trimmed);
+    }
+  }
+  return out.sort((a, b) => a.localeCompare(b));
+}
+
+async function loadFieldOptions(
+  field: 'kelas' | 'jurusan' | 'agama',
+  table: MasterTable,
+): Promise<string[]> {
+  // The two RPCs are independent: a failure in one shouldn't kill the other.
+  const [masterRes, distinctRes] = await Promise.allSettled([
+    masterDataApi.list(table),
+    rpc().distinct(field),
+  ]);
+  const master =
+    masterRes.status === 'fulfilled' ? masterRes.value.map((m) => m.nama) : [];
+  const distinct = distinctRes.status === 'fulfilled' ? distinctRes.value : [];
+  return mergeOptionSources(master, distinct);
+}
+
+async function loadAnggotaFormOptions(): Promise<AnggotaFormOptions> {
+  const [kelas, jurusan, agama] = await Promise.all([
+    loadFieldOptions('kelas', 'kelas'),
+    loadFieldOptions('jurusan', 'jurusan'),
+    loadFieldOptions('agama', 'agama'),
+  ]);
+  return { kelas, jurusan, agama };
+}
 
 export interface Anggota {
   id: number;
@@ -404,6 +454,17 @@ export const anggotaApi = {
   importBatch: (items: AnggotaImportItem[]) => rpc().importBatch(items),
   distinct: (field: 'kelas' | 'jurusan' | 'agama') => rpc().distinct(field),
   kelasList: () => rpc().kelasList(),
+  /**
+   * Load Kelas / Jurusan / Agama options for the Tambah/Edit Anggota form.
+   *
+   * Source of truth is the master-data table (`master_list({ kind })`), so a
+   * fresh DB exposes the seeded entries (BUG-003). Free-text values stored on
+   * existing anggota rows are merged on top via `anggota_distinct(field)` so
+   * pre-master legacy data isn't dropped from the dropdowns. Each of the
+   * three fetches is independent: a master-data outage doesn't kill the
+   * distinct fallback, and vice versa.
+   */
+  loadFormOptions: () => loadAnggotaFormOptions(),
   // Test-only helper: reset the in-memory mock store. No-op in Tauri builds.
   __resetMock(): void {
     if (typeof window !== 'undefined' && !isTauri()) {

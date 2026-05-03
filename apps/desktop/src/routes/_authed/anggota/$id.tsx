@@ -30,18 +30,13 @@ function EditAnggotaRoute() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([
-      anggotaApi.get(id),
-      anggotaApi.distinct('kelas'),
-      anggotaApi.distinct('jurusan'),
-      anggotaApi.distinct('agama'),
-    ])
-      .then(([fetched, k, j, a]) => {
+    Promise.all([anggotaApi.get(id), anggotaApi.loadFormOptions()])
+      .then(([fetched, options]) => {
         if (cancelled) return;
         setItem(fetched);
-        setKelas(k);
-        setJurusan(j);
-        setAgama(a);
+        setKelas(options.kelas);
+        setJurusan(options.jurusan);
+        setAgama(options.agama);
       })
       .catch((err) => {
         if (cancelled) return;

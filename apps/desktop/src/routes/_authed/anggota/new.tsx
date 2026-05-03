@@ -21,11 +21,14 @@ function NewAnggotaRoute() {
   const [agama, setAgama] = useState<string[]>([]);
 
   useEffect(() => {
-    void Promise.all([
-      anggotaApi.distinct('kelas').then(setKelas).catch(() => undefined),
-      anggotaApi.distinct('jurusan').then(setJurusan).catch(() => undefined),
-      anggotaApi.distinct('agama').then(setAgama).catch(() => undefined),
-    ]);
+    void anggotaApi
+      .loadFormOptions()
+      .then(({ kelas: k, jurusan: j, agama: a }) => {
+        setKelas(k);
+        setJurusan(j);
+        setAgama(a);
+      })
+      .catch(() => undefined);
   }, []);
 
   return (
