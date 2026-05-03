@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 05)
+last_updated: 2026-05-03 (session 06)
 ```
 
 ## Sessions
@@ -68,10 +68,11 @@ sessions:
 
   - id: 6
     title: Peminjaman + Pengembalian (date picker, panel info, validasi, print nota)
-    status: PENDING
+    status: COMPLETED
     pr: PENDING
-    completed_at: null
+    completed_at: 2026-05-03
     dependencies: [4, 5]
+    note: Bundled by Devin 4 sebagai stacked PR di atas #42 (PR akan di-update setelah dibuat).
 
   - id: 7
     title: Kunjungan redesign (transparent illustrations, quick stats, filter date range)
@@ -125,7 +126,7 @@ sessions:
 | 3 | Layout shell (sidebar + header + responsive) | COMPLETED | [#37](https://github.com/alviarts/perpustakaan-offline/pull/37) | 2026-05-03 | 2 |
 | 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | [#41](https://github.com/alviarts/perpustakaan-offline/pull/41) | 2026-05-03 | 3 |
 | 5 | Data Buku CRUD + Master Data | COMPLETED | [#42](https://github.com/alviarts/perpustakaan-offline/pull/42) | 2026-05-03 | 4 |
-| 6 | Peminjaman + Pengembalian | PENDING | PENDING | — | 4, 5 |
+| 6 | Peminjaman + Pengembalian | COMPLETED | PENDING | 2026-05-03 | 4, 5 |
 | 7 | Kunjungan redesign | PENDING | PENDING | — | 3, 4 |
 | 8 | Dashboard modern + charts | PENDING | PENDING | — | 4, 5, 6 |
 | 9 | Laporan komplit | PENDING | PENDING | — | 6, 7, 8 |

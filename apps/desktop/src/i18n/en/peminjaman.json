@@ -1,5 +1,115 @@
 {
   "title": "Loans",
+  "subtitle": "Manage book loan transactions",
   "aturanPeminjaman": "Loan Rules",
-  "placeholder": "Loan module will be built in Devin Session 6."
+  "searchPlaceholder": "Search by number / name / ID",
+  "empty": "No loans yet",
+  "stats": {
+    "aktifHariIni": "Active Today",
+    "aktifMingguIni": "Active This Week",
+    "totalAktif": "Total Active",
+    "overdue": "Overdue"
+  },
+  "status": {
+    "all": "All",
+    "dipinjam": "Borrowed",
+    "sebagian": "Partial Return",
+    "dikembalikan": "Returned",
+    "terlambat": "Overdue",
+    "hilang": "Lost"
+  },
+  "itemStatus": {
+    "dipinjam": "Borrowed",
+    "dikembalikan": "Returned",
+    "hilang": "Lost"
+  },
+  "filter": {
+    "status": "Status"
+  },
+  "column": {
+    "nomor": "Loan No.",
+    "anggota": "Member",
+    "tanggal": "Borrow Date",
+    "jatuhTempo": "Due Date",
+    "tanggalKembali": "Return Date",
+    "item": "Items",
+    "status": "Status",
+    "denda": "Fine"
+  },
+  "action": {
+    "create": "New Loan",
+    "printNota": "Print Receipt",
+    "return": "Return",
+    "returnSelected_one": "Return {{count}} item",
+    "returnSelected_other": "Return {{count}} items"
+  },
+  "form": {
+    "title": "New Loan",
+    "subtitle": "Select member & books",
+    "anggota": "Member",
+    "anggotaPlaceholder": "Search name / ID",
+    "buku": "Books",
+    "bukuPlaceholder": "Add book…",
+    "tanggal": "Dates",
+    "tanggalPinjam": "Borrow Date",
+    "tanggalJt": "Due Date",
+    "catatan": "Notes",
+    "catatanPlaceholder": "Optional",
+    "submit": "Save & Borrow"
+  },
+  "panel": {
+    "anggotaInfo": "Member Info",
+    "bukuInfo": "Book Info",
+    "anggotaEmpty": "Select a member first",
+    "bukuEmpty": "No books selected yet",
+    "aktif": "Active",
+    "overdue": "Overdue",
+    "tersedia": "Available",
+    "note": "Note",
+    "noteText": "After submit, the system records the visit and reduces stock automatically.",
+    "printHint": "Receipt printing is available on the detail page after submit."
+  },
+  "detail": {
+    "items": "Books",
+    "anggota": "Member",
+    "tanggal": "Dates",
+    "denda": "Fine & Payment",
+    "totalDenda": "Total Fine",
+    "totalBayar": "Total Paid",
+    "bayar": "Pay Fine"
+  },
+  "confirm": {
+    "returnTitle": "Confirm Return",
+    "returnDesc": "Selected items will be marked as returned. Continue?"
+  },
+  "feedback": {
+    "loadError": "Failed to load loans",
+    "created": "Loan created successfully",
+    "createError": "Failed to create loan",
+    "returned": "Return successful",
+    "returnError": "Failed to return",
+    "printError": "Failed to print receipt"
+  },
+  "error": {
+    "anggotaRequired": "Please select a member",
+    "bukuRequired": "Select at least 1 book",
+    "bukuMax": "Maximum 10 books per loan",
+    "tanggalPinjam": "Borrow date is required",
+    "tanggalJt": "Due date is required",
+    "jtBeforePinjam": "Due date cannot be before borrow date"
+  },
+  "pagination": {
+    "summary": "Page {{page}} of {{total}} ({{count}} records)"
+  },
+  "pengembalian": {
+    "title": "Returns",
+    "subtitle": "Find active loan then select items to return",
+    "search": "Find Active Loan",
+    "searchPlaceholder": "Number / name / ID",
+    "empty": "No active loans",
+    "detail": "Return Detail",
+    "selectFirst": "Select a loan from search results",
+    "allReturned": "All items already returned",
+    "dendaPreview": "{{count}} days late · Rp {{denda}}"
+  }
 }
