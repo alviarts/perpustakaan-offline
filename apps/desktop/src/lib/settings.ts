@@ -65,8 +65,6 @@ export type CloseBehavior = 'exit' | 'tray';
 
 export const DEFAULT_CLOSE_BEHAVIOR: CloseBehavior = 'exit';
 
-const CLOSE_BEHAVIOR_KEY = 'app.close_behavior';
-
 // ---------------------------------------------------------------------------
 // Sync configuration
 // ---------------------------------------------------------------------------
