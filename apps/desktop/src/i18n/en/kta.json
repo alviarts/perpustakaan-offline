@@ -1,0 +1,39 @@
+{
+  "title": "KTA — Template Editor",
+  "subtitle": "Configure member-card layout: photo, identity, QR.",
+  "cetakTitle": "Print KTA",
+  "cetakSubtitle": "Select members and a template, then print single or batch.",
+  "menu": {
+    "settings": "KTA Templates",
+    "cetak": "Print KTA"
+  },
+  "field": {
+    "static": "Static Text",
+    "identitas": "Library Identity",
+    "nama": "Member Name",
+    "kodeAnggota": "Code / NIS",
+    "kelas": "Class",
+    "jurusan": "Major",
+    "agama": "Religion",
+    "foto": "Photo",
+    "qr": "QR Code"
+  },
+  "action": {
+    "newTemplate": "New Template",
+    "save": "Save",
+    "delete": "Delete",
+    "setDefault": "Set as Default",
+    "addField": "Add Field",
+    "print": "Print"
+  },
+  "toast": {
+    "saved": "Template saved",
+    "saveFailed": "Failed to save",
+    "deleted": "Template deleted",
+    "defaultSet": "Default template updated",
+    "selectMember": "Pick at least one member",
+    "selectTemplate": "Pick a template first",
+    "printing": "Printing {{count}} KTA",
+    "printFailed": "Failed to print"
+  }
+}

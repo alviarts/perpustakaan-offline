@@ -21,6 +21,7 @@ import { Route as AuthedLaporanIndexRouteImport } from './routes/_authed/laporan
 import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index'
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
+import { Route as AuthedSettingsKtaRouteImport } from './routes/_authed/settings/kta'
 import { Route as AuthedPeminjamanNewRouteImport } from './routes/_authed/peminjaman/new'
 import { Route as AuthedPeminjamanIdRouteImport } from './routes/_authed/peminjaman/$id'
 import { Route as AuthedLaporanTopPeminjamRouteImport } from './routes/_authed/laporan/top-peminjam'
@@ -31,6 +32,7 @@ import { Route as AuthedLaporanBackupRouteImport } from './routes/_authed/lapora
 import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
 import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
+import { Route as AuthedAnggotaCetakKtaRouteImport } from './routes/_authed/anggota/cetak-kta'
 import { Route as AuthedAnggotaIdRouteImport } from './routes/_authed/anggota/$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -93,6 +95,11 @@ const AuthedSettingsMasterDataRoute =
     path: '/settings/master-data',
     getParentRoute: () => AuthedRoute,
   } as any)
+const AuthedSettingsKtaRoute = AuthedSettingsKtaRouteImport.update({
+  id: '/settings/kta',
+  path: '/settings/kta',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPeminjamanNewRoute = AuthedPeminjamanNewRouteImport.update({
   id: '/peminjaman/new',
   path: '/peminjaman/new',
@@ -144,6 +151,11 @@ const AuthedAnggotaNewRoute = AuthedAnggotaNewRouteImport.update({
   path: '/anggota/new',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAnggotaCetakKtaRoute = AuthedAnggotaCetakKtaRouteImport.update({
+  id: '/anggota/cetak-kta',
+  path: '/anggota/cetak-kta',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedAnggotaIdRoute = AuthedAnggotaIdRouteImport.update({
   id: '/anggota/$id',
   path: '/anggota/$id',
@@ -157,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/kunjungan': typeof AuthedKunjunganRoute
   '/laporan': typeof AuthedLaporanRouteWithChildren
   '/anggota/$id': typeof AuthedAnggotaIdRoute
+  '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
   '/buku/new': typeof AuthedBukuNewRoute
@@ -167,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/kta': typeof AuthedSettingsKtaRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
   '/buku/': typeof AuthedBukuIndexRoute
@@ -180,6 +194,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
+  '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
   '/buku/new': typeof AuthedBukuNewRoute
@@ -190,6 +205,7 @@ export interface FileRoutesByTo {
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/kta': typeof AuthedSettingsKtaRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
   '/buku': typeof AuthedBukuIndexRoute
@@ -206,6 +222,7 @@ export interface FileRoutesById {
   '/_authed/kunjungan': typeof AuthedKunjunganRoute
   '/_authed/laporan': typeof AuthedLaporanRouteWithChildren
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
+  '/_authed/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
   '/_authed/buku/$id': typeof AuthedBukuIdRoute
   '/_authed/buku/new': typeof AuthedBukuNewRoute
@@ -216,6 +233,7 @@ export interface FileRoutesById {
   '/_authed/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/_authed/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/_authed/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/_authed/settings/kta': typeof AuthedSettingsKtaRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
   '/_authed/buku/': typeof AuthedBukuIndexRoute
@@ -232,6 +250,7 @@ export interface FileRouteTypes {
     | '/kunjungan'
     | '/laporan'
     | '/anggota/$id'
+    | '/anggota/cetak-kta'
     | '/anggota/new'
     | '/buku/$id'
     | '/buku/new'
@@ -242,6 +261,7 @@ export interface FileRouteTypes {
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/kta'
     | '/settings/master-data'
     | '/anggota/'
     | '/buku/'
@@ -255,6 +275,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/kunjungan'
     | '/anggota/$id'
+    | '/anggota/cetak-kta'
     | '/anggota/new'
     | '/buku/$id'
     | '/buku/new'
@@ -265,6 +286,7 @@ export interface FileRouteTypes {
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/kta'
     | '/settings/master-data'
     | '/anggota'
     | '/buku'
@@ -280,6 +302,7 @@ export interface FileRouteTypes {
     | '/_authed/kunjungan'
     | '/_authed/laporan'
     | '/_authed/anggota/$id'
+    | '/_authed/anggota/cetak-kta'
     | '/_authed/anggota/new'
     | '/_authed/buku/$id'
     | '/_authed/buku/new'
@@ -290,6 +313,7 @@ export interface FileRouteTypes {
     | '/_authed/laporan/top-peminjam'
     | '/_authed/peminjaman/$id'
     | '/_authed/peminjaman/new'
+    | '/_authed/settings/kta'
     | '/_authed/settings/master-data'
     | '/_authed/anggota/'
     | '/_authed/buku/'
@@ -390,6 +414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsMasterDataRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/settings/kta': {
+      id: '/_authed/settings/kta'
+      path: '/settings/kta'
+      fullPath: '/settings/kta'
+      preLoaderRoute: typeof AuthedSettingsKtaRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/peminjaman/new': {
       id: '/_authed/peminjaman/new'
       path: '/peminjaman/new'
@@ -460,6 +491,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAnggotaNewRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/anggota/cetak-kta': {
+      id: '/_authed/anggota/cetak-kta'
+      path: '/anggota/cetak-kta'
+      fullPath: '/anggota/cetak-kta'
+      preLoaderRoute: typeof AuthedAnggotaCetakKtaRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/anggota/$id': {
       id: '/_authed/anggota/$id'
       path: '/anggota/$id'
@@ -497,11 +535,13 @@ interface AuthedRouteChildren {
   AuthedKunjunganRoute: typeof AuthedKunjunganRoute
   AuthedLaporanRoute: typeof AuthedLaporanRouteWithChildren
   AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
+  AuthedAnggotaCetakKtaRoute: typeof AuthedAnggotaCetakKtaRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
   AuthedBukuIdRoute: typeof AuthedBukuIdRoute
   AuthedBukuNewRoute: typeof AuthedBukuNewRoute
   AuthedPeminjamanIdRoute: typeof AuthedPeminjamanIdRoute
   AuthedPeminjamanNewRoute: typeof AuthedPeminjamanNewRoute
+  AuthedSettingsKtaRoute: typeof AuthedSettingsKtaRoute
   AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
   AuthedAnggotaIndexRoute: typeof AuthedAnggotaIndexRoute
   AuthedBukuIndexRoute: typeof AuthedBukuIndexRoute
@@ -514,11 +554,13 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedKunjunganRoute: AuthedKunjunganRoute,
   AuthedLaporanRoute: AuthedLaporanRouteWithChildren,
   AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
+  AuthedAnggotaCetakKtaRoute: AuthedAnggotaCetakKtaRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
   AuthedBukuIdRoute: AuthedBukuIdRoute,
   AuthedBukuNewRoute: AuthedBukuNewRoute,
   AuthedPeminjamanIdRoute: AuthedPeminjamanIdRoute,
   AuthedPeminjamanNewRoute: AuthedPeminjamanNewRoute,
+  AuthedSettingsKtaRoute: AuthedSettingsKtaRoute,
   AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
   AuthedAnggotaIndexRoute: AuthedAnggotaIndexRoute,
   AuthedBukuIndexRoute: AuthedBukuIndexRoute,

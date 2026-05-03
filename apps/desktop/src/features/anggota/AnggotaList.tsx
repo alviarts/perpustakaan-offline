@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, FileSpreadsheet, Plus, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CreditCard, FileSpreadsheet, Plus, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -185,6 +185,12 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
           >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('anggota:list.import')}
+          </Button>
+          <Button variant="outline" asChild data-testid="anggota-cetak-kta">
+            <Link to="/anggota/cetak-kta">
+              <CreditCard className="mr-2 h-4 w-4" />
+              {t('kta:menu.cetak', 'Cetak KTA')}
+            </Link>
           </Button>
           <Button asChild data-testid="anggota-add">
             <Link to="/anggota/new">

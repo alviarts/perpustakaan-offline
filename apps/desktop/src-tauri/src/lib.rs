@@ -88,6 +88,12 @@ pub fn run() {
             commands::backup::backup_schedule_get,
             commands::backup::backup_schedule_set,
             commands::backup::backup_db_path,
+            commands::kta::kta_template_list,
+            commands::kta::kta_template_get,
+            commands::kta::kta_template_create,
+            commands::kta::kta_template_update,
+            commands::kta::kta_template_delete,
+            commands::kta::kta_template_set_default,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")
