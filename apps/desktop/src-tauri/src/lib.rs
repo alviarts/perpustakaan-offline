@@ -38,6 +38,10 @@ pub fn run() {
             commands::auth::auth_logout,
             commands::auth::auth_login_with_token,
             commands::auth::auth_current_user,
+            commands::identity::identity_get,
+            commands::identity::identity_save,
+            commands::window_state::window_state_get,
+            commands::window_state::window_state_save,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")

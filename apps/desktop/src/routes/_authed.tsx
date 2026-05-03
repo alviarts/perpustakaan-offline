@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { AppShell } from '@/components/layout/AppShell';
 import { useAuthStore } from '@/stores/authStore';
 
 export const Route = createFileRoute('/_authed')({
@@ -8,13 +9,5 @@ export const Route = createFileRoute('/_authed')({
       throw redirect({ to: '/login' });
     }
   },
-  component: AuthedLayout,
+  component: AppShell,
 });
-
-function AuthedLayout() {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Outlet />
-    </div>
-  );
-}

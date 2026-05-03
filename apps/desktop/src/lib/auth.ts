@@ -1,6 +1,6 @@
 import type { SessionUser } from '@/stores/authStore';
 
-const isTauri = (): boolean =>
+export const isTauri = (): boolean =>
   typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
 interface LoginPayload {

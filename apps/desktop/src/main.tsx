@@ -5,6 +5,7 @@ import './styles/globals.css';
 import './i18n';
 import { useThemeStore } from '@/stores/themeStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useIdentityStore, subscribeIdentityChanges } from '@/stores/identityStore';
 import { tryAutoLogin } from '@/lib/auth';
 import { routeTree } from './routeTree.gen';
 
@@ -22,6 +23,8 @@ declare module '@tanstack/react-router' {
 useThemeStore.getState().resolve();
 
 void (async () => {
+  void useIdentityStore.getState().loadIdentity();
+  void subscribeIdentityChanges();
   const auth = useAuthStore.getState();
   if (auth.rememberMe && !auth.user) {
     try {

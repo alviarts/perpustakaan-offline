@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { useAuthStore } from '@/stores/authStore';
+import { useIdentityStore } from '@/stores/identityStore';
 import { loginRequest } from '@/lib/auth';
 
 export function Login() {
@@ -17,6 +18,7 @@ export function Login() {
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
   const setRememberMe = useAuthStore((s) => s.setRememberMe);
+  const identity = useIdentityStore((s) => s.identity);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +74,7 @@ export function Login() {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {t('common:tagline')}
                 </p>
-                <h1 className="text-lg font-semibold">{t('common:appName')}</h1>
+                <h1 className="text-lg font-semibold">{identity.nama}</h1>
               </div>
             </div>
 

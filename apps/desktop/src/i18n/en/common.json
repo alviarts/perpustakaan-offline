@@ -34,7 +34,13 @@
     "laporan": "Reports",
     "kta": "Member Card",
     "settings": "Settings",
+    "manualBook": "User Manual",
+    "profile": "Profile",
     "logout": "Logout"
+  },
+  "sidebar": {
+    "collapse": "Collapse",
+    "expand": "Expand"
   },
   "theme": {
     "label": "Theme",
