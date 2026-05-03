@@ -13,6 +13,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
+import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
+import { Route as AuthedAnggotaIdRouteImport } from './routes/_authed/anggota/$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -33,16 +36,37 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAnggotaIndexRoute = AuthedAnggotaIndexRouteImport.update({
+  id: '/anggota/',
+  path: '/anggota/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAnggotaNewRoute = AuthedAnggotaNewRouteImport.update({
+  id: '/anggota/new',
+  path: '/anggota/new',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAnggotaIdRoute = AuthedAnggotaIdRouteImport.update({
+  id: '/anggota/$id',
+  path: '/anggota/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/anggota/$id': typeof AuthedAnggotaIdRoute
+  '/anggota/new': typeof AuthedAnggotaNewRoute
+  '/anggota/': typeof AuthedAnggotaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/anggota/$id': typeof AuthedAnggotaIdRoute
+  '/anggota/new': typeof AuthedAnggotaNewRoute
+  '/anggota': typeof AuthedAnggotaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +74,36 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
+  '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
+  '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/anggota/$id'
+    | '/anggota/new'
+    | '/anggota/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard'
-  id: '__root__' | '/' | '/_authed' | '/login' | '/_authed/dashboard'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/anggota/$id'
+    | '/anggota/new'
+    | '/anggota'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authed'
+    | '/login'
+    | '/_authed/dashboard'
+    | '/_authed/anggota/$id'
+    | '/_authed/anggota/new'
+    | '/_authed/anggota/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,15 +142,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/anggota/': {
+      id: '/_authed/anggota/'
+      path: '/anggota'
+      fullPath: '/anggota/'
+      preLoaderRoute: typeof AuthedAnggotaIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/anggota/new': {
+      id: '/_authed/anggota/new'
+      path: '/anggota/new'
+      fullPath: '/anggota/new'
+      preLoaderRoute: typeof AuthedAnggotaNewRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/anggota/$id': {
+      id: '/_authed/anggota/$id'
+      path: '/anggota/$id'
+      fullPath: '/anggota/$id'
+      preLoaderRoute: typeof AuthedAnggotaIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
+  AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
+  AuthedAnggotaIndexRoute: typeof AuthedAnggotaIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
+  AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
+  AuthedAnggotaIndexRoute: AuthedAnggotaIndexRoute,
 }
 
 const AuthedRouteWithChildren =

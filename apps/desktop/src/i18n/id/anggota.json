@@ -1,4 +1,97 @@
 {
   "title": "Anggota",
-  "placeholder": "CRUD anggota akan dibuat di Devin Session 4."
+  "subtitle": "Kelola data anggota perpustakaan",
+  "list": {
+    "addNew": "Tambah Anggota",
+    "import": "Impor Excel",
+    "exportPlaceholder": "Ekspor (segera)",
+    "searchPlaceholder": "Cari nama, NIS, kelas, atau jurusan…",
+    "filterAktif": "Status",
+    "filterKelas": "Kelas",
+    "filterJurusan": "Jurusan",
+    "filterAll": "Semua",
+    "filterActive": "Aktif",
+    "filterInactive": "Nonaktif",
+    "empty": "Belum ada anggota. Tambahkan yang pertama.",
+    "emptyFiltered": "Tidak ada anggota yang cocok dengan pencarian.",
+    "totalCount": "Total {{count}} anggota",
+    "showing": "Menampilkan {{from}}–{{to}} dari {{total}}"
+  },
+  "columns": {
+    "kode": "Kode",
+    "nama": "Nama",
+    "kelas": "Kelas",
+    "jurusan": "Jurusan",
+    "agama": "Agama",
+    "status": "Status",
+    "aksi": "Aksi"
+  },
+  "fields": {
+    "kodeAnggota": "Kode Anggota / NIS",
+    "kodeAnggotaPlaceholder": "Mis. A0001 atau NIS",
+    "nama": "Nama Lengkap",
+    "namaPlaceholder": "Nama lengkap anggota",
+    "jenisKelamin": "Jenis Kelamin",
+    "jenisKelaminL": "Laki-laki",
+    "jenisKelaminP": "Perempuan",
+    "kelas": "Kelas",
+    "kelasPlaceholder": "Pilih kelas",
+    "jurusan": "Jurusan",
+    "jurusanPlaceholder": "Pilih jurusan",
+    "agama": "Agama",
+    "agamaPlaceholder": "Pilih agama",
+    "tempatLahir": "Tempat Lahir",
+    "tanggalLahir": "Tanggal Lahir",
+    "noTelp": "No. Telepon",
+    "email": "Email",
+    "alamat": "Alamat",
+    "fotoPath": "Path Foto",
+    "fotoPathHint": "Path absolut ke file foto (placeholder; uploader penuh menyusul Devin 5).",
+    "tanggalDaftar": "Tanggal Daftar",
+    "aktif": "Status Aktif",
+    "aktifHint": "Nonaktifkan untuk menyembunyikan dari daftar peminjaman tanpa menghapus riwayat.",
+    "catatan": "Catatan"
+  },
+  "form": {
+    "newTitle": "Tambah Anggota Baru",
+    "newSubtitle": "Lengkapi data dasar; field opsional bisa diisi nanti.",
+    "editTitle": "Ubah Data Anggota",
+    "editSubtitle": "Perbarui informasi anggota di bawah ini.",
+    "submitCreate": "Simpan Anggota",
+    "submitUpdate": "Perbarui",
+    "deleteButton": "Hapus Anggota"
+  },
+  "validation": {
+    "kodeAnggotaRequired": "Kode anggota wajib diisi",
+    "namaRequired": "Nama wajib diisi",
+    "emailInvalid": "Format email tidak valid"
+  },
+  "delete": {
+    "confirmTitle": "Hapus anggota \"{{nama}}\"?",
+    "confirmDescription": "Tindakan ini tidak dapat dibatalkan. Anggota dengan riwayat peminjaman tidak dapat dihapus."
+  },
+  "import": {
+    "title": "Impor Anggota dari Excel",
+    "description": "Pilih file .xlsx atau .csv. Header yang dikenali: kode_anggota, nama, kelas, jurusan, agama, jenis_kelamin (L/P), no_telp, email.",
+    "pickFile": "Pilih File",
+    "filename": "File: {{name}}",
+    "previewTitle": "Pratinjau ({{count}} baris)",
+    "previewSubtitle": "Periksa data sebelum diimpor. Baris dengan error akan dilewati.",
+    "submit": "Impor {{count}} Baris",
+    "cancel": "Batal",
+    "summary": "Berhasil: {{inserted}} • Dilewati: {{skipped}}",
+    "errorRow": "Baris {{row}}: {{message}}",
+    "noFile": "Belum ada file yang dipilih.",
+    "parseError": "Gagal membaca file: {{message}}"
+  },
+  "feedback": {
+    "createSuccess": "Anggota berhasil ditambahkan.",
+    "createError": "Gagal menambahkan anggota: {{message}}",
+    "updateSuccess": "Data anggota diperbarui.",
+    "updateError": "Gagal memperbarui anggota: {{message}}",
+    "deleteSuccess": "Anggota dihapus.",
+    "deleteError": "Gagal menghapus anggota: {{message}}",
+    "importSuccess": "Impor selesai: {{inserted}} anggota berhasil ditambahkan.",
+    "loadError": "Gagal memuat data anggota."
+  }
 }

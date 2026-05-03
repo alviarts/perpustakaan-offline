@@ -42,6 +42,14 @@ pub fn run() {
             commands::identity::identity_save,
             commands::window_state::window_state_get,
             commands::window_state::window_state_save,
+            commands::anggota::anggota_list,
+            commands::anggota::anggota_get,
+            commands::anggota::anggota_create,
+            commands::anggota::anggota_update,
+            commands::anggota::anggota_delete,
+            commands::anggota::anggota_import,
+            commands::anggota::anggota_distinct,
+            commands::anggota::kelas_list,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")

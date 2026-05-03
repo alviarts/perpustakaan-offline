@@ -27,7 +27,34 @@ pub fn open_connection(path: &Path) -> AppResult<Connection> {
 
 pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SCHEMA_SQL)?;
+    apply_additive_migrations(conn)?;
     log::info!("schema migrations applied (idempotent)");
+    Ok(())
+}
+
+/// Idempotent additive column migrations. Each entry adds a column to a table
+/// only if it doesn't already exist, so old v1 databases keep working while
+/// new v2 features (e.g. `anggota.agama` for session 4) get the columns they
+/// need.
+fn apply_additive_migrations(conn: &Connection) -> AppResult<()> {
+    add_column_if_missing(conn, "anggota", "agama", "TEXT")?;
+    Ok(())
+}
+
+fn add_column_if_missing(
+    conn: &Connection,
+    table: &str,
+    column: &str,
+    decl: &str,
+) -> AppResult<()> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
+    let existing: Vec<String> = stmt
+        .query_map([], |row| row.get::<_, String>(1))?
+        .collect::<Result<Vec<_>, _>>()?;
+    if !existing.iter().any(|c| c == column) {
+        conn.execute_batch(&format!("ALTER TABLE {table} ADD COLUMN {column} {decl}"))?;
+        log::info!("added column {table}.{column}");
+    }
     Ok(())
 }
 

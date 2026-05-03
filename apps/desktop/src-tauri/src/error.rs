@@ -16,6 +16,10 @@ pub enum AppError {
     InactiveAccount,
     #[error("not authenticated")]
     NotAuthenticated,
+    #[error("not found: {0}")]
+    NotFound(String),
+    #[error("validation: {0}")]
+    Validation(String),
     #[error("internal: {0}")]
     Internal(String),
 }
@@ -32,6 +36,8 @@ impl Serialize for AppError {
             AppError::InvalidCredentials => "invalid_credentials",
             AppError::InactiveAccount => "inactive",
             AppError::NotAuthenticated => "not_authenticated",
+            AppError::NotFound(_) => "not_found",
+            AppError::Validation(_) => "validation",
             _ => "internal",
         };
         let msg = self.to_string();
