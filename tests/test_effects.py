@@ -19,7 +19,9 @@ def _has_tk() -> bool:
     """
     try:
         import tkinter  # noqa: F401
+
         import customtkinter  # noqa: F401
+
         return True
     except Exception:  # noqa: BLE001
         return False
