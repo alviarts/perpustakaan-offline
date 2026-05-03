@@ -1,0 +1,41 @@
+{
+  "title": "Master Data",
+  "subtitle": "Kelola data referensi: DDC, kategori, bahasa, jurusan, kelas, dan agama.",
+  "tabs": {
+    "ddc": "DDC",
+    "kategori": "Kategori",
+    "bahasa": "Bahasa",
+    "jurusan": "Jurusan",
+    "kelas": "Kelas",
+    "agama": "Agama"
+  },
+  "list": {
+    "searchPlaceholder": "Cari nama atau kode…",
+    "addNew": "Tambah",
+    "empty": "Belum ada data."
+  },
+  "columns": {
+    "kode": "Kode",
+    "nama": "Nama",
+    "deskripsi": "Deskripsi"
+  },
+  "dialog": {
+    "newTitle": "Tambah Data",
+    "editTitle": "Edit Data"
+  },
+  "delete": {
+    "title": "Hapus \"{{name}}\"?",
+    "description": "Tindakan ini tidak dapat dibatalkan."
+  },
+  "feedback": {
+    "loadError": "Gagal memuat master data.",
+    "namaRequired": "Nama wajib diisi.",
+    "kodeRequired": "Kode wajib diisi.",
+    "createSuccess": "Data berhasil ditambahkan.",
+    "createError": "Gagal menambahkan data.",
+    "updateSuccess": "Data berhasil diperbarui.",
+    "updateError": "Gagal memperbarui data.",
+    "deleteSuccess": "Data berhasil dihapus.",
+    "deleteError": "Gagal menghapus data."
+  }
+}

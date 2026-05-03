@@ -27,8 +27,149 @@ pub fn open_connection(path: &Path) -> AppResult<Connection> {
 
 pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SCHEMA_SQL)?;
+    conn.execute_batch(MASTER_DATA_SQL)?;
     apply_additive_migrations(conn)?;
+    seed_master_data(conn)?;
     log::info!("schema migrations applied (idempotent)");
+    Ok(())
+}
+
+const MASTER_DATA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS kategori (
+    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama  TEXT NOT NULL UNIQUE,
+    deskripsi TEXT,
+    urutan INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS bahasa (
+    kode TEXT PRIMARY KEY,
+    nama TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS jurusan (
+    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama  TEXT NOT NULL UNIQUE,
+    kode  TEXT,
+    urutan INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS agama (
+    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama  TEXT NOT NULL UNIQUE,
+    urutan INTEGER NOT NULL DEFAULT 0
+);
+"#;
+
+/// Default seed values for master data tables. Inserted only on first launch
+/// (when the table is empty) so manual edits in Settings persist across upgrades.
+fn seed_master_data(conn: &Connection) -> AppResult<()> {
+    seed_if_empty(conn, "agama", AGAMA_SEED, |conn, idx, name| {
+        conn.execute(
+            "INSERT INTO agama (nama, urutan) VALUES (?1, ?2)",
+            rusqlite::params![name, idx as i64],
+        )
+        .map(|_| ())
+    })?;
+    seed_if_empty(conn, "kategori", KATEGORI_SEED, |conn, idx, name| {
+        conn.execute(
+            "INSERT INTO kategori (nama, urutan) VALUES (?1, ?2)",
+            rusqlite::params![name, idx as i64],
+        )
+        .map(|_| ())
+    })?;
+    seed_if_empty(conn, "kelas", KELAS_SEED, |conn, idx, name| {
+        let tingkat = name
+            .chars()
+            .take_while(|c| c.is_ascii_digit())
+            .collect::<String>()
+            .parse::<i64>()
+            .ok();
+        conn.execute(
+            "INSERT INTO kelas (nama, tingkat, urutan) VALUES (?1, ?2, ?3)",
+            rusqlite::params![name, tingkat, idx as i64],
+        )
+        .map(|_| ())
+    })?;
+    seed_if_empty(conn, "jurusan", JURUSAN_SEED, |conn, idx, name| {
+        conn.execute(
+            "INSERT INTO jurusan (nama, urutan) VALUES (?1, ?2)",
+            rusqlite::params![name, idx as i64],
+        )
+        .map(|_| ())
+    })?;
+    seed_bahasa_if_empty(conn)?;
+    Ok(())
+}
+
+const AGAMA_SEED: &[&str] = &["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu"];
+
+const KATEGORI_SEED: &[&str] = &[
+    "Fiksi",
+    "Non-fiksi",
+    "Referensi",
+    "Buku Pelajaran",
+    "Karya Ilmiah",
+    "Majalah",
+    "Komik",
+    "Biografi",
+];
+
+const KELAS_SEED: &[&str] = &[
+    "7A", "7B", "7C", "8A", "8B", "8C", "9A", "9B", "9C", "10A", "10B", "10C", "11A", "11B",
+    "11C", "12A", "12B", "12C",
+];
+
+const JURUSAN_SEED: &[&str] = &["IPA", "IPS", "Bahasa", "TKJ", "RPL", "Multimedia"];
+
+const BAHASA_SEED: &[(&str, &str)] = &[
+    ("id", "Indonesia"),
+    ("en", "Inggris"),
+    ("ar", "Arab"),
+    ("jw", "Jawa"),
+    ("su", "Sunda"),
+    ("zh", "Mandarin"),
+    ("ja", "Jepang"),
+    ("fr", "Prancis"),
+    ("de", "Jerman"),
+    ("ms", "Melayu"),
+];
+
+fn seed_if_empty<F>(
+    conn: &Connection,
+    table: &str,
+    items: &[&str],
+    mut insert: F,
+) -> AppResult<()>
+where
+    F: FnMut(&Connection, usize, &str) -> rusqlite::Result<()>,
+{
+    let count: i64 =
+        conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| {
+            row.get(0)
+        })?;
+    if count > 0 {
+        return Ok(());
+    }
+    for (idx, name) in items.iter().enumerate() {
+        insert(conn, idx, name)?;
+    }
+    log::info!("seeded {} default rows into {table}", items.len());
+    Ok(())
+}
+
+fn seed_bahasa_if_empty(conn: &Connection) -> AppResult<()> {
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM bahasa", [], |row| row.get(0))?;
+    if count > 0 {
+        return Ok(());
+    }
+    for (kode, nama) in BAHASA_SEED {
+        conn.execute(
+            "INSERT INTO bahasa (kode, nama) VALUES (?1, ?2)",
+            rusqlite::params![kode, nama],
+        )?;
+    }
+    log::info!("seeded {} default bahasa rows", BAHASA_SEED.len());
     Ok(())
 }
 

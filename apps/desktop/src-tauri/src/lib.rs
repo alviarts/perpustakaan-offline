@@ -50,6 +50,18 @@ pub fn run() {
             commands::anggota::anggota_import,
             commands::anggota::anggota_distinct,
             commands::anggota::kelas_list,
+            commands::buku::buku_list,
+            commands::buku::buku_get,
+            commands::buku::buku_create,
+            commands::buku::buku_update,
+            commands::buku::buku_delete,
+            commands::buku::buku_import,
+            commands::buku::eksemplar_create,
+            commands::buku::eksemplar_delete,
+            commands::master_data::master_list,
+            commands::master_data::master_create,
+            commands::master_data::master_update,
+            commands::master_data::master_delete,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")

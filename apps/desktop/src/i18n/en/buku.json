@@ -1,4 +1,100 @@
 {
   "title": "Books",
-  "placeholder": "Books CRUD will be built in Devin Session 5."
+  "subtitle": "Manage the library's book collection and per-copy stock.",
+  "list": {
+    "addNew": "Add Book",
+    "import": "Import Excel",
+    "searchPlaceholder": "Search title, code, author, ISBN…",
+    "filterAll": "All",
+    "filterKategori": "Category",
+    "filterBahasa": "Language",
+    "empty": "No books yet. Add the first one or import from Excel.",
+    "emptyFiltered": "No books match the current filters.",
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "loadingDetail": "Loading detail…"
+  },
+  "columns": {
+    "kode": "Code",
+    "judul": "Title",
+    "kategori": "Category",
+    "ddc": "DDC",
+    "tersedia": "Available"
+  },
+  "fields": {
+    "kodeBuku": "Book Code",
+    "kodeBukuPlaceholder": "e.g. B0001",
+    "judul": "Title",
+    "judulPlaceholder": "Full book title",
+    "pengarang": "Author",
+    "penerbit": "Publisher",
+    "tahunTerbit": "Year",
+    "kodeDdc": "DDC Code",
+    "kodeDdcPlaceholder": "Pick a DDC classification",
+    "kategori": "Category",
+    "kategoriPlaceholder": "Fiction / Non-fiction / …",
+    "bahasa": "Language",
+    "bahasaPlaceholder": "Pick a language",
+    "isbn": "ISBN",
+    "jumlahEksemplar": "Copies",
+    "sumber": "Source",
+    "harga": "Price (Rp)",
+    "rak": "Shelf",
+    "deskripsi": "Description",
+    "coverPath": "Cover Path",
+    "coverPathHint": "Cover file path relative to %AppData%/PerpustakaanOffline/covers/."
+  },
+  "form": {
+    "newTitle": "Add Book",
+    "newSubtitle": "Fill in the book details.",
+    "editTitle": "Book Detail",
+    "editSubtitle": "Update or delete this book.",
+    "submitCreate": "Save",
+    "submitUpdate": "Update",
+    "deleteButton": "Delete Book"
+  },
+  "validation": {
+    "kodeBukuRequired": "Book code is required",
+    "judulRequired": "Title is required"
+  },
+  "delete": {
+    "title": "Delete book \"{{name}}\"?",
+    "description": "This will also remove all copies of this book and cannot be undone."
+  },
+  "import": {
+    "title": "Import Books from Excel",
+    "description": "Recognised headers: kode_buku, judul, pengarang, penerbit, tahun, ddc, kategori, isbn, jumlah, bahasa.",
+    "pickFile": "Choose File",
+    "noFile": "No file selected.",
+    "filename": "File: {{name}}",
+    "previewTitle": "Preview ({{count}} rows)",
+    "previewSubtitle": "First 50 rows shown in the preview.",
+    "parseError": "Failed to parse file: {{message}}",
+    "submit": "Import {{count}} books",
+    "summary": "{{inserted}} saved, {{skipped}} skipped."
+  },
+  "feedback": {
+    "loadError": "Failed to load books.",
+    "createSuccess": "Book created successfully.",
+    "createError": "Failed to create book: {{message}}",
+    "updateSuccess": "Book updated successfully.",
+    "updateError": "Failed to update book: {{message}}",
+    "deleteSuccess": "Book deleted.",
+    "deleteError": "Failed to delete book.",
+    "importSuccess": "{{inserted}} books imported."
+  },
+  "detail": {
+    "emptyTitle": "Pick a book to see details",
+    "emptyHint": "Click any row in the left table to view copies and full info.",
+    "edit": "Edit",
+    "kategori": "Category",
+    "bahasa": "Language",
+    "kodeDdc": "DDC",
+    "tahunTerbit": "Year",
+    "penerbit": "Publisher",
+    "isbn": "ISBN",
+    "rak": "Shelf",
+    "sumber": "Source",
+    "eksemplarTitle": "Copies ({{count}})",
+    "eksemplarEmpty": "No physical copies yet."
+  }
 }

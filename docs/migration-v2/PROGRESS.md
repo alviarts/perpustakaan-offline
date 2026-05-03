@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 04)
+last_updated: 2026-05-03 (session 05)
 ```
 
 ## Sessions
@@ -60,10 +60,11 @@ sessions:
 
   - id: 5
     title: Data Buku CRUD + Master Data komplit (DDC/Kategori/Bahasa/Jurusan/Kelas/Agama)
-    status: PENDING
-    pr: PENDING
-    completed_at: null
+    status: COMPLETED
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/42
+    completed_at: 2026-05-03
     dependencies: [4]
+    note: Bundled by Devin 4 sebagai stacked PR di atas #41.
 
   - id: 6
     title: Peminjaman + Pengembalian (date picker, panel info, validasi, print nota)
@@ -123,7 +124,7 @@ sessions:
 | 2 | Scaffolding + login + theme + i18n | COMPLETED | [#36](https://github.com/alviarts/perpustakaan-offline/pull/36) | 2026-05-03 | 1 |
 | 3 | Layout shell (sidebar + header + responsive) | COMPLETED | [#37](https://github.com/alviarts/perpustakaan-offline/pull/37) | 2026-05-03 | 2 |
 | 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | [#41](https://github.com/alviarts/perpustakaan-offline/pull/41) | 2026-05-03 | 3 |
-| 5 | Data Buku CRUD + Master Data | PENDING | PENDING | — | 4 |
+| 5 | Data Buku CRUD + Master Data | COMPLETED | [#42](https://github.com/alviarts/perpustakaan-offline/pull/42) | 2026-05-03 | 4 |
 | 6 | Peminjaman + Pengembalian | PENDING | PENDING | — | 4, 5 |
 | 7 | Kunjungan redesign | PENDING | PENDING | — | 3, 4 |
 | 8 | Dashboard modern + charts | PENDING | PENDING | — | 4, 5, 6 |
@@ -148,6 +149,6 @@ JANGAN bypass dependency.
 ## Status legend
 
 - `PENDING` — belum dikerjakan, menunggu giliran.
-- `IN_PROGRESS` — Devin sedang ngerjakan (PR belum merge).
-- `COMPLETED` — PR sudah merge ke `main`.
-- `BLOCKED` — ada masalah, butuh keputusan user (jelaskan di PR / chat).
+- `IN_PROGRESS` — sedang dikerjakan oleh Devin (branch belum merge).
+- `COMPLETED` — PR sudah merged ke `main`.
+- `BLOCKED` — dependency belum kelar atau ada blocker eksternal.

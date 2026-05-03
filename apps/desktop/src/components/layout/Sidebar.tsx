@@ -29,7 +29,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', labelKey: 'common:menu.dashboard', Icon: LayoutDashboard },
   { to: '/anggota', labelKey: 'common:menu.anggota', Icon: Users },
-  { to: '/buku', labelKey: 'common:menu.buku', Icon: BookOpen, pending: true },
+  { to: '/buku', labelKey: 'common:menu.buku', Icon: BookOpen },
   { to: '/peminjaman', labelKey: 'common:menu.peminjaman', Icon: ArrowLeftRight, pending: true },
   { to: '/pengembalian', labelKey: 'common:menu.pengembalian', Icon: Undo2, pending: true },
   { to: '/kunjungan', labelKey: 'common:menu.kunjungan', Icon: CalendarCheck, pending: true },
