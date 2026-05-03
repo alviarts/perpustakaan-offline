@@ -77,7 +77,7 @@ sessions:
   - id: 7
     title: Kunjungan redesign (transparent illustrations, quick stats, filter date range)
     status: COMPLETED
-    pr: PENDING
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/44
     completed_at: 2026-05-03
     dependencies: [3, 4]
     note: Bundled by Devin 4 sebagai stacked PR di atas #43.
@@ -128,7 +128,7 @@ sessions:
 | 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | [#41](https://github.com/alviarts/perpustakaan-offline/pull/41) | 2026-05-03 | 3 |
 | 5 | Data Buku CRUD + Master Data | COMPLETED | [#42](https://github.com/alviarts/perpustakaan-offline/pull/42) | 2026-05-03 | 4 |
 | 6 | Peminjaman + Pengembalian | COMPLETED | [#43](https://github.com/alviarts/perpustakaan-offline/pull/43) | 2026-05-03 | 4, 5 |
-| 7 | Kunjungan redesign | COMPLETED | PENDING | 2026-05-03 | 3, 4 |
+| 7 | Kunjungan redesign | COMPLETED | [#44](https://github.com/alviarts/perpustakaan-offline/pull/44) | 2026-05-03 | 3, 4 |
 | 8 | Dashboard modern + charts | PENDING | PENDING | — | 4, 5, 6 |
 | 9 | Laporan komplit | PENDING | PENDING | — | 6, 7, 8 |
 | 10 | KTA system | PENDING | PENDING | — | 4, 5 |
