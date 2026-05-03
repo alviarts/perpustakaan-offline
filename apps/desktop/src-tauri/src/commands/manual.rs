@@ -26,6 +26,15 @@ pub fn open_manual(app: AppHandle) -> AppResult<()> {
     .inner_size(960.0, 720.0)
     .min_inner_size(640.0, 480.0)
     .resizable(true)
+    // Pin the chrome flags explicitly — these match Tauri's documented
+    // defaults but defensively rule out any Windows-specific platform
+    // default that could otherwise leave the manual window non-closable
+    // (BUG-009 / BUG-010).
+    .closable(true)
+    .minimizable(true)
+    .maximizable(true)
+    .decorations(true)
+    .visible(true)
     .build()
     .map_err(|e| AppError::Internal(format!("open_manual: {e}")))?;
     Ok(())
