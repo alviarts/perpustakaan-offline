@@ -154,8 +154,8 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri -> target
 
-      - name: Tauri build (NSIS .exe + MSI)
-        run: pnpm tauri:build -- --bundles nsis,msi
+      - name: Tauri build (uses bundle.targets="all" -> NSIS .exe + MSI on Windows)
+        run: pnpm tauri:build
 
       - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v4
