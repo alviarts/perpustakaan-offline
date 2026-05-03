@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { formatTauriError } from '@/lib/errors';
 import {
   Dialog,
   DialogContent,
@@ -82,7 +83,7 @@ export function KunjunganDialog({ open, onOpenChange, onCreated }: KunjunganDial
       onCreated?.();
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(formatTauriError(err));
     } finally {
       setSubmitting(false);
     }

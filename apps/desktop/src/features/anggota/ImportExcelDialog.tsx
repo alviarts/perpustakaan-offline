@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { read, utils, type WorkBook } from 'xlsx';
 import { Button } from '@/components/ui/button';
+import { formatTauriError } from '@/lib/errors';
 import {
   Dialog,
   DialogContent,
@@ -111,7 +112,7 @@ export function ImportExcelDialog({ open, onOpenChange, onImported }: ImportExce
       setFilename(file.name);
       setRows(parsed);
     } catch (err) {
-      setParseError(err instanceof Error ? err.message : String(err));
+      setParseError(formatTauriError(err));
       setRows([]);
     }
   };
@@ -135,7 +136,7 @@ export function ImportExcelDialog({ open, onOpenChange, onImported }: ImportExce
       showToast({
         variant: 'destructive',
         title: t('anggota:feedback.importSuccess', { inserted: 0 }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setBusy(false);

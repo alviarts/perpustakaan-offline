@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { useToast } from '@/components/ui/toast-manager';
 import { calculateDenda, peminjamanApi, type PeminjamanDetail, type PeminjamanRow } from '@/lib/peminjaman';
+import { formatTauriError } from '@/lib/errors';
 
 const DENDA_PER_HARI = 500;
 
@@ -66,7 +67,7 @@ export function PengembalianPage() {
         showToast({
           variant: 'destructive',
           title: t('peminjaman:feedback.loadError', { defaultValue: 'Gagal memuat detail' }),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
       });
     return () => {
@@ -112,7 +113,7 @@ export function PengembalianPage() {
       showToast({
         variant: 'destructive',
         title: t('peminjaman:feedback.returnError', { defaultValue: 'Gagal mengembalikan' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setSubmitting(false);

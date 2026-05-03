@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatTauriError } from '@/lib/errors';
 import {
   Select,
   SelectContent,
@@ -58,7 +59,7 @@ export function PeminjamanList() {
       showToast({
         variant: 'destructive',
         title: t('peminjaman:feedback.loadError', { defaultValue: 'Gagal memuat peminjaman' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setLoading(false);

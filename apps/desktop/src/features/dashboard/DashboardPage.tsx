@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { KpiCard } from '@/components/shared/KpiCard';
 import { ChartPie } from '@/components/shared/ChartPie';
 import { ChartBar } from '@/components/shared/ChartBar';
+import { formatTauriError } from '@/lib/errors';
 import {
   dashboardApi,
   type DashboardKpi,
@@ -56,7 +57,7 @@ export function DashboardPage() {
       })
       .catch((err) => {
         if (cancel) return;
-        setError(err instanceof Error ? err.message : String(err));
+        setError(formatTauriError(err));
       })
       .finally(() => {
         if (!cancel) setLoading(false);

@@ -4,6 +4,7 @@ import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatTauriError } from '@/lib/errors';
 import {
   Dialog,
   DialogContent,
@@ -57,7 +58,7 @@ export function MasterDataPage() {
       showToast({
         variant: 'destructive',
         title: t('masterData:feedback.loadError'),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setIsLoading(false);
@@ -219,7 +220,7 @@ export function MasterDataPage() {
             showToast({
               variant: 'destructive',
               title: t('masterData:feedback.deleteError'),
-              description: err instanceof Error ? err.message : String(err),
+              description: formatTauriError(err),
             });
           }
         }}
@@ -296,7 +297,7 @@ function MasterEditDialog({
       showToast({
         variant: 'destructive',
         title: item ? t('masterData:feedback.updateError') : t('masterData:feedback.createError'),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setBusy(false);

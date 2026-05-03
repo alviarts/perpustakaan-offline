@@ -9,6 +9,7 @@ import { bukuApi, type Buku } from '@/lib/buku';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { toBukuInput } from '@/features/buku/schema';
 import { useToast } from '@/components/ui/toast-manager';
+import { formatTauriError } from '@/lib/errors';
 
 export const Route = createFileRoute('/_authed/buku/$id')({
   component: EditBukuRoute,
@@ -49,7 +50,7 @@ function EditBukuRoute() {
         showToast({
           variant: 'destructive',
           title: t('buku:feedback.loadError'),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
         void navigate({ to: '/buku' });
       })
@@ -98,7 +99,7 @@ function EditBukuRoute() {
                 showToast({
                   variant: 'destructive',
                   title: t('buku:feedback.updateError', {
-                    message: err instanceof Error ? err.message : String(err),
+                    message: formatTauriError(err),
                   }),
                 });
               }
@@ -123,7 +124,7 @@ function EditBukuRoute() {
             showToast({
               variant: 'destructive',
               title: t('buku:feedback.deleteError'),
-              description: err instanceof Error ? err.message : String(err),
+              description: formatTauriError(err),
             });
           }
         }}

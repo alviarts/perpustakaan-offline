@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { formatTauriError } from '@/lib/errors';
 import {
   BookOpenText,
   ChevronLeft,
@@ -93,7 +94,7 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
       showToast({
         variant: 'destructive',
         title: t('buku:feedback.loadError'),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setIsLoading(false);
@@ -131,7 +132,7 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
         showToast({
           variant: 'destructive',
           title: t('buku:feedback.loadError'),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
         setDetail(null);
       })
