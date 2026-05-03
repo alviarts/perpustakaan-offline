@@ -542,6 +542,162 @@ def draw_pengembalian(img: Image.Image) -> None:
     ])
 
 
+def draw_laporan(img: Image.Image) -> None:
+    """Bar chart + pie chart isometric — empty state untuk Laporan/statistik.
+
+    Style: 3 bars indigo growing up + small donut chart amber accent
+    floating top-right + sparkles. Cocok untuk halaman Laporan kosong
+    (belum ada transaksi).
+    """
+    d = ImageDraw.Draw(img)
+    cx, cy = CENTER
+
+    _draw_ground_shadow(d, cx, cy + 180)
+
+    # Chart frame (dashboard card background)
+    fw, fh = 600, 380
+    fx0 = cx - fw // 2
+    fy0 = cy - fh // 2 + 30
+    _rounded_rect(d, (fx0 + 12, fy0 + 14, fx0 + fw + 12, fy0 + fh + 14),
+                  18, fill=PS, outline=None)
+    _rounded_rect(d, (fx0, fy0, fx0 + fw, fy0 + fh),
+                  18, fill="#ffffff", outline=P, width=STROKE_THICK)
+
+    # Y-axis & X-axis (subtle)
+    base_y = fy0 + fh - 60
+    axis_x0 = fx0 + 70
+    axis_x1 = fx0 + fw - 60
+    d.line((axis_x0, fy0 + 60, axis_x0, base_y),
+           fill=LINE, width=STROKE_THIN)
+    d.line((axis_x0, base_y, axis_x1, base_y),
+           fill=LINE, width=STROKE_THIN)
+
+    # 3 vertical bars (growing trend)
+    bar_w = 70
+    bar_gap = 36
+    bar_x = axis_x0 + 40
+    heights = [120, 180, 250]
+    for h in heights:
+        _rounded_rect(d,
+                      (bar_x, base_y - h, bar_x + bar_w, base_y),
+                      8, fill=P, outline=None)
+        # Highlight strip kiri
+        _rounded_rect(d,
+                      (bar_x, base_y - h, bar_x + 12, base_y),
+                      4, fill=PS, outline=None)
+        bar_x += bar_w + bar_gap
+
+    # Trend line dots di atas bars
+    bar_x = axis_x0 + 40
+    pts = []
+    for h in heights:
+        pts.append((bar_x + bar_w // 2, base_y - h - 14))
+        bar_x += bar_w + bar_gap
+    for i in range(len(pts) - 1):
+        d.line((pts[i], pts[i + 1]), fill=A, width=5)
+    for px, py in pts:
+        d.ellipse((px - 8, py - 8, px + 8, py + 8), fill=A,
+                  outline="#ffffff", width=2)
+
+    # Mini donut chart top-right floating
+    dx, dy = fx0 + fw - 50, fy0 + 80
+    rr = 50
+    d.pieslice((dx - rr, dy - rr, dx + rr, dy + rr),
+               start=-90, end=90, fill=P)
+    d.pieslice((dx - rr, dy - rr, dx + rr, dy + rr),
+               start=90, end=180, fill=A)
+    d.pieslice((dx - rr, dy - rr, dx + rr, dy + rr),
+               start=180, end=270, fill=PS)
+    # Donut hole
+    d.ellipse((dx - 22, dy - 22, dx + 22, dy + 22),
+              fill="#ffffff", outline=P, width=STROKE_MED)
+
+    # Sparkles
+    _scatter_dots(d, [
+        (180, 180, 6, A),
+        (200, 500, 4, P),
+        (820, 500, 5, PS),
+    ])
+
+
+def draw_pengaturan(img: Image.Image) -> None:
+    """Single big gear + smaller meshed gear + amber sliders accent.
+
+    Style: 2 indigo gears (one big, one small) interlock + 3 horizontal
+    sliders di kiri bawah untuk hint customization. Cocok untuk empty
+    state di tab pengaturan / preferences yang belum di-tweak user.
+    """
+    d = ImageDraw.Draw(img)
+    cx, cy = CENTER
+
+    _draw_ground_shadow(d, cx + 60, cy + 180)
+
+    def _gear(cx_g: int, cy_g: int, r_outer: int, r_inner: int,
+              n_teeth: int, color_fill: str, color_outline: str) -> None:
+        """Draw a gear via radial teeth + main disk + center hole."""
+        import math as _m
+
+        # Teeth (rectangles rotated)
+        tooth_w = 18
+        for i in range(n_teeth):
+            angle = (2 * _m.pi * i) / n_teeth
+            # Compute tooth corners (4 points): inner-left, inner-right,
+            # outer-right, outer-left.
+            cosA, sinA = _m.cos(angle), _m.sin(angle)
+            # Perp direction for width
+            px, py = -sinA, cosA
+            inner_cx = cx_g + r_inner * cosA
+            inner_cy = cy_g + r_inner * sinA
+            outer_cx = cx_g + r_outer * cosA
+            outer_cy = cy_g + r_outer * sinA
+            half_w = tooth_w / 2
+            d.polygon([
+                (inner_cx - half_w * px, inner_cy - half_w * py),
+                (inner_cx + half_w * px, inner_cy + half_w * py),
+                (outer_cx + half_w * px, outer_cy + half_w * py),
+                (outer_cx - half_w * px, outer_cy - half_w * py),
+            ], fill=color_fill, outline=color_outline, width=STROKE_MED)
+        # Main disk
+        d.ellipse((cx_g - r_inner, cy_g - r_inner,
+                   cx_g + r_inner, cy_g + r_inner),
+                  fill=color_fill, outline=color_outline, width=STROKE_THICK)
+        # Center hole
+        hole_r = r_inner // 3
+        d.ellipse((cx_g - hole_r, cy_g - hole_r,
+                   cx_g + hole_r, cy_g + hole_r),
+                  fill=BG, outline=color_outline, width=STROKE_MED)
+
+    # Big gear (right of center)
+    _gear(cx + 100, cy - 30, r_outer=180, r_inner=140, n_teeth=10,
+          color_fill=PS, color_outline=P)
+    # Small gear (top-left, meshed)
+    _gear(cx - 130, cy - 130, r_outer=110, r_inner=80, n_teeth=8,
+          color_fill="#ffffff", color_outline=P)
+
+    # 3 sliders di pojok kiri bawah (custom adjustment metaphor)
+    slid_x = 180
+    slid_y0 = cy + 60
+    for i, frac in enumerate([0.30, 0.50, 0.70]):
+        sy = slid_y0 + i * 50
+        # Track
+        _rounded_rect(d, (slid_x, sy - 6, slid_x + 240, sy + 6),
+                      6, fill=PS, outline=None)
+        # Filled portion
+        _rounded_rect(d, (slid_x, sy - 6, slid_x + int(240 * frac), sy + 6),
+                      6, fill=P, outline=None)
+        # Knob (amber)
+        kx = slid_x + int(240 * frac)
+        d.ellipse((kx - 14, sy - 14, kx + 14, sy + 14),
+                  fill=A, outline=LINE, width=STROKE_MED)
+
+    # Sparkles
+    _scatter_dots(d, [
+        (760, 180, 6, A),
+        (820, 480, 4, P),
+        (260, 200, 5, PS),
+    ])
+
+
 # ---------------------------------------------------------------------------
 # Registry & main
 # ---------------------------------------------------------------------------
@@ -553,6 +709,8 @@ ILLUSTRATIONS: dict[str, callable] = {
     "empty-kunjungan": draw_kunjungan,
     "empty-peminjaman": draw_peminjaman,
     "empty-pengembalian": draw_pengembalian,
+    "empty-laporan": draw_laporan,
+    "empty-pengaturan": draw_pengaturan,
 }
 
 

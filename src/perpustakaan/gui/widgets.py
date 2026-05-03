@@ -589,6 +589,7 @@ def icon_button(
     *,
     text: str = "",
     lucide: str | None = None,
+    phosphor: str | None = None,
     icon_size: int = 16,
     icon_color: str | tuple[str, str] | None = None,
     command: Callable[[], None] | None = None,
@@ -598,16 +599,21 @@ def icon_button(
     compound: str = "left",
     **kwargs: Any,
 ) -> ctk.CTkButton:
-    """CTkButton helper dengan Lucide icon di kiri text.
+    """CTkButton helper dengan icon di kiri text.
 
-    Implementasi: load icon via :func:`perpustakaan.gui.icons.lucide_icon`,
-    pass sebagai ``image=`` ke ``CTkButton``. Kalau icon gagal load, tetap
-    bikin button dengan text saja (graceful degradation).
+    Pakai ``phosphor=`` untuk **primary CTA** (Save/Add/Print/Delete) supaya
+    icon fill weight kasih hierarki visual jelas, atau ``lucide=`` untuk icon
+    monoweight subtle. ``phosphor`` priority lebih tinggi kalau dua-duanya
+    diset. Kalau icon gagal load, tetap render button text-only (graceful
+    degradation).
 
     Args:
         parent: parent widget.
         text: label text. Empty string = icon-only button.
         lucide: nama icon Lucide (mis. ``"plus"``, ``"trash-2"``).
+        phosphor: nama icon Phosphor Fill (mis. ``"floppy-disk"``,
+            ``"plus"``, ``"trash"``). Lihat ``gui/phosphor.py``
+            ``ICON_CODEPOINTS`` keys.
         icon_size: ukuran icon dalam pixel — pakai ``ICON_SIZE.sm`` (16) utk
             button standard atau ``ICON_SIZE.md`` (20) utk button besar.
         icon_color: warna icon. ``None`` → ikut text_color CTk default
@@ -620,7 +626,14 @@ def icon_button(
             ``hover_color``, ``font``).
     """
     img = None
-    if lucide:
+    if phosphor:
+        try:
+            from perpustakaan.gui.phosphor import phosphor_icon
+
+            img = phosphor_icon(phosphor, size=icon_size, color=icon_color)
+        except Exception:  # noqa: BLE001
+            img = None
+    if img is None and lucide:
         try:
             from perpustakaan.gui.icons import lucide_icon
             img = lucide_icon(lucide, size=icon_size, color=icon_color)
@@ -658,6 +671,7 @@ def permission_button(
     text: str,
     permission: str,
     lucide: str | None = None,
+    phosphor: str | None = None,
     icon_size: int = 16,
     icon_color: str | tuple[str, str] | None = None,
     command: Callable[[], None] | None = None,
@@ -696,12 +710,14 @@ def permission_button(
         if command is not None:
             command()
 
-    if lucide:
-        # Reuse icon_button untuk dapat lucide rendering + recolor theme-aware
+    if lucide or phosphor:
+        # Reuse icon_button supaya dapat rendering + recolor theme-aware
+        # untuk Phosphor (priority) atau Lucide.
         btn = icon_button(
             parent,
             text=text,
             lucide=lucide,
+            phosphor=phosphor,
             icon_size=icon_size,
             icon_color=icon_color,
             command=_wrapped,

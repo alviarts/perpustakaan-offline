@@ -169,7 +169,7 @@ class ProsesDialog(ctk.CTkToplevel):
             fg_color="transparent", border_width=1,
         ).pack(side="right", padx=4)
         widgets.permission_button(
-            btnbar, text=t("common.save"), lucide="save",
+            btnbar, text=t("common.save"), phosphor="floppy-disk",
             permission="pengembalian.proses", command=self._submit,
         ).pack(side="right", padx=4)
 

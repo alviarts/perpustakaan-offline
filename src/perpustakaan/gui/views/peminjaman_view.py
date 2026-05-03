@@ -72,7 +72,7 @@ class PeminjamanView(ctk.CTkFrame):
         self.buku_search.pack(side="left", fill="x", expand=True)
         self.buku_search.bind("<Return>", lambda _e: self._add_buku())
         widgets.icon_button(
-            buku_row, text=t("trx.tambah_item"), lucide="plus",
+            buku_row, text=t("trx.tambah_item"), phosphor="plus",
             width=140, command=self._add_buku,
         ).pack(side="left", padx=4)
 
@@ -100,7 +100,7 @@ class PeminjamanView(ctk.CTkFrame):
         action = ctk.CTkFrame(right, fg_color="transparent")
         action.grid(row=2, column=0, sticky="ew", padx=12, pady=12)
         widgets.icon_button(
-            action, text=t("trx.hapus_item"), lucide="trash-2",
+            action, text=t("trx.hapus_item"), phosphor="trash",
             command=self._remove_buku,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="left", padx=2)
@@ -113,7 +113,7 @@ class PeminjamanView(ctk.CTkFrame):
         self.add_kunjungan.select()
         self.add_kunjungan.pack(side="left", padx=10)
         widgets.permission_button(
-            action, text=t("common.save"), lucide="save", width=140,
+            action, text=t("common.save"), phosphor="floppy-disk", width=140,
             permission="peminjaman.tambah", command=self._submit,
         ).pack(side="right", padx=2)
 
