@@ -34,7 +34,13 @@
     "laporan": "Laporan",
     "kta": "KTA",
     "settings": "Pengaturan",
+    "manualBook": "Buku Manual",
+    "profile": "Profil",
     "logout": "Keluar"
+  },
+  "sidebar": {
+    "collapse": "Ciutkan",
+    "expand": "Lebarkan"
   },
   "theme": {
     "label": "Tema",
