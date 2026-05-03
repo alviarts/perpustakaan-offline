@@ -1,0 +1,8 @@
+{
+  "network": "Network problem. Try again.",
+  "unknown": "An unexpected error occurred.",
+  "validation": {
+    "required": "{{field}} is required.",
+    "minLength": "{{field}} must be at least {{min}} characters."
+  }
+}

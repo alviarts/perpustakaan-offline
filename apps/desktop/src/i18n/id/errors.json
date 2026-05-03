@@ -1,0 +1,8 @@
+{
+  "network": "Masalah jaringan. Coba lagi.",
+  "unknown": "Terjadi kesalahan tak terduga.",
+  "validation": {
+    "required": "{{field}} wajib diisi.",
+    "minLength": "{{field}} minimal {{min}} karakter."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "appName": "Perpustakaan Offline",
+  "tagline": "Sistem Manajemen Perpustakaan Modern, Offline-first",
+  "actions": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "search": "Cari",
+    "reset": "Reset",
+    "refresh": "Muat Ulang",
+    "print": "Cetak",
+    "export": "Ekspor",
+    "import": "Impor"
+  },
+  "placeholders": {
+    "search": "Cari…"
+  },
+  "states": {
+    "loading": "Memuat…",
+    "empty": "Belum ada data.",
+    "error": "Terjadi kesalahan."
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "anggota": "Anggota",
+    "buku": "Buku",
+    "peminjaman": "Peminjaman",
+    "pengembalian": "Pengembalian",
+    "kunjungan": "Kunjungan",
+    "laporan": "Laporan",
+    "kta": "KTA",
+    "settings": "Pengaturan",
+    "logout": "Keluar"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Terang",
+    "dark": "Gelap",
+    "system": "Ikuti Sistem"
+  },
+  "language": {
+    "label": "Bahasa",
+    "id": "Indonesia",
+    "en": "English"
+  }
+}

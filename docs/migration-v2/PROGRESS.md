@@ -37,10 +37,11 @@ sessions:
 
   - id: 2
     title: Scaffolding Tauri+React+TS+Tailwind+shadcn + CI/CD baru + reuse SQLite schema + login + theme + i18n
-    status: PENDING
+    status: IN_PROGRESS
     pr: PENDING
     completed_at: null
     dependencies: [1]
+    note: Devin 1 (sesi ini) lanjut bundle scaffolding. PR baru stacked di atas PR #35.
 
   - id: 3
     title: Layout shell (sidebar collapsible + header + window responsive + identitas sync foundation)
