@@ -12,7 +12,7 @@
 
 #define MyAppName "Perpustakaan Offline"
 #define MyAppShortName "PerpustakaanOffline"
-#define MyAppVersion "0.5.2"
+#define MyAppVersion "0.5.3"
 #define MyAppPublisher "alviarts"
 #define MyAppURL "https://github.com/alviarts/perpustakaan-offline"
 #define MyAppExeName "PerpustakaanOffline.exe"
@@ -70,6 +70,10 @@ Source: "..\docs\manual.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifs
 Source: "..\docs\google-sheets-setup.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\docs\quickstart.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\docs\quickstart.pdf"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
+; Demo screencast — di-bundle supaya tab Video di dialog Bantuan punya konten
+; offline. ~1 MB, MP4 H.264 streamable. skipifsourcedoesntexist supaya build
+; tidak gagal kalau file tidak ada.
+Source: "..\docs\demo\perpustakaan-offline-v0.3.0-demo.mp4"; DestDir: "{app}\docs\demo"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; Font Inter (modern UI font) — install ke user fonts dir supaya UI lebih enak dilihat.
 ; PrivilegesRequired=lowest -> {autofonts} resolve ke per-user fonts (Win10+).
