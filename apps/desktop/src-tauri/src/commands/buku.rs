@@ -158,7 +158,10 @@ fn map_eksemplar_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Eksemplar> {
 
 #[tauri::command]
 pub fn buku_list(state: State<'_, AppState>, args: BukuListArgs) -> AppResult<BukuListResult> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let limit = args.limit.unwrap_or(100).clamp(1, 500);
     let offset = args.offset.unwrap_or(0).max(0);
     let (sort_by, sort_dir) = validate_sort(
@@ -169,22 +172,41 @@ pub fn buku_list(state: State<'_, AppState>, args: BukuListArgs) -> AppResult<Bu
     let mut filters: Vec<String> = Vec::new();
     let mut params: Vec<Box<dyn ToSql>> = Vec::new();
 
-    if let Some(q) = args.query.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(q) = args
+        .query
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         filters.push(
-            "(judul LIKE ?1 OR kode_buku LIKE ?1 OR pengarang LIKE ?1 OR isbn LIKE ?1)"
-                .to_string(),
+            "(judul LIKE ?1 OR kode_buku LIKE ?1 OR pengarang LIKE ?1 OR isbn LIKE ?1)".to_string(),
         );
         params.push(Box::new(format!("%{q}%")));
     }
-    if let Some(k) = args.kategori.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(k) = args
+        .kategori
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         filters.push(format!("kategori = ?{}", params.len() + 1));
         params.push(Box::new(k.to_string()));
     }
-    if let Some(b) = args.bahasa.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(b) = args
+        .bahasa
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         filters.push(format!("bahasa = ?{}", params.len() + 1));
         params.push(Box::new(b.to_string()));
     }
-    if let Some(d) = args.kode_ddc.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(d) = args
+        .kode_ddc
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         filters.push(format!("kode_ddc LIKE ?{}", params.len() + 1));
         params.push(Box::new(format!("{d}%")));
     }
@@ -215,14 +237,20 @@ pub fn buku_list(state: State<'_, AppState>, args: BukuListArgs) -> AppResult<Bu
 
 #[tauri::command]
 pub fn buku_get(state: State<'_, AppState>, id: i64) -> AppResult<BukuDetail> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let buku = conn
-        .query_row("SELECT * FROM buku WHERE id = ?1", params![id], map_buku_row)
+        .query_row(
+            "SELECT * FROM buku WHERE id = ?1",
+            params![id],
+            map_buku_row,
+        )
         .optional()?
         .ok_or_else(|| AppError::NotFound(format!("buku id={id}")))?;
-    let mut stmt = conn.prepare(
-        "SELECT * FROM eksemplar WHERE buku_id = ?1 ORDER BY kode_eksemplar ASC",
-    )?;
+    let mut stmt =
+        conn.prepare("SELECT * FROM eksemplar WHERE buku_id = ?1 ORDER BY kode_eksemplar ASC")?;
     let eksemplar = stmt
         .query_map(params![id], map_eksemplar_row)?
         .collect::<Result<Vec<_>, _>>()?;
@@ -242,7 +270,10 @@ fn validate_buku_input(input: &BukuInput) -> AppResult<()> {
 #[tauri::command]
 pub fn buku_create(state: State<'_, AppState>, input: BukuInput) -> AppResult<Buku> {
     validate_buku_input(&input)?;
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     buku_create_inner(&mut conn, &input)
 }
 
@@ -302,8 +333,11 @@ fn buku_create_inner(conn: &mut rusqlite::Connection, input: &BukuInput) -> AppR
             params![id, kode_eksemplar],
         )?;
     }
-    let buku =
-        tx.query_row("SELECT * FROM buku WHERE id = ?1", params![id], map_buku_row)?;
+    let buku = tx.query_row(
+        "SELECT * FROM buku WHERE id = ?1",
+        params![id],
+        map_buku_row,
+    )?;
     tx.commit()?;
     Ok(buku)
 }
@@ -311,7 +345,10 @@ fn buku_create_inner(conn: &mut rusqlite::Connection, input: &BukuInput) -> AppR
 #[tauri::command]
 pub fn buku_update(state: State<'_, AppState>, id: i64, input: BukuInput) -> AppResult<Buku> {
     validate_buku_input(&input)?;
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let dup: i64 = conn.query_row(
         "SELECT COUNT(*) FROM buku WHERE kode_buku = ?1 AND id <> ?2",
         params![input.kode_buku.trim(), id],
@@ -351,14 +388,20 @@ pub fn buku_update(state: State<'_, AppState>, id: i64, input: BukuInput) -> App
     if updated == 0 {
         return Err(AppError::NotFound(format!("buku id={id}")));
     }
-    let buku =
-        conn.query_row("SELECT * FROM buku WHERE id = ?1", params![id], map_buku_row)?;
+    let buku = conn.query_row(
+        "SELECT * FROM buku WHERE id = ?1",
+        params![id],
+        map_buku_row,
+    )?;
     Ok(buku)
 }
 
 #[tauri::command]
 pub fn buku_delete(state: State<'_, AppState>, id: i64) -> AppResult<()> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let deleted = conn.execute("DELETE FROM buku WHERE id = ?1", params![id])?;
     if deleted == 0 {
         return Err(AppError::NotFound(format!("buku id={id}")));
@@ -376,7 +419,10 @@ pub fn eksemplar_create(
     if kode.is_empty() {
         return Err(AppError::Validation("kode_eksemplar required".into()));
     }
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let dup: i64 = conn.query_row(
         "SELECT COUNT(*) FROM eksemplar WHERE kode_eksemplar = ?1",
         params![kode],
@@ -404,11 +450,16 @@ pub fn eksemplar_create(
 
 #[tauri::command]
 pub fn eksemplar_delete(state: State<'_, AppState>, id: i64) -> AppResult<()> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let buku_id: Option<i64> = conn
-        .query_row("SELECT buku_id FROM eksemplar WHERE id = ?1", params![id], |r| {
-            r.get(0)
-        })
+        .query_row(
+            "SELECT buku_id FROM eksemplar WHERE id = ?1",
+            params![id],
+            |r| r.get(0),
+        )
         .optional()?;
     let buku_id = buku_id.ok_or_else(|| AppError::NotFound(format!("eksemplar id={id}")))?;
     conn.execute("DELETE FROM eksemplar WHERE id = ?1", params![id])?;
@@ -472,7 +523,10 @@ pub fn buku_import(
     state: State<'_, AppState>,
     items: Vec<BukuImportItem>,
 ) -> AppResult<BukuImportResult> {
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let tx = conn.transaction()?;
     let mut inserted = 0;
     let mut skipped = 0;

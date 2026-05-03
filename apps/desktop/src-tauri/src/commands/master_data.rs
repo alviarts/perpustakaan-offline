@@ -34,7 +34,9 @@ fn allowed_table(name: &str) -> AppResult<&'static str> {
         "agama" => Ok("agama"),
         "kelas" => Ok("kelas"),
         "ddc" => Ok("ddc"),
-        other => Err(AppError::Validation(format!("unknown master table '{other}'"))),
+        other => Err(AppError::Validation(format!(
+            "unknown master table '{other}'"
+        ))),
     }
 }
 
@@ -45,7 +47,10 @@ pub fn master_list(
     query: Option<String>,
 ) -> AppResult<Vec<MasterItem>> {
     let table = allowed_table(&table)?;
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let q = query
         .as_deref()
         .map(str::trim)
@@ -145,8 +150,7 @@ pub fn master_list(
         stmt.query_map(params![q.as_deref().unwrap_or("")], mapper)?
             .collect::<Result<Vec<_>, _>>()?
     } else {
-        stmt.query_map([], mapper)?
-            .collect::<Result<Vec<_>, _>>()?
+        stmt.query_map([], mapper)?.collect::<Result<Vec<_>, _>>()?
     };
     Ok(rows)
 }
@@ -161,7 +165,10 @@ pub fn master_create(
     if input.nama.trim().is_empty() {
         return Err(AppError::Validation("nama required".into()));
     }
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     match table {
         "bahasa" => {
@@ -236,7 +243,11 @@ pub fn master_create(
             }
             conn.execute(
                 "INSERT INTO kategori (nama, deskripsi, urutan) VALUES (?1, ?2, ?3)",
-                params![input.nama.trim(), input.deskripsi, input.urutan.unwrap_or(0)],
+                params![
+                    input.nama.trim(),
+                    input.deskripsi,
+                    input.urutan.unwrap_or(0)
+                ],
             )?;
             let id = conn.last_insert_rowid();
             Ok(MasterItem {
@@ -344,7 +355,10 @@ pub fn master_update(
     if input.nama.trim().is_empty() {
         return Err(AppError::Validation("nama required".into()));
     }
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     match table {
         "bahasa" => {
             let updated = conn.execute(
@@ -379,19 +393,15 @@ pub fn master_update(
             })
         }
         other => {
-            let id: i64 = key.parse().map_err(|_| {
-                AppError::Validation(format!("invalid id for {other}: '{key}'"))
-            })?;
+            let id: i64 = key
+                .parse()
+                .map_err(|_| AppError::Validation(format!("invalid id for {other}: '{key}'")))?;
             let sql = match other {
                 "kategori" => {
                     "UPDATE kategori SET nama = ?1, deskripsi = ?2, urutan = ?3 WHERE id = ?4"
                 }
-                "jurusan" => {
-                    "UPDATE jurusan SET nama = ?1, kode = ?2, urutan = ?3 WHERE id = ?4"
-                }
-                "kelas" => {
-                    "UPDATE kelas SET nama = ?1, tingkat = ?2, urutan = ?3 WHERE id = ?4"
-                }
+                "jurusan" => "UPDATE jurusan SET nama = ?1, kode = ?2, urutan = ?3 WHERE id = ?4",
+                "kelas" => "UPDATE kelas SET nama = ?1, tingkat = ?2, urutan = ?3 WHERE id = ?4",
                 "agama" => "UPDATE agama SET nama = ?1, urutan = ?3 WHERE id = ?4",
                 _ => unreachable!(),
             };
@@ -442,14 +452,17 @@ pub fn master_update(
 #[tauri::command]
 pub fn master_delete(state: State<'_, AppState>, table: String, key: String) -> AppResult<()> {
     let table = allowed_table(&table)?;
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let deleted = match table {
         "bahasa" => conn.execute("DELETE FROM bahasa WHERE kode = ?1", params![key])?,
         "ddc" => conn.execute("DELETE FROM ddc WHERE kode = ?1", params![key])?,
         other => {
-            let id: i64 = key.parse().map_err(|_| {
-                AppError::Validation(format!("invalid id for {other}: '{key}'"))
-            })?;
+            let id: i64 = key
+                .parse()
+                .map_err(|_| AppError::Validation(format!("invalid id for {other}: '{key}'")))?;
             conn.execute(&format!("DELETE FROM {other} WHERE id = ?1"), params![id])?
         }
     };

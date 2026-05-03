@@ -175,7 +175,10 @@ fn parse_date(value: &str) -> AppResult<NaiveDate> {
 }
 
 fn today_iso() -> String {
-    chrono::Local::now().date_naive().format("%Y-%m-%d").to_string()
+    chrono::Local::now()
+        .date_naive()
+        .format("%Y-%m-%d")
+        .to_string()
 }
 
 fn setting_int(conn: &rusqlite::Connection, key: &str, default: i64) -> i64 {
@@ -187,7 +190,8 @@ fn setting_int(conn: &rusqlite::Connection, key: &str, default: i64) -> i64 {
         )
         .optional()
         .unwrap_or(None);
-    row.and_then(|v| v.trim().parse::<i64>().ok()).unwrap_or(default)
+    row.and_then(|v| v.trim().parse::<i64>().ok())
+        .unwrap_or(default)
 }
 
 fn next_nomor_pinjam(conn: &rusqlite::Connection) -> AppResult<String> {
@@ -245,10 +249,7 @@ fn map_item_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<PeminjamanItemRow> 
     })
 }
 
-fn select_peminjaman_row(
-    conn: &rusqlite::Connection,
-    id: i64,
-) -> AppResult<PeminjamanRow> {
+fn select_peminjaman_row(conn: &rusqlite::Connection, id: i64) -> AppResult<PeminjamanRow> {
     let sql = peminjaman_select_sql(" WHERE p.id = ?1 ");
     conn.query_row(&sql, params![id], map_peminjaman_row)
         .optional()?
@@ -289,19 +290,18 @@ fn list_items_for(
     Ok(rows)
 }
 
-fn refresh_header_status(
-    conn: &rusqlite::Connection,
-    peminjaman_id: i64,
-) -> AppResult<String> {
-    let mut stmt =
-        conn.prepare("SELECT status FROM peminjaman_item WHERE peminjaman_id = ?1")?;
+fn refresh_header_status(conn: &rusqlite::Connection, peminjaman_id: i64) -> AppResult<String> {
+    let mut stmt = conn.prepare("SELECT status FROM peminjaman_item WHERE peminjaman_id = ?1")?;
     let statuses: Vec<String> = stmt
         .query_map(params![peminjaman_id], |r| r.get::<_, String>(0))?
         .collect::<Result<Vec<_>, _>>()?;
 
     let new_status = if statuses.is_empty() {
         "dipinjam".to_string()
-    } else if statuses.iter().all(|s| s == "dikembalikan" || s == "hilang") {
+    } else if statuses
+        .iter()
+        .all(|s| s == "dikembalikan" || s == "hilang")
+    {
         "dikembalikan".to_string()
     } else if statuses.iter().any(|s| s == "dipinjam")
         && statuses
@@ -346,7 +346,10 @@ pub fn peminjaman_list(
     state: State<'_, AppState>,
     args: PeminjamanListArgs,
 ) -> AppResult<PeminjamanListResult> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let limit = args.limit.unwrap_or(50).clamp(1, 500);
     let offset = args.offset.unwrap_or(0).max(0);
     let (sort_by, sort_dir) = validate_sort(
@@ -357,14 +360,24 @@ pub fn peminjaman_list(
     let mut filters: Vec<String> = Vec::new();
     let mut bind: Vec<Box<dyn ToSql>> = Vec::new();
 
-    if let Some(q) = args.query.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(q) = args
+        .query
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         filters.push(format!(
             "(p.nomor_pinjam LIKE ?{i} OR a.nama LIKE ?{i} OR a.kode_anggota LIKE ?{i})",
             i = bind.len() + 1
         ));
         bind.push(Box::new(format!("%{q}%")));
     }
-    if let Some(s) = args.status.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(s) = args
+        .status
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         if s == "overdue" {
             filters.push("p.status = 'terlambat'".to_string());
         } else if s != "all" {
@@ -413,11 +426,11 @@ pub fn peminjaman_list(
 }
 
 #[tauri::command]
-pub fn peminjaman_get(
-    state: State<'_, AppState>,
-    id: i64,
-) -> AppResult<PeminjamanDetail> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+pub fn peminjaman_get(state: State<'_, AppState>, id: i64) -> AppResult<PeminjamanDetail> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let header = select_peminjaman_row(&conn, id)?;
     let items = list_items_for(&conn, id)?;
     Ok(PeminjamanDetail { header, items })
@@ -431,7 +444,10 @@ pub fn peminjaman_create(
     if input.buku_ids.is_empty() {
         return Err(AppError::Validation("buku_ids tidak boleh kosong".into()));
     }
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     let anggota: Option<(i64, bool)> = conn
         .query_row(
@@ -440,8 +456,8 @@ pub fn peminjaman_create(
             |r| Ok((r.get(0)?, r.get::<_, i64>(1)? != 0)),
         )
         .optional()?;
-    let (_, aktif) = anggota
-        .ok_or_else(|| AppError::Validation("anggota tidak ditemukan".into()))?;
+    let (_, aktif) =
+        anggota.ok_or_else(|| AppError::Validation("anggota tidak ditemukan".into()))?;
     if !aktif {
         return Err(AppError::Validation("anggota tidak aktif".into()));
     }
@@ -460,7 +476,11 @@ pub fn peminjaman_create(
         )));
     }
 
-    let lama = setting_int(&conn, "transaksi.lama_pinjam_hari", DEFAULT_LAMA_PINJAM_HARI);
+    let lama = setting_int(
+        &conn,
+        "transaksi.lama_pinjam_hari",
+        DEFAULT_LAMA_PINJAM_HARI,
+    );
     let tgl_pinjam = input
         .tanggal_pinjam
         .clone()
@@ -549,7 +569,10 @@ pub fn peminjaman_kembalikan(
     if input.item_ids.is_empty() {
         return Err(AppError::Validation("item_ids tidak boleh kosong".into()));
     }
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     // Pre-validate header exists
     let _header_row: i64 = conn
@@ -645,10 +668,11 @@ pub fn peminjaman_kembalikan(
 }
 
 #[tauri::command]
-pub fn peminjaman_quick_stats(
-    state: State<'_, AppState>,
-) -> AppResult<PeminjamanQuickStats> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+pub fn peminjaman_quick_stats(state: State<'_, AppState>) -> AppResult<PeminjamanQuickStats> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let aktif_total: i64 = conn.query_row(
         "SELECT COUNT(*) FROM peminjaman_item WHERE status = 'dipinjam'",
         [],
@@ -682,11 +706,11 @@ pub fn peminjaman_quick_stats(
 }
 
 #[tauri::command]
-pub fn anggota_summary(
-    state: State<'_, AppState>,
-    id: i64,
-) -> AppResult<AnggotaSummary> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+pub fn anggota_summary(state: State<'_, AppState>, id: i64) -> AppResult<AnggotaSummary> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let row = conn
         .query_row(
             "SELECT id, kode_anggota, nama, kelas, jurusan, aktif, foto_path FROM anggota WHERE id = ?1",
@@ -731,11 +755,11 @@ pub fn anggota_summary(
 }
 
 #[tauri::command]
-pub fn buku_summary(
-    state: State<'_, AppState>,
-    id: i64,
-) -> AppResult<BukuSummary> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+pub fn buku_summary(state: State<'_, AppState>, id: i64) -> AppResult<BukuSummary> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     conn.query_row(
         "SELECT id, kode_buku, judul, pengarang, cover_path, jumlah_tersedia, jumlah_eksemplar \
          FROM buku WHERE id = ?1",
@@ -761,7 +785,10 @@ pub fn pengembalian_search(
     state: State<'_, AppState>,
     query: String,
 ) -> AppResult<Vec<PeminjamanRow>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let q = query.trim();
     let select = peminjaman_select_sql(
         " WHERE p.status IN ('dipinjam','sebagian','terlambat') \

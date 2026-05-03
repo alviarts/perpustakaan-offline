@@ -67,13 +67,22 @@ fn pct_delta(current: i64, previous: i64) -> f64 {
 
 #[tauri::command]
 pub fn dashboard_kpi(state: State<'_, AppState>) -> AppResult<DashboardKpi> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     let total_anggota: i64 = conn
-        .query_row("SELECT COUNT(*) FROM anggota WHERE aktif = 1", [], |r| r.get(0))
+        .query_row("SELECT COUNT(*) FROM anggota WHERE aktif = 1", [], |r| {
+            r.get(0)
+        })
         .unwrap_or(0);
     let total_buku: i64 = conn
-        .query_row("SELECT COALESCE(SUM(jumlah_eksemplar), 0) FROM buku", [], |r| r.get(0))
+        .query_row(
+            "SELECT COALESCE(SUM(jumlah_eksemplar), 0) FROM buku",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
     let buku_dipinjam: i64 = conn
         .query_row(
@@ -150,7 +159,10 @@ pub fn dashboard_kpi(state: State<'_, AppState>) -> AppResult<DashboardKpi> {
 
 #[tauri::command]
 pub fn dashboard_ddc_distribution(state: State<'_, AppState>) -> AppResult<Vec<DdcSlice>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     // Group by first digit of kode_ddc (DDC class). NULL/empty -> "?".
     let mut stmt = conn
         .prepare(
@@ -210,7 +222,10 @@ pub fn dashboard_ddc_distribution(state: State<'_, AppState>) -> AppResult<Vec<D
 
 #[tauri::command]
 pub fn dashboard_kunjungan_7d(state: State<'_, AppState>) -> AppResult<Vec<DayBucket>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let mut stmt = conn
         .prepare(
             "WITH RECURSIVE days(d) AS (
@@ -244,7 +259,10 @@ pub fn dashboard_top_peminjam(
     state: State<'_, AppState>,
     limit: Option<i64>,
 ) -> AppResult<Vec<TopPeminjam>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let limit = limit.unwrap_or(5).clamp(1, 50);
     let mut stmt = conn
         .prepare(
@@ -277,7 +295,10 @@ pub fn dashboard_top_buku(
     state: State<'_, AppState>,
     limit: Option<i64>,
 ) -> AppResult<Vec<TopBuku>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let limit = limit.unwrap_or(5).clamp(1, 50);
     let mut stmt = conn
         .prepare(

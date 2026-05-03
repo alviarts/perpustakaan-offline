@@ -132,8 +132,8 @@ const KATEGORI_SEED: &[&str] = &[
 ];
 
 const KELAS_SEED: &[&str] = &[
-    "7A", "7B", "7C", "8A", "8B", "8C", "9A", "9B", "9C", "10A", "10B", "10C", "11A", "11B",
-    "11C", "12A", "12B", "12C",
+    "7A", "7B", "7C", "8A", "8B", "8C", "9A", "9B", "9C", "10A", "10B", "10C", "11A", "11B", "11C",
+    "12A", "12B", "12C",
 ];
 
 const JURUSAN_SEED: &[&str] = &["IPA", "IPS", "Bahasa", "TKJ", "RPL", "Multimedia"];
@@ -151,19 +151,13 @@ const BAHASA_SEED: &[(&str, &str)] = &[
     ("ms", "Melayu"),
 ];
 
-fn seed_if_empty<F>(
-    conn: &Connection,
-    table: &str,
-    items: &[&str],
-    mut insert: F,
-) -> AppResult<()>
+fn seed_if_empty<F>(conn: &Connection, table: &str, items: &[&str], mut insert: F) -> AppResult<()>
 where
     F: FnMut(&Connection, usize, &str) -> rusqlite::Result<()>,
 {
-    let count: i64 =
-        conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| {
-            row.get(0)
-        })?;
+    let count: i64 = conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| {
+        row.get(0)
+    })?;
     if count > 0 {
         return Ok(());
     }
@@ -246,8 +240,7 @@ fn add_column_if_missing(
 }
 
 pub fn seed_default_admin(conn: &Connection) -> AppResult<()> {
-    let count: i64 =
-        conn.query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0))?;
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0))?;
     if count > 0 {
         return Ok(());
     }

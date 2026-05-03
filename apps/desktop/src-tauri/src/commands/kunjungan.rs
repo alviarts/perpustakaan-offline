@@ -113,12 +113,20 @@ pub fn kunjungan_list(
     args: Option<KunjunganListArgs>,
 ) -> AppResult<KunjunganListResult> {
     let args = args.unwrap_or_default();
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     let mut conditions: Vec<String> = Vec::new();
     let mut params_vec: Vec<Box<dyn ToSql>> = Vec::new();
 
-    if let Some(query) = args.query.as_ref().map(|q| q.trim()).filter(|q| !q.is_empty()) {
+    if let Some(query) = args
+        .query
+        .as_ref()
+        .map(|q| q.trim())
+        .filter(|q| !q.is_empty())
+    {
         conditions.push("(LOWER(a.nama) LIKE ?1 OR LOWER(a.kode_anggota) LIKE ?1 OR LOWER(COALESCE(k.keperluan, '')) LIKE ?1)".into());
         params_vec.push(Box::new(format!("%{}%", query.to_lowercase())));
     }
@@ -132,7 +140,11 @@ pub fn kunjungan_list(
         conditions.push(format!("k.tanggal <= ?{}", params_vec.len() + 1));
         params_vec.push(Box::new(to.clone()));
     }
-    if let Some(sumber) = args.sumber.as_ref().filter(|v| !v.is_empty() && v.as_str() != "all") {
+    if let Some(sumber) = args
+        .sumber
+        .as_ref()
+        .filter(|v| !v.is_empty() && v.as_str() != "all")
+    {
         conditions.push(format!("k.sumber = ?{}", params_vec.len() + 1));
         params_vec.push(Box::new(sumber.clone()));
     }
@@ -147,7 +159,11 @@ pub fn kunjungan_list(
         "SELECT COUNT(*) FROM kunjungan k LEFT JOIN anggota a ON a.id = k.anggota_id {where_clause}"
     );
     let total: i64 = conn
-        .query_row(&total_sql, params_from_iter(params_vec.iter().map(|b| b.as_ref())), |r| r.get(0))
+        .query_row(
+            &total_sql,
+            params_from_iter(params_vec.iter().map(|b| b.as_ref())),
+            |r| r.get(0),
+        )
         .map_err(AppError::from)?;
 
     let limit = args.limit.unwrap_or(50).clamp(1, 500);
@@ -176,10 +192,7 @@ pub fn kunjungan_list(
         .collect::<rusqlite::Result<Vec<_>>>()
         .map_err(AppError::from)?;
 
-    Ok(KunjunganListResult {
-        items: rows,
-        total,
-    })
+    Ok(KunjunganListResult { items: rows, total })
 }
 
 #[tauri::command]
@@ -187,11 +200,19 @@ pub fn kunjungan_create(
     state: State<'_, AppState>,
     input: KunjunganCreateInput,
 ) -> AppResult<KunjunganRow> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     let sumber = input.sumber.unwrap_or_else(|| "manual".to_string());
-    if !matches!(sumber.as_str(), "manual" | "peminjaman" | "pengembalian" | "kelas") {
-        return Err(AppError::Validation(format!("sumber '{sumber}' tidak dikenal")));
+    if !matches!(
+        sumber.as_str(),
+        "manual" | "peminjaman" | "pengembalian" | "kelas"
+    ) {
+        return Err(AppError::Validation(format!(
+            "sumber '{sumber}' tidak dikenal"
+        )));
     }
     let jumlah = input.jumlah_orang.unwrap_or(1);
     if jumlah < 1 {
@@ -200,10 +221,14 @@ pub fn kunjungan_create(
 
     if let Some(aid) = input.anggota_id {
         let exists: bool = conn
-            .query_row("SELECT 1 FROM anggota WHERE id = ?1", params![aid], |_| Ok(true))
+            .query_row("SELECT 1 FROM anggota WHERE id = ?1", params![aid], |_| {
+                Ok(true)
+            })
             .unwrap_or(false);
         if !exists {
-            return Err(AppError::Validation(format!("anggota id={aid} tidak ditemukan")));
+            return Err(AppError::Validation(format!(
+                "anggota id={aid} tidak ditemukan"
+            )));
         }
     }
 
@@ -240,7 +265,10 @@ pub fn kunjungan_create(
 
 #[tauri::command]
 pub fn kunjungan_quick_stats(state: State<'_, AppState>) -> AppResult<KunjunganQuickStats> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let hari_ini: i64 = conn
         .query_row(
             "SELECT COALESCE(SUM(jumlah_orang), 0) FROM kunjungan WHERE tanggal = date('now', 'localtime')",
@@ -283,7 +311,10 @@ pub fn kunjungan_quick_stats(state: State<'_, AppState>) -> AppResult<KunjunganQ
 
 #[tauri::command]
 pub fn kunjungan_delete(state: State<'_, AppState>, id: i64) -> AppResult<()> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let affected = conn
         .execute("DELETE FROM kunjungan WHERE id = ?1", params![id])
         .map_err(AppError::from)?;

@@ -42,7 +42,10 @@ fn map_template(row: &rusqlite::Row<'_>) -> rusqlite::Result<KtaTemplate> {
 
 #[tauri::command]
 pub fn kta_template_list(state: State<'_, AppState>) -> AppResult<Vec<KtaTemplate>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let mut stmt = conn
         .prepare(
             "SELECT id, nama, deskripsi, layout_json, is_default, created_at, updated_at
@@ -60,7 +63,10 @@ pub fn kta_template_list(state: State<'_, AppState>) -> AppResult<Vec<KtaTemplat
 
 #[tauri::command]
 pub fn kta_template_get(state: State<'_, AppState>, id: i64) -> AppResult<KtaTemplate> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     conn.query_row(
         "SELECT id, nama, deskripsi, layout_json, is_default, created_at, updated_at
          FROM kta_templates WHERE id = ?1",
@@ -76,8 +82,8 @@ pub fn kta_template_get(state: State<'_, AppState>, id: i64) -> AppResult<KtaTem
 }
 
 fn validate_layout(json: &str) -> AppResult<()> {
-    let parsed: serde_json::Value =
-        serde_json::from_str(json).map_err(|e| AppError::Validation(format!("layout json: {e}")))?;
+    let parsed: serde_json::Value = serde_json::from_str(json)
+        .map_err(|e| AppError::Validation(format!("layout json: {e}")))?;
     if !parsed.is_object() {
         return Err(AppError::Validation("layout harus object".into()));
     }
@@ -102,7 +108,10 @@ pub fn kta_template_create(
         return Err(AppError::Validation("nama template wajib diisi".into()));
     }
     validate_layout(&input.layout_json)?;
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let tx = conn.transaction().map_err(AppError::from)?;
 
     let is_default = input.is_default.unwrap_or(false);
@@ -138,13 +147,19 @@ pub fn kta_template_update(
         return Err(AppError::Validation("nama template wajib diisi".into()));
     }
     validate_layout(&input.layout_json)?;
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let tx = conn.transaction().map_err(AppError::from)?;
 
     let is_default = input.is_default.unwrap_or(false);
     if is_default {
-        tx.execute("UPDATE kta_templates SET is_default = 0 WHERE id != ?1", [id])
-            .map_err(AppError::from)?;
+        tx.execute(
+            "UPDATE kta_templates SET is_default = 0 WHERE id != ?1",
+            [id],
+        )
+        .map_err(AppError::from)?;
     }
     let affected = tx
         .execute(
@@ -176,7 +191,10 @@ pub fn kta_template_update(
 
 #[tauri::command]
 pub fn kta_template_delete(state: State<'_, AppState>, id: i64) -> AppResult<()> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let affected = conn
         .execute("DELETE FROM kta_templates WHERE id = ?1", [id])
         .map_err(AppError::from)?;
@@ -190,7 +208,10 @@ pub fn kta_template_delete(state: State<'_, AppState>, id: i64) -> AppResult<()>
 
 #[tauri::command]
 pub fn kta_template_set_default(state: State<'_, AppState>, id: i64) -> AppResult<KtaTemplate> {
-    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let tx = conn.transaction().map_err(AppError::from)?;
     tx.execute("UPDATE kta_templates SET is_default = 0", [])
         .map_err(AppError::from)?;

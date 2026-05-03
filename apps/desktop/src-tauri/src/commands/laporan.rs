@@ -83,7 +83,10 @@ pub fn laporan_grafik(
     to: String,
     granularity: Option<String>,
 ) -> AppResult<Vec<GrafikBucket>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let g = granularity.unwrap_or_else(|| "day".to_string());
     let fmt = bucket_format(&g);
 
@@ -138,7 +141,10 @@ pub fn laporan_top_peminjam(
     to: String,
     limit: Option<i64>,
 ) -> AppResult<Vec<TopPeminjamRow>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let limit = limit.unwrap_or(10).clamp(1, 200);
     let mut stmt = conn
         .prepare(
@@ -181,7 +187,10 @@ pub fn laporan_top_buku(
     to: String,
     limit: Option<i64>,
 ) -> AppResult<Vec<TopBukuRow>> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
     let limit = limit.unwrap_or(10).clamp(1, 200);
     let mut stmt = conn
         .prepare(
@@ -212,12 +221,11 @@ pub fn laporan_top_buku(
 }
 
 #[tauri::command]
-pub fn laporan_kas(
-    state: State<'_, AppState>,
-    from: String,
-    to: String,
-) -> AppResult<KasSummary> {
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+pub fn laporan_kas(state: State<'_, AppState>, from: String, to: String) -> AppResult<KasSummary> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     let mut stmt = conn
         .prepare(
@@ -253,7 +261,11 @@ pub fn laporan_kas(
     let mut last_date: Option<String> = None;
 
     for row in &rows {
-        let signed = if row.jenis == "masuk" { row.nominal } else { -row.nominal };
+        let signed = if row.jenis == "masuk" {
+            row.nominal
+        } else {
+            -row.nominal
+        };
         running += signed;
         if row.jenis == "masuk" {
             total_masuk += row.nominal;
