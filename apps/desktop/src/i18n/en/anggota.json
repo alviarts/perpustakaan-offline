@@ -1,4 +1,97 @@
 {
   "title": "Members",
-  "placeholder": "Members CRUD will be built in Devin Session 4."
+  "subtitle": "Manage library member records",
+  "list": {
+    "addNew": "Add Member",
+    "import": "Import Excel",
+    "exportPlaceholder": "Export (soon)",
+    "searchPlaceholder": "Search name, ID, class, or major…",
+    "filterAktif": "Status",
+    "filterKelas": "Class",
+    "filterJurusan": "Major",
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterInactive": "Inactive",
+    "empty": "No members yet. Add the first one.",
+    "emptyFiltered": "No members match the current filters.",
+    "totalCount": "Total {{count}} members",
+    "showing": "Showing {{from}}–{{to}} of {{total}}"
+  },
+  "columns": {
+    "kode": "Code",
+    "nama": "Name",
+    "kelas": "Class",
+    "jurusan": "Major",
+    "agama": "Religion",
+    "status": "Status",
+    "aksi": "Actions"
+  },
+  "fields": {
+    "kodeAnggota": "Member Code / ID",
+    "kodeAnggotaPlaceholder": "e.g. A0001 or student ID",
+    "nama": "Full Name",
+    "namaPlaceholder": "Member full name",
+    "jenisKelamin": "Gender",
+    "jenisKelaminL": "Male",
+    "jenisKelaminP": "Female",
+    "kelas": "Class",
+    "kelasPlaceholder": "Select class",
+    "jurusan": "Major",
+    "jurusanPlaceholder": "Select major",
+    "agama": "Religion",
+    "agamaPlaceholder": "Select religion",
+    "tempatLahir": "Birth Place",
+    "tanggalLahir": "Birth Date",
+    "noTelp": "Phone Number",
+    "email": "Email",
+    "alamat": "Address",
+    "fotoPath": "Photo Path",
+    "fotoPathHint": "Absolute path to photo file (placeholder; full uploader lands in Devin 5).",
+    "tanggalDaftar": "Registration Date",
+    "aktif": "Active Status",
+    "aktifHint": "Disable to hide from loan flows without deleting history.",
+    "catatan": "Notes"
+  },
+  "form": {
+    "newTitle": "Add New Member",
+    "newSubtitle": "Fill in core fields; optional fields can be added later.",
+    "editTitle": "Edit Member",
+    "editSubtitle": "Update the member details below.",
+    "submitCreate": "Save Member",
+    "submitUpdate": "Update",
+    "deleteButton": "Delete Member"
+  },
+  "validation": {
+    "kodeAnggotaRequired": "Member code is required",
+    "namaRequired": "Name is required",
+    "emailInvalid": "Invalid email format"
+  },
+  "delete": {
+    "confirmTitle": "Delete member \"{{nama}}\"?",
+    "confirmDescription": "This action cannot be undone. Members with loan history cannot be deleted."
+  },
+  "import": {
+    "title": "Import Members from Excel",
+    "description": "Select an .xlsx or .csv file. Recognised headers: kode_anggota, nama, kelas, jurusan, agama, jenis_kelamin (L/P), no_telp, email.",
+    "pickFile": "Pick File",
+    "filename": "File: {{name}}",
+    "previewTitle": "Preview ({{count}} rows)",
+    "previewSubtitle": "Review the rows before import. Rows with errors will be skipped.",
+    "submit": "Import {{count}} Rows",
+    "cancel": "Cancel",
+    "summary": "Imported: {{inserted}} • Skipped: {{skipped}}",
+    "errorRow": "Row {{row}}: {{message}}",
+    "noFile": "No file selected yet.",
+    "parseError": "Failed to read file: {{message}}"
+  },
+  "feedback": {
+    "createSuccess": "Member added successfully.",
+    "createError": "Failed to add member: {{message}}",
+    "updateSuccess": "Member details updated.",
+    "updateError": "Failed to update member: {{message}}",
+    "deleteSuccess": "Member deleted.",
+    "deleteError": "Failed to delete member: {{message}}",
+    "importSuccess": "Import done: {{inserted}} members added.",
+    "loadError": "Failed to load members."
+  }
 }

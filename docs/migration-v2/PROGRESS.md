@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 03)
+last_updated: 2026-05-03 (session 04)
 ```
 
 ## Sessions
@@ -30,32 +30,32 @@ last_updated: 2026-05-03 (session 03)
 sessions:
   - id: 1
     title: Bootstrap migration plan (no kode, dokumen saja)
-    status: IN_PROGRESS
+    status: COMPLETED
     pr: https://github.com/alviarts/perpustakaan-offline/pull/35
-    completed_at: null
+    completed_at: 2026-05-03
     dependencies: []
 
   - id: 2
     title: Scaffolding Tauri+React+TS+Tailwind+shadcn + CI/CD baru + reuse SQLite schema + login + theme + i18n
-    status: IN_PROGRESS
+    status: COMPLETED
     pr: https://github.com/alviarts/perpustakaan-offline/pull/36
-    completed_at: null
+    completed_at: 2026-05-03
     dependencies: [1]
-    note: Devin 1 (sesi ini) lanjut bundle scaffolding. PR baru stacked di atas PR #35.
+    note: Bundled by Devin 1 sebagai stacked PR di atas #35.
 
   - id: 3
     title: Layout shell (sidebar collapsible + header + window responsive + identitas sync foundation)
-    status: IN_PROGRESS
-    pr: PENDING
-    completed_at: null
+    status: COMPLETED
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/37
+    completed_at: 2026-05-03
     dependencies: [2]
-    note: Sesi ini bundled lanjut juga (Devin 1). Branch stacked di atas PR #36.
+    note: Bundled by Devin 1 sebagai stacked PR di atas #36.
 
   - id: 4
     title: Data Anggota CRUD + autocomplete + live search + dropdown styled
-    status: PENDING
+    status: COMPLETED
     pr: PENDING
-    completed_at: null
+    completed_at: 2026-05-03
     dependencies: [3]
 
   - id: 5
@@ -119,10 +119,10 @@ sessions:
 
 | # | Session | Status | PR | Completed | Deps |
 |---|---|---|---|---|---|
-| 1 | Bootstrap migration plan | IN_PROGRESS | [#35](https://github.com/alviarts/perpustakaan-offline/pull/35) | — | — |
-| 2 | Scaffolding + login + theme + i18n | IN_PROGRESS | [#36](https://github.com/alviarts/perpustakaan-offline/pull/36) | — | 1 |
-| 3 | Layout shell (sidebar + header + responsive) | IN_PROGRESS | PENDING | — | 2 |
-| 4 | Data Anggota CRUD + search/autocomplete | PENDING | PENDING | — | 3 |
+| 1 | Bootstrap migration plan | COMPLETED | [#35](https://github.com/alviarts/perpustakaan-offline/pull/35) | 2026-05-03 | — |
+| 2 | Scaffolding + login + theme + i18n | COMPLETED | [#36](https://github.com/alviarts/perpustakaan-offline/pull/36) | 2026-05-03 | 1 |
+| 3 | Layout shell (sidebar + header + responsive) | COMPLETED | [#37](https://github.com/alviarts/perpustakaan-offline/pull/37) | 2026-05-03 | 2 |
+| 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | PENDING | 2026-05-03 | 3 |
 | 5 | Data Buku CRUD + Master Data | PENDING | PENDING | — | 4 |
 | 6 | Peminjaman + Pengembalian | PENDING | PENDING | — | 4, 5 |
 | 7 | Kunjungan redesign | PENDING | PENDING | — | 3, 4 |
