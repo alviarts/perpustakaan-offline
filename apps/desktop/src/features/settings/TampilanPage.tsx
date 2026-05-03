@@ -10,7 +10,9 @@ import {
 import { useToast } from '@/components/ui/toast-manager';
 import { useThemeStore, type Theme } from '@/stores/themeStore';
 import {
+  DEFAULT_CLOSE_BEHAVIOR,
   DEFAULT_DISPLAY_PREFS,
+  type CloseBehavior,
   type DisplayPrefs,
   settingsApi,
 } from '@/lib/settings';
@@ -31,13 +33,30 @@ export function TampilanPage(): JSX.Element {
   const { showToast } = useToast();
   const { theme, setTheme } = useThemeStore();
   const [prefs, setPrefs] = React.useState<DisplayPrefs>(DEFAULT_DISPLAY_PREFS);
+  const [closeBehavior, setCloseBehavior] = React.useState<CloseBehavior>(
+    DEFAULT_CLOSE_BEHAVIOR,
+  );
 
   React.useEffect(() => {
     settingsApi.getDisplayPrefs().then((p) => {
       setPrefs(p);
       applyDisplayPrefs(p);
     });
+    settingsApi.getCloseBehavior().then(setCloseBehavior).catch(() => undefined);
   }, []);
+
+  const handleSaveCloseBehavior = async (next: CloseBehavior): Promise<void> => {
+    setCloseBehavior(next);
+    try {
+      await settingsApi.saveCloseBehavior(next);
+    } catch (e) {
+      showToast({
+        title: t('sections.identitas.saveError', { defaultValue: 'Gagal menyimpan' }),
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleSavePrefs = async (next: DisplayPrefs): Promise<void> => {
     setPrefs(next);
@@ -113,6 +132,45 @@ export function TampilanPage(): JSX.Element {
               </SelectItem>
             </SelectContent>
           </Select>
+        </FieldRow>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 mt-2">
+        <FieldRow
+          label={t('sections.tampilan.fields.closeBehavior', {
+            defaultValue: 'Saat tombol X diklik',
+          })}
+        >
+          <Select
+            value={closeBehavior}
+            onValueChange={(v) => handleSaveCloseBehavior(v as CloseBehavior)}
+          >
+            <SelectTrigger data-testid="tampilan-close-behavior">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="exit">
+                {t('sections.tampilan.closeBehavior.exit', {
+                  defaultValue: 'Tutup aplikasi sepenuhnya',
+                })}
+              </SelectItem>
+              <SelectItem value="tray">
+                {t('sections.tampilan.closeBehavior.tray', {
+                  defaultValue: 'Minimize ke system tray',
+                })}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {closeBehavior === 'tray'
+              ? t('sections.tampilan.closeBehavior.trayHint', {
+                  defaultValue:
+                    'Aplikasi tetap berjalan di tray; klik ikon untuk membuka kembali.',
+                })
+              : t('sections.tampilan.closeBehavior.exitHint', {
+                  defaultValue: 'Aplikasi benar-benar keluar dari Task Manager.',
+                })}
+          </p>
         </FieldRow>
       </div>
     </SettingsSection>

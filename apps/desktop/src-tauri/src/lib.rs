@@ -4,12 +4,30 @@ mod error;
 
 use std::sync::Mutex;
 
-use tauri::{Manager, RunEvent};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Manager, RunEvent, WindowEvent,
+};
+
+use crate::commands::close_behavior::{get_close_behavior, CloseBehavior};
 
 pub struct AppState {
     pub db: Mutex<rusqlite::Connection>,
     pub current_user: Mutex<Option<commands::auth::SessionUser>>,
     pub remember_token: Mutex<Option<String>>,
+}
+
+const MAIN_WINDOW_LABEL: &str = "main";
+
+/// Show + focus the main window. Used by the tray icon click handler and the
+/// "Buka" menu item to restore the app from minimized-to-tray state.
+fn show_main_window(app: &tauri::AppHandle) {
+    if let Some(win) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+        let _ = win.show();
+        let _ = win.unminimize();
+        let _ = win.set_focus();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -31,6 +49,49 @@ pub fn run() {
                 current_user: Mutex::new(None),
                 remember_token: Mutex::new(None),
             });
+
+            // BUG-011: build the system tray once at setup. The tray is
+            // ALWAYS created (regardless of the user's close-behavior
+            // preference) so that a freshly-installed app already has the
+            // icon when the user later opens Setting → Aplikasi and toggles
+            // "Minimize ke tray".
+            let buka_item =
+                MenuItem::with_id(app, "tray.buka", "Buka Perpustakaan", true, None::<&str>)?;
+            let keluar_item = MenuItem::with_id(app, "tray.keluar", "Keluar", true, None::<&str>)?;
+            let tray_menu = Menu::with_items(app, &[&buka_item, &keluar_item])?;
+
+            let _tray = TrayIconBuilder::with_id("po-main")
+                .tooltip("Perpustakaan Offline")
+                .icon(
+                    app.default_window_icon()
+                        .cloned()
+                        .ok_or_else(|| tauri::Error::AssetNotFound("default window icon".into()))?,
+                )
+                .menu(&tray_menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "tray.buka" => show_main_window(app),
+                    "tray.keluar" => {
+                        log::info!("tray: keluar clicked");
+                        app.exit(0);
+                        // BUG-011 belt-and-suspenders — guarantee process
+                        // exit even if WebView2 hangs during shutdown.
+                        std::process::exit(0);
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        show_main_window(tray.app_handle());
+                    }
+                })
+                .build(app)?;
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -105,7 +166,47 @@ pub fn run() {
             commands::settings::settings_permissions_save,
             commands::settings::settings_audit_log_query,
             commands::manual::open_manual,
+            commands::close_behavior::close_behavior_get,
+            commands::close_behavior::close_behavior_set,
+            commands::close_behavior::force_quit,
         ])
+        .on_window_event(|window, event| {
+            // BUG-011: intercept the X-button on the main window and
+            // either (a) hide it into the tray when the user has opted
+            // in, or (b) let Tauri tear it down and then guarantee the
+            // process actually exits (some WebView2 builds otherwise leave
+            // a zombie .exe in Task Manager).
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() != MAIN_WINDOW_LABEL {
+                    return;
+                }
+                let app = window.app_handle();
+                let behavior = app
+                    .try_state::<AppState>()
+                    .and_then(|state| get_close_behavior(&state).ok())
+                    .unwrap_or_default();
+                match behavior {
+                    CloseBehavior::Tray => {
+                        log::info!("close_requested: hiding main window to tray");
+                        api.prevent_close();
+                        let _ = window.hide();
+                    }
+                    CloseBehavior::Exit => {
+                        log::info!("close_requested: exiting application");
+                        // Let Tauri unwind the window first, then guarantee
+                        // the process exits — see force_quit for rationale.
+                        let app_handle = app.clone();
+                        std::thread::spawn(move || {
+                            // Tiny delay so the window event loop can flush
+                            // the WindowEvent::Destroyed before we hard-exit.
+                            std::thread::sleep(std::time::Duration::from_millis(150));
+                            app_handle.exit(0);
+                            std::process::exit(0);
+                        });
+                    }
+                }
+            }
+        })
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")
         .run(|_app_handle, event| {

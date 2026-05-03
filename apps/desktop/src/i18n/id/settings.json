@@ -56,11 +56,19 @@
       "fields": {
         "theme": "Tema",
         "fontScale": "Skala font",
-        "density": "Kerapatan"
+        "density": "Kerapatan",
+        "closeBehavior": "Saat tombol X diklik",
+        "closeBehaviorHint": "Atur perilaku aplikasi ketika kamu menutup window utama."
       },
       "density": {
         "compact": "Padat",
         "comfortable": "Nyaman"
+      },
+      "closeBehavior": {
+        "exit": "Tutup aplikasi sepenuhnya",
+        "tray": "Minimize ke system tray",
+        "exitHint": "Aplikasi benar-benar keluar dari Task Manager.",
+        "trayHint": "Aplikasi tetap berjalan di tray; klik ikon untuk membuka kembali."
       }
     },
     "bahasa": {

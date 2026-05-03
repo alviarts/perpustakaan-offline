@@ -58,6 +58,14 @@ export const DEFAULT_DISPLAY_PREFS: DisplayPrefs = {
 };
 
 // ---------------------------------------------------------------------------
+// Close behavior (BUG-011: tray vs exit on X-button click)
+// ---------------------------------------------------------------------------
+
+export type CloseBehavior = 'exit' | 'tray';
+
+export const DEFAULT_CLOSE_BEHAVIOR: CloseBehavior = 'exit';
+
+// ---------------------------------------------------------------------------
 // Sync configuration
 // ---------------------------------------------------------------------------
 
@@ -197,6 +205,7 @@ const MOCK_KEYS = {
   permissions: 'po:settings:permissions',
   audit: 'po:settings:audit-log',
   identity: 'po:settings:identity',
+  closeBehavior: 'po:settings:close-behavior',
 };
 
 const readMock = <T,>(key: string, fallback: T): T => {
@@ -275,6 +284,10 @@ export interface SettingsApi {
   getDisplayPrefs(): Promise<DisplayPrefs>;
   saveDisplayPrefs(prefs: DisplayPrefs): Promise<DisplayPrefs>;
   resetDisplayPrefs(): Promise<DisplayPrefs>;
+
+  getCloseBehavior(): Promise<CloseBehavior>;
+  saveCloseBehavior(behavior: CloseBehavior): Promise<CloseBehavior>;
+  forceQuit(): Promise<void>;
 
   getSyncConfig(): Promise<SyncConfig>;
   saveSyncConfig(cfg: SyncConfig): Promise<SyncConfig>;
@@ -386,6 +399,17 @@ const mockApi: SettingsApi = {
   async resetDisplayPrefs() {
     writeMock(MOCK_KEYS.display, DEFAULT_DISPLAY_PREFS);
     return DEFAULT_DISPLAY_PREFS;
+  },
+
+  async getCloseBehavior() {
+    return readMock<CloseBehavior>(MOCK_KEYS.closeBehavior, DEFAULT_CLOSE_BEHAVIOR);
+  },
+  async saveCloseBehavior(behavior) {
+    writeMock(MOCK_KEYS.closeBehavior, behavior);
+    return behavior;
+  },
+  async forceQuit() {
+    // No-op in browser/dev mock — there's no .exe to quit.
   },
 
   async getSyncConfig() {
@@ -583,6 +607,21 @@ const tauriApi: SettingsApi = {
     return tauriApi.saveDisplayPrefs(DEFAULT_DISPLAY_PREFS);
   },
 
+  async getCloseBehavior() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const raw = await invoke<string>('close_behavior_get');
+    return raw === 'tray' ? 'tray' : 'exit';
+  },
+  async saveCloseBehavior(behavior) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const raw = await invoke<string>('close_behavior_set', { behavior });
+    return raw === 'tray' ? 'tray' : 'exit';
+  },
+  async forceQuit() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('force_quit');
+  },
+
   async getSyncConfig() {
     const { invoke } = await import('@tauri-apps/api/core');
     const rows = await invoke<Record<string, string>>('settings_get_many', {
@@ -676,6 +715,9 @@ export const settingsApi: SettingsApi = {
   getDisplayPrefs: () => rpc().getDisplayPrefs(),
   saveDisplayPrefs: (prefs) => rpc().saveDisplayPrefs(prefs),
   resetDisplayPrefs: () => rpc().resetDisplayPrefs(),
+  getCloseBehavior: () => rpc().getCloseBehavior(),
+  saveCloseBehavior: (b) => rpc().saveCloseBehavior(b),
+  forceQuit: () => rpc().forceQuit(),
   getSyncConfig: () => rpc().getSyncConfig(),
   saveSyncConfig: (cfg) => rpc().saveSyncConfig(cfg),
   resetSyncConfig: () => rpc().resetSyncConfig(),
