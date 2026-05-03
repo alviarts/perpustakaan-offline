@@ -189,9 +189,11 @@ pub fn anggota_list(
 
     let count_sql = format!("SELECT COUNT(*) FROM anggota{where_clause}");
     let total: i64 = conn
-        .query_row(&count_sql, params_from_iter(params.iter().map(|b| b.as_ref())), |row| {
-            row.get(0)
-        })
+        .query_row(
+            &count_sql,
+            params_from_iter(params.iter().map(|b| b.as_ref())),
+            |row| row.get(0),
+        )
         .map_err(AppError::Db)?;
 
     let list_sql = format!(
@@ -221,10 +223,7 @@ pub fn anggota_get(state: State<'_, AppState>, id: i64) -> AppResult<Anggota> {
 }
 
 #[tauri::command]
-pub fn anggota_create(
-    state: State<'_, AppState>,
-    payload: AnggotaInput,
-) -> AppResult<Anggota> {
+pub fn anggota_create(state: State<'_, AppState>, payload: AnggotaInput) -> AppResult<Anggota> {
     validate_input(&payload)?;
     let conn = state
         .db
@@ -464,10 +463,7 @@ pub struct DistinctValues {
 }
 
 #[tauri::command]
-pub fn anggota_distinct(
-    state: State<'_, AppState>,
-    field: String,
-) -> AppResult<DistinctValues> {
+pub fn anggota_distinct(state: State<'_, AppState>, field: String) -> AppResult<DistinctValues> {
     if !["kelas", "jurusan", "agama"].contains(&field.as_str()) {
         return Err(AppError::Validation(format!("field '{field}' not allowed")));
     }

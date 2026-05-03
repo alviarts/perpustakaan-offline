@@ -31,20 +31,19 @@ pub fn settings_get_many(
     if keys.is_empty() {
         return Ok(out);
     }
-    let placeholders = keys.iter().map(|_| "?".to_string()).collect::<Vec<_>>().join(",");
-    let sql = format!(
-        "SELECT key, value FROM settings WHERE key IN ({placeholders})",
-    );
+    let placeholders = keys
+        .iter()
+        .map(|_| "?".to_string())
+        .collect::<Vec<_>>()
+        .join(",");
+    let sql = format!("SELECT key, value FROM settings WHERE key IN ({placeholders})",);
     let mut stmt = conn.prepare(&sql)?;
-    let rows = stmt.query_map(
-        params_from_iter(keys.iter()),
-        |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, Option<String>>(1)?.unwrap_or_default(),
-            ))
-        },
-    )?;
+    let rows = stmt.query_map(params_from_iter(keys.iter()), |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, Option<String>>(1)?.unwrap_or_default(),
+        ))
+    })?;
     for r in rows {
         let (k, v) = r?;
         out.insert(k, v);
@@ -103,9 +102,7 @@ fn validate_role(role: &str) -> AppResult<()> {
     if role == "admin" || role == "pustakawan" {
         Ok(())
     } else {
-        Err(AppError::Validation(format!(
-            "role tidak dikenal: {role}"
-        )))
+        Err(AppError::Validation(format!("role tidak dikenal: {role}")))
     }
 }
 
@@ -257,9 +254,7 @@ pub fn settings_users_reset_password(
 ) -> AppResult<()> {
     let trimmed = new_password.trim();
     if trimmed.len() < 6 {
-        return Err(AppError::Validation(
-            "password minimal 6 karakter".into(),
-        ));
+        return Err(AppError::Validation("password minimal 6 karakter".into()));
     }
     let hash = bcrypt::hash(trimmed, bcrypt::DEFAULT_COST)
         .map_err(|e| AppError::Internal(format!("bcrypt: {e}")))?;
