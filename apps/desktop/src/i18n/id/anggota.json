@@ -1,4 +1,68 @@
 {
   "title": "Anggota",
-  "placeholder": "CRUD anggota akan dibuat di Devin Session 4."
+  "subtitle": "Kelola data anggota perpustakaan.",
+  "placeholder": "CRUD anggota akan dibuat di Devin Session 4.",
+  "addButton": "Tambah Anggota",
+  "editTitle": "Edit Anggota",
+  "newTitle": "Tambah Anggota",
+  "deleteTitle": "Hapus Anggota?",
+  "deleteDescription": "Tindakan ini akan menghapus data anggota '{{nama}}' secara permanen. Apakah Anda yakin?",
+  "searchPlaceholder": "Cari nama, kode anggota, kelas, jurusan…",
+  "filterAll": "Semua",
+  "filterKelas": "Kelas",
+  "filterJurusan": "Jurusan",
+  "empty": "Belum ada anggota. Klik 'Tambah Anggota' untuk mulai.",
+  "emptyFiltered": "Tidak ada hasil pencarian.",
+  "tableTotal": "Total {{count}} anggota",
+  "fields": {
+    "kodeAnggota": "Kode Anggota",
+    "kodeAnggotaHint": "Unik. Contoh: A001, NIS, atau kode kustom lain.",
+    "nama": "Nama Lengkap",
+    "jenisKelamin": "Jenis Kelamin",
+    "kelas": "Kelas",
+    "jurusan": "Jurusan",
+    "tempatLahir": "Tempat Lahir",
+    "tanggalLahir": "Tanggal Lahir",
+    "noTelp": "No. Telepon",
+    "email": "Email",
+    "alamat": "Alamat",
+    "agama": "Agama",
+    "fotoPath": "Foto",
+    "catatan": "Catatan",
+    "aktif": "Aktif",
+    "tanggalDaftar": "Tanggal Daftar"
+  },
+  "gender": {
+    "L": "Laki-laki",
+    "P": "Perempuan",
+    "unspecified": "Belum diisi"
+  },
+  "agamaOptions": {
+    "Islam": "Islam",
+    "Kristen": "Kristen",
+    "Katolik": "Katolik",
+    "Hindu": "Hindu",
+    "Buddha": "Buddha",
+    "Konghucu": "Konghucu",
+    "Lainnya": "Lainnya"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Hapus",
+    "view": "Lihat"
+  },
+  "errors": {
+    "kodeAnggotaRequired": "Kode anggota wajib diisi.",
+    "namaRequired": "Nama wajib diisi.",
+    "kodeAnggotaConflict": "Kode anggota sudah dipakai.",
+    "saveFailed": "Gagal menyimpan: {{message}}",
+    "deleteFailed": "Gagal menghapus: {{message}}",
+    "loadFailed": "Gagal memuat data: {{message}}"
+  },
+  "pagination": {
+    "previous": "Sebelumnya",
+    "next": "Berikutnya",
+    "page": "Halaman {{current}} dari {{total}}",
+    "perPage": "{{count}} per halaman"
+  }
 }

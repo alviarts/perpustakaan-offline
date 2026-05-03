@@ -27,7 +27,30 @@ pub fn open_connection(path: &Path) -> AppResult<Connection> {
 
 pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SCHEMA_SQL)?;
+    ensure_anggota_agama(conn)?;
     log::info!("schema migrations applied (idempotent)");
+    Ok(())
+}
+
+/// Idempotent migration: tambah kolom `agama` di tabel `anggota` kalau belum ada.
+/// Dibutuhkan oleh sesi 04 untuk menyimpan field agama anggota.
+fn ensure_anggota_agama(conn: &Connection) -> AppResult<()> {
+    let mut stmt = conn.prepare("PRAGMA table_info(anggota)")?;
+    let mut rows = stmt.query([])?;
+    let mut has_agama = false;
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name == "agama" {
+            has_agama = true;
+            break;
+        }
+    }
+    drop(rows);
+    drop(stmt);
+    if !has_agama {
+        conn.execute("ALTER TABLE anggota ADD COLUMN agama TEXT", [])?;
+        log::info!("added column anggota.agama");
+    }
     Ok(())
 }
 

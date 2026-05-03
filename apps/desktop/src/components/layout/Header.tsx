@@ -89,6 +89,15 @@ export function Header() {
             placeholder={t('common:placeholders.search')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchValue.trim().length > 0) {
+                e.preventDefault();
+                void router.navigate({
+                  to: '/anggota',
+                  search: { q: searchValue.trim() },
+                });
+              }
+            }}
             className="h-9 w-64 pl-8 pr-12"
             data-testid="header-search"
           />

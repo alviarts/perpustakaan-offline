@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS anggota (
     email           TEXT,
     alamat          TEXT,
     foto_path       TEXT,
+    agama           TEXT,
     tanggal_daftar  TEXT NOT NULL DEFAULT (date('now')),
     aktif           INTEGER NOT NULL DEFAULT 1,
     catatan         TEXT,

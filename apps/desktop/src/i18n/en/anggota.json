@@ -1,4 +1,68 @@
 {
   "title": "Members",
-  "placeholder": "Members CRUD will be built in Devin Session 4."
+  "subtitle": "Manage library member records.",
+  "placeholder": "Member CRUD will be implemented in Devin Session 4.",
+  "addButton": "Add Member",
+  "editTitle": "Edit Member",
+  "newTitle": "Add Member",
+  "deleteTitle": "Delete Member?",
+  "deleteDescription": "This will permanently delete member '{{nama}}'. Are you sure?",
+  "searchPlaceholder": "Search by name, code, class, major…",
+  "filterAll": "All",
+  "filterKelas": "Class",
+  "filterJurusan": "Major",
+  "empty": "No members yet. Click 'Add Member' to start.",
+  "emptyFiltered": "No matching results.",
+  "tableTotal": "Total {{count}} members",
+  "fields": {
+    "kodeAnggota": "Member Code",
+    "kodeAnggotaHint": "Unique. Example: A001, student ID, or custom code.",
+    "nama": "Full Name",
+    "jenisKelamin": "Gender",
+    "kelas": "Class",
+    "jurusan": "Major",
+    "tempatLahir": "Birthplace",
+    "tanggalLahir": "Birth Date",
+    "noTelp": "Phone",
+    "email": "Email",
+    "alamat": "Address",
+    "agama": "Religion",
+    "fotoPath": "Photo",
+    "catatan": "Notes",
+    "aktif": "Active",
+    "tanggalDaftar": "Register Date"
+  },
+  "gender": {
+    "L": "Male",
+    "P": "Female",
+    "unspecified": "Not specified"
+  },
+  "agamaOptions": {
+    "Islam": "Islam",
+    "Kristen": "Christian",
+    "Katolik": "Catholic",
+    "Hindu": "Hindu",
+    "Buddha": "Buddhist",
+    "Konghucu": "Confucian",
+    "Lainnya": "Other"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View"
+  },
+  "errors": {
+    "kodeAnggotaRequired": "Member code is required.",
+    "namaRequired": "Name is required.",
+    "kodeAnggotaConflict": "Member code already in use.",
+    "saveFailed": "Save failed: {{message}}",
+    "deleteFailed": "Delete failed: {{message}}",
+    "loadFailed": "Failed to load: {{message}}"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}",
+    "perPage": "{{count}} per page"
+  }
 }
