@@ -1,4 +1,46 @@
 {
   "title": "Kunjungan",
-  "placeholder": "Modul kunjungan akan dibuat di Devin Session 7."
+  "subtitle": "Catat & monitor kunjungan harian perpustakaan",
+  "searchPlaceholder": "Cari nama / kode / keperluan",
+  "empty": "Belum ada kunjungan pada rentang ini",
+  "guest": "Tamu",
+  "totalRecords": "kunjungan dalam rentang",
+  "stats": {
+    "hariIni": "Hari Ini",
+    "mingguIni": "Minggu Ini",
+    "bulanIni": "Bulan Ini",
+    "total": "Total"
+  },
+  "column": {
+    "tanggal": "Tanggal",
+    "jam": "Jam",
+    "anggota": "Anggota",
+    "kelas": "Kelas",
+    "keperluan": "Keperluan",
+    "sumber": "Sumber"
+  },
+  "sumber": {
+    "manual": "Manual",
+    "peminjaman": "Pinjam",
+    "pengembalian": "Kembali",
+    "kelas": "Kelas"
+  },
+  "action": {
+    "add": "Tambah Kunjungan"
+  },
+  "dialog": {
+    "title": "Catat Kunjungan",
+    "anggota": "Anggota (opsional)",
+    "anggotaPlaceholder": "Cari nama / NIS — atau biarkan kosong untuk tamu",
+    "keperluan": "Keperluan",
+    "catatan": "Catatan",
+    "catatanPlaceholder": "Opsional",
+    "submit": "Simpan"
+  },
+  "feedback": {
+    "loadError": "Gagal memuat kunjungan",
+    "created": "Kunjungan tercatat",
+    "deleted": "Kunjungan dihapus",
+    "deleteError": "Gagal menghapus kunjungan"
+  }
 }

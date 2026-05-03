@@ -1,4 +1,46 @@
 {
   "title": "Visits",
-  "placeholder": "Visits module will be built in Devin Session 7."
+  "subtitle": "Log & monitor daily library visits",
+  "searchPlaceholder": "Search by name / code / purpose",
+  "empty": "No visits in this range",
+  "guest": "Guest",
+  "totalRecords": "visits in range",
+  "stats": {
+    "hariIni": "Today",
+    "mingguIni": "This Week",
+    "bulanIni": "This Month",
+    "total": "Total"
+  },
+  "column": {
+    "tanggal": "Date",
+    "jam": "Time",
+    "anggota": "Member",
+    "kelas": "Class",
+    "keperluan": "Purpose",
+    "sumber": "Source"
+  },
+  "sumber": {
+    "manual": "Manual",
+    "peminjaman": "Borrow",
+    "pengembalian": "Return",
+    "kelas": "Class"
+  },
+  "action": {
+    "add": "Add Visit"
+  },
+  "dialog": {
+    "title": "Log Visit",
+    "anggota": "Member (optional)",
+    "anggotaPlaceholder": "Search name / ID — or leave blank for guest",
+    "keperluan": "Purpose",
+    "catatan": "Notes",
+    "catatanPlaceholder": "Optional",
+    "submit": "Save"
+  },
+  "feedback": {
+    "loadError": "Failed to load visits",
+    "created": "Visit logged",
+    "deleted": "Visit removed",
+    "deleteError": "Failed to remove visit"
+  }
 }
