@@ -242,28 +242,41 @@ fn validate_buku_input(input: &BukuInput) -> AppResult<()> {
 #[tauri::command]
 pub fn buku_create(state: State<'_, AppState>, input: BukuInput) -> AppResult<Buku> {
     validate_buku_input(&input)?;
-    let conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    let mut conn = state.db.lock().map_err(|e| AppError::Internal(e.to_string()))?;
+    buku_create_inner(&mut conn, &input)
+}
+
+/// Inserts a new `buku` row together with its `eksemplar` children inside a
+/// single transaction.
+///
+/// Extracted from [`buku_create`] so it can be unit-tested against an
+/// in-memory `rusqlite::Connection` without spinning up Tauri. The eksemplar
+/// seeding is required because `peminjaman_create` looks up an available
+/// eksemplar row for the buku — without rows here the borrow flow is
+/// unusable on every fresh install (BUG-001).
+fn buku_create_inner(conn: &mut rusqlite::Connection, input: &BukuInput) -> AppResult<Buku> {
+    let kode_buku = input.kode_buku.trim();
     let dup: i64 = conn.query_row(
         "SELECT COUNT(*) FROM buku WHERE kode_buku = ?1",
-        params![input.kode_buku.trim()],
+        params![kode_buku],
         |r| r.get(0),
     )?;
     if dup > 0 {
         return Err(AppError::Validation(format!(
-            "kode_buku '{}' sudah dipakai",
-            input.kode_buku
+            "kode_buku '{kode_buku}' sudah dipakai"
         )));
     }
     let jumlah = input.jumlah_eksemplar.unwrap_or(1).max(0);
     let harga = input.harga.unwrap_or(0).max(0);
-    conn.execute(
+    let tx = conn.transaction()?;
+    tx.execute(
         "INSERT INTO buku (kode_buku, judul, pengarang, penerbit, tahun_terbit, kode_ddc,
             kategori, isbn, jumlah_eksemplar, jumlah_tersedia, sumber, harga, cover_path,
             bahasa, deskripsi, rak, tanggal_input)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9, ?10, ?11, ?12, ?13, ?14, ?15,
             COALESCE(?16, date('now')))",
         params![
-            input.kode_buku.trim(),
+            kode_buku,
             input.judul.trim(),
             input.pengarang,
             input.penerbit,
@@ -281,9 +294,17 @@ pub fn buku_create(state: State<'_, AppState>, input: BukuInput) -> AppResult<Bu
             input.tanggal_input,
         ],
     )?;
-    let id = conn.last_insert_rowid();
+    let id = tx.last_insert_rowid();
+    for n in 1..=jumlah {
+        let kode_eksemplar = format!("{kode_buku}-{n:02}");
+        tx.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, ?2, 'tersedia')",
+            params![id, kode_eksemplar],
+        )?;
+    }
     let buku =
-        conn.query_row("SELECT * FROM buku WHERE id = ?1", params![id], map_buku_row)?;
+        tx.query_row("SELECT * FROM buku WHERE id = ?1", params![id], map_buku_row)?;
+    tx.commit()?;
     Ok(buku)
 }
 
@@ -504,4 +525,132 @@ pub fn buku_import(
         skipped,
         errors,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    fn setup_db() -> Connection {
+        let conn = Connection::open_in_memory().expect("open in-memory db");
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .expect("enable foreign_keys");
+        crate::db::run_migrations(&conn).expect("run migrations");
+        conn
+    }
+
+    fn make_input(kode: &str, jumlah: Option<i64>) -> BukuInput {
+        BukuInput {
+            kode_buku: kode.into(),
+            judul: format!("Buku {kode}"),
+            jumlah_eksemplar: jumlah,
+            ..Default::default()
+        }
+    }
+
+    fn count_eksemplar(conn: &Connection, buku_id: i64) -> i64 {
+        conn.query_row(
+            "SELECT COUNT(*) FROM eksemplar WHERE buku_id = ?1",
+            params![buku_id],
+            |r| r.get(0),
+        )
+        .expect("count eksemplar")
+    }
+
+    fn list_kode_eksemplar(conn: &Connection, buku_id: i64) -> Vec<String> {
+        let mut stmt = conn
+            .prepare(
+                "SELECT kode_eksemplar FROM eksemplar WHERE buku_id = ?1 \
+                 ORDER BY kode_eksemplar ASC",
+            )
+            .expect("prepare");
+        stmt.query_map(params![buku_id], |r| r.get::<_, String>(0))
+            .expect("query")
+            .collect::<Result<Vec<_>, _>>()
+            .expect("collect")
+    }
+
+    #[test]
+    fn buku_create_seeds_zero_eksemplar_for_catalog_only_entry() {
+        let mut conn = setup_db();
+        let buku = buku_create_inner(&mut conn, &make_input("B0001", Some(0)))
+            .expect("create buku");
+        assert_eq!(buku.jumlah_eksemplar, 0);
+        assert_eq!(count_eksemplar(&conn, buku.id), 0);
+    }
+
+    #[test]
+    fn buku_create_seeds_one_eksemplar_with_zero_padded_kode() {
+        let mut conn = setup_db();
+        let buku = buku_create_inner(&mut conn, &make_input("B0001", Some(1)))
+            .expect("create buku");
+        assert_eq!(buku.jumlah_eksemplar, 1);
+        assert_eq!(list_kode_eksemplar(&conn, buku.id), vec!["B0001-01"]);
+    }
+
+    #[test]
+    fn buku_create_seeds_five_sequential_eksemplar() {
+        let mut conn = setup_db();
+        let buku = buku_create_inner(&mut conn, &make_input("B0042", Some(5)))
+            .expect("create buku");
+        assert_eq!(buku.jumlah_eksemplar, 5);
+        assert_eq!(
+            list_kode_eksemplar(&conn, buku.id),
+            vec![
+                "B0042-01".to_string(),
+                "B0042-02".to_string(),
+                "B0042-03".to_string(),
+                "B0042-04".to_string(),
+                "B0042-05".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn buku_create_seeded_eksemplar_are_all_tersedia() {
+        let mut conn = setup_db();
+        let buku = buku_create_inner(&mut conn, &make_input("B0007", Some(3)))
+            .expect("create buku");
+        let tersedia: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM eksemplar \
+                 WHERE buku_id = ?1 AND status = 'tersedia'",
+                params![buku.id],
+                |r| r.get(0),
+            )
+            .expect("count tersedia");
+        assert_eq!(tersedia, 3);
+    }
+
+    #[test]
+    fn buku_create_default_jumlah_eksemplar_is_one() {
+        // BUG-001: when frontend omits jumlahEksemplar (undefined → None),
+        // the buku still gets one eksemplar so it can be borrowed.
+        let mut conn = setup_db();
+        let buku = buku_create_inner(&mut conn, &make_input("B0010", None))
+            .expect("create buku");
+        assert_eq!(buku.jumlah_eksemplar, 1);
+        assert_eq!(count_eksemplar(&conn, buku.id), 1);
+    }
+
+    #[test]
+    fn buku_create_rejects_duplicate_kode_buku() {
+        let mut conn = setup_db();
+        buku_create_inner(&mut conn, &make_input("B0001", Some(1)))
+            .expect("create first buku");
+        let err = buku_create_inner(&mut conn, &make_input("B0001", Some(2)))
+            .expect_err("duplicate should fail");
+        assert!(matches!(err, AppError::Validation(_)));
+        // Failure on the second insert must leave the first buku and its
+        // eksemplar intact (no rollback bleed).
+        let total_buku: i64 = conn
+            .query_row("SELECT COUNT(*) FROM buku", [], |r| r.get(0))
+            .unwrap();
+        let total_eksemplar: i64 = conn
+            .query_row("SELECT COUNT(*) FROM eksemplar", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(total_buku, 1);
+        assert_eq!(total_eksemplar, 1);
+    }
 }
