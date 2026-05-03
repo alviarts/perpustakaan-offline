@@ -988,6 +988,409 @@ _STRINGS: Final[dict[str, dict[str, str]]] = {
         "en": "Are you sure you want to delete this record?",
     },
     "toast.confirm_logout": {"id": "Keluar dari aplikasi?", "en": "Logout from application?"},
+    # ----------------------------- bantuan / FAQ / video (PR-D v0.5.3) -----
+    "menu.help": {"id": "Bantuan", "en": "Help"},
+    "help.title": {"id": "Bantuan", "en": "Help Center"},
+    "help.subtitle": {
+        "id": "Pertanyaan umum, video tutorial, dan informasi aplikasi.",
+        "en": "Common questions, video tutorials, and app information.",
+    },
+    "help.tab.faq": {"id": "FAQ", "en": "FAQ"},
+    "help.tab.video": {"id": "Video Tutorial", "en": "Video Tutorial"},
+    "help.tab.about": {"id": "Tentang", "en": "About"},
+    # FAQ — pertanyaan & jawaban
+    "help.faq.about.q": {
+        "id": "Apa itu Perpustakaan Offline?",
+        "en": "What is Perpustakaan Offline?",
+    },
+    "help.faq.about.a": {
+        "id": (
+            "Aplikasi Sistem Informasi Manajemen Perpustakaan (SIM-Perpus) "
+            "berbasis Python + SQLite yang berjalan 100% offline. Cocok "
+            "untuk perpustakaan sekolah / madrasah. Inspirasi: SIM-Perpus "
+            "v.1.2.2 (Excel + VBA) oleh Kang Sur."
+        ),
+        "en": (
+            "A library management information system (SIM-Perpus) based on "
+            "Python + SQLite that runs 100% offline. Designed for school "
+            "libraries. Inspired by SIM-Perpus v.1.2.2 (Excel + VBA) by "
+            "Kang Sur."
+        ),
+    },
+    "help.faq.login_default.q": {
+        "id": "Apa username & password default saat pertama kali install?",
+        "en": "What is the default username & password on first install?",
+    },
+    "help.faq.login_default.a": {
+        "id": (
+            "Username: admin · Password: admin123. Wajib diganti setelah "
+            "login pertama lewat tombol \"Ganti Password\" di header. Saat "
+            "login pertama juga akan muncul wizard untuk mengisi pertanyaan "
+            "keamanan supaya bisa reset password sendiri."
+        ),
+        "en": (
+            "Username: admin · Password: admin123. You must change it "
+            "after first login via the \"Change Password\" button in the "
+            "header. A wizard for setting your security question will also "
+            "appear so you can reset your own password later."
+        ),
+    },
+    "help.faq.forgot_password.q": {
+        "id": "Saya lupa password, bagaimana cara reset?",
+        "en": "I forgot my password — how do I reset it?",
+    },
+    "help.faq.forgot_password.a": {
+        "id": (
+            "Di layar login, klik \"Lupa Password?\". Masukkan username, "
+            "jawab pertanyaan keamanan yang sudah Anda set, lalu masukkan "
+            "password baru. Jika Anda belum pernah set pertanyaan keamanan, "
+            "hubungi admin untuk reset manual."
+        ),
+        "en": (
+            "On the login screen, click \"Forgot Password?\". Enter your "
+            "username, answer the security question you previously set, "
+            "then enter the new password. If you never set a security "
+            "question, contact an admin for a manual reset."
+        ),
+    },
+    "help.faq.change_password.q": {
+        "id": "Bagaimana cara mengganti password sendiri?",
+        "en": "How do I change my own password?",
+    },
+    "help.faq.change_password.a": {
+        "id": (
+            "Klik tombol \"Ganti Password\" di kanan-atas window (di "
+            "samping toggle tema), masukkan password lama + password baru "
+            "+ konfirmasi. Password minimal 6 karakter."
+        ),
+        "en": (
+            "Click the \"Change Password\" button in the top-right of the "
+            "window (next to the theme toggle), enter your current "
+            "password + new password + confirmation. Minimum 6 characters."
+        ),
+    },
+    "help.faq.add_anggota.q": {
+        "id": "Bagaimana cara menambah anggota baru?",
+        "en": "How do I add a new member?",
+    },
+    "help.faq.add_anggota.a": {
+        "id": (
+            "Buka menu Master Data → Data Anggota. Isi form di sebelah "
+            "kiri (nama, kelas, jenis kelamin, dst.) lalu klik Simpan. "
+            "Untuk edit anggota lama, klik baris pada tabel di kanan."
+        ),
+        "en": (
+            "Go to Master Data → Members. Fill the form on the left "
+            "(name, class, gender, etc.) then click Save. To edit an "
+            "existing member, click their row in the table on the right."
+        ),
+    },
+    "help.faq.import_excel.q": {
+        "id": "Bagaimana cara import banyak anggota / buku dari Excel?",
+        "en": "How do I import many members / books from Excel?",
+    },
+    "help.faq.import_excel.a": {
+        "id": (
+            "Di toolbar Anggota / Buku, klik tombol Template untuk "
+            "mengunduh template .xlsx kosong dengan kolom yang valid. "
+            "Isi datanya di Excel, simpan, lalu klik tombol Import dan "
+            "pilih file tersebut."
+        ),
+        "en": (
+            "In the Members / Books toolbar, click Template to download "
+            "an empty .xlsx file with the valid columns. Fill the data "
+            "in Excel, save it, then click Import and select the file."
+        ),
+    },
+    "help.faq.cetak_kta.q": {
+        "id": "Bagaimana cara cetak Kartu Tanda Anggota (KTA)?",
+        "en": "How do I print Member ID Cards (KTA)?",
+    },
+    "help.faq.cetak_kta.a": {
+        "id": (
+            "Pilih anggota di tabel Master Data → Data Anggota, lalu klik "
+            "tombol Cetak KTA di toolbar. Layout, logo, dan teks "
+            "peraturan kartu bisa dikustom di Setting → Kartu Anggota."
+        ),
+        "en": (
+            "Select members in the Master Data → Members table, then "
+            "click Print Member Card in the toolbar. Layout, logo, and "
+            "rule text can be customised in Settings → Member Card."
+        ),
+    },
+    "help.faq.peminjaman.q": {
+        "id": "Bagaimana cara meminjamkan buku?",
+        "en": "How do I lend a book?",
+    },
+    "help.faq.peminjaman.a": {
+        "id": (
+            "Buka menu Transaksi → Peminjaman. Scan / ketik kode anggota, "
+            "lalu scan / ketik kode buku. Konfirmasi tanggal jatuh tempo "
+            "(otomatis berdasarkan setting Lama Pinjam) dan klik Simpan. "
+            "Setelah simpan, dialog akan menawarkan cetak nota PDF."
+        ),
+        "en": (
+            "Go to Transactions → Borrow. Scan / type the member code, "
+            "then scan / type the book code. Confirm the due date (auto-"
+            "filled from the Loan Duration setting) and click Save. "
+            "After saving, a dialog will offer to print a PDF receipt."
+        ),
+    },
+    "help.faq.pengembalian.q": {
+        "id": "Bagaimana cara mengembalikan buku & menghitung denda?",
+        "en": "How do I return a book and calculate fines?",
+    },
+    "help.faq.pengembalian.a": {
+        "id": (
+            "Buka menu Transaksi → Pengembalian. Scan / ketik kode buku "
+            "yang dikembalikan. Aplikasi otomatis menghitung denda "
+            "berdasarkan tarif (Setting → Identitas) dan jumlah hari "
+            "keterlambatan. Klik Proses untuk simpan; nota cetak "
+            "ditawarkan setelah submit."
+        ),
+        "en": (
+            "Go to Transactions → Return. Scan / type the book code "
+            "being returned. The app calculates the fine automatically "
+            "based on the daily fine rate (Settings → Library Identity) "
+            "and number of late days. Click Process to save; a printable "
+            "receipt is offered after submission."
+        ),
+    },
+    "help.faq.bebas_pustaka.q": {
+        "id": "Apa itu Surat Bebas Pustaka & kapan diperlukan?",
+        "en": "What is the Library Clearance Letter and when is it needed?",
+    },
+    "help.faq.bebas_pustaka.a": {
+        "id": (
+            "Surat Bebas Pustaka adalah keterangan resmi bahwa anggota "
+            "sudah tidak punya pinjaman aktif. Biasanya jadi syarat "
+            "kelulusan / pindah sekolah. Cetak lewat Master Data → Data "
+            "Anggota → tombol Bebas Pustaka. Anggota yang masih punya "
+            "pinjaman aktif akan diblokir otomatis."
+        ),
+        "en": (
+            "The Library Clearance Letter is an official statement that "
+            "a member has no active loans. It is typically required for "
+            "graduation or transfer. Print it via Master Data → Members "
+            "→ the Library Clearance button. Members with active loans "
+            "are blocked automatically."
+        ),
+    },
+    "help.faq.naik_kelas.q": {
+        "id": "Bagaimana cara Naik Kelas batch di awal tahun ajaran?",
+        "en": "How do I do batch class promotion at the start of a school year?",
+    },
+    "help.faq.naik_kelas.a": {
+        "id": (
+            "Buka Master Data → Data Anggota, klik tombol Naik Kelas. "
+            "Pilih kelas asal (mis. VII) dan kelas tujuan (mis. VIII), "
+            "lalu konfirmasi. Semua anggota di kelas asal akan dipindah "
+            "sekaligus. Untuk anggota lulusan, hapus manual dari tabel."
+        ),
+        "en": (
+            "Open Master Data → Members, click the Promote Class button. "
+            "Pick the source class (e.g. VII) and target class (e.g. "
+            "VIII), then confirm. All members in the source class are "
+            "moved at once. Delete graduating members manually from the "
+            "table."
+        ),
+    },
+    "help.faq.cek_data_ganda.q": {
+        "id": "Bagaimana cara mendeteksi anggota / buku duplikat?",
+        "en": "How do I detect duplicate members / books?",
+    },
+    "help.faq.cek_data_ganda.a": {
+        "id": (
+            "Buka Setting → Tools → Cek Data Ganda. Aplikasi akan "
+            "mendeteksi anggota dengan nama+kelas sama dan buku dengan "
+            "ISBN atau judul+pengarang sama. Tinjau dan hapus duplikat "
+            "secara manual setelah review."
+        ),
+        "en": (
+            "Open Settings → Tools → Check Duplicates. The app detects "
+            "members with the same name+class and books with the same "
+            "ISBN or title+author. Review and delete duplicates manually "
+            "after reviewing."
+        ),
+    },
+    "help.faq.backup_manual.q": {
+        "id": "Bagaimana cara backup database secara manual?",
+        "en": "How do I back up the database manually?",
+    },
+    "help.faq.backup_manual.a": {
+        "id": (
+            "Buka menu Laporan → Backup / Reset, klik tombol Backup "
+            "Sekarang. File .db copy akan disimpan di folder backups "
+            "dengan nama berisi tanggal+waktu. Simpan salinan ke USB / "
+            "Google Drive untuk keamanan."
+        ),
+        "en": (
+            "Go to Reports → Backup / Reset, click Backup Now. A copy "
+            "of the .db file is saved in the backups folder with a "
+            "date+time name. Keep a copy on a USB drive / Google Drive "
+            "for safety."
+        ),
+    },
+    "help.faq.backup_terjadwal.q": {
+        "id": "Bagaimana cara setup backup otomatis terjadwal?",
+        "en": "How do I set up automatic scheduled backups?",
+    },
+    "help.faq.backup_terjadwal.a": {
+        "id": (
+            "Buka Setting → Identitas Perpustakaan → bagian Backup "
+            "Terjadwal. Pilih frekuensi (Harian / Mingguan), jam "
+            "eksekusi, dan retention (jumlah file lama yang disimpan). "
+            "Backup berjalan di background — toast notifikasi akan "
+            "muncul saat selesai."
+        ),
+        "en": (
+            "Go to Settings → Library Identity → Scheduled Backup. "
+            "Choose frequency (Daily / Weekly), execution time, and "
+            "retention (number of old files to keep). Backups run in "
+            "the background — a toast notification appears when done."
+        ),
+    },
+    "help.faq.db_location.q": {
+        "id": "Database disimpan di folder mana?",
+        "en": "Where is the database file stored?",
+    },
+    "help.faq.db_location.a": {
+        "id": (
+            "Windows: %APPDATA%\\PerpustakaanOffline\\perpustakaan.db · "
+            "macOS: ~/Library/Application Support/PerpustakaanOffline/"
+            "perpustakaan.db · Linux: ~/.local/share/PerpustakaanOffline/"
+            "perpustakaan.db. Backup otomatis disimpan di subfolder "
+            "backups/ pada lokasi yang sama."
+        ),
+        "en": (
+            "Windows: %APPDATA%\\PerpustakaanOffline\\perpustakaan.db · "
+            "macOS: ~/Library/Application Support/PerpustakaanOffline/"
+            "perpustakaan.db · Linux: ~/.local/share/PerpustakaanOffline/"
+            "perpustakaan.db. Automatic backups are stored in a "
+            "backups/ subfolder at the same path."
+        ),
+    },
+    "help.faq.ddc.q": {
+        "id": "Apa itu DDC (Dewey Decimal Classification)?",
+        "en": "What is DDC (Dewey Decimal Classification)?",
+    },
+    "help.faq.ddc.a": {
+        "id": (
+            "DDC adalah sistem klasifikasi standar perpustakaan untuk "
+            "mengelompokkan buku berdasarkan topik (000 = umum, 100 = "
+            "filsafat, 200 = agama, dst.). Aplikasi sudah membundle "
+            "referensi DDC lengkap di assets/ddc-source.txt. Pilih kode "
+            "DDC saat input buku — kategori akan terisi otomatis."
+        ),
+        "en": (
+            "DDC is the standard library classification system for "
+            "grouping books by topic (000 = general, 100 = philosophy, "
+            "200 = religion, etc.). The app bundles a full DDC "
+            "reference in assets/ddc-source.txt. Pick a DDC code when "
+            "entering a book — the category fills automatically."
+        ),
+    },
+    "help.faq.export_sheets.q": {
+        "id": "Bagaimana cara ekspor data ke Google Sheets?",
+        "en": "How do I export data to Google Sheets?",
+    },
+    "help.faq.export_sheets.a": {
+        "id": (
+            "Buka Setting → Sync / Export. Upload file client_secret.json "
+            "dari Google Cloud Console (cara mendapatkan: lihat "
+            "docs/google-sheets-setup.md), lalu klik Export ke Sheets. "
+            "Data akan di-push ke spreadsheet pribadi di Google Drive "
+            "Anda. Hanya export — tidak ada sync 2-arah otomatis."
+        ),
+        "en": (
+            "Open Settings → Sync / Export. Upload the "
+            "client_secret.json file from Google Cloud Console (how to "
+            "obtain: see docs/google-sheets-setup.md), then click "
+            "Export to Sheets. Data is pushed to a private spreadsheet "
+            "in your Google Drive. Export only — no 2-way auto-sync."
+        ),
+    },
+    "help.faq.report_bug.q": {
+        "id": "Bagaimana cara melaporkan bug atau request fitur?",
+        "en": "How do I report a bug or request a feature?",
+    },
+    "help.faq.report_bug.a": {
+        "id": (
+            "Buka tab Tentang di dialog Bantuan ini, klik tombol "
+            "\"Lapor Bug / Request Fitur\" — akan membuka halaman "
+            "GitHub Issues. Sertakan versi aplikasi, langkah reproduksi, "
+            "dan screenshot kalau memungkinkan."
+        ),
+        "en": (
+            "Open the About tab of this Help dialog, click \"Report "
+            "Bug / Request Feature\" — it opens the GitHub Issues "
+            "page. Include the app version, reproduction steps, and a "
+            "screenshot if possible."
+        ),
+    },
+    # Video tutorial metadata
+    "help.video.empty.title": {
+        "id": "Belum ada video tersedia",
+        "en": "No videos available",
+    },
+    "help.video.empty.desc": {
+        "id": (
+            "File video demo tidak ditemukan di folder docs/demo/. Lihat "
+            "rilis di GitHub untuk download video terbaru."
+        ),
+        "en": (
+            "Demo video files were not found in the docs/demo/ folder. "
+            "See GitHub releases to download the latest video."
+        ),
+    },
+    "help.video.size_label": {"id": "Ukuran", "en": "Size"},
+    "help.video.open_button": {"id": "Buka Video", "en": "Open Video"},
+    "help.video.open_failed": {
+        "id": "Gagal membuka video: {error}",
+        "en": "Failed to open video: {error}",
+    },
+    "help.video.v030_demo.title": {
+        "id": "Demo End-to-End v0.3.0 (4 menit)",
+        "en": "End-to-End Demo v0.3.0 (4 minutes)",
+    },
+    "help.video.v030_demo.desc": {
+        "id": (
+            "Tur singkat alur lengkap: Dashboard → Master Anggota → "
+            "Master Buku → Peminjaman → Pengembalian → Naik Kelas batch "
+            "→ Cek Data Ganda → Audit Log."
+        ),
+        "en": (
+            "Quick tour of the complete flow: Dashboard → Members → "
+            "Books → Borrow → Return → Batch Class Promotion → "
+            "Check Duplicates → Audit Log."
+        ),
+    },
+    # About tab
+    "help.about.app_name": {
+        "id": "Perpustakaan Offline (SIM-Perpus Reborn)",
+        "en": "Library Offline (SIM-Perpus Reborn)",
+    },
+    "help.about.tagline": {
+        "id": "Sistem Informasi Manajemen Perpustakaan Sekolah — 100% offline.",
+        "en": "School Library Management System — 100% offline.",
+    },
+    "help.about.version": {"id": "Versi", "en": "Version"},
+    "help.about.license": {"id": "Lisensi", "en": "License"},
+    "help.about.author": {"id": "Pengembang", "en": "Author"},
+    "help.about.inspiration": {
+        "id": "Terinspirasi dari SIM-Perpus v.1.2.2 (Excel + VBA) oleh Kang Sur.",
+        "en": "Inspired by SIM-Perpus v.1.2.2 (Excel + VBA) by Kang Sur.",
+    },
+    "help.about.github": {"id": "Repository GitHub", "en": "GitHub Repository"},
+    "help.about.releases": {"id": "Rilis & Download", "en": "Releases & Download"},
+    "help.about.report_bug": {
+        "id": "Lapor Bug / Request Fitur",
+        "en": "Report Bug / Request Feature",
+    },
+    "help.about.open_link_failed": {
+        "id": "Gagal membuka link: {error}",
+        "en": "Failed to open link: {error}",
+    },
 }
 
 

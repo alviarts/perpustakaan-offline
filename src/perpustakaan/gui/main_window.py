@@ -62,6 +62,7 @@ class MainWindow(ctk.CTk):
         self._build_theme_toggle()
         self._build_help_button()
         self._build_change_password_button()
+        self._build_bantuan_button()
         self.show("dashboard")
 
         # Hubungkan callback scheduler -> toast (marshal ke main thread).
@@ -162,6 +163,41 @@ class MainWindow(ctk.CTk):
 
         with contextlib.suppress(Exception):
             ChangePasswordDialog(self).wait_window()
+
+    # ------------------------------------------------------------------
+    # Tombol "Bantuan" — buka HelpDialog (FAQ + Video + Tentang).
+    # Visible untuk semua user; tidak ada gating permission karena
+    # konten Bantuan informasional saja (PR-D v0.5.3).
+    # ------------------------------------------------------------------
+    def _build_bantuan_button(self) -> None:
+        from perpustakaan.gui.icons import lucide_icon
+
+        info_img = lucide_icon("info", size=16, color=("#3730a3", "#c7d2fe"))
+        self._bantuan_btn = ctk.CTkButton(
+            self.content,
+            text=f"  {t('menu.help')}" if info_img else t("menu.help"),
+            image=info_img,
+            compound="left",
+            width=110, height=32,
+            corner_radius=16,
+            fg_color=("#e0e7ff", "#312e81"),
+            text_color=("#3730a3", "#c7d2fe"),
+            hover_color=("#c7d2fe", "#4338ca"),
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self._on_bantuan_clicked,
+        )
+        # Posisi: kiri dari tombol "Ganti Password" (yang ada di x=-260,
+        # width 140 → ends ~ x=-400). Beri jarak 10px.
+        self._bantuan_btn.place(relx=1.0, rely=0.0, x=-410, y=14, anchor="ne")
+        self._bantuan_btn.lift()
+        with contextlib.suppress(Exception):
+            self._bantuan_btn.configure(cursor="hand2")
+
+    def _on_bantuan_clicked(self) -> None:
+        from perpustakaan.gui.help_dialog import HelpDialog
+
+        with contextlib.suppress(Exception):
+            HelpDialog(self).wait_window()
 
     # ------------------------------------------------------------------
     # First-login wizard: paksa user lama isi pertanyaan keamanan
