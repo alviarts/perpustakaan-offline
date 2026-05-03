@@ -73,9 +73,7 @@ function renderMarkdown(md) {
     s = s.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, t, h) => {
       const url = h.startsWith('http') || h.startsWith('#') ? h : escapeHtml(h);
-      const ext = url.startsWith('http')
-        ? ' target="_blank" rel="noopener noreferrer"'
-        : '';
+      const ext = url.startsWith('http') ? ' target="_blank" rel="noopener noreferrer"' : '';
       return `<a href="${url}"${ext}>${t}</a>`;
     });
     return s;
@@ -155,9 +153,7 @@ function renderMarkdown(md) {
         items.push(lines[i].replace(/^[-*+]\s+/, ''));
         i += 1;
       }
-      out.push(
-        `<ul>${items.map((it) => `<li>${formatInline(it)}</li>`).join('')}</ul>`,
-      );
+      out.push(`<ul>${items.map((it) => `<li>${formatInline(it)}</li>`).join('')}</ul>`);
       continue;
     }
 
@@ -169,9 +165,7 @@ function renderMarkdown(md) {
         items.push(lines[i].replace(/^\d+\.\s+/, ''));
         i += 1;
       }
-      out.push(
-        `<ol>${items.map((it) => `<li>${formatInline(it)}</li>`).join('')}</ol>`,
-      );
+      out.push(`<ol>${items.map((it) => `<li>${formatInline(it)}</li>`).join('')}</ol>`);
       continue;
     }
 
@@ -234,7 +228,7 @@ const TEMPLATE_CSS = `
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; height: 100%; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
@@ -242,6 +236,8 @@ body {
   color: var(--fg);
   line-height: 1.7;
   font-size: 16px;
+  min-height: 100vh;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -953,8 +949,9 @@ function buildHtml({ html, toc }, { libNama }) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
   <title>Buku Manual — Perpustakaan Offline</title>
-  <link rel="stylesheet" href="./style.css" />
+  <style>${TEMPLATE_CSS}</style>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Lewati ke konten</a>
@@ -1009,7 +1006,7 @@ function buildHtml({ html, toc }, { libNama }) {
   <button id="back-to-top" class="back-to-top" type="button" aria-label="Kembali ke atas">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
-  <script src="./app.js"></script>
+  <script>${TEMPLATE_JS}</script>
 </body>
 </html>
 `;
@@ -1022,9 +1019,12 @@ function buildAll() {
   const html = buildHtml(rendered, { libNama: 'Perpustakaan Sekolah' });
   outDirs.forEach((dir) => {
     mkdirSync(dir, { recursive: true });
+    // CSS + JS are inlined into the HTML so the manual webview never
+    // depends on external file loading at runtime (Tauri 2 bundles all
+    // assets via a custom protocol that has occasionally produced blank
+    // secondary windows when it tries to fetch sibling .css/.js — see
+    // BUG-009/BUG-010 follow-up).
     writeFileSync(resolve(dir, 'index.html'), html, 'utf8');
-    writeFileSync(resolve(dir, 'style.css'), TEMPLATE_CSS, 'utf8');
-    writeFileSync(resolve(dir, 'app.js'), TEMPLATE_JS, 'utf8');
   });
   // eslint-disable-next-line no-console
   console.log(

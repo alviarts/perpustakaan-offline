@@ -35,6 +35,7 @@ pub fn open_manual(app: AppHandle) -> AppResult<()> {
     .maximizable(true)
     .decorations(true)
     .visible(true)
+    .center()
     .build()
     .map_err(|e| AppError::Internal(format!("open_manual: {e}")))?;
     Ok(())
