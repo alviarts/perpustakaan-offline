@@ -1,17 +1,23 @@
 /**
  * Manual book HTML generator (revisi #4).
  *
- * Reads the legacy `docs/manual.md`, converts to a self-contained, responsive
- * HTML page with:
+ * Reads the legacy `docs/manual.md`, converts to a responsive HTML page with:
  *   - sticky table of contents (built from h2/h3 headings)
  *   - full-text search (filters TOC + highlights matches)
  *   - light/dark mode toggle
  *   - placeholder hooks for the library identity (`{{LIB_NAMA}}`) injected at
  *     runtime by the frontend before opening the manual
  *
- * Output is written to:
- *   - `apps/desktop/public/manual/index.html`  (served by Vite in dev + bundled
- *     into the Tauri frontend in release)
+ * Output is written as three sibling files so the page renders correctly
+ * under Tauri 2's strict production CSP (which strips `'unsafe-inline'`
+ * for assets it cannot hash at build time):
+ *   - `apps/desktop/public/manual/index.html`
+ *   - `apps/desktop/public/manual/style.css`
+ *   - `apps/desktop/public/manual/app.js`
+ *
+ * Inline `<style>`/`<script>` tags are intentionally avoided — same-origin
+ * external files are allowed by the default `'self'` directives without any
+ * nonce/hash plumbing.
  *
  * Markdown rendering is intentionally hand-rolled (no external deps) so the
  * build runs offline without network access during CI.
@@ -407,7 +413,7 @@ function buildHtml({ html, toc }, { libNama }) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Buku Manual — Perpustakaan Offline</title>
-  <style>${TEMPLATE_CSS}</style>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <header class="topbar">
@@ -426,7 +432,7 @@ function buildHtml({ html, toc }, { libNama }) {
       ${html}
     </main>
   </div>
-  <script>${TEMPLATE_JS}</script>
+  <script src="./app.js"></script>
 </body>
 </html>
 `;
@@ -440,9 +446,11 @@ function buildAll() {
   outDirs.forEach((dir) => {
     mkdirSync(dir, { recursive: true });
     writeFileSync(resolve(dir, 'index.html'), html, 'utf8');
+    writeFileSync(resolve(dir, 'style.css'), TEMPLATE_CSS.trim() + '\n', 'utf8');
+    writeFileSync(resolve(dir, 'app.js'), TEMPLATE_JS.trim() + '\n', 'utf8');
   });
   // eslint-disable-next-line no-console
-  console.log(`[manual] wrote ${rendered.toc.length} TOC entries to ${outDirs.length} target(s).`);
+  console.log(`[manual] wrote ${rendered.toc.length} TOC entries + style.css + app.js to ${outDirs.length} target(s).`);
 }
 
 buildAll();
