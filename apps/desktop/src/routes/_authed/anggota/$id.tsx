@@ -8,6 +8,7 @@ import { AnggotaForm } from '@/features/anggota/AnggotaForm';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { toAnggotaInput } from '@/features/anggota/schema';
 import { useToast } from '@/components/ui/toast-manager';
+import { formatTauriError } from '@/lib/errors';
 
 export const Route = createFileRoute('/_authed/anggota/$id')({
   component: EditAnggotaRoute,
@@ -48,7 +49,7 @@ function EditAnggotaRoute() {
         showToast({
           variant: 'destructive',
           title: t('anggota:feedback.loadError'),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
         void navigate({ to: '/anggota' });
       })
@@ -96,7 +97,7 @@ function EditAnggotaRoute() {
               showToast({
                 variant: 'destructive',
                 title: t('anggota:feedback.updateError', {
-                  message: err instanceof Error ? err.message : String(err),
+                  message: formatTauriError(err),
                 }),
               });
             }
@@ -120,7 +121,7 @@ function EditAnggotaRoute() {
             showToast({
               variant: 'destructive',
               title: t('anggota:feedback.deleteError', {
-                message: err instanceof Error ? err.message : String(err),
+                message: formatTauriError(err),
               }),
             });
           }

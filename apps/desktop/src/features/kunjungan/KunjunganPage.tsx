@@ -12,6 +12,7 @@ import { kunjunganApi, rangeForPreset, type KunjunganRow } from '@/lib/kunjungan
 import { KunjunganBackdrop } from './KunjunganBackdrop';
 import { KunjunganQuickStatsBar } from './QuickStats';
 import { KunjunganDialog } from './KunjunganDialog';
+import { formatTauriError } from '@/lib/errors';
 
 const SUMBER_TONE: Record<KunjunganRow['sumber'], string> = {
   manual: 'bg-primary/10 text-primary',
@@ -51,7 +52,7 @@ export function KunjunganPage() {
         showToast({
           variant: 'destructive',
           title: t('kunjungan:feedback.loadError', { defaultValue: 'Gagal memuat kunjungan' }),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
       })
       .finally(() => {
@@ -73,7 +74,7 @@ export function KunjunganPage() {
       showToast({
         variant: 'destructive',
         title: t('kunjungan:feedback.deleteError', { defaultValue: 'Gagal menghapus kunjungan' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     }
   }

@@ -10,6 +10,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from '@/components/ui/toast-manager';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { bukuApi, type Buku } from '@/lib/buku';
+import { formatTauriError } from '@/lib/errors';
 import {
   peminjamanApi,
   type AnggotaSummary,
@@ -159,7 +160,7 @@ export function PeminjamanForm() {
       showToast({
         variant: 'destructive',
         title: t('peminjaman:feedback.createError', { defaultValue: 'Gagal membuat peminjaman' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setSubmitting(false);

@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useToast } from '@/components/ui/toast-manager';
 import { peminjamanApi, type PeminjamanDetail as Detail } from '@/lib/peminjaman';
 import { generateNotaPdf } from '@/lib/pdf/nota';
+import { formatTauriError } from '@/lib/errors';
 
 export function PeminjamanDetailView() {
   const { t } = useTranslation(['peminjaman', 'common']);
@@ -33,7 +34,7 @@ export function PeminjamanDetailView() {
       showToast({
         variant: 'destructive',
         title: t('peminjaman:feedback.loadError', { defaultValue: 'Gagal memuat detail' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     }
   }
@@ -79,7 +80,7 @@ export function PeminjamanDetailView() {
       showToast({
         variant: 'destructive',
         title: t('peminjaman:feedback.returnError', { defaultValue: 'Gagal mengembalikan' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setSubmitting(false);
@@ -101,7 +102,7 @@ export function PeminjamanDetailView() {
       showToast({
         variant: 'destructive',
         title: t('peminjaman:feedback.printError', { defaultValue: 'Gagal mencetak nota' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     }
   }

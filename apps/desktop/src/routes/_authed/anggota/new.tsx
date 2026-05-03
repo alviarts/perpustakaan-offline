@@ -7,6 +7,7 @@ import { AnggotaForm } from '@/features/anggota/AnggotaForm';
 import { anggotaApi } from '@/lib/anggota';
 import { toAnggotaInput } from '@/features/anggota/schema';
 import { useToast } from '@/components/ui/toast-manager';
+import { formatTauriError } from '@/lib/errors';
 
 export const Route = createFileRoute('/_authed/anggota/new')({
   component: NewAnggotaRoute,
@@ -59,7 +60,7 @@ function NewAnggotaRoute() {
             showToast({
               variant: 'destructive',
               title: t('anggota:feedback.createError', {
-                message: err instanceof Error ? err.message : String(err),
+                message: formatTauriError(err),
               }),
             });
           }

@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/toast-manager';
 import { laporanApi, toCsv, type KasSummary } from '@/lib/laporan';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
+import { formatTauriError } from '@/lib/errors';
 
 const RUPIAH = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -34,7 +35,7 @@ export function LaporanKas() {
         showToast({
           variant: 'destructive',
           title: t('laporan:error.load', { defaultValue: 'Gagal memuat data' }),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
       })
       .finally(() => {

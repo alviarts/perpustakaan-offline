@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, CreditCard, FileSpreadsheet, Plus, Search } 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatTauriError } from '@/lib/errors';
 import {
   Select,
   SelectContent,
@@ -88,7 +89,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
       showToast({
         variant: 'destructive',
         title: t('anggota:feedback.loadError'),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setIsLoading(false);

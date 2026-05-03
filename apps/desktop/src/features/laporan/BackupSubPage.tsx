@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast-manager';
 import { isTauri } from '@/lib/auth';
 import { describeCron, laporanApi, type BackupResult, type BackupSchedule } from '@/lib/laporan';
+import { formatTauriError } from '@/lib/errors';
 
 export function LaporanBackup() {
   const { t } = useTranslation(['laporan']);
@@ -64,7 +65,7 @@ export function LaporanBackup() {
       showToast({
         variant: 'destructive',
         title: t('laporan:backup.failed', { defaultValue: 'Backup gagal' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setBusy(false);
@@ -99,7 +100,7 @@ export function LaporanBackup() {
       showToast({
         variant: 'destructive',
         title: t('laporan:backup.restoreFailed', { defaultValue: 'Restore gagal' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setBusy(false);
@@ -119,7 +120,7 @@ export function LaporanBackup() {
       showToast({
         variant: 'destructive',
         title: t('laporan:backup.scheduleFailed', { defaultValue: 'Gagal menyimpan jadwal' }),
-        description: err instanceof Error ? err.message : String(err),
+        description: formatTauriError(err),
       });
     } finally {
       setSaving(false);

@@ -8,6 +8,7 @@ import { bukuApi } from '@/lib/buku';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { toBukuInput } from '@/features/buku/schema';
 import { useToast } from '@/components/ui/toast-manager';
+import { formatTauriError } from '@/lib/errors';
 
 export const Route = createFileRoute('/_authed/buku/new')({
   component: NewBukuRoute,
@@ -60,7 +61,7 @@ function NewBukuRoute() {
             showToast({
               variant: 'destructive',
               title: t('buku:feedback.createError', {
-                message: err instanceof Error ? err.message : String(err),
+                message: formatTauriError(err),
               }),
             });
           }

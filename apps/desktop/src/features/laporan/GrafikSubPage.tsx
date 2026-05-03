@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/toast-manager';
 import { laporanApi, toCsv, type GrafikBucket, type Granularity } from '@/lib/laporan';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
+import { formatTauriError } from '@/lib/errors';
 
 export function LaporanGrafik() {
   const { t } = useTranslation(['laporan']);
@@ -30,7 +31,7 @@ export function LaporanGrafik() {
         showToast({
           variant: 'destructive',
           title: t('laporan:error.load', { defaultValue: 'Gagal memuat data' }),
-          description: err instanceof Error ? err.message : String(err),
+          description: formatTauriError(err),
         });
       })
       .finally(() => {
