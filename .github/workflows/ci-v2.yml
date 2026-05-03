@@ -78,6 +78,24 @@ jobs:
             patchelf \
             libssl-dev
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.1
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend (so tauri::generate_context! finds dist/)
+        run: pnpm --filter @perpustakaan/desktop build
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
@@ -90,7 +108,6 @@ jobs:
         working-directory: apps/desktop/src-tauri
         run: cargo check --all-targets
 
-      - name: cargo clippy (warn-only baseline)
+      - name: cargo clippy (deny warnings)
         working-directory: apps/desktop/src-tauri
         run: cargo clippy --all-targets -- -D warnings
-        continue-on-error: true
