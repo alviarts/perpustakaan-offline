@@ -85,7 +85,7 @@ sessions:
   - id: 8
     title: Dashboard modern dengan charts (3 hero card + donut + bar + featured row)
     status: COMPLETED
-    pr: PENDING
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/45
     completed_at: 2026-05-03
     dependencies: [4, 5, 6]
 
@@ -129,7 +129,7 @@ sessions:
 | 5 | Data Buku CRUD + Master Data | COMPLETED | [#42](https://github.com/alviarts/perpustakaan-offline/pull/42) | 2026-05-03 | 4 |
 | 6 | Peminjaman + Pengembalian | COMPLETED | [#43](https://github.com/alviarts/perpustakaan-offline/pull/43) | 2026-05-03 | 4, 5 |
 | 7 | Kunjungan redesign | COMPLETED | [#44](https://github.com/alviarts/perpustakaan-offline/pull/44) | 2026-05-03 | 3, 4 |
-| 8 | Dashboard modern + charts | COMPLETED | PENDING | 2026-05-03 | 4, 5, 6 |
+| 8 | Dashboard modern + charts | COMPLETED | [#45](https://github.com/alviarts/perpustakaan-offline/pull/45) | 2026-05-03 | 4, 5, 6 |
 | 9 | Laporan komplit | PENDING | PENDING | — | 6, 7, 8 |
 | 10 | KTA system | PENDING | PENDING | — | 4, 5 |
 | 11 | Settings 12 kategori + manual + audit wording | PENDING | PENDING | — | 3, 5, 10 |
