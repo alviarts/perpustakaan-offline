@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedPengembalianIndexRouteImport } from './routes/_authed/pengembalian/index'
 import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/peminjaman/index'
@@ -38,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedKunjunganRoute = AuthedKunjunganRouteImport.update({
+  id: '/kunjungan',
+  path: '/kunjungan',
+  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/kunjungan': typeof AuthedKunjunganRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/kunjungan': typeof AuthedKunjunganRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/kunjungan': typeof AuthedKunjunganRoute
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
   '/_authed/buku/$id': typeof AuthedBukuIdRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
+    | '/kunjungan'
     | '/anggota/$id'
     | '/anggota/new'
     | '/buku/$id'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
+    | '/kunjungan'
     | '/anggota/$id'
     | '/anggota/new'
     | '/buku/$id'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/login'
     | '/_authed/dashboard'
+    | '/_authed/kunjungan'
     | '/_authed/anggota/$id'
     | '/_authed/anggota/new'
     | '/_authed/buku/$id'
@@ -231,6 +243,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authed/kunjungan': {
+      id: '/_authed/kunjungan'
+      path: '/kunjungan'
+      fullPath: '/kunjungan'
+      preLoaderRoute: typeof AuthedKunjunganRouteImport
+      parentRoute: typeof AuthedRoute
     }
     '/_authed/dashboard': {
       id: '/_authed/dashboard'
@@ -321,6 +340,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedKunjunganRoute: typeof AuthedKunjunganRoute
   AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
   AuthedBukuIdRoute: typeof AuthedBukuIdRoute
@@ -336,6 +356,7 @@ interface AuthedRouteChildren {
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedKunjunganRoute: AuthedKunjunganRoute,
   AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
   AuthedBukuIdRoute: AuthedBukuIdRoute,
