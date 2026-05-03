@@ -137,6 +137,7 @@ def test_bundled_empty_state_illustrations_present():
     """
     from perpustakaan.gui.illustrations import available_illustrations
 
+    # v0.6.2 menambah empty-laporan + empty-pengaturan (PR-V4c)
     expected = {
         "empty-anggota",
         "empty-anggota-search",
@@ -145,6 +146,8 @@ def test_bundled_empty_state_illustrations_present():
         "empty-kunjungan",
         "empty-peminjaman",
         "empty-pengembalian",
+        "empty-laporan",
+        "empty-pengaturan",
     }
     actual = set(available_illustrations())
     missing = expected - actual

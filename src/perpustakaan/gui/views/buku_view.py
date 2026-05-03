@@ -35,7 +35,7 @@ class BukuView(ctk.CTkFrame):
             width=110, command=self._reload,
         ).pack(side="left", padx=4)
         widgets.permission_button(
-            toolbar, text=t("common.import"), lucide="upload", width=110,
+            toolbar, text=t("common.import"), phosphor="upload", width=110,
             permission="buku.import", command=self._do_import,
         ).pack(side="right", padx=2)
         widgets.icon_button(
@@ -43,7 +43,7 @@ class BukuView(ctk.CTkFrame):
             width=110, command=self._download_template,
         ).pack(side="right", padx=2)
         widgets.permission_button(
-            toolbar, text=t("buku.cetak_label"), lucide="printer", width=180,
+            toolbar, text=t("buku.cetak_label"), phosphor="printer", width=180,
             permission="buku.cetak_label", command=self._cetak_label,
         ).pack(side="right", padx=2)
         widgets.permission_button(
@@ -92,7 +92,7 @@ class BukuView(ctk.CTkFrame):
         btn_row = ctk.CTkFrame(form, fg_color="transparent")
         btn_row.pack(fill="x", padx=8, pady=(8, 4))
         self.btn_save = widgets.icon_button(
-            btn_row, text=t("common.add"), lucide="plus",
+            btn_row, text=t("common.add"), phosphor="plus",
             command=self._save,
         )
         self.btn_save.pack(side="left", padx=2)
@@ -102,7 +102,7 @@ class BukuView(ctk.CTkFrame):
             fg_color="transparent", border_width=1,
         ).pack(side="left", padx=2)
         widgets.icon_button(
-            btn_row, text=t("common.delete"), lucide="trash-2",
+            btn_row, text=t("common.delete"), phosphor="trash",
             command=self._delete,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=2)
@@ -180,11 +180,18 @@ class BukuView(ctk.CTkFrame):
         for f in self.fields.values():
             f.set("")
         self.deskripsi.delete("1.0", "end")
+        # Phosphor Fill plus untuk primary CTA "Tambah"
         try:
-            from perpustakaan.gui.icons import lucide_icon
-            plus_img = lucide_icon("plus", size=16)
+            from perpustakaan.gui.phosphor import phosphor_icon
+            plus_img = phosphor_icon("plus", size=16)
         except Exception:  # noqa: BLE001
             plus_img = None
+        if plus_img is None:
+            try:
+                from perpustakaan.gui.icons import lucide_icon
+                plus_img = lucide_icon("plus", size=16)
+            except Exception:  # noqa: BLE001
+                plus_img = None
         self.btn_save.configure(text=t("common.add"), image=plus_img)
 
     def _on_select(self, row: dict) -> None:
@@ -193,11 +200,18 @@ class BukuView(ctk.CTkFrame):
             f.set(row.get(k, ""))
         self.deskripsi.delete("1.0", "end")
         self.deskripsi.insert("1.0", row.get("deskripsi", "") or "")
+        # Phosphor Fill floppy-disk untuk primary CTA "Update" / "Simpan"
         try:
-            from perpustakaan.gui.icons import lucide_icon
-            save_img = lucide_icon("save", size=16)
+            from perpustakaan.gui.phosphor import phosphor_icon
+            save_img = phosphor_icon("floppy-disk", size=16)
         except Exception:  # noqa: BLE001
             save_img = None
+        if save_img is None:
+            try:
+                from perpustakaan.gui.icons import lucide_icon
+                save_img = lucide_icon("save", size=16)
+            except Exception:  # noqa: BLE001
+                save_img = None
         self.btn_save.configure(text=t("common.update"), image=save_img)
 
     def _pick_cover(self) -> None:

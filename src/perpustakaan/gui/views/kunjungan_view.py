@@ -62,7 +62,7 @@ class KunjunganView(ctk.CTkFrame):
         self.jumlah.pack(fill="x", padx=12)
 
         widgets.permission_button(
-            form, text=t("common.save"), lucide="save",
+            form, text=t("common.save"), phosphor="floppy-disk",
             permission="kunjungan.tambah", command=self._save,
         ).pack(fill="x", padx=12, pady=14)
 

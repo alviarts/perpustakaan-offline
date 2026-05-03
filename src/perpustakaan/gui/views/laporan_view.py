@@ -235,7 +235,7 @@ class LaporanView(ctk.CTkFrame):
             fg_color="#f59e0b", hover_color="#d97706",
         ).pack(side="right", padx=4)
         widgets.permission_button(
-            toolbar, text=t("common.delete"), lucide="trash-2",
+            toolbar, text=t("common.delete"), phosphor="trash",
             permission="laporan.kas_hapus", command=self._delete_kas,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=4)
@@ -316,7 +316,7 @@ class KasDialog(ctk.CTkToplevel):
             fg_color="transparent", border_width=1,
         ).pack(side="right", padx=4)
         widgets.icon_button(
-            btnbar, text=t("common.save"), lucide="save",
+            btnbar, text=t("common.save"), phosphor="floppy-disk",
             command=self._submit,
         ).pack(side="right", padx=4)
 

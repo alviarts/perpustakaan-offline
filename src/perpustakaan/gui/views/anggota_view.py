@@ -37,7 +37,7 @@ class AnggotaView(ctk.CTkFrame):
             width=110, command=self._reload,
         ).pack(side="left", padx=4)
         widgets.permission_button(
-            toolbar, text=t("common.import"), lucide="upload", width=110,
+            toolbar, text=t("common.import"), phosphor="upload", width=110,
             permission="anggota.import", command=self._do_import,
         ).pack(side="right", padx=2)
         widgets.icon_button(
@@ -45,7 +45,7 @@ class AnggotaView(ctk.CTkFrame):
             width=110, command=self._download_template,
         ).pack(side="right", padx=2)
         widgets.permission_button(
-            toolbar, text=t("anggota.cetak_kta"), lucide="printer", width=140,
+            toolbar, text=t("anggota.cetak_kta"), phosphor="printer", width=140,
             permission="anggota.cetak_kta", command=self._cetak_kta,
         ).pack(side="right", padx=2)
         widgets.permission_button(
@@ -94,7 +94,7 @@ class AnggotaView(ctk.CTkFrame):
         btn_row = ctk.CTkFrame(form, fg_color="transparent")
         btn_row.pack(fill="x", padx=8, pady=(8, 4))
         self.btn_save = widgets.icon_button(
-            btn_row, text=t("common.add"), lucide="plus",
+            btn_row, text=t("common.add"), phosphor="plus",
             command=self._save,
         )
         self.btn_save.pack(side="left", padx=2)
@@ -104,7 +104,7 @@ class AnggotaView(ctk.CTkFrame):
             fg_color="transparent", border_width=1,
         ).pack(side="left", padx=2)
         widgets.icon_button(
-            btn_row, text=t("common.delete"), lucide="trash-2",
+            btn_row, text=t("common.delete"), phosphor="trash",
             command=self._delete,
             fg_color="#ef4444", hover_color="#dc2626",
         ).pack(side="right", padx=2)
@@ -182,23 +182,36 @@ class AnggotaView(ctk.CTkFrame):
         self._editing_id = None
         for f in self.fields.values():
             f.set("")
-        # Reset save button: ganti label + icon kembali ke "Tambah".
+        # Phosphor Fill plus untuk primary CTA "Tambah"
         try:
-            from perpustakaan.gui.icons import lucide_icon
-            plus_img = lucide_icon("plus", size=16)
+            from perpustakaan.gui.phosphor import phosphor_icon
+            plus_img = phosphor_icon("plus", size=16)
         except Exception:  # noqa: BLE001
             plus_img = None
+        if plus_img is None:
+            try:
+                from perpustakaan.gui.icons import lucide_icon
+                plus_img = lucide_icon("plus", size=16)
+            except Exception:  # noqa: BLE001
+                plus_img = None
         self.btn_save.configure(text=t("common.add"), image=plus_img)
 
     def _on_select(self, row: dict) -> None:
         self._editing_id = int(row["id"])
         for k, f in self.fields.items():
             f.set(row.get(k, ""))
+        # Phosphor Fill floppy-disk untuk primary CTA "Update"
         try:
-            from perpustakaan.gui.icons import lucide_icon
-            save_img = lucide_icon("save", size=16)
+            from perpustakaan.gui.phosphor import phosphor_icon
+            save_img = phosphor_icon("floppy-disk", size=16)
         except Exception:  # noqa: BLE001
             save_img = None
+        if save_img is None:
+            try:
+                from perpustakaan.gui.icons import lucide_icon
+                save_img = lucide_icon("save", size=16)
+            except Exception:  # noqa: BLE001
+                save_img = None
         self.btn_save.configure(text=t("common.update"), image=save_img)
 
     def _pick_foto(self) -> None:

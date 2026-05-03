@@ -190,7 +190,7 @@ class SettingsView(ctk.CTkFrame):
             command=self._add_user,
         ).pack(side="left", padx=2)
         widgets.permission_button(
-            toolbar, text="Hapus Akun", lucide="trash-2",
+            toolbar, text="Hapus Akun", phosphor="trash",
             permission="setting.akun",
             command=self._del_user,
             fg_color="#ef4444", hover_color="#dc2626",
@@ -843,7 +843,7 @@ class AccountDialog(ctk.CTkToplevel):
             fg_color="transparent", border_width=1,
         ).pack(side="right", padx=4)
         widgets.icon_button(
-            btnbar, text=t("common.save"), lucide="save",
+            btnbar, text=t("common.save"), phosphor="floppy-disk",
             command=self._submit,
         ).pack(side="right", padx=4)
 
