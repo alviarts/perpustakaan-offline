@@ -47,7 +47,7 @@
     ],
     "windows": {
       "wix": {
-        "language": ["en-US", "id-ID"],
+        "language": ["en-US"],
         "bannerPath": "icons/source/wix-banner.bmp",
         "dialogImagePath": "icons/source/wix-dialog.bmp"
       },
