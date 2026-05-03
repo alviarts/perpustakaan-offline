@@ -1,4 +1,74 @@
 {
   "title": "Reports",
-  "placeholder": "Reports module will be built in Devin Session 9."
+  "subtitle": "Library statistics & exports",
+  "empty": "No data in this range",
+  "nav": {
+    "grafik": "Charts",
+    "topPeminjam": "Top Borrowers",
+    "topBuku": "Top Books",
+    "kas": "Cash",
+    "backup": "Backup"
+  },
+  "error": {
+    "load": "Failed to load data"
+  },
+  "column": {
+    "tanggal": "Date",
+    "nama": "Name",
+    "kode": "Code",
+    "kelas": "Class",
+    "judul": "Title",
+    "pengarang": "Author",
+    "pinjam": "Loans",
+    "buku": "Books",
+    "jumlah": "Count",
+    "keterangan": "Note",
+    "nominal": "Amount"
+  },
+  "grafik": {
+    "title": "Activity Chart",
+    "subtitle": "Visits vs loans per bucket",
+    "granularity": "Granularity",
+    "totalKunjungan": "Total Visits",
+    "totalPeminjaman": "Total Loans"
+  },
+  "topPeminjam": {
+    "title": "Top Borrowers",
+    "subtitle": "10 most active members in this range"
+  },
+  "topBuku": {
+    "title": "Top Books",
+    "subtitle": "10 most-borrowed titles"
+  },
+  "kas": {
+    "title": "Cash Report",
+    "masuk": "Total In",
+    "keluar": "Total Out",
+    "saldo": "Closing Balance",
+    "breakdown": "Income Breakdown",
+    "breakdownHint": "Manual / fines / lost / capital",
+    "detail": "Transactions"
+  },
+  "backup": {
+    "title": "Database Backup",
+    "subtitle": "Full SQLite backup + SHA256 checksum for verification",
+    "currentDb": "Active DB File",
+    "createBtn": "Backup Now",
+    "restoreBtn": "Restore from File",
+    "pickFolder": "Pick backup folder",
+    "pickRestoreFile": "Pick .db file",
+    "success": "Backup successful",
+    "failed": "Backup failed",
+    "restoreSuccess": "Restore successful",
+    "restoreFailed": "Restore failed",
+    "lastBackup": "Last backup",
+    "scheduleTitle": "Auto Backup Schedule",
+    "scheduleHint": "5-field cron. Session 12 adds the cron-like runner.",
+    "enableSchedule": "Enable schedule",
+    "cron": "Cron Expression",
+    "scheduleSave": "Save Schedule",
+    "scheduleSaved": "Schedule saved",
+    "scheduleFailed": "Failed to save schedule",
+    "lastRun": "Last run"
+  }
 }

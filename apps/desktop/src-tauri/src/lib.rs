@@ -79,6 +79,15 @@ pub fn run() {
             commands::dashboard::dashboard_kunjungan_7d,
             commands::dashboard::dashboard_top_peminjam,
             commands::dashboard::dashboard_top_buku,
+            commands::laporan::laporan_grafik,
+            commands::laporan::laporan_top_peminjam,
+            commands::laporan::laporan_top_buku,
+            commands::laporan::laporan_kas,
+            commands::backup::backup_create,
+            commands::backup::backup_restore,
+            commands::backup::backup_schedule_get,
+            commands::backup::backup_schedule_set,
+            commands::backup::backup_db_path,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")

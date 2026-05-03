@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/peminjaman', labelKey: 'common:menu.peminjaman', Icon: ArrowLeftRight },
   { to: '/pengembalian', labelKey: 'common:menu.pengembalian', Icon: Undo2 },
   { to: '/kunjungan', labelKey: 'common:menu.kunjungan', Icon: CalendarCheck },
-  { to: '/laporan', labelKey: 'common:menu.laporan', Icon: BarChart3, pending: true },
+  { to: '/laporan', labelKey: 'common:menu.laporan', Icon: BarChart3 },
   { to: '/settings', labelKey: 'common:menu.settings', Icon: Settings, pending: true },
 ];
 

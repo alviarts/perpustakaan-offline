@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 08)
+last_updated: 2026-05-03 (session 09)
 ```
 
 ## Sessions
@@ -91,9 +91,9 @@ sessions:
 
   - id: 9
     title: Laporan komplit (Grafik / Top Peminjam / Top Buku / Kas / Backup)
-    status: PENDING
-    pr: PENDING
-    completed_at: null
+    status: COMPLETED
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/46
+    completed_at: 2026-05-03
     dependencies: [6, 7, 8]
 
   - id: 10
@@ -130,7 +130,7 @@ sessions:
 | 6 | Peminjaman + Pengembalian | COMPLETED | [#43](https://github.com/alviarts/perpustakaan-offline/pull/43) | 2026-05-03 | 4, 5 |
 | 7 | Kunjungan redesign | COMPLETED | [#44](https://github.com/alviarts/perpustakaan-offline/pull/44) | 2026-05-03 | 3, 4 |
 | 8 | Dashboard modern + charts | COMPLETED | [#45](https://github.com/alviarts/perpustakaan-offline/pull/45) | 2026-05-03 | 4, 5, 6 |
-| 9 | Laporan komplit | PENDING | PENDING | — | 6, 7, 8 |
+| 9 | Laporan komplit | COMPLETED | [#46](https://github.com/alviarts/perpustakaan-offline/pull/46) | 2026-05-03 | 6, 7, 8 |
 | 10 | KTA system | PENDING | PENDING | — | 4, 5 |
 | 11 | Settings 12 kategori + manual + audit wording | PENDING | PENDING | — | 3, 5, 10 |
 | 12 | Installer MSI + release v1.0.0 | PENDING | PENDING | — | 2..11 |
