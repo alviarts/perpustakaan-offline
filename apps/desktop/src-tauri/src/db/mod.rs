@@ -31,6 +31,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(KTA_SQL)?;
     apply_additive_migrations(conn)?;
     seed_master_data(conn)?;
+    seed_kta_default_template(conn)?;
     log::info!("schema migrations applied (idempotent)");
     Ok(())
 }
@@ -227,4 +228,158 @@ pub fn seed_default_admin(conn: &Connection) -> AppResult<()> {
     )?;
     log::info!("seeded default admin user (username=admin)");
     Ok(())
+}
+
+/// Default KTA template seeded on first launch (BUG-005).
+///
+/// Mirrors `defaultLayout()` in `apps/desktop/src/lib/kta.ts` so the seeded
+/// row matches what the frontend's mock store and "Reset ke template default"
+/// button produce. ID-1 card (85.6mm × 53.98mm) with header, identitas
+/// subtitle, foto, nama, kodeAnggota, kelas, and a QR for `member:<id>`.
+const KTA_DEFAULT_TEMPLATE_NAME: &str = "Template Default";
+const KTA_DEFAULT_TEMPLATE_DESC: &str = "Layout standar ID-1 dengan foto + QR";
+const KTA_DEFAULT_LAYOUT_JSON: &str = r##"{
+  "widthMm": 85.6,
+  "heightMm": 53.98,
+  "background": "#ffffff",
+  "fields": [
+    {"id":"header","kind":"static","text":"KARTU TANDA ANGGOTA","x":4,"y":6,"width":92,"height":8,"fontSize":10,"fontWeight":"bold","color":"#0f172a","align":"center"},
+    {"id":"identitas","kind":"identitas","x":4,"y":14,"width":92,"height":8,"fontSize":8,"color":"#475569","align":"center"},
+    {"id":"foto","kind":"foto","x":4,"y":26,"width":22,"height":28},
+    {"id":"nama","kind":"nama","x":30,"y":28,"width":50,"height":10,"fontSize":12,"fontWeight":"bold","color":"#0f172a","align":"left"},
+    {"id":"kode","kind":"kodeAnggota","x":30,"y":38,"width":50,"height":6,"fontSize":8,"color":"#334155","align":"left"},
+    {"id":"kelas","kind":"kelas","x":30,"y":44,"width":50,"height":6,"fontSize":8,"color":"#475569","align":"left"},
+    {"id":"qr","kind":"qr","x":78,"y":28,"width":18,"height":18}
+  ]
+}"##;
+
+/// Idempotently seed a single default KTA template if `kta_templates` is empty.
+/// Without this, a fresh install opens "Cetak KTA → Pilih template" with an
+/// empty dropdown and a disabled "Cetak" button (BUG-005).
+fn seed_kta_default_template(conn: &Connection) -> AppResult<()> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM kta_templates",
+        [],
+        |row| row.get(0),
+    )?;
+    if count > 0 {
+        return Ok(());
+    }
+    conn.execute(
+        "INSERT INTO kta_templates (nama, deskripsi, layout_json, is_default)
+         VALUES (?1, ?2, ?3, 1)",
+        rusqlite::params![
+            KTA_DEFAULT_TEMPLATE_NAME,
+            KTA_DEFAULT_TEMPLATE_DESC,
+            KTA_DEFAULT_LAYOUT_JSON,
+        ],
+    )?;
+    log::info!("seeded default kta_templates row (is_default=1)");
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fresh_conn() -> Connection {
+        let conn = Connection::open_in_memory().expect("open in-memory db");
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .expect("enable foreign_keys");
+        run_migrations(&conn).expect("run migrations");
+        conn
+    }
+
+    #[test]
+    fn fresh_install_seeds_one_default_kta_template() {
+        let conn = fresh_conn();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM kta_templates", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        let default_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM kta_templates WHERE is_default = 1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(default_count, 1);
+    }
+
+    #[test]
+    fn seeded_kta_template_layout_is_valid_json() {
+        let conn = fresh_conn();
+        let layout: String = conn
+            .query_row(
+                "SELECT layout_json FROM kta_templates WHERE is_default = 1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        let parsed: serde_json::Value =
+            serde_json::from_str(&layout).expect("layout_json must be valid JSON");
+        assert!(parsed.is_object());
+        let fields = parsed
+            .get("fields")
+            .and_then(|f| f.as_array())
+            .expect("layout.fields must be array");
+        assert!(
+            fields.len() >= 5,
+            "default layout must include the core KTA fields"
+        );
+        for f in fields {
+            assert!(
+                f.get("kind").and_then(|k| k.as_str()).is_some(),
+                "every field must declare a kind"
+            );
+        }
+        // Sanity: the kinds the frontend renderer expects.
+        let kinds: std::collections::HashSet<&str> = fields
+            .iter()
+            .filter_map(|f| f.get("kind").and_then(|k| k.as_str()))
+            .collect();
+        for required in ["nama", "kodeAnggota", "kelas", "foto", "qr"] {
+            assert!(
+                kinds.contains(required),
+                "default layout must include kind={required}"
+            );
+        }
+    }
+
+    #[test]
+    fn kta_seed_is_idempotent_across_runs() {
+        let conn = fresh_conn();
+        // Re-running migrations on the same connection must not duplicate the row.
+        run_migrations(&conn).unwrap();
+        run_migrations(&conn).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM kta_templates", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn kta_seed_skips_when_user_already_has_templates() {
+        let conn = fresh_conn();
+        // Simulate a v1.0.0 user who already manually added a template via
+        // Settings → KTA before upgrading. Seeding must NOT overwrite or
+        // duplicate it.
+        conn.execute("DELETE FROM kta_templates", []).unwrap();
+        conn.execute(
+            "INSERT INTO kta_templates (nama, deskripsi, layout_json, is_default)
+             VALUES ('Custom', NULL, '{\"fields\":[]}', 0)",
+            [],
+        )
+        .unwrap();
+        seed_kta_default_template(&conn).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM kta_templates", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        let nama: String = conn
+            .query_row("SELECT nama FROM kta_templates", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(nama, "Custom");
+    }
 }
