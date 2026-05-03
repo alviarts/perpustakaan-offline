@@ -12,6 +12,7 @@ import idKunjungan from './id/kunjungan.json';
 import idLaporan from './id/laporan.json';
 import idSettings from './id/settings.json';
 import idMasterData from './id/master-data.json';
+import idKta from './id/kta.json';
 import idErrors from './id/errors.json';
 
 import enCommon from './en/common.json';
@@ -25,6 +26,7 @@ import enKunjungan from './en/kunjungan.json';
 import enLaporan from './en/laporan.json';
 import enSettings from './en/settings.json';
 import enMasterData from './en/master-data.json';
+import enKta from './en/kta.json';
 import enErrors from './en/errors.json';
 
 export const NAMESPACES = [
@@ -39,6 +41,7 @@ export const NAMESPACES = [
   'laporan',
   'settings',
   'masterData',
+  'kta',
   'errors',
 ] as const;
 
@@ -58,6 +61,7 @@ const resources = {
     laporan: idLaporan,
     settings: idSettings,
     masterData: idMasterData,
+    kta: idKta,
     errors: idErrors,
   },
   en: {
@@ -72,6 +76,7 @@ const resources = {
     laporan: enLaporan,
     settings: enSettings,
     masterData: enMasterData,
+    kta: enKta,
     errors: enErrors,
   },
 } as const;

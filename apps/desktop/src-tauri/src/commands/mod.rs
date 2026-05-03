@@ -4,6 +4,7 @@ pub mod backup;
 pub mod buku;
 pub mod dashboard;
 pub mod identity;
+pub mod kta;
 pub mod kunjungan;
 pub mod laporan;
 pub mod master_data;

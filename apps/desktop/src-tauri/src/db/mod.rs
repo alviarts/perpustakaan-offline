@@ -28,11 +28,25 @@ pub fn open_connection(path: &Path) -> AppResult<Connection> {
 pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SCHEMA_SQL)?;
     conn.execute_batch(MASTER_DATA_SQL)?;
+    conn.execute_batch(KTA_SQL)?;
     apply_additive_migrations(conn)?;
     seed_master_data(conn)?;
     log::info!("schema migrations applied (idempotent)");
     Ok(())
 }
+
+const KTA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS kta_templates (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama        TEXT    NOT NULL UNIQUE,
+    deskripsi   TEXT,
+    layout_json TEXT    NOT NULL,
+    is_default  INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_kta_default ON kta_templates(is_default);
+"#;
 
 const MASTER_DATA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS kategori (

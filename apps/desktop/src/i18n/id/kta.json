@@ -1,0 +1,39 @@
+{
+  "title": "KTA — Template Editor",
+  "subtitle": "Atur layout kartu tanda anggota: foto, identitas, QR.",
+  "cetakTitle": "Cetak KTA",
+  "cetakSubtitle": "Pilih anggota dan template, lalu cetak satu / batch.",
+  "menu": {
+    "settings": "Template KTA",
+    "cetak": "Cetak KTA"
+  },
+  "field": {
+    "static": "Teks Statis",
+    "identitas": "Identitas Perpustakaan",
+    "nama": "Nama Anggota",
+    "kodeAnggota": "Kode / NIS",
+    "kelas": "Kelas",
+    "jurusan": "Jurusan",
+    "agama": "Agama",
+    "foto": "Foto",
+    "qr": "QR Code"
+  },
+  "action": {
+    "newTemplate": "Template Baru",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "setDefault": "Jadikan Default",
+    "addField": "Tambah Field",
+    "print": "Cetak"
+  },
+  "toast": {
+    "saved": "Template tersimpan",
+    "saveFailed": "Gagal menyimpan",
+    "deleted": "Template dihapus",
+    "defaultSet": "Template default diatur",
+    "selectMember": "Pilih minimal satu anggota",
+    "selectTemplate": "Pilih template terlebih dahulu",
+    "printing": "Mencetak {{count}} KTA",
+    "printFailed": "Gagal mencetak"
+  }
+}
