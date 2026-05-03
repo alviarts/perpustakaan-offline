@@ -1,6 +1,174 @@
 {
   "title": "Pengaturan",
-  "placeholder": "Halaman pengaturan akan dibuat di Devin Session 11.",
-  "language": "Bahasa Aplikasi",
-  "theme": "Tema Aplikasi"
+  "subtitle": "Atur perilaku aplikasi, identitas perpustakaan, akun, dan integrasi.",
+  "search": {
+    "placeholder": "Cari pengaturan…",
+    "empty": "Tidak ada pengaturan yang cocok.",
+    "results": "{{count}} hasil"
+  },
+  "actions": {
+    "resetAll": "Reset Semua",
+    "resetSection": "Reset Bagian Ini",
+    "resetConfirmTitle": "Reset ke nilai default?",
+    "resetConfirmDescription": "Pengaturan di bagian ini akan dikembalikan ke nilai default. Tindakan ini tidak dapat dibatalkan.",
+    "save": "Simpan"
+  },
+  "sections": {
+    "identitas": {
+      "label": "Identitas Perpustakaan",
+      "summary": "Nama, logo, alamat, kepala perpustakaan, NPSN, kontak.",
+      "fields": {
+        "nama": "Nama Perpustakaan",
+        "alamat": "Alamat",
+        "kepala": "Kepala Perpustakaan",
+        "npsn": "NPSN",
+        "tahunAjaran": "Tahun Ajaran",
+        "logoPath": "Path Logo",
+        "kontak": "Kontak"
+      },
+      "saveSuccess": "Identitas berhasil disimpan.",
+      "saveError": "Gagal menyimpan identitas."
+    },
+    "aturanPeminjaman": {
+      "label": "Aturan Peminjaman",
+      "summary": "Batas peminjaman, durasi, denda, hari libur.",
+      "fields": {
+        "maksBuku": "Maksimum buku per anggota",
+        "lamaPinjam": "Durasi pinjam (hari)",
+        "dendaPerHari": "Denda per hari (Rp)",
+        "hariLibur": "Hari libur (tidak dihitung sebagai hari pinjam)"
+      },
+      "hariLiburHelp": "Pisahkan dengan koma. Contoh: 0,6 untuk Minggu & Sabtu.",
+      "saveSuccess": "Aturan peminjaman berhasil disimpan.",
+      "saveError": "Gagal menyimpan aturan peminjaman."
+    },
+    "masterData": {
+      "label": "Master Data",
+      "summary": "DDC, kategori, bahasa, jurusan, kelas, agama."
+    },
+    "kta": {
+      "label": "Kartu Tanda Anggota",
+      "summary": "Template kartu, barcode, font."
+    },
+    "tampilan": {
+      "label": "Tampilan",
+      "summary": "Tema, ukuran teks, kerapatan tampilan.",
+      "fields": {
+        "theme": "Tema",
+        "fontScale": "Skala font",
+        "density": "Kerapatan"
+      },
+      "density": {
+        "compact": "Padat",
+        "comfortable": "Nyaman"
+      }
+    },
+    "bahasa": {
+      "label": "Bahasa",
+      "summary": "Bahasa antarmuka aplikasi.",
+      "fields": {
+        "language": "Bahasa Aplikasi"
+      }
+    },
+    "akun": {
+      "label": "Akun & Pengguna",
+      "summary": "Kelola akun pustakawan, admin, dan reset password.",
+      "table": {
+        "username": "Username",
+        "fullName": "Nama Lengkap",
+        "role": "Peran",
+        "status": "Status",
+        "lastLogin": "Login Terakhir",
+        "actions": "Aksi"
+      },
+      "addUser": "Tambah Pengguna",
+      "editUser": "Edit Pengguna",
+      "resetPassword": "Reset Password",
+      "newPassword": "Password Baru",
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "feedback": {
+        "createSuccess": "Pengguna berhasil ditambahkan.",
+        "updateSuccess": "Pengguna berhasil diperbarui.",
+        "deleteSuccess": "Pengguna berhasil dihapus.",
+        "passwordReset": "Password berhasil direset."
+      },
+      "delete": {
+        "title": "Hapus pengguna \"{{name}}\"?",
+        "description": "Pengguna tidak akan bisa login lagi setelah dihapus."
+      }
+    },
+    "hakAkses": {
+      "label": "Hak Akses",
+      "summary": "Matriks izin per peran (admin, pustakawan).",
+      "roles": {
+        "admin": "Admin",
+        "pustakawan": "Pustakawan"
+      },
+      "areas": {
+        "anggota": "Anggota",
+        "buku": "Buku",
+        "peminjaman": "Peminjaman",
+        "pengembalian": "Pengembalian",
+        "kunjungan": "Kunjungan",
+        "laporan": "Laporan",
+        "settings": "Pengaturan",
+        "audit_log": "Audit Log"
+      },
+      "actions": {
+        "view": "Lihat",
+        "create": "Tambah",
+        "update": "Ubah",
+        "delete": "Hapus"
+      },
+      "saveSuccess": "Matriks izin berhasil disimpan."
+    },
+    "backup": {
+      "label": "Backup & Restore",
+      "summary": "Backup database, jadwal otomatis, restore dari file."
+    },
+    "sinkronisasi": {
+      "label": "Sinkronisasi",
+      "summary": "Sinkronisasi opsional ke Google Sheets.",
+      "fields": {
+        "enabled": "Aktifkan Sinkronisasi",
+        "spreadsheetId": "ID Spreadsheet",
+        "apiKey": "API Key",
+        "lastSync": "Terakhir sinkron"
+      },
+      "syncNow": "Sinkron sekarang",
+      "syncSuccess": "Sinkronisasi berhasil.",
+      "syncError": "Sinkronisasi gagal."
+    },
+    "auditLog": {
+      "label": "Audit Log",
+      "summary": "Riwayat aksi pengguna terhadap data aplikasi.",
+      "filter": {
+        "user": "Pengguna",
+        "action": "Aksi",
+        "entity": "Entitas",
+        "from": "Dari",
+        "to": "Sampai"
+      },
+      "table": {
+        "timestamp": "Waktu",
+        "user": "Pengguna",
+        "action": "Aksi",
+        "entity": "Entitas",
+        "entityId": "ID",
+        "detail": "Detail"
+      },
+      "empty": "Belum ada catatan."
+    },
+    "tentang": {
+      "label": "Tentang",
+      "summary": "Versi aplikasi, kredit, link manual.",
+      "version": "Versi",
+      "credits": "Kredit",
+      "creditsValue": "alvi arts / vwrks",
+      "openManual": "Buka Manual",
+      "openRepo": "Repositori GitHub",
+      "license": "Lisensi"
+    }
+  }
 }

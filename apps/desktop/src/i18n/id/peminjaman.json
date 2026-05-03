@@ -1,6 +1,6 @@
 {
   "title": "Peminjaman",
-  "subtitle": "Kelola transaksi peminjaman buku",
+  "subtitle": "Kelola aturan peminjaman buku",
   "aturanPeminjaman": "Aturan Peminjaman",
   "searchPlaceholder": "Cari nomor / nama / NIS",
   "empty": "Belum ada peminjaman",

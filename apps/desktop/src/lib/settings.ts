@@ -1,0 +1,693 @@
+/**
+ * Settings API client (revisi #24).
+ *
+ * Provides typed access to:
+ *   - Library identity        (Tauri: identity_get / identity_save)
+ *   - Loan rules              (key-value via setting_get / setting_save)
+ *   - Display preferences     (key-value)
+ *   - Sync configuration      (key-value)
+ *   - User accounts CRUD      (Tauri: settings_users_*)
+ *   - Permission matrix       (Tauri: settings_permissions_*)
+ *   - Audit log query         (Tauri: settings_audit_log_query)
+ *
+ * Each function falls back to a localStorage-backed mock so the UI is fully
+ * functional in `pnpm dev` and in `vitest` (jsdom) without a Rust backend.
+ */
+import { isTauri } from '@/lib/auth';
+import type { LibraryIdentity } from '@/stores/identityStore';
+
+// ---------------------------------------------------------------------------
+// Loan rules (Aturan Peminjaman)
+// ---------------------------------------------------------------------------
+
+export interface LoanRules {
+  maksBukuPinjam: number;
+  lamaPinjamHari: number;
+  dendaPerHari: number;
+  hariLibur: number[]; // 0=Sun..6=Sat (akan di-skip dari hitungan denda)
+}
+
+export const DEFAULT_LOAN_RULES: LoanRules = {
+  maksBukuPinjam: 3,
+  lamaPinjamHari: 7,
+  dendaPerHari: 500,
+  hariLibur: [0],
+};
+
+const LOAN_RULES_KEYS = {
+  maks: 'transaksi.maks_buku_pinjam',
+  lama: 'transaksi.lama_pinjam_hari',
+  denda: 'transaksi.denda_per_hari',
+  libur: 'transaksi.hari_libur',
+} as const;
+
+// ---------------------------------------------------------------------------
+// Display preferences
+// ---------------------------------------------------------------------------
+
+export type Density = 'compact' | 'comfortable';
+
+export interface DisplayPrefs {
+  fontScale: number; // 0.8..1.4
+  density: Density;
+}
+
+export const DEFAULT_DISPLAY_PREFS: DisplayPrefs = {
+  fontScale: 1.0,
+  density: 'comfortable',
+};
+
+// ---------------------------------------------------------------------------
+// Sync configuration
+// ---------------------------------------------------------------------------
+
+export interface SyncConfig {
+  enabled: boolean;
+  spreadsheetId: string;
+  apiKey: string;
+  lastSync: string | null;
+}
+
+export const DEFAULT_SYNC_CONFIG: SyncConfig = {
+  enabled: false,
+  spreadsheetId: '',
+  apiKey: '',
+  lastSync: null,
+};
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+export type UserRole = 'admin' | 'pustakawan';
+
+export interface UserRecord {
+  id: number;
+  username: string;
+  fullName: string;
+  role: UserRole;
+  aktif: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export interface UserInput {
+  username: string;
+  fullName: string;
+  role: UserRole;
+  aktif: boolean;
+  password?: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Permissions
+// ---------------------------------------------------------------------------
+
+export type PermissionAction = 'view' | 'create' | 'update' | 'delete';
+export type PermissionArea =
+  | 'anggota'
+  | 'buku'
+  | 'peminjaman'
+  | 'pengembalian'
+  | 'kunjungan'
+  | 'laporan'
+  | 'settings'
+  | 'audit_log';
+
+export const PERMISSION_AREAS: PermissionArea[] = [
+  'anggota',
+  'buku',
+  'peminjaman',
+  'pengembalian',
+  'kunjungan',
+  'laporan',
+  'settings',
+  'audit_log',
+];
+
+export const PERMISSION_ACTIONS: PermissionAction[] = ['view', 'create', 'update', 'delete'];
+
+export type PermissionMatrix = Record<UserRole, Record<PermissionArea, Record<PermissionAction, boolean>>>;
+
+const allTrue = (): Record<PermissionAction, boolean> => ({
+  view: true,
+  create: true,
+  update: true,
+  delete: true,
+});
+
+const onlyView = (): Record<PermissionAction, boolean> => ({
+  view: true,
+  create: false,
+  update: false,
+  delete: false,
+});
+
+export const DEFAULT_PERMISSION_MATRIX: PermissionMatrix = {
+  admin: PERMISSION_AREAS.reduce(
+    (acc, area) => ({ ...acc, [area]: allTrue() }),
+    {} as Record<PermissionArea, Record<PermissionAction, boolean>>,
+  ),
+  pustakawan: PERMISSION_AREAS.reduce(
+    (acc, area) => {
+      const all = allTrue();
+      // Pustakawan tidak bisa edit settings / audit log secara default
+      if (area === 'settings' || area === 'audit_log') {
+        return { ...acc, [area]: onlyView() };
+      }
+      return { ...acc, [area]: all };
+    },
+    {} as Record<PermissionArea, Record<PermissionAction, boolean>>,
+  ),
+};
+
+// ---------------------------------------------------------------------------
+// Audit log
+// ---------------------------------------------------------------------------
+
+export interface AuditLogEntry {
+  id: number;
+  userId: number | null;
+  username: string | null;
+  aksi: string;
+  entitas: string;
+  entitasId: number | null;
+  detail: string | null;
+  createdAt: string;
+}
+
+export interface AuditLogQuery {
+  user?: string;
+  action?: string;
+  entity?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Mock storage helpers (localStorage)
+// ---------------------------------------------------------------------------
+
+const MOCK_KEYS = {
+  loanRules: 'po:settings:loan-rules',
+  display: 'po:settings:display',
+  sync: 'po:settings:sync',
+  users: 'po:settings:users',
+  permissions: 'po:settings:permissions',
+  audit: 'po:settings:audit-log',
+  identity: 'po:settings:identity',
+};
+
+const readMock = <T,>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeMock = (key: string, value: unknown): void => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(key, JSON.stringify(value));
+};
+
+// ---------------------------------------------------------------------------
+// Identity (delegates to identityStore command)
+// ---------------------------------------------------------------------------
+
+interface RustIdentity {
+  nama: string;
+  alamat: string;
+  kepala: string;
+  npsn: string;
+  tahun_ajaran: string;
+  logo_path: string;
+  kontak: string;
+}
+
+const fromRust = (r: RustIdentity): LibraryIdentity => ({
+  nama: r.nama,
+  alamat: r.alamat,
+  kepala: r.kepala,
+  npsn: r.npsn,
+  tahunAjaran: r.tahun_ajaran,
+  logoPath: r.logo_path,
+  kontak: r.kontak,
+});
+
+const toRust = (i: LibraryIdentity): RustIdentity => ({
+  nama: i.nama,
+  alamat: i.alamat,
+  kepala: i.kepala,
+  npsn: i.npsn,
+  tahun_ajaran: i.tahunAjaran,
+  logo_path: i.logoPath,
+  kontak: i.kontak,
+});
+
+export const DEFAULT_IDENTITY: LibraryIdentity = {
+  nama: 'Perpustakaan Sekolah',
+  alamat: '-',
+  kepala: '-',
+  npsn: '-',
+  tahunAjaran: '2024/2025',
+  logoPath: '',
+  kontak: '-',
+};
+
+// ---------------------------------------------------------------------------
+// API
+// ---------------------------------------------------------------------------
+
+export interface SettingsApi {
+  getIdentity(): Promise<LibraryIdentity>;
+  saveIdentity(payload: LibraryIdentity): Promise<LibraryIdentity>;
+  resetIdentity(): Promise<LibraryIdentity>;
+
+  getLoanRules(): Promise<LoanRules>;
+  saveLoanRules(rules: LoanRules): Promise<LoanRules>;
+  resetLoanRules(): Promise<LoanRules>;
+
+  getDisplayPrefs(): Promise<DisplayPrefs>;
+  saveDisplayPrefs(prefs: DisplayPrefs): Promise<DisplayPrefs>;
+  resetDisplayPrefs(): Promise<DisplayPrefs>;
+
+  getSyncConfig(): Promise<SyncConfig>;
+  saveSyncConfig(cfg: SyncConfig): Promise<SyncConfig>;
+  resetSyncConfig(): Promise<SyncConfig>;
+  syncNow(): Promise<SyncConfig>;
+
+  listUsers(): Promise<UserRecord[]>;
+  createUser(payload: UserInput): Promise<UserRecord>;
+  updateUser(id: number, payload: UserInput): Promise<UserRecord>;
+  deleteUser(id: number): Promise<void>;
+  resetPassword(id: number, newPassword: string): Promise<void>;
+
+  getPermissionMatrix(): Promise<PermissionMatrix>;
+  savePermissionMatrix(matrix: PermissionMatrix): Promise<PermissionMatrix>;
+  resetPermissionMatrix(): Promise<PermissionMatrix>;
+
+  queryAuditLog(query: AuditLogQuery): Promise<AuditLogEntry[]>;
+  __resetMock?: () => void;
+}
+
+// ---------------------------------------------------------------------------
+// Mock implementation (browser fallback)
+// ---------------------------------------------------------------------------
+
+let mockUserSeq = 100;
+
+function seedMockUsers(): UserRecord[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: 1,
+      username: 'admin',
+      fullName: 'Administrator',
+      role: 'admin',
+      aktif: true,
+      lastLoginAt: now,
+      createdAt: now,
+    },
+    {
+      id: 2,
+      username: 'pustakawan1',
+      fullName: 'Pustakawan Satu',
+      role: 'pustakawan',
+      aktif: true,
+      lastLoginAt: null,
+      createdAt: now,
+    },
+  ];
+}
+
+function seedMockAudit(): AuditLogEntry[] {
+  const base = Date.now();
+  return [
+    {
+      id: 1,
+      userId: 1,
+      username: 'admin',
+      aksi: 'login',
+      entitas: 'auth',
+      entitasId: null,
+      detail: null,
+      createdAt: new Date(base - 60_000).toISOString(),
+    },
+    {
+      id: 2,
+      userId: 1,
+      username: 'admin',
+      aksi: 'create',
+      entitas: 'anggota',
+      entitasId: 42,
+      detail: 'Andini Putri',
+      createdAt: new Date(base - 30_000).toISOString(),
+    },
+  ];
+}
+
+const mockApi: SettingsApi = {
+  async getIdentity() {
+    return readMock<LibraryIdentity>(MOCK_KEYS.identity, DEFAULT_IDENTITY);
+  },
+  async saveIdentity(payload) {
+    writeMock(MOCK_KEYS.identity, payload);
+    return payload;
+  },
+  async resetIdentity() {
+    writeMock(MOCK_KEYS.identity, DEFAULT_IDENTITY);
+    return DEFAULT_IDENTITY;
+  },
+
+  async getLoanRules() {
+    return readMock<LoanRules>(MOCK_KEYS.loanRules, DEFAULT_LOAN_RULES);
+  },
+  async saveLoanRules(rules) {
+    writeMock(MOCK_KEYS.loanRules, rules);
+    return rules;
+  },
+  async resetLoanRules() {
+    writeMock(MOCK_KEYS.loanRules, DEFAULT_LOAN_RULES);
+    return DEFAULT_LOAN_RULES;
+  },
+
+  async getDisplayPrefs() {
+    return readMock<DisplayPrefs>(MOCK_KEYS.display, DEFAULT_DISPLAY_PREFS);
+  },
+  async saveDisplayPrefs(prefs) {
+    writeMock(MOCK_KEYS.display, prefs);
+    return prefs;
+  },
+  async resetDisplayPrefs() {
+    writeMock(MOCK_KEYS.display, DEFAULT_DISPLAY_PREFS);
+    return DEFAULT_DISPLAY_PREFS;
+  },
+
+  async getSyncConfig() {
+    return readMock<SyncConfig>(MOCK_KEYS.sync, DEFAULT_SYNC_CONFIG);
+  },
+  async saveSyncConfig(cfg) {
+    writeMock(MOCK_KEYS.sync, cfg);
+    return cfg;
+  },
+  async resetSyncConfig() {
+    writeMock(MOCK_KEYS.sync, DEFAULT_SYNC_CONFIG);
+    return DEFAULT_SYNC_CONFIG;
+  },
+  async syncNow() {
+    const cfg = await this.getSyncConfig();
+    const updated = { ...cfg, lastSync: new Date().toISOString() };
+    writeMock(MOCK_KEYS.sync, updated);
+    return updated;
+  },
+
+  async listUsers() {
+    let users = readMock<UserRecord[] | null>(MOCK_KEYS.users, null);
+    if (!users) {
+      users = seedMockUsers();
+      writeMock(MOCK_KEYS.users, users);
+    }
+    return users;
+  },
+  async createUser(payload) {
+    const users = await this.listUsers();
+    if (users.some((u) => u.username === payload.username)) {
+      throw new Error('username_taken');
+    }
+    mockUserSeq += 1;
+    const next: UserRecord = {
+      id: mockUserSeq,
+      username: payload.username,
+      fullName: payload.fullName,
+      role: payload.role,
+      aktif: payload.aktif,
+      lastLoginAt: null,
+      createdAt: new Date().toISOString(),
+    };
+    writeMock(MOCK_KEYS.users, [...users, next]);
+    return next;
+  },
+  async updateUser(id, payload) {
+    const users = await this.listUsers();
+    const idx = users.findIndex((u) => u.id === id);
+    const existing = idx === -1 ? undefined : users[idx];
+    if (idx === -1 || !existing) throw new Error('user_not_found');
+    const updated: UserRecord = {
+      ...existing,
+      username: payload.username,
+      fullName: payload.fullName,
+      role: payload.role,
+      aktif: payload.aktif,
+    };
+    const next = [...users];
+    next[idx] = updated;
+    writeMock(MOCK_KEYS.users, next);
+    return updated;
+  },
+  async deleteUser(id) {
+    const users = await this.listUsers();
+    writeMock(
+      MOCK_KEYS.users,
+      users.filter((u) => u.id !== id),
+    );
+  },
+  async resetPassword(id, _newPassword) {
+    const users = await this.listUsers();
+    if (!users.some((u) => u.id === id)) throw new Error('user_not_found');
+    return;
+  },
+
+  async getPermissionMatrix() {
+    return readMock<PermissionMatrix>(MOCK_KEYS.permissions, DEFAULT_PERMISSION_MATRIX);
+  },
+  async savePermissionMatrix(matrix) {
+    writeMock(MOCK_KEYS.permissions, matrix);
+    return matrix;
+  },
+  async resetPermissionMatrix() {
+    writeMock(MOCK_KEYS.permissions, DEFAULT_PERMISSION_MATRIX);
+    return DEFAULT_PERMISSION_MATRIX;
+  },
+
+  async queryAuditLog(query) {
+    let entries = readMock<AuditLogEntry[] | null>(MOCK_KEYS.audit, null);
+    if (!entries) {
+      entries = seedMockAudit();
+      writeMock(MOCK_KEYS.audit, entries);
+    }
+    let filtered = entries;
+    if (query.user) {
+      const q = query.user.toLowerCase();
+      filtered = filtered.filter((e) => (e.username ?? '').toLowerCase().includes(q));
+    }
+    if (query.action) {
+      filtered = filtered.filter((e) => e.aksi === query.action);
+    }
+    if (query.entity) {
+      filtered = filtered.filter((e) => e.entitas === query.entity);
+    }
+    if (query.from) {
+      filtered = filtered.filter((e) => e.createdAt >= query.from!);
+    }
+    if (query.to) {
+      filtered = filtered.filter((e) => e.createdAt <= query.to!);
+    }
+    if (query.limit) {
+      filtered = filtered.slice(0, query.limit);
+    }
+    return filtered;
+  },
+
+  __resetMock() {
+    if (typeof window === 'undefined') return;
+    Object.values(MOCK_KEYS).forEach((k) => window.localStorage.removeItem(k));
+    mockUserSeq = 100;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Tauri implementation
+// ---------------------------------------------------------------------------
+
+const tauriApi: SettingsApi = {
+  async getIdentity() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return fromRust(await invoke<RustIdentity>('identity_get'));
+  },
+  async saveIdentity(payload) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return fromRust(
+      await invoke<RustIdentity>('identity_save', { payload: toRust(payload) }),
+    );
+  },
+  async resetIdentity() {
+    return tauriApi.saveIdentity(DEFAULT_IDENTITY);
+  },
+
+  async getLoanRules() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const rows = await invoke<Record<string, string>>('settings_get_many', {
+      keys: Object.values(LOAN_RULES_KEYS),
+    });
+    return {
+      maksBukuPinjam: parseInt(rows[LOAN_RULES_KEYS.maks] ?? '', 10) || DEFAULT_LOAN_RULES.maksBukuPinjam,
+      lamaPinjamHari: parseInt(rows[LOAN_RULES_KEYS.lama] ?? '', 10) || DEFAULT_LOAN_RULES.lamaPinjamHari,
+      dendaPerHari: parseInt(rows[LOAN_RULES_KEYS.denda] ?? '', 10) || DEFAULT_LOAN_RULES.dendaPerHari,
+      hariLibur: parseHariLibur(rows[LOAN_RULES_KEYS.libur] ?? ''),
+    };
+  },
+  async saveLoanRules(rules) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('settings_set_many', {
+      entries: {
+        [LOAN_RULES_KEYS.maks]: String(rules.maksBukuPinjam),
+        [LOAN_RULES_KEYS.lama]: String(rules.lamaPinjamHari),
+        [LOAN_RULES_KEYS.denda]: String(rules.dendaPerHari),
+        [LOAN_RULES_KEYS.libur]: rules.hariLibur.join(','),
+      },
+    });
+    return rules;
+  },
+  async resetLoanRules() {
+    return tauriApi.saveLoanRules(DEFAULT_LOAN_RULES);
+  },
+
+  async getDisplayPrefs() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const rows = await invoke<Record<string, string>>('settings_get_many', {
+      keys: ['ui.font_scale', 'ui.density'],
+    });
+    const fontScale = parseFloat(rows['ui.font_scale'] ?? '');
+    const density = (rows['ui.density'] ?? '') as Density;
+    return {
+      fontScale: Number.isFinite(fontScale) && fontScale > 0 ? fontScale : DEFAULT_DISPLAY_PREFS.fontScale,
+      density: density === 'compact' || density === 'comfortable' ? density : DEFAULT_DISPLAY_PREFS.density,
+    };
+  },
+  async saveDisplayPrefs(prefs) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('settings_set_many', {
+      entries: {
+        'ui.font_scale': String(prefs.fontScale),
+        'ui.density': prefs.density,
+      },
+    });
+    return prefs;
+  },
+  async resetDisplayPrefs() {
+    return tauriApi.saveDisplayPrefs(DEFAULT_DISPLAY_PREFS);
+  },
+
+  async getSyncConfig() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const rows = await invoke<Record<string, string>>('settings_get_many', {
+      keys: ['sync.enabled', 'sync.spreadsheet_id', 'sync.api_key', 'sync.last_sync'],
+    });
+    return {
+      enabled: rows['sync.enabled'] === '1',
+      spreadsheetId: rows['sync.spreadsheet_id'] ?? '',
+      apiKey: rows['sync.api_key'] ?? '',
+      lastSync: rows['sync.last_sync'] || null,
+    };
+  },
+  async saveSyncConfig(cfg) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('settings_set_many', {
+      entries: {
+        'sync.enabled': cfg.enabled ? '1' : '0',
+        'sync.spreadsheet_id': cfg.spreadsheetId,
+        'sync.api_key': cfg.apiKey,
+        'sync.last_sync': cfg.lastSync ?? '',
+      },
+    });
+    return cfg;
+  },
+  async resetSyncConfig() {
+    return tauriApi.saveSyncConfig(DEFAULT_SYNC_CONFIG);
+  },
+  async syncNow() {
+    const cfg = await tauriApi.getSyncConfig();
+    return tauriApi.saveSyncConfig({ ...cfg, lastSync: new Date().toISOString() });
+  },
+
+  async listUsers() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<UserRecord[]>('settings_users_list');
+  },
+  async createUser(payload) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<UserRecord>('settings_users_create', { payload });
+  },
+  async updateUser(id, payload) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<UserRecord>('settings_users_update', { id, payload });
+  },
+  async deleteUser(id) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('settings_users_delete', { id });
+  },
+  async resetPassword(id, newPassword) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('settings_users_reset_password', { id, newPassword });
+  },
+
+  async getPermissionMatrix() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<PermissionMatrix>('settings_permissions_get');
+  },
+  async savePermissionMatrix(matrix) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<PermissionMatrix>('settings_permissions_save', { matrix });
+  },
+  async resetPermissionMatrix() {
+    return tauriApi.savePermissionMatrix(DEFAULT_PERMISSION_MATRIX);
+  },
+
+  async queryAuditLog(query) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<AuditLogEntry[]>('settings_audit_log_query', { query });
+  },
+};
+
+function parseHariLibur(raw: string): number[] {
+  if (!raw) return DEFAULT_LOAN_RULES.hariLibur;
+  return raw
+    .split(',')
+    .map((s) => parseInt(s.trim(), 10))
+    .filter((n) => Number.isInteger(n) && n >= 0 && n <= 6);
+}
+
+function rpc(): SettingsApi {
+  return isTauri() ? tauriApi : mockApi;
+}
+
+export const settingsApi: SettingsApi = {
+  getIdentity: () => rpc().getIdentity(),
+  saveIdentity: (payload) => rpc().saveIdentity(payload),
+  resetIdentity: () => rpc().resetIdentity(),
+  getLoanRules: () => rpc().getLoanRules(),
+  saveLoanRules: (rules) => rpc().saveLoanRules(rules),
+  resetLoanRules: () => rpc().resetLoanRules(),
+  getDisplayPrefs: () => rpc().getDisplayPrefs(),
+  saveDisplayPrefs: (prefs) => rpc().saveDisplayPrefs(prefs),
+  resetDisplayPrefs: () => rpc().resetDisplayPrefs(),
+  getSyncConfig: () => rpc().getSyncConfig(),
+  saveSyncConfig: (cfg) => rpc().saveSyncConfig(cfg),
+  resetSyncConfig: () => rpc().resetSyncConfig(),
+  syncNow: () => rpc().syncNow(),
+  listUsers: () => rpc().listUsers(),
+  createUser: (payload) => rpc().createUser(payload),
+  updateUser: (id, payload) => rpc().updateUser(id, payload),
+  deleteUser: (id) => rpc().deleteUser(id),
+  resetPassword: (id, pw) => rpc().resetPassword(id, pw),
+  getPermissionMatrix: () => rpc().getPermissionMatrix(),
+  savePermissionMatrix: (m) => rpc().savePermissionMatrix(m),
+  resetPermissionMatrix: () => rpc().resetPermissionMatrix(),
+  queryAuditLog: (q) => rpc().queryAuditLog(q),
+  __resetMock: () => mockApi.__resetMock?.(),
+};

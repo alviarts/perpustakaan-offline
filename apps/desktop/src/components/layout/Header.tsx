@@ -16,6 +16,7 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 import { useIdentityStore } from '@/stores/identityStore';
 import { logoutRequest } from '@/lib/auth';
+import { openManual } from '@/lib/manual';
 import { cn } from '@/lib/utils';
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -109,11 +110,10 @@ export function Header() {
 
         <button
           type="button"
+          data-testid="header-manual"
           aria-label={t('common:menu.manualBook')}
           className="hidden h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground md:flex"
-          onClick={() => {
-            /* TODO: open manual — Devin 11 (revisi #4) */
-          }}
+          onClick={() => void openManual(identity)}
         >
           <BookOpen className="h-4 w-4" />
         </button>

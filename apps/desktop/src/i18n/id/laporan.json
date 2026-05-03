@@ -47,7 +47,7 @@
     "saldo": "Saldo Akhir",
     "breakdown": "Breakdown Pemasukan",
     "breakdownHint": "Manual / denda / hilang / modal",
-    "detail": "Detail Transaksi"
+    "detail": "Detail Kas"
   },
   "backup": {
     "title": "Backup Database",

@@ -202,6 +202,8 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@22.19.17)(jiti@1.21.7)(jsdom@25.0.1)
 
+  apps/manual: {}
+
   packages/shared:
     devDependencies:
       typescript:

@@ -1,6 +1,174 @@
 {
   "title": "Settings",
-  "placeholder": "Settings page will be built in Devin Session 11.",
-  "language": "App Language",
-  "theme": "App Theme"
+  "subtitle": "Configure application behaviour, library identity, accounts, and integrations.",
+  "search": {
+    "placeholder": "Search settings…",
+    "empty": "No matching settings.",
+    "results": "{{count}} results"
+  },
+  "actions": {
+    "resetAll": "Reset All",
+    "resetSection": "Reset This Section",
+    "resetConfirmTitle": "Reset to defaults?",
+    "resetConfirmDescription": "Settings in this section will be reverted to default values. This action cannot be undone.",
+    "save": "Save"
+  },
+  "sections": {
+    "identitas": {
+      "label": "Library Identity",
+      "summary": "Name, logo, address, head librarian, NPSN, contact.",
+      "fields": {
+        "nama": "Library Name",
+        "alamat": "Address",
+        "kepala": "Head Librarian",
+        "npsn": "NPSN",
+        "tahunAjaran": "Academic Year",
+        "logoPath": "Logo Path",
+        "kontak": "Contact"
+      },
+      "saveSuccess": "Identity saved.",
+      "saveError": "Failed to save identity."
+    },
+    "aturanPeminjaman": {
+      "label": "Loan Rules",
+      "summary": "Borrow limits, durations, fines, holidays.",
+      "fields": {
+        "maksBuku": "Max books per member",
+        "lamaPinjam": "Loan duration (days)",
+        "dendaPerHari": "Fine per day (IDR)",
+        "hariLibur": "Holidays (excluded from loan days)"
+      },
+      "hariLiburHelp": "Comma-separated. Example: 0,6 for Sunday & Saturday.",
+      "saveSuccess": "Loan rules saved.",
+      "saveError": "Failed to save loan rules."
+    },
+    "masterData": {
+      "label": "Master Data",
+      "summary": "DDC, categories, languages, majors, classes, religions."
+    },
+    "kta": {
+      "label": "Member Card (KTA)",
+      "summary": "Card template, barcode, fonts."
+    },
+    "tampilan": {
+      "label": "Appearance",
+      "summary": "Theme, text size, layout density.",
+      "fields": {
+        "theme": "Theme",
+        "fontScale": "Font scale",
+        "density": "Density"
+      },
+      "density": {
+        "compact": "Compact",
+        "comfortable": "Comfortable"
+      }
+    },
+    "bahasa": {
+      "label": "Language",
+      "summary": "Application interface language.",
+      "fields": {
+        "language": "Application Language"
+      }
+    },
+    "akun": {
+      "label": "Accounts & Users",
+      "summary": "Manage librarian and admin accounts, reset password.",
+      "table": {
+        "username": "Username",
+        "fullName": "Full Name",
+        "role": "Role",
+        "status": "Status",
+        "lastLogin": "Last Login",
+        "actions": "Actions"
+      },
+      "addUser": "Add User",
+      "editUser": "Edit User",
+      "resetPassword": "Reset Password",
+      "newPassword": "New Password",
+      "active": "Active",
+      "inactive": "Inactive",
+      "feedback": {
+        "createSuccess": "User created.",
+        "updateSuccess": "User updated.",
+        "deleteSuccess": "User deleted.",
+        "passwordReset": "Password reset."
+      },
+      "delete": {
+        "title": "Delete user \"{{name}}\"?",
+        "description": "The user will no longer be able to log in once deleted."
+      }
+    },
+    "hakAkses": {
+      "label": "Permissions",
+      "summary": "Permission matrix per role (admin, librarian).",
+      "roles": {
+        "admin": "Admin",
+        "pustakawan": "Librarian"
+      },
+      "areas": {
+        "anggota": "Members",
+        "buku": "Books",
+        "peminjaman": "Loans",
+        "pengembalian": "Returns",
+        "kunjungan": "Visits",
+        "laporan": "Reports",
+        "settings": "Settings",
+        "audit_log": "Audit Log"
+      },
+      "actions": {
+        "view": "View",
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete"
+      },
+      "saveSuccess": "Permission matrix saved."
+    },
+    "backup": {
+      "label": "Backup & Restore",
+      "summary": "Backup database, schedule, restore from file."
+    },
+    "sinkronisasi": {
+      "label": "Synchronization",
+      "summary": "Optional Google Sheets sync.",
+      "fields": {
+        "enabled": "Enable sync",
+        "spreadsheetId": "Spreadsheet ID",
+        "apiKey": "API Key",
+        "lastSync": "Last sync"
+      },
+      "syncNow": "Sync now",
+      "syncSuccess": "Sync succeeded.",
+      "syncError": "Sync failed."
+    },
+    "auditLog": {
+      "label": "Audit Log",
+      "summary": "History of user actions on application data.",
+      "filter": {
+        "user": "User",
+        "action": "Action",
+        "entity": "Entity",
+        "from": "From",
+        "to": "To"
+      },
+      "table": {
+        "timestamp": "Timestamp",
+        "user": "User",
+        "action": "Action",
+        "entity": "Entity",
+        "entityId": "ID",
+        "detail": "Detail"
+      },
+      "empty": "No records yet."
+    },
+    "tentang": {
+      "label": "About",
+      "summary": "Application version, credits, manual link.",
+      "version": "Version",
+      "credits": "Credits",
+      "creditsValue": "alvi arts / vwrks",
+      "openManual": "Open Manual",
+      "openRepo": "GitHub Repository",
+      "license": "License"
+    }
+  }
 }

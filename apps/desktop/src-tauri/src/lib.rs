@@ -94,6 +94,17 @@ pub fn run() {
             commands::kta::kta_template_update,
             commands::kta::kta_template_delete,
             commands::kta::kta_template_set_default,
+            commands::settings::settings_get_many,
+            commands::settings::settings_set_many,
+            commands::settings::settings_users_list,
+            commands::settings::settings_users_create,
+            commands::settings::settings_users_update,
+            commands::settings::settings_users_delete,
+            commands::settings::settings_users_reset_password,
+            commands::settings::settings_permissions_get,
+            commands::settings::settings_permissions_save,
+            commands::settings::settings_audit_log_query,
+            commands::manual::open_manual,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")
