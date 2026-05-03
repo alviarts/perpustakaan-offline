@@ -114,6 +114,7 @@ fn seed_master_data(conn: &Connection) -> AppResult<()> {
         .map(|_| ())
     })?;
     seed_bahasa_if_empty(conn)?;
+    seed_ddc_if_empty(conn)?;
     Ok(())
 }
 
@@ -185,6 +186,36 @@ fn seed_bahasa_if_empty(conn: &Connection) -> AppResult<()> {
         )?;
     }
     log::info!("seeded {} default bahasa rows", BAHASA_SEED.len());
+    Ok(())
+}
+
+/// Dewey Decimal Classification — 10 main classes (000-900). Indonesian
+/// labels match the conventions used by Indonesian school libraries (BUG-004).
+const DDC_MAIN_CLASSES: &[(&str, &str)] = &[
+    ("000", "Karya Umum"),
+    ("100", "Filsafat & Psikologi"),
+    ("200", "Agama"),
+    ("300", "Ilmu Sosial"),
+    ("400", "Bahasa"),
+    ("500", "Sains Murni"),
+    ("600", "Teknologi & Sains Terapan"),
+    ("700", "Kesenian, Hiburan, Olahraga"),
+    ("800", "Sastra"),
+    ("900", "Sejarah & Geografi"),
+];
+
+fn seed_ddc_if_empty(conn: &Connection) -> AppResult<()> {
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM ddc", [], |row| row.get(0))?;
+    if count > 0 {
+        return Ok(());
+    }
+    for (kode, deskripsi) in DDC_MAIN_CLASSES {
+        conn.execute(
+            "INSERT INTO ddc (kode, deskripsi, parent, depth) VALUES (?1, ?2, NULL, 0)",
+            rusqlite::params![kode, deskripsi],
+        )?;
+    }
+    log::info!("seeded {} default DDC main classes", DDC_MAIN_CLASSES.len());
     Ok(())
 }
 
@@ -381,5 +412,98 @@ mod tests {
             .query_row("SELECT nama FROM kta_templates", [], |r| r.get(0))
             .unwrap();
         assert_eq!(nama, "Custom");
+    }
+
+    #[test]
+    fn fresh_install_seeds_ten_ddc_main_classes() {
+        let conn = fresh_conn();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 10);
+    }
+
+    #[test]
+    fn ddc_seed_includes_canonical_kode_and_deskripsi() {
+        let conn = fresh_conn();
+        let mut stmt = conn
+            .prepare("SELECT kode, deskripsi FROM ddc ORDER BY kode")
+            .unwrap();
+        let rows: Vec<(String, String)> = stmt
+            .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+            .unwrap()
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .unwrap();
+        let kodes: Vec<&str> = rows.iter().map(|(k, _)| k.as_str()).collect();
+        assert_eq!(
+            kodes,
+            vec![
+                "000", "100", "200", "300", "400", "500", "600", "700", "800", "900",
+            ],
+        );
+        // Spot-check a couple of descriptions to guard against a future
+        // careless edit reordering or rewriting the array.
+        let by_kode: std::collections::HashMap<&str, &str> = rows
+            .iter()
+            .map(|(k, d)| (k.as_str(), d.as_str()))
+            .collect();
+        assert_eq!(by_kode.get("000").copied(), Some("Karya Umum"));
+        assert_eq!(by_kode.get("400").copied(), Some("Bahasa"));
+        assert_eq!(by_kode.get("900").copied(), Some("Sejarah & Geografi"));
+    }
+
+    #[test]
+    fn ddc_seed_rows_are_main_classes_at_depth_zero() {
+        let conn = fresh_conn();
+        let depths: Vec<i64> = conn
+            .prepare("SELECT depth FROM ddc")
+            .unwrap()
+            .query_map([], |r| r.get::<_, i64>(0))
+            .unwrap()
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .unwrap();
+        assert!(depths.iter().all(|d| *d == 0));
+        let parent_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM ddc WHERE parent IS NOT NULL",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(parent_count, 0);
+    }
+
+    #[test]
+    fn ddc_seed_is_idempotent_across_runs() {
+        let conn = fresh_conn();
+        run_migrations(&conn).unwrap();
+        run_migrations(&conn).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 10);
+    }
+
+    #[test]
+    fn ddc_seed_skips_when_user_already_has_rows() {
+        // Simulate a v1.0.0 user who manually inserted DDC entries before
+        // upgrading. Seeding must NOT duplicate or override them.
+        let conn = fresh_conn();
+        conn.execute("DELETE FROM ddc", []).unwrap();
+        conn.execute(
+            "INSERT INTO ddc (kode, deskripsi, parent, depth)
+             VALUES ('CUSTOM', 'My local class', NULL, 0)",
+            [],
+        )
+        .unwrap();
+        seed_ddc_if_empty(&conn).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        let kode: String = conn
+            .query_row("SELECT kode FROM ddc", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(kode, "CUSTOM");
     }
 }
