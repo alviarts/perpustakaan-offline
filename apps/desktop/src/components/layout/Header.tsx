@@ -30,8 +30,81 @@ const ROUTE_LABELS: Record<string, string> = {
   '/settings': 'common:menu.settings',
 };
 
+/**
+ * Labels for sub-routes (depth >= 2). Keyed by the full pathname so we can
+ * pick out exact matches first; for dynamic segments like `/anggota/$id`
+ * (e.g. `/anggota/42`) we fall back to a heuristic.
+ */
+const SUB_ROUTE_LABELS: Record<string, string> = {
+  '/anggota/new': 'anggota:breadcrumb.new',
+  '/anggota/cetak-kta': 'anggota:breadcrumb.cetakKta',
+  '/buku/new': 'buku:breadcrumb.new',
+  '/peminjaman/new': 'peminjaman:breadcrumb.new',
+  '/laporan/grafik': 'laporan:nav.grafik',
+  '/laporan/top-peminjam': 'laporan:nav.topPeminjam',
+  '/laporan/top-buku': 'laporan:nav.topBuku',
+  '/laporan/kas': 'laporan:nav.kas',
+  '/laporan/backup': 'laporan:nav.backup',
+};
+
+/**
+ * Resolve a list of breadcrumb i18n keys for a pathname, e.g.
+ *   `/anggota/new` → ['common:menu.anggota', 'anggota:breadcrumb.new']
+ *   `/dashboard`   → ['common:menu.dashboard']
+ *   `/laporan/grafik` → ['common:menu.laporan', 'laporan:nav.grafik']
+ *
+ * The previous implementation only matched the full pathname against
+ * `ROUTE_LABELS`, so any deeper route fell back to `common:menu.dashboard`
+ * (BUG-006). This walks the path segment-by-segment so the section crumb is
+ * always correct, and adds a sub-segment crumb where one is known.
+ */
+export function resolveBreadcrumbKeys(pathname: string): string[] {
+  // Strip trailing slash and any query/hash already removed by the router.
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length === 0) return ['common:menu.dashboard'];
+
+  const sectionPath = `/${segments[0] ?? ''}`;
+  const sectionKey = ROUTE_LABELS[sectionPath];
+  if (!sectionKey) return ['common:menu.dashboard'];
+
+  const result = [sectionKey];
+  if (segments.length === 1) return result;
+
+  const fullPath = `/${segments.join('/')}`;
+  const exact = SUB_ROUTE_LABELS[fullPath];
+  if (exact) {
+    result.push(exact);
+    return result;
+  }
+
+  // Dynamic / parametric routes: e.g. `/anggota/42` (edit), `/buku/123`.
+  // We don't have the route-tree's staticData here, so fall back to a
+  // sensible "Edit" label when the next segment looks like an ID and we
+  // recognise the section.
+  const tail = segments[1] ?? '';
+  if (/^\d+$/.test(tail)) {
+    if (segments[0] === 'anggota') {
+      result.push('anggota:breadcrumb.edit');
+      return result;
+    }
+    if (segments[0] === 'buku') {
+      result.push('buku:breadcrumb.edit');
+      return result;
+    }
+    if (segments[0] === 'peminjaman') {
+      result.push('peminjaman:breadcrumb.detail');
+      return result;
+    }
+  }
+
+  // Unknown sub-route: surface the segment itself so the breadcrumb is at
+  // least informative rather than silently falling back to "Dashboard".
+  result.push(tail);
+  return result;
+}
+
 export function Header() {
-  const { t } = useTranslation(['common', 'auth']);
+  const { t } = useTranslation(['common', 'auth', 'anggota', 'buku', 'peminjaman', 'laporan']);
   const router = useRouter();
   const routerState = useRouterState();
   const user = useAuthStore((s) => s.user);
@@ -40,7 +113,10 @@ export function Header() {
   const [searchValue, setSearchValue] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const currentLabelKey = ROUTE_LABELS[routerState.location.pathname] ?? 'common:menu.dashboard';
+  const breadcrumbKeys = resolveBreadcrumbKeys(routerState.location.pathname);
+  const breadcrumbLabels = breadcrumbKeys.map((key) =>
+    key.includes(':') ? t(key) : key,
+  );
 
   // Ctrl+K / Cmd+K → focus search (placeholder; akan integrasi dengan global search di sesi 4+)
   useEffect(() => {
@@ -68,7 +144,7 @@ export function Header() {
       )}
     >
       {/* Breadcrumb / current section */}
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 text-sm" data-testid="header-breadcrumb">
         <Link
           to="/dashboard"
           className="text-muted-foreground hover:text-foreground"
@@ -76,8 +152,15 @@ export function Header() {
         >
           {identity.nama}
         </Link>
-        <span className="text-muted-foreground/50">/</span>
-        <span className="font-medium">{t(currentLabelKey)}</span>
+        {breadcrumbLabels.map((label, i) => {
+          const isLast = i === breadcrumbLabels.length - 1;
+          return (
+            <span key={`${label}-${i}`} className="flex items-center gap-2">
+              <span className="text-muted-foreground/50">/</span>
+              <span className={isLast ? 'font-medium' : 'text-muted-foreground'}>{label}</span>
+            </span>
+          );
+        })}
       </div>
 
       {/* Global search slot (Devin 4+ akan isi) */}

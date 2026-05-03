@@ -111,5 +111,9 @@
     "selectFirst": "Pilih peminjaman dari hasil pencarian",
     "allReturned": "Semua item sudah dikembalikan",
     "dendaPreview": "Terlambat {{count}} hari · Rp {{denda}}"
+  },
+  "breadcrumb": {
+    "new": "Pinjam Baru",
+    "detail": "Detail"
   }
 }

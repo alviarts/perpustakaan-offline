@@ -96,5 +96,9 @@
     "sumber": "Sumber",
     "eksemplarTitle": "Eksemplar ({{count}})",
     "eksemplarEmpty": "Belum ada eksemplar fisik."
+  },
+  "breadcrumb": {
+    "new": "Tambah",
+    "edit": "Edit"
   }
 }
