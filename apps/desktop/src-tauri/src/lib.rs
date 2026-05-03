@@ -74,6 +74,11 @@ pub fn run() {
             commands::kunjungan::kunjungan_create,
             commands::kunjungan::kunjungan_quick_stats,
             commands::kunjungan::kunjungan_delete,
+            commands::dashboard::dashboard_kpi,
+            commands::dashboard::dashboard_ddc_distribution,
+            commands::dashboard::dashboard_kunjungan_7d,
+            commands::dashboard::dashboard_top_peminjam,
+            commands::dashboard::dashboard_top_buku,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")

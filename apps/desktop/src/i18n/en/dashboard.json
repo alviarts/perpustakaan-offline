@@ -1,5 +1,36 @@
 {
   "title": "Dashboard",
-  "greeting": "Hi, {{name}}",
-  "placeholder": "Dashboard will be built in Devin Session 8 (revision #9)."
+  "greeting": "Hello, {{name}}",
+  "refreshed": "Real-time",
+  "loadError": "Failed to load data: {{msg}}",
+  "kpi": {
+    "anggota": "Total Members",
+    "buku": "Total Books",
+    "dipinjam": "Books On Loan"
+  },
+  "chart": {
+    "ddc": {
+      "title": "DDC Class Distribution",
+      "subtitle": "Main class breakdown of the collection"
+    },
+    "kunjungan": {
+      "title": "Visits Last 7 Days",
+      "subtitle": "Daily visit totals"
+    }
+  },
+  "featured": {
+    "peminjam": "Top Borrowers",
+    "peminjamHint": "5 most active members",
+    "buku": "Top Books",
+    "bukuHint": "5 most-borrowed titles",
+    "empty": "No data yet",
+    "unitPinjam": "loans",
+    "unitDipinjam": "times"
+  },
+  "empty": {
+    "title": "Start populating your library",
+    "subtitle": "Add members & books so the dashboard can show live statistics",
+    "ctaAnggota": "Add Member",
+    "ctaBuku": "Add Book"
+  }
 }

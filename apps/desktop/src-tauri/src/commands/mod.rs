@@ -1,6 +1,7 @@
 pub mod anggota;
 pub mod auth;
 pub mod buku;
+pub mod dashboard;
 pub mod identity;
 pub mod kunjungan;
 pub mod master_data;
