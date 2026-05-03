@@ -83,4 +83,74 @@
   #root {
     height: 100%;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+/*
+ * Custom scrollbar (revisi #26).
+ *
+ * Auto-fade behaviour: thumbs are nearly invisible at rest and fade in
+ * while the user is hovering or actively scrolling. Falls back to the
+ * native scrollbar in browsers that don't support `::-webkit-scrollbar`
+ * (e.g. Firefox uses the `scrollbar-color` shorthand below).
+ */
+@layer utilities {
+  html {
+    scrollbar-color: hsl(var(--muted-foreground) / 0.35) transparent;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.18);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 9999px;
+    transition:
+      background-color 200ms ease-out,
+      opacity 200ms ease-out;
+  }
+
+  *:hover > ::-webkit-scrollbar-thumb,
+  *:focus-within > ::-webkit-scrollbar-thumb,
+  body:hover ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.45);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.65);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/*
+ * Density modifier (revisi #24 — Settings → Tampilan).
+ *
+ * `data-density="compact"` shrinks vertical paddings on table rows and
+ * list items by ~30 % to give back screen real-estate on small monitors.
+ */
+:root[data-density='compact'] {
+  --row-py: 0.375rem;
+}
+:root[data-density='comfortable'],
+:root:not([data-density]) {
+  --row-py: 0.625rem;
 }

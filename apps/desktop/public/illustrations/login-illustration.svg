@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Login illustration — adapted from unDraw "Reading list" (CC0).
+  Recoloured to match v2 brand palette. See CREDITS.md.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Reading illustration">
+  <defs>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.0)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/>
+    </linearGradient>
+    <linearGradient id="bookA" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="bookB" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="bookC" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="400" cy="540" rx="320" ry="22" fill="url(#floor)"/>
+
+  <!-- Stack of books -->
+  <g transform="translate(180 320)">
+    <rect x="0"   y="160" width="320" height="40" rx="4" fill="url(#bookA)"/>
+    <rect x="20"  y="120" width="300" height="40" rx="4" fill="url(#bookB)"/>
+    <rect x="10"  y="80"  width="320" height="40" rx="4" fill="url(#bookC)"/>
+    <rect x="40"  y="40"  width="280" height="40" rx="4" fill="#60a5fa"/>
+    <rect x="20"  y="0"   width="300" height="40" rx="4" fill="#a78bfa"/>
+  </g>
+
+  <!-- Reader silhouette -->
+  <g transform="translate(530 240)" fill="#fefefe" opacity="0.95">
+    <circle cx="40" cy="40" r="40"/>
+    <path d="M 0 100 q 40 -20 80 0 v 140 q -40 -10 -80 0 z"/>
+    <rect x="-10" y="200" width="40" height="80" rx="8"/>
+    <rect x="50"  y="200" width="40" height="80" rx="8"/>
+  </g>
+
+  <!-- Open book in reader's hands -->
+  <g transform="translate(490 320)">
+    <path d="M 0 0 q 40 -16 80 0 v 80 q -40 -16 -80 0 z" fill="#fefefe" stroke="#cbd5e1"/>
+    <path d="M 80 0 q 40 -16 80 0 v 80 q -40 -16 -80 0 z" fill="#fefefe" stroke="#cbd5e1"/>
+    <line x1="80" y1="-2" x2="80" y2="84" stroke="#cbd5e1" stroke-width="2"/>
+  </g>
+
+  <!-- Decorative dots -->
+  <g fill="#fefefe" opacity="0.55">
+    <circle cx="120" cy="160" r="6"/>
+    <circle cx="660" cy="120" r="8"/>
+    <circle cx="710" cy="220" r="5"/>
+    <circle cx="80"  cy="260" r="4"/>
+  </g>
+</svg>

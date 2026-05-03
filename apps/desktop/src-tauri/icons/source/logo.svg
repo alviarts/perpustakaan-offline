@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Perpustakaan Offline — app icon.
+  alvi arts / vwrks · MIT licensed.
+
+  A stylised open book with the Indonesian Garuda silhouette tucked inside,
+  set on a deep-blue gradient that matches the v2 brand palette
+  (`#0b1e3f` → `#1d4ed8`). Kept geometrically simple so it renders crisply
+  at 16×16 in the Windows taskbar.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Perpustakaan Offline">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0b1e3f"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fefefe"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="garuda" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="32" y="32" width="960" height="960" rx="180" fill="url(#bg)"/>
+
+  <!-- Open book base shadow -->
+  <path d="M180 720 Q512 690 844 720 L844 800 Q512 778 180 800 Z" fill="#000" opacity="0.18"/>
+
+  <!-- Left page -->
+  <path d="M180 320 Q360 290 506 340 L506 760 Q360 720 180 752 Z" fill="url(#page)" stroke="#cbd5e1" stroke-width="6"/>
+  <!-- Right page -->
+  <path d="M844 320 Q664 290 518 340 L518 760 Q664 720 844 752 Z" fill="url(#page)" stroke="#cbd5e1" stroke-width="6"/>
+
+  <!-- Spine -->
+  <rect x="500" y="316" width="24" height="450" rx="6" fill="#94a3b8"/>
+
+  <!-- Page lines (left) -->
+  <g fill="#475569" opacity="0.55">
+    <rect x="220" y="380" width="260" height="14" rx="6"/>
+    <rect x="220" y="430" width="240" height="14" rx="6"/>
+    <rect x="220" y="480" width="260" height="14" rx="6"/>
+    <rect x="220" y="530" width="200" height="14" rx="6"/>
+  </g>
+  <!-- Page lines (right) -->
+  <g fill="#475569" opacity="0.55">
+    <rect x="544" y="380" width="260" height="14" rx="6"/>
+    <rect x="544" y="430" width="240" height="14" rx="6"/>
+    <rect x="544" y="480" width="260" height="14" rx="6"/>
+    <rect x="544" y="530" width="220" height="14" rx="6"/>
+  </g>
+
+  <!-- Garuda mark (stylised eight-rayed sun + wings) -->
+  <g transform="translate(512 232)" fill="url(#garuda)">
+    <circle r="56"/>
+    <g>
+      <rect x="-8" y="-104" width="16" height="40" rx="4"/>
+      <rect x="-8" y="64" width="16" height="40" rx="4"/>
+      <rect x="-104" y="-8" width="40" height="16" rx="4"/>
+      <rect x="64" y="-8" width="40" height="16" rx="4"/>
+      <rect x="-78" y="-78" width="40" height="16" rx="4" transform="rotate(45)"/>
+      <rect x="-78" y="62" width="40" height="16" rx="4" transform="rotate(45)"/>
+      <rect x="38" y="-78" width="40" height="16" rx="4" transform="rotate(45)"/>
+      <rect x="38" y="62" width="40" height="16" rx="4" transform="rotate(45)"/>
+    </g>
+  </g>
+</svg>
