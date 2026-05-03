@@ -158,22 +158,27 @@ export function Login() {
           </motion.div>
         </div>
 
-        {/* Right: gradient + illustration placeholder */}
+        {/* Right: gradient + illustration */}
         <div className="relative hidden overflow-hidden md:block">
           <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-primary/40" />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="relative flex h-full flex-col items-center justify-center p-12 text-primary-foreground"
+            className="relative flex h-full flex-col items-center justify-center gap-8 p-12 text-primary-foreground"
           >
-            <BookOpen className="h-32 w-32 opacity-90" strokeWidth={1.25} />
-            <p className="mt-8 max-w-sm text-center text-lg font-medium opacity-95">
-              {t('common:tagline')}
-            </p>
-            <p className="mt-2 text-xs opacity-70">
-              Hero illustration akan diganti high-res asset di Devin Session 12 (revisi #6).
-            </p>
+            <img
+              src="/illustrations/login-illustration.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-72 w-full max-w-md object-contain drop-shadow-xl"
+            />
+            <div className="flex flex-col items-center gap-2 text-center">
+              <BookOpen className="h-10 w-10 opacity-80" strokeWidth={1.5} />
+              <p className="max-w-sm text-lg font-medium opacity-95">
+                {t('common:tagline')}
+              </p>
+            </div>
           </motion.div>
         </div>
       </div>

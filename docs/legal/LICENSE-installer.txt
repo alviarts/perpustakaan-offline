@@ -1,0 +1,63 @@
+PERPUSTAKAAN OFFLINE v2
+======================================================================
+Sistem Manajemen Perpustakaan Offline-First
+Built with care by  alvi arts / vwrks
+
+----------------------------------------------------------------------
+Pre-installation notice / Pemberitahuan sebelum instalasi
+----------------------------------------------------------------------
+
+Aplikasi ini dirilis dengan lisensi MIT (lihat di bawah).
+This application is released under the MIT License (text below).
+
+Dengan melanjutkan instalasi, Anda setuju dengan syarat-syarat lisensi
+berikut. Perpustakaan Offline TIDAK mengirimkan data apa pun ke server
+luar — semua data peminjaman, anggota, dan buku tersimpan di komputer
+ini saja.
+
+By proceeding with the installation you agree to the license terms
+below. Perpustakaan Offline does NOT send any data to external servers
+— all loan, member, and book data stays on this computer.
+
+----------------------------------------------------------------------
+Credits
+----------------------------------------------------------------------
+
+  Author    : alvi arts
+  Studio    : vwrks
+  Repo      : https://github.com/alviarts/perpustakaan-offline
+  Manual    : Tersedia di menu "?" setelah instalasi.
+
+----------------------------------------------------------------------
+MIT License
+----------------------------------------------------------------------
+
+Copyright (c) 2026 alvi arts
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+----------------------------------------------------------------------
+Bundled third-party software
+----------------------------------------------------------------------
+
+This installer ships a copy of the WebView2 Runtime (Microsoft) and
+Tauri 2 / Rust standard library binaries, each redistributed under
+their respective open-source licenses. Full third-party attribution is
+listed at:  https://github.com/alviarts/perpustakaan-offline/blob/main/THIRD-PARTY.md
