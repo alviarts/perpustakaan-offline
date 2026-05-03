@@ -12,7 +12,7 @@
 
 #define MyAppName "Perpustakaan Offline"
 #define MyAppShortName "PerpustakaanOffline"
-#define MyAppVersion "0.5.3"
+#define MyAppVersion "0.6.0"
 #define MyAppPublisher "alviarts"
 #define MyAppURL "https://github.com/alviarts/perpustakaan-offline"
 #define MyAppExeName "PerpustakaanOffline.exe"

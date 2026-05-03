@@ -142,6 +142,8 @@ class ProsesDialog(ctk.CTkToplevel):
         self.geometry("420x340")
         self.transient(parent)
         self.grab_set()
+        from perpustakaan.gui.animations import apply_dialog_appear
+        apply_dialog_appear(self)
 
         ctk.CTkLabel(self, text=title, font=ctk.CTkFont(size=15, weight="bold")).pack(pady=(14, 6))
 

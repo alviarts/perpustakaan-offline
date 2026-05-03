@@ -127,6 +127,8 @@ class MainWindow(ctk.CTk):
         # Tooltip sederhana via Tk hint.
         with contextlib.suppress(Exception):
             self._help_btn.configure(cursor="hand2")
+        from perpustakaan.gui.animations import attach_press_feedback
+        attach_press_feedback(self._help_btn)
 
     def _on_help_clicked(self) -> None:
         from perpustakaan.gui.tour import start_menu_tour
@@ -157,6 +159,8 @@ class MainWindow(ctk.CTk):
         self._change_pw_btn.lift()
         with contextlib.suppress(Exception):
             self._change_pw_btn.configure(cursor="hand2")
+        from perpustakaan.gui.animations import attach_press_feedback
+        attach_press_feedback(self._change_pw_btn)
 
     def _on_change_password_clicked(self) -> None:
         from perpustakaan.gui.password_dialogs import ChangePasswordDialog
@@ -192,6 +196,8 @@ class MainWindow(ctk.CTk):
         self._bantuan_btn.lift()
         with contextlib.suppress(Exception):
             self._bantuan_btn.configure(cursor="hand2")
+        from perpustakaan.gui.animations import attach_press_feedback
+        attach_press_feedback(self._bantuan_btn)
 
     def _on_bantuan_clicked(self) -> None:
         from perpustakaan.gui.help_dialog import HelpDialog
@@ -406,13 +412,56 @@ class MainWindow(ctk.CTk):
         if hasattr(view, "on_show"):
             with contextlib.suppress(Exception):
                 view.on_show()
+
+        # Smooth color cross-fade untuk active indicator + button bg
+        # (PR-V4a v0.6.0). Hanya old & new yang dianimasikan supaya tidak
+        # men-trigger ratusan animasi parallel.
+        from perpustakaan.gui.animations import animate_color
+        previous_key = self._current_view_key
         for k, btn in self._buttons.items():
-            if k == key:
-                btn.configure(fg_color=("#eef2ff", "#312e81"))
+            target = ("#eef2ff", "#312e81") if k == key else ("transparent", "transparent")
+            # Untuk transition smooth, animasikan hanya kalau ini old or new.
+            if k == key and k != previous_key:
+                with contextlib.suppress(Exception):
+                    animate_color(
+                        btn, attr="fg_color",
+                        color_from=("#ffffff", "#0b1120"),
+                        color_to=target,
+                        duration_ms=160,
+                    )
+            elif k == previous_key and k != key:
+                with contextlib.suppress(Exception):
+                    animate_color(
+                        btn, attr="fg_color",
+                        color_from=("#eef2ff", "#312e81"),
+                        color_to=("#ffffff", "#0b1120"),
+                        duration_ms=160,
+                    )
+                # Final state setelah animasi: transparent (CTk butuh literal)
+                btn.after(180, lambda b=btn: b.configure(fg_color="transparent"))
             else:
-                btn.configure(fg_color="transparent")
+                btn.configure(fg_color=target if k == key else "transparent")
+
         for k, ind in self._sidebar_indicators.items():
-            ind.configure(fg_color="#6366f1" if k == key else "transparent")
+            if k == key and k != previous_key:
+                with contextlib.suppress(Exception):
+                    animate_color(
+                        ind, attr="fg_color",
+                        color_from=("#cbd5e1", "#475569"),
+                        color_to="#6366f1",
+                        duration_ms=180,
+                    )
+            elif k == previous_key and k != key:
+                with contextlib.suppress(Exception):
+                    animate_color(
+                        ind, attr="fg_color",
+                        color_from="#6366f1",
+                        color_to=("#f8fafc", "#0b1120"),
+                        duration_ms=160,
+                    )
+                ind.after(180, lambda i=ind: i.configure(fg_color="transparent"))
+            else:
+                ind.configure(fg_color="#6366f1" if k == key else "transparent")
         # Pastikan kontrol global tetap di atas setelah view di-raise.
         with contextlib.suppress(Exception):
             self._theme_btn.lift()

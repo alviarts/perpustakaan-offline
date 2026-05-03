@@ -268,12 +268,47 @@ class StatCard(ctk.CTkFrame):
         self._value_lbl.configure(text=value)
 
     def _on_enter(self, _event: Any = None) -> None:
-        with contextlib.suppress(Exception):
-            self.configure(fg_color=self._HOVER_FG, border_color=self._HOVER_BORDER)
+        # Smooth color cross-fade saat hover (PR-V4a v0.6.0). Lebih halus
+        # dibanding instant configure karena interpolasi RGB lewat
+        # animations.animate_color.
+        try:
+            from perpustakaan.gui.animations import animate_color
+
+            animate_color(
+                self, attr="fg_color",
+                color_from=self._NORMAL_FG, color_to=self._HOVER_FG,
+                duration_ms=140,
+            )
+            animate_color(
+                self, attr="border_color",
+                color_from=self._NORMAL_BORDER, color_to=self._HOVER_BORDER,
+                duration_ms=140,
+            )
+        except Exception:  # noqa: BLE001 — fallback tanpa animasi
+            with contextlib.suppress(Exception):
+                self.configure(
+                    fg_color=self._HOVER_FG, border_color=self._HOVER_BORDER,
+                )
 
     def _on_leave(self, _event: Any = None) -> None:
-        with contextlib.suppress(Exception):
-            self.configure(fg_color=self._NORMAL_FG, border_color=self._NORMAL_BORDER)
+        try:
+            from perpustakaan.gui.animations import animate_color
+
+            animate_color(
+                self, attr="fg_color",
+                color_from=self._HOVER_FG, color_to=self._NORMAL_FG,
+                duration_ms=140,
+            )
+            animate_color(
+                self, attr="border_color",
+                color_from=self._HOVER_BORDER, color_to=self._NORMAL_BORDER,
+                duration_ms=140,
+            )
+        except Exception:  # noqa: BLE001 — fallback tanpa animasi
+            with contextlib.suppress(Exception):
+                self.configure(
+                    fg_color=self._NORMAL_FG, border_color=self._NORMAL_BORDER,
+                )
 
 
 # ---------------------------------------------------------------------------
