@@ -12,8 +12,14 @@ from perpustakaan.gui import effects
 
 
 def _has_tk() -> bool:
+    """Cek tkinter + customtkinter kedua-duanya available.
+
+    CI env minimal (tanpa customtkinter di pip install) tidak boleh fail \u2014
+    test ini di-skip otomatis. Smoke test Xvfb tetap cover full UI.
+    """
     try:
         import tkinter  # noqa: F401
+        import customtkinter  # noqa: F401
         return True
     except Exception:  # noqa: BLE001
         return False
