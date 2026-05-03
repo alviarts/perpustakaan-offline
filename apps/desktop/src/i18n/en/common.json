@@ -1,0 +1,50 @@
+{
+  "appName": "Perpustakaan Offline",
+  "tagline": "Modern, Offline-first Library Management System",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "reset": "Reset",
+    "refresh": "Refresh",
+    "print": "Print",
+    "export": "Export",
+    "import": "Import"
+  },
+  "placeholders": {
+    "search": "Search…"
+  },
+  "states": {
+    "loading": "Loading…",
+    "empty": "No data yet.",
+    "error": "Something went wrong."
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "anggota": "Members",
+    "buku": "Books",
+    "peminjaman": "Loans",
+    "pengembalian": "Returns",
+    "kunjungan": "Visits",
+    "laporan": "Reports",
+    "kta": "Member Card",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Follow System"
+  },
+  "language": {
+    "label": "Language",
+    "id": "Indonesia",
+    "en": "English"
+  }
+}

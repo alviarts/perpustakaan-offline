@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Perpustakaan Offline</title>
+    <script>
+      // Anti-FOUC: apply theme before React mounts (revisi #8)
+      (function () {
+        try {
+          var stored = localStorage.getItem('po:theme');
+          var theme = stored ? JSON.parse(stored).state.theme : 'system';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var resolved = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
+          if (resolved === 'dark') document.documentElement.classList.add('dark');
+        } catch (_e) {
+          /* ignore */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

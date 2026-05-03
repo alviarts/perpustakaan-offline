@@ -1,0 +1,5 @@
+{
+  "title": "Dashboard",
+  "greeting": "Hi, {{name}}",
+  "placeholder": "Dashboard will be built in Devin Session 8 (revision #9)."
+}
