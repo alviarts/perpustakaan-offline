@@ -50,7 +50,6 @@ jobs:
 
       - name: Generate TanStack Router route tree
         run: pnpm --filter @perpustakaan/desktop exec tsr generate
-        continue-on-error: true
 
       - name: Lint
         run: pnpm lint
