@@ -1,5 +1,115 @@
 {
   "title": "Peminjaman",
+  "subtitle": "Kelola transaksi peminjaman buku",
   "aturanPeminjaman": "Aturan Peminjaman",
-  "placeholder": "Modul peminjaman akan dibuat di Devin Session 6."
+  "searchPlaceholder": "Cari nomor / nama / NIS",
+  "empty": "Belum ada peminjaman",
+  "stats": {
+    "aktifHariIni": "Aktif Hari Ini",
+    "aktifMingguIni": "Aktif Minggu Ini",
+    "totalAktif": "Total Aktif",
+    "overdue": "Terlambat"
+  },
+  "status": {
+    "all": "Semua",
+    "dipinjam": "Dipinjam",
+    "sebagian": "Sebagian Kembali",
+    "dikembalikan": "Selesai",
+    "terlambat": "Terlambat",
+    "hilang": "Hilang"
+  },
+  "itemStatus": {
+    "dipinjam": "Dipinjam",
+    "dikembalikan": "Dikembalikan",
+    "hilang": "Hilang"
+  },
+  "filter": {
+    "status": "Status"
+  },
+  "column": {
+    "nomor": "No. Pinjam",
+    "anggota": "Anggota",
+    "tanggal": "Tgl Pinjam",
+    "jatuhTempo": "Jatuh Tempo",
+    "tanggalKembali": "Tgl Kembali",
+    "item": "Item",
+    "status": "Status",
+    "denda": "Denda"
+  },
+  "action": {
+    "create": "Pinjam Baru",
+    "printNota": "Print Nota",
+    "return": "Kembalikan",
+    "returnSelected_one": "Kembalikan {{count}} item",
+    "returnSelected_other": "Kembalikan {{count}} item"
+  },
+  "form": {
+    "title": "Pinjam Baru",
+    "subtitle": "Pilih anggota & buku",
+    "anggota": "Anggota",
+    "anggotaPlaceholder": "Cari nama / NIS",
+    "buku": "Buku",
+    "bukuPlaceholder": "Tambah buku…",
+    "tanggal": "Tanggal",
+    "tanggalPinjam": "Tanggal Pinjam",
+    "tanggalJt": "Jatuh Tempo",
+    "catatan": "Catatan",
+    "catatanPlaceholder": "Opsional",
+    "submit": "Simpan & Pinjam"
+  },
+  "panel": {
+    "anggotaInfo": "Info Anggota",
+    "bukuInfo": "Info Buku",
+    "anggotaEmpty": "Pilih anggota terlebih dahulu",
+    "bukuEmpty": "Belum ada buku dipilih",
+    "aktif": "Aktif",
+    "overdue": "Terlambat",
+    "tersedia": "Tersedia",
+    "note": "Catatan",
+    "noteText": "Setelah submit, sistem otomatis mencatat kunjungan & mengurangi stok eksemplar.",
+    "printHint": "Print nota tersedia di halaman detail setelah submit."
+  },
+  "detail": {
+    "items": "Daftar Buku",
+    "anggota": "Anggota",
+    "tanggal": "Tanggal",
+    "denda": "Denda & Pembayaran",
+    "totalDenda": "Total Denda",
+    "totalBayar": "Total Bayar",
+    "bayar": "Bayar Denda"
+  },
+  "confirm": {
+    "returnTitle": "Konfirmasi Pengembalian",
+    "returnDesc": "Item terpilih akan ditandai sebagai dikembalikan. Lanjutkan?"
+  },
+  "feedback": {
+    "loadError": "Gagal memuat peminjaman",
+    "created": "Peminjaman berhasil dibuat",
+    "createError": "Gagal membuat peminjaman",
+    "returned": "Pengembalian berhasil",
+    "returnError": "Gagal mengembalikan",
+    "printError": "Gagal mencetak nota"
+  },
+  "error": {
+    "anggotaRequired": "Pilih anggota terlebih dahulu",
+    "bukuRequired": "Pilih minimal 1 buku",
+    "bukuMax": "Maksimum 10 buku per peminjaman",
+    "tanggalPinjam": "Tanggal pinjam wajib diisi",
+    "tanggalJt": "Tanggal jatuh tempo wajib diisi",
+    "jtBeforePinjam": "Jatuh tempo tidak boleh sebelum tanggal pinjam"
+  },
+  "pagination": {
+    "summary": "Halaman {{page}} dari {{total}} ({{count}} data)"
+  },
+  "pengembalian": {
+    "title": "Pengembalian",
+    "subtitle": "Cari peminjaman aktif lalu pilih item yang dikembalikan",
+    "search": "Cari Peminjaman Aktif",
+    "searchPlaceholder": "Nomor / nama / NIS",
+    "empty": "Tidak ada peminjaman aktif",
+    "detail": "Detail Pengembalian",
+    "selectFirst": "Pilih peminjaman dari hasil pencarian",
+    "allReturned": "Semua item sudah dikembalikan",
+    "dendaPreview": "Terlambat {{count}} hari · Rp {{denda}}"
+  }
 }

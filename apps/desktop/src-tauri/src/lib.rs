@@ -62,6 +62,14 @@ pub fn run() {
             commands::master_data::master_create,
             commands::master_data::master_update,
             commands::master_data::master_delete,
+            commands::peminjaman::peminjaman_list,
+            commands::peminjaman::peminjaman_get,
+            commands::peminjaman::peminjaman_create,
+            commands::peminjaman::peminjaman_kembalikan,
+            commands::peminjaman::peminjaman_quick_stats,
+            commands::peminjaman::pengembalian_search,
+            commands::peminjaman::anggota_summary,
+            commands::peminjaman::buku_summary,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build tauri app")

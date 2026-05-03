@@ -13,9 +13,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedPengembalianIndexRouteImport } from './routes/_authed/pengembalian/index'
+import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/peminjaman/index'
 import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index'
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
+import { Route as AuthedPeminjamanNewRouteImport } from './routes/_authed/peminjaman/new'
+import { Route as AuthedPeminjamanIdRouteImport } from './routes/_authed/peminjaman/$id'
 import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
 import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
@@ -40,6 +44,16 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedPengembalianIndexRoute = AuthedPengembalianIndexRouteImport.update({
+  id: '/pengembalian/',
+  path: '/pengembalian/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPeminjamanIndexRoute = AuthedPeminjamanIndexRouteImport.update({
+  id: '/peminjaman/',
+  path: '/peminjaman/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedBukuIndexRoute = AuthedBukuIndexRouteImport.update({
   id: '/buku/',
   path: '/buku/',
@@ -56,6 +70,16 @@ const AuthedSettingsMasterDataRoute =
     path: '/settings/master-data',
     getParentRoute: () => AuthedRoute,
   } as any)
+const AuthedPeminjamanNewRoute = AuthedPeminjamanNewRouteImport.update({
+  id: '/peminjaman/new',
+  path: '/peminjaman/new',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPeminjamanIdRoute = AuthedPeminjamanIdRouteImport.update({
+  id: '/peminjaman/$id',
+  path: '/peminjaman/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedBukuNewRoute = AuthedBukuNewRouteImport.update({
   id: '/buku/new',
   path: '/buku/new',
@@ -85,9 +109,13 @@ export interface FileRoutesByFullPath {
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
   '/buku/new': typeof AuthedBukuNewRoute
+  '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
+  '/peminjaman/new': typeof AuthedPeminjamanNewRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
   '/buku/': typeof AuthedBukuIndexRoute
+  '/peminjaman/': typeof AuthedPeminjamanIndexRoute
+  '/pengembalian/': typeof AuthedPengembalianIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,9 +125,13 @@ export interface FileRoutesByTo {
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
   '/buku/new': typeof AuthedBukuNewRoute
+  '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
+  '/peminjaman/new': typeof AuthedPeminjamanNewRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
   '/buku': typeof AuthedBukuIndexRoute
+  '/peminjaman': typeof AuthedPeminjamanIndexRoute
+  '/pengembalian': typeof AuthedPengembalianIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,9 +143,13 @@ export interface FileRoutesById {
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
   '/_authed/buku/$id': typeof AuthedBukuIdRoute
   '/_authed/buku/new': typeof AuthedBukuNewRoute
+  '/_authed/peminjaman/$id': typeof AuthedPeminjamanIdRoute
+  '/_authed/peminjaman/new': typeof AuthedPeminjamanNewRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
   '/_authed/buku/': typeof AuthedBukuIndexRoute
+  '/_authed/peminjaman/': typeof AuthedPeminjamanIndexRoute
+  '/_authed/pengembalian/': typeof AuthedPengembalianIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,9 +161,13 @@ export interface FileRouteTypes {
     | '/anggota/new'
     | '/buku/$id'
     | '/buku/new'
+    | '/peminjaman/$id'
+    | '/peminjaman/new'
     | '/settings/master-data'
     | '/anggota/'
     | '/buku/'
+    | '/peminjaman/'
+    | '/pengembalian/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -137,9 +177,13 @@ export interface FileRouteTypes {
     | '/anggota/new'
     | '/buku/$id'
     | '/buku/new'
+    | '/peminjaman/$id'
+    | '/peminjaman/new'
     | '/settings/master-data'
     | '/anggota'
     | '/buku'
+    | '/peminjaman'
+    | '/pengembalian'
   id:
     | '__root__'
     | '/'
@@ -150,9 +194,13 @@ export interface FileRouteTypes {
     | '/_authed/anggota/new'
     | '/_authed/buku/$id'
     | '/_authed/buku/new'
+    | '/_authed/peminjaman/$id'
+    | '/_authed/peminjaman/new'
     | '/_authed/settings/master-data'
     | '/_authed/anggota/'
     | '/_authed/buku/'
+    | '/_authed/peminjaman/'
+    | '/_authed/pengembalian/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -191,6 +239,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/pengembalian/': {
+      id: '/_authed/pengembalian/'
+      path: '/pengembalian'
+      fullPath: '/pengembalian/'
+      preLoaderRoute: typeof AuthedPengembalianIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/peminjaman/': {
+      id: '/_authed/peminjaman/'
+      path: '/peminjaman'
+      fullPath: '/peminjaman/'
+      preLoaderRoute: typeof AuthedPeminjamanIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/buku/': {
       id: '/_authed/buku/'
       path: '/buku'
@@ -210,6 +272,20 @@ declare module '@tanstack/react-router' {
       path: '/settings/master-data'
       fullPath: '/settings/master-data'
       preLoaderRoute: typeof AuthedSettingsMasterDataRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/peminjaman/new': {
+      id: '/_authed/peminjaman/new'
+      path: '/peminjaman/new'
+      fullPath: '/peminjaman/new'
+      preLoaderRoute: typeof AuthedPeminjamanNewRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/peminjaman/$id': {
+      id: '/_authed/peminjaman/$id'
+      path: '/peminjaman/$id'
+      fullPath: '/peminjaman/$id'
+      preLoaderRoute: typeof AuthedPeminjamanIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/buku/new': {
@@ -249,9 +325,13 @@ interface AuthedRouteChildren {
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
   AuthedBukuIdRoute: typeof AuthedBukuIdRoute
   AuthedBukuNewRoute: typeof AuthedBukuNewRoute
+  AuthedPeminjamanIdRoute: typeof AuthedPeminjamanIdRoute
+  AuthedPeminjamanNewRoute: typeof AuthedPeminjamanNewRoute
   AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
   AuthedAnggotaIndexRoute: typeof AuthedAnggotaIndexRoute
   AuthedBukuIndexRoute: typeof AuthedBukuIndexRoute
+  AuthedPeminjamanIndexRoute: typeof AuthedPeminjamanIndexRoute
+  AuthedPengembalianIndexRoute: typeof AuthedPengembalianIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -260,9 +340,13 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
   AuthedBukuIdRoute: AuthedBukuIdRoute,
   AuthedBukuNewRoute: AuthedBukuNewRoute,
+  AuthedPeminjamanIdRoute: AuthedPeminjamanIdRoute,
+  AuthedPeminjamanNewRoute: AuthedPeminjamanNewRoute,
   AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
   AuthedAnggotaIndexRoute: AuthedAnggotaIndexRoute,
   AuthedBukuIndexRoute: AuthedBukuIndexRoute,
+  AuthedPeminjamanIndexRoute: AuthedPeminjamanIndexRoute,
+  AuthedPengembalianIndexRoute: AuthedPengembalianIndexRoute,
 }
 
 const AuthedRouteWithChildren =
