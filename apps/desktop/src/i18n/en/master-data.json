@@ -1,0 +1,41 @@
+{
+  "title": "Master Data",
+  "subtitle": "Maintain reference data: DDC, category, language, major, class, and religion.",
+  "tabs": {
+    "ddc": "DDC",
+    "kategori": "Category",
+    "bahasa": "Language",
+    "jurusan": "Major",
+    "kelas": "Class",
+    "agama": "Religion"
+  },
+  "list": {
+    "searchPlaceholder": "Search name or code…",
+    "addNew": "Add",
+    "empty": "No data yet."
+  },
+  "columns": {
+    "kode": "Code",
+    "nama": "Name",
+    "deskripsi": "Description"
+  },
+  "dialog": {
+    "newTitle": "Add Entry",
+    "editTitle": "Edit Entry"
+  },
+  "delete": {
+    "title": "Delete \"{{name}}\"?",
+    "description": "This action cannot be undone."
+  },
+  "feedback": {
+    "loadError": "Failed to load master data.",
+    "namaRequired": "Name is required.",
+    "kodeRequired": "Code is required.",
+    "createSuccess": "Entry created.",
+    "createError": "Failed to create entry.",
+    "updateSuccess": "Entry updated.",
+    "updateError": "Failed to update entry.",
+    "deleteSuccess": "Entry deleted.",
+    "deleteError": "Failed to delete entry."
+  }
+}

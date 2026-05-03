@@ -35,6 +35,8 @@ export interface DataTableProps<T> {
   onSortChange?: (next: { key: string; dir: 'asc' | 'desc' } | null) => void;
   onRowClick?: (row: T) => void;
   className?: string;
+  /** Highlight the row whose key matches (e.g. for master/detail selection). */
+  highlightedRowKey?: React.Key;
   /** `data-testid` for e2e tests on the surrounding container. */
   'data-testid'?: string;
 }
@@ -49,6 +51,7 @@ export function DataTable<T>({
   onSortChange,
   onRowClick,
   className,
+  highlightedRowKey,
   ...rest
 }: DataTableProps<T>): React.ReactElement {
   const handleSort = (col: DataTableColumn<T>): void => {
@@ -117,21 +120,29 @@ export function DataTable<T>({
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row) => (
-              <TableRow
-                key={rowKey(row)}
-                className={onRowClick ? 'cursor-pointer' : undefined}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-              >
-                {columns.map((col) => (
-                  <TableCell key={col.key} className={col.cellClassName}>
-                    {col.cell
-                      ? col.cell(row)
-                      : String((row as unknown as Record<string, unknown>)[col.key] ?? '')}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            rows.map((row) => {
+              const key = rowKey(row);
+              const highlighted = highlightedRowKey != null && key === highlightedRowKey;
+              return (
+                <TableRow
+                  key={key}
+                  className={cn(
+                    onRowClick && 'cursor-pointer',
+                    highlighted && 'bg-muted/60 hover:bg-muted/60',
+                  )}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  data-state={highlighted ? 'selected' : undefined}
+                >
+                  {columns.map((col) => (
+                    <TableCell key={col.key} className={col.cellClassName}>
+                      {col.cell
+                        ? col.cell(row)
+                        : String((row as unknown as Record<string, unknown>)[col.key] ?? '')}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

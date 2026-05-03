@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 04)
+last_updated: 2026-05-03 (session 05)
 ```
 
 ## Sessions
@@ -54,15 +54,15 @@ sessions:
   - id: 4
     title: Data Anggota CRUD + autocomplete + live search + dropdown styled
     status: COMPLETED
-    pr: PENDING
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/39
     completed_at: 2026-05-03
     dependencies: [3]
 
   - id: 5
     title: Data Buku CRUD + Master Data komplit (DDC/Kategori/Bahasa/Jurusan/Kelas/Agama)
-    status: PENDING
+    status: COMPLETED
     pr: PENDING
-    completed_at: null
+    completed_at: 2026-05-03
     dependencies: [4]
 
   - id: 6
@@ -122,8 +122,8 @@ sessions:
 | 1 | Bootstrap migration plan | COMPLETED | [#35](https://github.com/alviarts/perpustakaan-offline/pull/35) | 2026-05-03 | — |
 | 2 | Scaffolding + login + theme + i18n | COMPLETED | [#36](https://github.com/alviarts/perpustakaan-offline/pull/36) | 2026-05-03 | 1 |
 | 3 | Layout shell (sidebar + header + responsive) | COMPLETED | [#37](https://github.com/alviarts/perpustakaan-offline/pull/37) | 2026-05-03 | 2 |
-| 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | PENDING | 2026-05-03 | 3 |
-| 5 | Data Buku CRUD + Master Data | PENDING | PENDING | — | 4 |
+| 4 | Data Anggota CRUD + search/autocomplete | COMPLETED | [#39](https://github.com/alviarts/perpustakaan-offline/pull/39) | 2026-05-03 | 3 |
+| 5 | Data Buku CRUD + Master Data | COMPLETED | PENDING | 2026-05-03 | 4 |
 | 6 | Peminjaman + Pengembalian | PENDING | PENDING | — | 4, 5 |
 | 7 | Kunjungan redesign | PENDING | PENDING | — | 3, 4 |
 | 8 | Dashboard modern + charts | PENDING | PENDING | — | 4, 5, 6 |
