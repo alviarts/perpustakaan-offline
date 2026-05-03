@@ -141,7 +141,7 @@ export function PeminjamanList() {
         <div>
           <h1 className="text-2xl font-semibold">{t('peminjaman:title', { defaultValue: 'Peminjaman' })}</h1>
           <p className="text-sm text-muted-foreground">
-            {t('peminjaman:subtitle', { defaultValue: 'Kelola transaksi peminjaman buku' })}
+            {t('peminjaman:subtitle', { defaultValue: 'Kelola aturan peminjaman buku' })}
           </p>
         </div>
         <Button asChild>

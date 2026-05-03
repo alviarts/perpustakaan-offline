@@ -47,7 +47,7 @@
     "saldo": "Closing Balance",
     "breakdown": "Income Breakdown",
     "breakdownHint": "Manual / fines / lost / capital",
-    "detail": "Transactions"
+    "detail": "Cash Detail"
   },
   "backup": {
     "title": "Database Backup",

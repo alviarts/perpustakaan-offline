@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 10)
+last_updated: 2026-05-03 (session 11)
 ```
 
 ## Sessions
@@ -105,9 +105,9 @@ sessions:
 
   - id: 11
     title: Settings comprehensive 12 kategori + manual book HTML + audit wording final
-    status: PENDING
-    pr: PENDING
-    completed_at: null
+    status: COMPLETED
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/48
+    completed_at: 2026-05-03
     dependencies: [3, 5, 10]
 
   - id: 12
@@ -132,7 +132,7 @@ sessions:
 | 8 | Dashboard modern + charts | COMPLETED | [#45](https://github.com/alviarts/perpustakaan-offline/pull/45) | 2026-05-03 | 4, 5, 6 |
 | 9 | Laporan komplit | COMPLETED | [#46](https://github.com/alviarts/perpustakaan-offline/pull/46) | 2026-05-03 | 6, 7, 8 |
 | 10 | KTA system | COMPLETED | [#47](https://github.com/alviarts/perpustakaan-offline/pull/47) | 2026-05-03 | 4, 5 |
-| 11 | Settings 12 kategori + manual + audit wording | PENDING | PENDING | — | 3, 5, 10 |
+| 11 | Settings 12 kategori + manual + audit wording | COMPLETED | [#48](https://github.com/alviarts/perpustakaan-offline/pull/48) | 2026-05-03 | 3, 5, 10 |
 | 12 | Installer MSI + release v1.0.0 | PENDING | PENDING | — | 2..11 |
 
 ## Update protocol

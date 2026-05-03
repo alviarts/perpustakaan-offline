@@ -12,16 +12,28 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedLaporanRouteImport } from './routes/_authed/laporan'
 import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
 import { Route as AuthedPengembalianIndexRouteImport } from './routes/_authed/pengembalian/index'
 import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/peminjaman/index'
 import { Route as AuthedLaporanIndexRouteImport } from './routes/_authed/laporan/index'
 import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index'
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
+import { Route as AuthedSettingsTentangRouteImport } from './routes/_authed/settings/tentang'
+import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/settings/tampilan'
+import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
 import { Route as AuthedSettingsKtaRouteImport } from './routes/_authed/settings/kta'
+import { Route as AuthedSettingsIdentitasRouteImport } from './routes/_authed/settings/identitas'
+import { Route as AuthedSettingsHakAksesRouteImport } from './routes/_authed/settings/hak-akses'
+import { Route as AuthedSettingsBahasaRouteImport } from './routes/_authed/settings/bahasa'
+import { Route as AuthedSettingsBackupRouteImport } from './routes/_authed/settings/backup'
+import { Route as AuthedSettingsAuditLogRouteImport } from './routes/_authed/settings/audit-log'
+import { Route as AuthedSettingsAturanPeminjamanRouteImport } from './routes/_authed/settings/aturan-peminjaman'
+import { Route as AuthedSettingsAkunRouteImport } from './routes/_authed/settings/akun'
 import { Route as AuthedPeminjamanNewRouteImport } from './routes/_authed/peminjaman/new'
 import { Route as AuthedPeminjamanIdRouteImport } from './routes/_authed/peminjaman/$id'
 import { Route as AuthedLaporanTopPeminjamRouteImport } from './routes/_authed/laporan/top-peminjam'
@@ -49,6 +61,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedLaporanRoute = AuthedLaporanRouteImport.update({
   id: '/laporan',
   path: '/laporan',
@@ -63,6 +80,11 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedSettingsRoute,
 } as any)
 const AuthedPengembalianIndexRoute = AuthedPengembalianIndexRouteImport.update({
   id: '/pengembalian/',
@@ -89,16 +111,68 @@ const AuthedAnggotaIndexRoute = AuthedAnggotaIndexRouteImport.update({
   path: '/anggota/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedSettingsTentangRoute = AuthedSettingsTentangRouteImport.update({
+  id: '/tentang',
+  path: '/tentang',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsTampilanRoute = AuthedSettingsTampilanRouteImport.update({
+  id: '/tampilan',
+  path: '/tampilan',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsSinkronisasiRoute =
+  AuthedSettingsSinkronisasiRouteImport.update({
+    id: '/sinkronisasi',
+    path: '/sinkronisasi',
+    getParentRoute: () => AuthedSettingsRoute,
+  } as any)
 const AuthedSettingsMasterDataRoute =
   AuthedSettingsMasterDataRouteImport.update({
-    id: '/settings/master-data',
-    path: '/settings/master-data',
-    getParentRoute: () => AuthedRoute,
+    id: '/master-data',
+    path: '/master-data',
+    getParentRoute: () => AuthedSettingsRoute,
   } as any)
 const AuthedSettingsKtaRoute = AuthedSettingsKtaRouteImport.update({
-  id: '/settings/kta',
-  path: '/settings/kta',
-  getParentRoute: () => AuthedRoute,
+  id: '/kta',
+  path: '/kta',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsIdentitasRoute = AuthedSettingsIdentitasRouteImport.update({
+  id: '/identitas',
+  path: '/identitas',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsHakAksesRoute = AuthedSettingsHakAksesRouteImport.update({
+  id: '/hak-akses',
+  path: '/hak-akses',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsBahasaRoute = AuthedSettingsBahasaRouteImport.update({
+  id: '/bahasa',
+  path: '/bahasa',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsBackupRoute = AuthedSettingsBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsAuditLogRoute = AuthedSettingsAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsAturanPeminjamanRoute =
+  AuthedSettingsAturanPeminjamanRouteImport.update({
+    id: '/aturan-peminjaman',
+    path: '/aturan-peminjaman',
+    getParentRoute: () => AuthedSettingsRoute,
+  } as any)
+const AuthedSettingsAkunRoute = AuthedSettingsAkunRouteImport.update({
+  id: '/akun',
+  path: '/akun',
+  getParentRoute: () => AuthedSettingsRoute,
 } as any)
 const AuthedPeminjamanNewRoute = AuthedPeminjamanNewRouteImport.update({
   id: '/peminjaman/new',
@@ -168,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
   '/laporan': typeof AuthedLaporanRouteWithChildren
+  '/settings': typeof AuthedSettingsRouteWithChildren
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
@@ -180,13 +255,24 @@ export interface FileRoutesByFullPath {
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/akun': typeof AuthedSettingsAkunRoute
+  '/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
+  '/settings/audit-log': typeof AuthedSettingsAuditLogRoute
+  '/settings/backup': typeof AuthedSettingsBackupRoute
+  '/settings/bahasa': typeof AuthedSettingsBahasaRoute
+  '/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
+  '/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/settings/kta': typeof AuthedSettingsKtaRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
+  '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
+  '/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/settings/tentang': typeof AuthedSettingsTentangRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
   '/buku/': typeof AuthedBukuIndexRoute
   '/laporan/': typeof AuthedLaporanIndexRoute
   '/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/pengembalian/': typeof AuthedPengembalianIndexRoute
+  '/settings/': typeof AuthedSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -205,13 +291,24 @@ export interface FileRoutesByTo {
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/akun': typeof AuthedSettingsAkunRoute
+  '/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
+  '/settings/audit-log': typeof AuthedSettingsAuditLogRoute
+  '/settings/backup': typeof AuthedSettingsBackupRoute
+  '/settings/bahasa': typeof AuthedSettingsBahasaRoute
+  '/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
+  '/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/settings/kta': typeof AuthedSettingsKtaRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
+  '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
+  '/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/settings/tentang': typeof AuthedSettingsTentangRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
   '/buku': typeof AuthedBukuIndexRoute
   '/laporan': typeof AuthedLaporanIndexRoute
   '/peminjaman': typeof AuthedPeminjamanIndexRoute
   '/pengembalian': typeof AuthedPengembalianIndexRoute
+  '/settings': typeof AuthedSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -221,6 +318,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/kunjungan': typeof AuthedKunjunganRoute
   '/_authed/laporan': typeof AuthedLaporanRouteWithChildren
+  '/_authed/settings': typeof AuthedSettingsRouteWithChildren
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
   '/_authed/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
@@ -233,13 +331,24 @@ export interface FileRoutesById {
   '/_authed/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/_authed/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/_authed/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/_authed/settings/akun': typeof AuthedSettingsAkunRoute
+  '/_authed/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
+  '/_authed/settings/audit-log': typeof AuthedSettingsAuditLogRoute
+  '/_authed/settings/backup': typeof AuthedSettingsBackupRoute
+  '/_authed/settings/bahasa': typeof AuthedSettingsBahasaRoute
+  '/_authed/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
+  '/_authed/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/_authed/settings/kta': typeof AuthedSettingsKtaRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
+  '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
+  '/_authed/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/_authed/settings/tentang': typeof AuthedSettingsTentangRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
   '/_authed/buku/': typeof AuthedBukuIndexRoute
   '/_authed/laporan/': typeof AuthedLaporanIndexRoute
   '/_authed/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/_authed/pengembalian/': typeof AuthedPengembalianIndexRoute
+  '/_authed/settings/': typeof AuthedSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -249,6 +358,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/kunjungan'
     | '/laporan'
+    | '/settings'
     | '/anggota/$id'
     | '/anggota/cetak-kta'
     | '/anggota/new'
@@ -261,13 +371,24 @@ export interface FileRouteTypes {
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/akun'
+    | '/settings/aturan-peminjaman'
+    | '/settings/audit-log'
+    | '/settings/backup'
+    | '/settings/bahasa'
+    | '/settings/hak-akses'
+    | '/settings/identitas'
     | '/settings/kta'
     | '/settings/master-data'
+    | '/settings/sinkronisasi'
+    | '/settings/tampilan'
+    | '/settings/tentang'
     | '/anggota/'
     | '/buku/'
     | '/laporan/'
     | '/peminjaman/'
     | '/pengembalian/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -286,13 +407,24 @@ export interface FileRouteTypes {
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/akun'
+    | '/settings/aturan-peminjaman'
+    | '/settings/audit-log'
+    | '/settings/backup'
+    | '/settings/bahasa'
+    | '/settings/hak-akses'
+    | '/settings/identitas'
     | '/settings/kta'
     | '/settings/master-data'
+    | '/settings/sinkronisasi'
+    | '/settings/tampilan'
+    | '/settings/tentang'
     | '/anggota'
     | '/buku'
     | '/laporan'
     | '/peminjaman'
     | '/pengembalian'
+    | '/settings'
   id:
     | '__root__'
     | '/'
@@ -301,6 +433,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/kunjungan'
     | '/_authed/laporan'
+    | '/_authed/settings'
     | '/_authed/anggota/$id'
     | '/_authed/anggota/cetak-kta'
     | '/_authed/anggota/new'
@@ -313,13 +446,24 @@ export interface FileRouteTypes {
     | '/_authed/laporan/top-peminjam'
     | '/_authed/peminjaman/$id'
     | '/_authed/peminjaman/new'
+    | '/_authed/settings/akun'
+    | '/_authed/settings/aturan-peminjaman'
+    | '/_authed/settings/audit-log'
+    | '/_authed/settings/backup'
+    | '/_authed/settings/bahasa'
+    | '/_authed/settings/hak-akses'
+    | '/_authed/settings/identitas'
     | '/_authed/settings/kta'
     | '/_authed/settings/master-data'
+    | '/_authed/settings/sinkronisasi'
+    | '/_authed/settings/tampilan'
+    | '/_authed/settings/tentang'
     | '/_authed/anggota/'
     | '/_authed/buku/'
     | '/_authed/laporan/'
     | '/_authed/peminjaman/'
     | '/_authed/pengembalian/'
+    | '/_authed/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -351,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/settings': {
+      id: '/_authed/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/laporan': {
       id: '/_authed/laporan'
       path: '/laporan'
@@ -371,6 +522,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/': {
+      id: '/_authed/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthedSettingsIndexRouteImport
+      parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/pengembalian/': {
       id: '/_authed/pengembalian/'
@@ -407,19 +565,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAnggotaIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/settings/tentang': {
+      id: '/_authed/settings/tentang'
+      path: '/tentang'
+      fullPath: '/settings/tentang'
+      preLoaderRoute: typeof AuthedSettingsTentangRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/tampilan': {
+      id: '/_authed/settings/tampilan'
+      path: '/tampilan'
+      fullPath: '/settings/tampilan'
+      preLoaderRoute: typeof AuthedSettingsTampilanRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/sinkronisasi': {
+      id: '/_authed/settings/sinkronisasi'
+      path: '/sinkronisasi'
+      fullPath: '/settings/sinkronisasi'
+      preLoaderRoute: typeof AuthedSettingsSinkronisasiRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
     '/_authed/settings/master-data': {
       id: '/_authed/settings/master-data'
-      path: '/settings/master-data'
+      path: '/master-data'
       fullPath: '/settings/master-data'
       preLoaderRoute: typeof AuthedSettingsMasterDataRouteImport
-      parentRoute: typeof AuthedRoute
+      parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/settings/kta': {
       id: '/_authed/settings/kta'
-      path: '/settings/kta'
+      path: '/kta'
       fullPath: '/settings/kta'
       preLoaderRoute: typeof AuthedSettingsKtaRouteImport
-      parentRoute: typeof AuthedRoute
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/identitas': {
+      id: '/_authed/settings/identitas'
+      path: '/identitas'
+      fullPath: '/settings/identitas'
+      preLoaderRoute: typeof AuthedSettingsIdentitasRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/hak-akses': {
+      id: '/_authed/settings/hak-akses'
+      path: '/hak-akses'
+      fullPath: '/settings/hak-akses'
+      preLoaderRoute: typeof AuthedSettingsHakAksesRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/bahasa': {
+      id: '/_authed/settings/bahasa'
+      path: '/bahasa'
+      fullPath: '/settings/bahasa'
+      preLoaderRoute: typeof AuthedSettingsBahasaRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/backup': {
+      id: '/_authed/settings/backup'
+      path: '/backup'
+      fullPath: '/settings/backup'
+      preLoaderRoute: typeof AuthedSettingsBackupRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/audit-log': {
+      id: '/_authed/settings/audit-log'
+      path: '/audit-log'
+      fullPath: '/settings/audit-log'
+      preLoaderRoute: typeof AuthedSettingsAuditLogRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/aturan-peminjaman': {
+      id: '/_authed/settings/aturan-peminjaman'
+      path: '/aturan-peminjaman'
+      fullPath: '/settings/aturan-peminjaman'
+      preLoaderRoute: typeof AuthedSettingsAturanPeminjamanRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/akun': {
+      id: '/_authed/settings/akun'
+      path: '/akun'
+      fullPath: '/settings/akun'
+      preLoaderRoute: typeof AuthedSettingsAkunRouteImport
+      parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/peminjaman/new': {
       id: '/_authed/peminjaman/new'
@@ -530,10 +758,47 @@ const AuthedLaporanRouteWithChildren = AuthedLaporanRoute._addFileChildren(
   AuthedLaporanRouteChildren,
 )
 
+interface AuthedSettingsRouteChildren {
+  AuthedSettingsAkunRoute: typeof AuthedSettingsAkunRoute
+  AuthedSettingsAturanPeminjamanRoute: typeof AuthedSettingsAturanPeminjamanRoute
+  AuthedSettingsAuditLogRoute: typeof AuthedSettingsAuditLogRoute
+  AuthedSettingsBackupRoute: typeof AuthedSettingsBackupRoute
+  AuthedSettingsBahasaRoute: typeof AuthedSettingsBahasaRoute
+  AuthedSettingsHakAksesRoute: typeof AuthedSettingsHakAksesRoute
+  AuthedSettingsIdentitasRoute: typeof AuthedSettingsIdentitasRoute
+  AuthedSettingsKtaRoute: typeof AuthedSettingsKtaRoute
+  AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
+  AuthedSettingsSinkronisasiRoute: typeof AuthedSettingsSinkronisasiRoute
+  AuthedSettingsTampilanRoute: typeof AuthedSettingsTampilanRoute
+  AuthedSettingsTentangRoute: typeof AuthedSettingsTentangRoute
+  AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
+}
+
+const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
+  AuthedSettingsAkunRoute: AuthedSettingsAkunRoute,
+  AuthedSettingsAturanPeminjamanRoute: AuthedSettingsAturanPeminjamanRoute,
+  AuthedSettingsAuditLogRoute: AuthedSettingsAuditLogRoute,
+  AuthedSettingsBackupRoute: AuthedSettingsBackupRoute,
+  AuthedSettingsBahasaRoute: AuthedSettingsBahasaRoute,
+  AuthedSettingsHakAksesRoute: AuthedSettingsHakAksesRoute,
+  AuthedSettingsIdentitasRoute: AuthedSettingsIdentitasRoute,
+  AuthedSettingsKtaRoute: AuthedSettingsKtaRoute,
+  AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
+  AuthedSettingsSinkronisasiRoute: AuthedSettingsSinkronisasiRoute,
+  AuthedSettingsTampilanRoute: AuthedSettingsTampilanRoute,
+  AuthedSettingsTentangRoute: AuthedSettingsTentangRoute,
+  AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
+}
+
+const AuthedSettingsRouteWithChildren = AuthedSettingsRoute._addFileChildren(
+  AuthedSettingsRouteChildren,
+)
+
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedKunjunganRoute: typeof AuthedKunjunganRoute
   AuthedLaporanRoute: typeof AuthedLaporanRouteWithChildren
+  AuthedSettingsRoute: typeof AuthedSettingsRouteWithChildren
   AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
   AuthedAnggotaCetakKtaRoute: typeof AuthedAnggotaCetakKtaRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
@@ -541,8 +806,6 @@ interface AuthedRouteChildren {
   AuthedBukuNewRoute: typeof AuthedBukuNewRoute
   AuthedPeminjamanIdRoute: typeof AuthedPeminjamanIdRoute
   AuthedPeminjamanNewRoute: typeof AuthedPeminjamanNewRoute
-  AuthedSettingsKtaRoute: typeof AuthedSettingsKtaRoute
-  AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
   AuthedAnggotaIndexRoute: typeof AuthedAnggotaIndexRoute
   AuthedBukuIndexRoute: typeof AuthedBukuIndexRoute
   AuthedPeminjamanIndexRoute: typeof AuthedPeminjamanIndexRoute
@@ -553,6 +816,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedKunjunganRoute: AuthedKunjunganRoute,
   AuthedLaporanRoute: AuthedLaporanRouteWithChildren,
+  AuthedSettingsRoute: AuthedSettingsRouteWithChildren,
   AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
   AuthedAnggotaCetakKtaRoute: AuthedAnggotaCetakKtaRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
@@ -560,8 +824,6 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBukuNewRoute: AuthedBukuNewRoute,
   AuthedPeminjamanIdRoute: AuthedPeminjamanIdRoute,
   AuthedPeminjamanNewRoute: AuthedPeminjamanNewRoute,
-  AuthedSettingsKtaRoute: AuthedSettingsKtaRoute,
-  AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
   AuthedAnggotaIndexRoute: AuthedAnggotaIndexRoute,
   AuthedBukuIndexRoute: AuthedBukuIndexRoute,
   AuthedPeminjamanIndexRoute: AuthedPeminjamanIndexRoute,

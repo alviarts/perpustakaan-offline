@@ -117,7 +117,7 @@ export function LaporanKas() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
-              {t('laporan:kas.detail', { defaultValue: 'Detail Transaksi' })}
+              {t('laporan:kas.detail', { defaultValue: 'Detail Kas' })}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
