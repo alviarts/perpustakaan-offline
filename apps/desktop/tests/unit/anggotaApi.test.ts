@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { anggotaApi } from '@/lib/anggota';
+import { masterDataApi } from '@/lib/masterData';
 
 describe('anggotaApi (browser mock)', () => {
   beforeEach(() => {
@@ -62,5 +63,82 @@ describe('anggotaApi (browser mock)', () => {
     ]);
     expect(result.inserted).toBe(1);
     expect(result.errors.length + result.skipped).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('anggotaApi.loadFormOptions (BUG-003)', () => {
+  beforeEach(() => {
+    anggotaApi.__resetMock();
+    masterDataApi.__resetMock();
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    anggotaApi.__resetMock();
+    masterDataApi.__resetMock();
+  });
+
+  it('exposes the seeded master kelas list on a fresh DB', async () => {
+    // Fresh anggota mock has no rows, so anggota_distinct returns []. The
+    // dropdown must still show the master-seeded kelas.
+    anggotaApi.__resetMock();
+    const opts = await anggotaApi.loadFormOptions();
+    expect(opts.kelas.length).toBeGreaterThan(0);
+    expect(opts.kelas).toContain('7A');
+  });
+
+  it('exposes the seeded master jurusan list on a fresh DB', async () => {
+    anggotaApi.__resetMock();
+    const opts = await anggotaApi.loadFormOptions();
+    expect(opts.jurusan).toEqual(
+      expect.arrayContaining(['IPA', 'IPS', 'Bahasa']),
+    );
+  });
+
+  it('exposes the seeded master agama list on a fresh DB', async () => {
+    anggotaApi.__resetMock();
+    const opts = await anggotaApi.loadFormOptions();
+    expect(opts.agama).toEqual(
+      expect.arrayContaining(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha']),
+    );
+  });
+
+  it('merges existing free-text values from anggota_distinct on top of master', async () => {
+    // Simulate a user who already saved an anggota with a custom non-master
+    // kelas; that value must still appear in the dropdown.
+    await anggotaApi.create({
+      kodeAnggota: 'BUG3-1',
+      nama: 'Legacy Member',
+      kelas: 'Z9-CUSTOM',
+      jurusan: 'CUSTOM-JUR',
+    });
+    const opts = await anggotaApi.loadFormOptions();
+    expect(opts.kelas).toContain('Z9-CUSTOM');
+    expect(opts.jurusan).toContain('CUSTOM-JUR');
+    // Master entries are still present.
+    expect(opts.kelas).toContain('7A');
+  });
+
+  it('reflects newly added master kelas immediately', async () => {
+    await masterDataApi.create('kelas', { nama: '13-EXP' });
+    const opts = await anggotaApi.loadFormOptions();
+    expect(opts.kelas).toContain('13-EXP');
+  });
+
+  it('returns deduplicated, alphabetically sorted lists', async () => {
+    // Save an anggota with a kelas that's already in master so we exercise
+    // the dedupe path (master + distinct must collapse to a single entry).
+    await anggotaApi.create({
+      kodeAnggota: 'BUG3-DEDUPE',
+      nama: 'Dedupe Member',
+      kelas: '7A',
+    });
+    const opts = await anggotaApi.loadFormOptions();
+    const occurrences = opts.kelas.filter((k) => k === '7A').length;
+    expect(occurrences).toBe(1);
+    const kelasSet = new Set(opts.kelas);
+    expect(kelasSet.size).toBe(opts.kelas.length);
+    const sorted = [...opts.kelas].sort((a, b) => a.localeCompare(b));
+    expect(opts.kelas).toEqual(sorted);
   });
 });
