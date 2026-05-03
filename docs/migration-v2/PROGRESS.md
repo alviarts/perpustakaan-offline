@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2025-05-03
+last_updated: 2026-05-03
 ```
 
 ## Sessions
@@ -31,7 +31,7 @@ sessions:
   - id: 1
     title: Bootstrap migration plan (no kode, dokumen saja)
     status: IN_PROGRESS
-    pr: PENDING
+    pr: https://github.com/alviarts/perpustakaan-offline/pull/35
     completed_at: null
     dependencies: []
 
@@ -117,7 +117,7 @@ sessions:
 
 | # | Session | Status | PR | Completed | Deps |
 |---|---|---|---|---|---|
-| 1 | Bootstrap migration plan | IN_PROGRESS | PENDING | — | — |
+| 1 | Bootstrap migration plan | IN_PROGRESS | [#35](https://github.com/alviarts/perpustakaan-offline/pull/35) | — | — |
 | 2 | Scaffolding + login + theme + i18n | PENDING | PENDING | — | 1 |
 | 3 | Layout shell (sidebar + header + responsive) | PENDING | PENDING | — | 2 |
 | 4 | Data Anggota CRUD + search/autocomplete | PENDING | PENDING | — | 3 |
