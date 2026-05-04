@@ -28,8 +28,7 @@ sesuai urutan menu di sidebar.
 13. [Audit Log Viewer](#audit-log-viewer)
 14. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
 15. [Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)](#cetak-kta-label-barcode-bebas-pustaka-nota)
-16. [Sync ke Google Sheets (Opsional)](#sync-ke-google-sheets-opsional)
-17. [Troubleshooting](#troubleshooting)
+16. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -65,7 +64,6 @@ Klik **"More info"** → **"Run anyway"**. Ini normal untuk software open-source
 
 ## Login & Akun
 
-![Layar Login](screenshots/01-login.png)
 
 **Login default pertama kali:**
 
@@ -159,7 +157,6 @@ diingat untuk sesi-sesi berikutnya.
 
 ## Dashboard
 
-![Dashboard](screenshots/02-dashboard.png)
 
 Tampilan ringkasan operasional perpustakaan saat ini:
 
@@ -207,7 +204,6 @@ Klik **Muat Ulang** kalau ada perubahan di komputer lain (misal multi-user).
 
 ## Master Data — Anggota
 
-![Layar Anggota](screenshots/03-anggota.png)
 
 ### Tambah Anggota
 
@@ -220,7 +216,6 @@ Klik **Muat Ulang** kalau ada perubahan di komputer lain (misal multi-user).
 
 ### Naik Kelas (Batch)
 
-![Dialog Naik Kelas](screenshots/14-naik-kelas.png)
 
 Fitur untuk **menaikkan kelas semua siswa secara batch** di awal tahun ajaran baru — tidak perlu edit satu-satu.
 
@@ -273,7 +268,6 @@ Fitur untuk **menaikkan kelas semua siswa secara batch** di awal tahun ajaran ba
 
 ## Master Data — Buku
 
-![Layar Buku](screenshots/04-buku.png)
 
 ### Tambah Buku
 
@@ -307,7 +301,6 @@ Kalau di data ada banyak variasi nama penerbit (misal "Erlangga", "PT Erlangga",
 
 ## Transaksi — Kunjungan
 
-![Layar Kunjungan](screenshots/05-kunjungan.png)
 
 Kunjungan = catatan siapa datang ke perpus (untuk laporan grafik kunjungan).
 
@@ -332,7 +325,6 @@ Klik baris di tabel → tombol **Hapus**. Jarang dipakai (biasanya kunjungan dib
 
 ## Transaksi — Peminjaman
 
-![Layar Peminjaman](screenshots/06-peminjaman.png)
 
 ### Alur Peminjaman
 
@@ -364,7 +356,6 @@ Otomatis = **tanggal pinjam + lama_pinjam_default** (default 7 hari, ubah di Set
 
 ## Transaksi — Pengembalian
 
-![Layar Pengembalian](screenshots/07-pengembalian.png)
 
 ### Alur Pengembalian
 
@@ -390,7 +381,6 @@ Kalau buku tidak dikembalikan dan dianggap hilang:
 
 ## Laporan
 
-![Layar Laporan](screenshots/08-laporan.png)
 
 ### Tab "Backup / Reset"
 
@@ -405,7 +395,6 @@ Kalau buku tidak dikembalikan dan dianggap hilang:
 
 ### Tab "Grafik Kunjungan"
 
-![Grafik Kunjungan](screenshots/12-laporan-grafik.png)
 
 - Pilih **tahun** + **bulan** → grafik bar/line per hari
 - Pilih hanya **tahun** → grafik per bulan (12 bar)
@@ -413,7 +402,6 @@ Kalau buku tidak dikembalikan dan dianggap hilang:
 
 ### Tab "Top Peminjam" / "Top Buku"
 
-![Top Peminjam](screenshots/13-laporan-top-peminjam.png)
 
 - Daftar anggota dengan jumlah peminjaman terbanyak (sortable)
 - Daftar buku paling sering dipinjam
@@ -429,7 +417,6 @@ Kalau buku tidak dikembalikan dan dianggap hilang:
 
 ## Setting
 
-![Layar Setting](screenshots/09-setting.png)
 
 ### Tab "Identitas Perpustakaan"
 
@@ -464,7 +451,6 @@ Customize teks & layout KTA: header, footer, font, ukuran. Preview real-time.
 
 ### Tab "Bahasa & Tema"
 
-![Setting Bahasa](screenshots/10-setting-bahasa.png)
 
 | Field   | Pilihan                                |
 |---------|----------------------------------------|
@@ -473,13 +459,6 @@ Customize teks & layout KTA: header, footer, font, ukuran. Preview real-time.
 | Warna   | `blue` / `green` / `dark-blue`         |
 
 Klik **Simpan** → UI berubah live tanpa restart.
-
-### Tab "Sync / Export"
-
-![Setting Sync](screenshots/11-setting-sync.png)
-
-Untuk export manual ke Google Sheets — lihat
-[Sync ke Google Sheets](#sync-ke-google-sheets-opsional).
 
 ### Tab "Backup Terjadwal" (v0.4.0)
 
@@ -528,7 +507,6 @@ Lihat bab terpisah: [Audit Log Viewer](#audit-log-viewer).
 
 ## Tools — Cek Data Ganda
 
-![Cek Data Ganda](screenshots/16-tools-duplikat.png)
 
 Fitur baru di v0.3.0 untuk **mendeteksi data duplikat** yang sering terjadi saat
 import Excel berulang atau saat dua operator input data anggota/buku yang sama
@@ -558,7 +536,6 @@ Setelah kamu identifikasi grup duplikat:
 
 ## Audit Log Viewer
 
-![Audit Log](screenshots/17-audit-log.png)
 
 Fitur baru di v0.3.0 untuk **melihat riwayat aksi siapa-melakukan-apa-kapan**. Akses
 lewat **Setting → tab Audit Log**.
@@ -645,7 +622,6 @@ PerpustakaanOffline/
 
 ### Cetak Nota Peminjaman / Pengembalian (v0.3.0)
 
-![Konfirmasi Cetak Nota](screenshots/15-cetak-nota.png)
 
 Setelah simpan transaksi peminjaman atau pengembalian, aplikasi akan otomatis
 menampilkan dialog konfirmasi **"Cetak nota peminjaman?"** (atau **"Cetak nota
@@ -674,22 +650,6 @@ Isi nota:
 ### Tip: Barcode Scanner
 
 Scanner USB biasa cukup. Mode **HID Keyboard Wedge** (default scanner USB) — scan barcode = sama seperti ngetik kode + Enter. Cocok untuk semua field input di aplikasi.
-
----
-
-## Sync ke Google Sheets (Opsional)
-
-Aplikasi 100% offline by default. Kalau ingin **export manual** data ke Google Sheets pribadi (untuk view di browser dari mana saja, sharing dengan kepala sekolah, dll):
-
-**Lihat panduan lengkap:** [docs/google-sheets-setup.md](google-sheets-setup.md)
-
-Singkatnya:
-1. Setup OAuth client di Google Cloud Console (gratis)
-2. Download `client_secret.json` → letakkan di folder data aplikasi
-3. Setting → Sync / Export → klik **Login Google** (browser terbuka, login akun Google)
-4. Klik **Push ke Google Sheets** → semua data ter-export ke spreadsheet baru di Drive kamu
-
-> Sync 2-arah otomatis (Opsi A di roadmap) belum tersedia di v0.1; planning di v0.5.
 
 ---
 
