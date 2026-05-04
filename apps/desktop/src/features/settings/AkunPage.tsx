@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyRound, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,
@@ -266,44 +267,76 @@ export function AkunPage(): JSX.Element {
                   <td className="text-muted-foreground px-3 py-2">{fmtDate(u.lastLoginAt)}</td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openEdit(u)}
-                        aria-label="edit"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setResetting(u);
-                          setResetPw('');
-                        }}
-                        aria-label="reset"
-                      >
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openSecurity(u)}
-                        aria-label={t('sections.akun.security.action', {
-                          defaultValue: 'Pertanyaan Keamanan',
-                        })}
-                        data-testid={`akun-security-${u.id}`}
-                      >
-                        <KeyRound className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setDeleting(u)}
-                        aria-label="delete"
-                      >
-                        <Trash2 className="text-destructive h-3.5 w-3.5" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => openEdit(u)}
+                            aria-label={t('common:actions.edit', { defaultValue: 'Ubah' })}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t('common:actions.edit', { defaultValue: 'Ubah' })}
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setResetting(u);
+                              setResetPw('');
+                            }}
+                            aria-label={t('sections.akun.resetPassword', {
+                              defaultValue: 'Reset Password',
+                            })}
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t('sections.akun.resetPassword', { defaultValue: 'Reset Password' })}
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => openSecurity(u)}
+                            aria-label={t('sections.akun.security.action', {
+                              defaultValue: 'Pertanyaan Keamanan',
+                            })}
+                            data-testid={`akun-security-${u.id}`}
+                          >
+                            <KeyRound className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t('sections.akun.security.action', {
+                            defaultValue: 'Pertanyaan Keamanan',
+                          })}
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setDeleting(u)}
+                            aria-label={t('common:actions.delete', { defaultValue: 'Hapus' })}
+                          >
+                            <Trash2 className="text-destructive h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t('common:actions.delete', { defaultValue: 'Hapus' })}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

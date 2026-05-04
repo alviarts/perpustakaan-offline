@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useI18nStore, type Locale } from '@/stores/i18nStore';
 
 export function LanguageSwitcher() {
@@ -21,11 +22,16 @@ export function LanguageSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t('language.label')}>
-          <Globe className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label={t('language.label')}>
+              <Globe className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{t('language.label')}</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-40 animate-fade-in">
         {options.map(({ value, labelKey }) => (
           <DropdownMenuItem
