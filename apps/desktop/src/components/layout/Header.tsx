@@ -16,7 +16,6 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 import { useIdentityStore } from '@/stores/identityStore';
 import { logoutRequest } from '@/lib/auth';
-import { openManual } from '@/lib/manual';
 import { cn } from '@/lib/utils';
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -114,9 +113,7 @@ export function Header() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const breadcrumbKeys = resolveBreadcrumbKeys(routerState.location.pathname);
-  const breadcrumbLabels = breadcrumbKeys.map((key) =>
-    key.includes(':') ? t(key) : key,
-  );
+  const breadcrumbLabels = breadcrumbKeys.map((key) => (key.includes(':') ? t(key) : key));
 
   // Ctrl+K / Cmd+K → focus search (placeholder; akan integrasi dengan global search di sesi 4+)
   useEffect(() => {
@@ -140,7 +137,7 @@ export function Header() {
     <header
       data-testid="app-header"
       className={cn(
-        'flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4',
+        'border-border bg-background flex h-14 shrink-0 items-center gap-3 border-b px-4',
       )}
     >
       {/* Breadcrumb / current section */}
@@ -166,7 +163,7 @@ export function Header() {
       {/* Global search slot (Devin 4+ akan isi) */}
       <div className="ml-auto flex items-center gap-2">
         <div className="relative hidden md:block">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             ref={searchRef}
             type="search"
@@ -186,20 +183,19 @@ export function Header() {
             className="h-9 w-64 pl-8 pr-12"
             data-testid="header-search"
           />
-          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline">
+          <kbd className="border-border bg-muted text-muted-foreground pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border px-1.5 py-0.5 font-mono text-[10px] md:inline">
             ⌃K
           </kbd>
         </div>
 
-        <button
-          type="button"
+        <Link
+          to="/settings/manual"
           data-testid="header-manual"
           aria-label={t('common:menu.manualBook')}
-          className="hidden h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground md:flex"
-          onClick={() => void openManual(identity)}
+          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hidden h-9 w-9 items-center justify-center rounded-md md:flex"
         >
           <BookOpen className="h-4 w-4" />
-        </button>
+        </Link>
 
         <LanguageSwitcher />
         <ThemeSwitcher />
@@ -209,20 +205,18 @@ export function Header() {
             <button
               type="button"
               data-testid="user-menu"
-              className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm hover:bg-accent"
+              className="border-border hover:bg-accent flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+              <span className="bg-primary/15 text-primary flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
                 {(user?.fullName ?? '?').slice(0, 1).toUpperCase()}
               </span>
               <span className="hidden text-left md:block">
                 <span className="block text-xs font-medium leading-tight">
                   {user?.fullName ?? '—'}
                 </span>
-                <span className="block text-[10px] text-muted-foreground">
-                  {user?.role ?? ''}
-                </span>
+                <span className="text-muted-foreground block text-[10px]">{user?.role ?? ''}</span>
               </span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="text-muted-foreground h-4 w-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

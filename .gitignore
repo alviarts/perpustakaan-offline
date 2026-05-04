@@ -130,5 +130,4 @@ src-tauri/gen/
 # Tauri auto-generated
 apps/desktop/src-tauri/gen/
 
-# Generated manual book HTML (built by `pnpm --filter @perpustakaan/manual build`)
-apps/desktop/public/manual/
+

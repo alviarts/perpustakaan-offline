@@ -11,6 +11,7 @@ import {
   History,
   Info,
   BookText,
+  BookOpen,
 } from 'lucide-react';
 
 /**
@@ -122,11 +123,27 @@ export const SECTIONS: SectionDef[] = [
     keywords: ['audit log', 'riwayat', 'history', 'aksi', 'log'],
   },
   {
+    id: 'manual',
+    to: '/settings/manual',
+    i18nKey: 'manual',
+    Icon: BookOpen,
+    keywords: [
+      'manual',
+      'panduan',
+      'dokumentasi',
+      'documentation',
+      'help',
+      'bantuan',
+      'guide',
+      'how to',
+    ],
+  },
+  {
     id: 'tentang',
     to: '/settings/tentang',
     i18nKey: 'tentang',
     Icon: Info,
-    keywords: ['tentang', 'about', 'version', 'versi', 'manual', 'kredit', 'credits', 'github'],
+    keywords: ['tentang', 'about', 'version', 'versi', 'kredit', 'credits', 'github'],
   },
 ];
 
@@ -143,10 +160,7 @@ export interface SectionWithLabel extends SectionDef {
  * the resolved label, summary, and curated keywords list. Returns the original
  * order when `query` is empty so the navigation stays stable.
  */
-export function filterSections(
-  sections: SectionWithLabel[],
-  query: string,
-): SectionWithLabel[] {
+export function filterSections(sections: SectionWithLabel[], query: string): SectionWithLabel[] {
   const q = query.trim().toLowerCase();
   if (!q) return sections;
   return sections.filter((s) => {

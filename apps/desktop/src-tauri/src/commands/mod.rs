@@ -8,7 +8,6 @@ pub mod identity;
 pub mod kta;
 pub mod kunjungan;
 pub mod laporan;
-pub mod manual;
 pub mod master_data;
 pub mod peminjaman;
 pub mod settings;

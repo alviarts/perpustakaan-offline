@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { SECTIONS, filterSections, type SectionWithLabel } from '../../src/features/settings/sections';
+import {
+  SECTIONS,
+  filterSections,
+  type SectionWithLabel,
+} from '../../src/features/settings/sections';
 
 const labelled: SectionWithLabel[] = SECTIONS.map((s) => ({
   ...s,
@@ -35,9 +39,9 @@ describe('settings search filter', () => {
     expect(result).toEqual(['sinkronisasi']);
   });
 
-  it('"manual" matches Tentang', () => {
+  it('"manual" matches the dedicated Manual section', () => {
     const result = filterSections(labelled, 'manual').map((s) => s.id);
-    expect(result).toEqual(['tentang']);
+    expect(result).toEqual(['manual']);
   });
 
   it('returns empty list for nonsense', () => {

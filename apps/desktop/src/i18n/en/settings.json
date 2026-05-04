@@ -168,13 +168,19 @@
       },
       "empty": "No records yet."
     },
+    "manual": {
+      "label": "Manual",
+      "summary": "Full user guide, searchable via the table of contents.",
+      "toc": "Table of contents",
+      "searchPlaceholder": "Search section titles…",
+      "noMatches": "No matching sections."
+    },
     "tentang": {
       "label": "About",
-      "summary": "Application version, credits, manual link.",
+      "summary": "Application version, credits, license.",
       "version": "Version",
       "credits": "Credits",
       "creditsValue": "alvi arts / vwrks",
-      "openManual": "Open Manual",
       "openRepo": "GitHub Repository",
       "license": "License"
     }

@@ -10,11 +10,10 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @perpustakaan/manual build && pnpm --filter @perpustakaan/desktop dev",
-    "tauri:dev": "pnpm --filter @perpustakaan/manual build && pnpm --filter @perpustakaan/desktop tauri dev",
-    "build": "pnpm --filter @perpustakaan/manual build && pnpm --filter @perpustakaan/desktop build",
-    "tauri:build": "pnpm --filter @perpustakaan/manual build && pnpm --filter @perpustakaan/desktop tauri build",
-    "manual:build": "pnpm --filter @perpustakaan/manual build",
+    "dev": "pnpm --filter @perpustakaan/desktop dev",
+    "tauri:dev": "pnpm --filter @perpustakaan/desktop tauri dev",
+    "build": "pnpm --filter @perpustakaan/desktop build",
+    "tauri:build": "pnpm --filter @perpustakaan/desktop tauri build",
     "lint": "pnpm -r --parallel lint",
     "typecheck": "pnpm -r --parallel typecheck",
     "test": "pnpm -r --parallel test",

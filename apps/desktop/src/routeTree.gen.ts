@@ -26,6 +26,7 @@ import { Route as AuthedSettingsTentangRouteImport } from './routes/_authed/sett
 import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/settings/tampilan'
 import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
+import { Route as AuthedSettingsManualRouteImport } from './routes/_authed/settings/manual'
 import { Route as AuthedSettingsKtaRouteImport } from './routes/_authed/settings/kta'
 import { Route as AuthedSettingsIdentitasRouteImport } from './routes/_authed/settings/identitas'
 import { Route as AuthedSettingsHakAksesRouteImport } from './routes/_authed/settings/hak-akses'
@@ -133,6 +134,11 @@ const AuthedSettingsMasterDataRoute =
     path: '/master-data',
     getParentRoute: () => AuthedSettingsRoute,
   } as any)
+const AuthedSettingsManualRoute = AuthedSettingsManualRouteImport.update({
+  id: '/manual',
+  path: '/manual',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
 const AuthedSettingsKtaRoute = AuthedSettingsKtaRouteImport.update({
   id: '/kta',
   path: '/kta',
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
   '/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/settings/kta': typeof AuthedSettingsKtaRoute
+  '/settings/manual': typeof AuthedSettingsManualRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
   '/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/settings/kta': typeof AuthedSettingsKtaRoute
+  '/settings/manual': typeof AuthedSettingsManualRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/_authed/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
   '/_authed/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/_authed/settings/kta': typeof AuthedSettingsKtaRoute
+  '/_authed/settings/manual': typeof AuthedSettingsManualRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/_authed/settings/tampilan': typeof AuthedSettingsTampilanRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/settings/hak-akses'
     | '/settings/identitas'
     | '/settings/kta'
+    | '/settings/manual'
     | '/settings/master-data'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/settings/hak-akses'
     | '/settings/identitas'
     | '/settings/kta'
+    | '/settings/manual'
     | '/settings/master-data'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/hak-akses'
     | '/_authed/settings/identitas'
     | '/_authed/settings/kta'
+    | '/_authed/settings/manual'
     | '/_authed/settings/master-data'
     | '/_authed/settings/sinkronisasi'
     | '/_authed/settings/tampilan'
@@ -591,6 +603,13 @@ declare module '@tanstack/react-router' {
       path: '/master-data'
       fullPath: '/settings/master-data'
       preLoaderRoute: typeof AuthedSettingsMasterDataRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/manual': {
+      id: '/_authed/settings/manual'
+      path: '/manual'
+      fullPath: '/settings/manual'
+      preLoaderRoute: typeof AuthedSettingsManualRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/settings/kta': {
@@ -767,6 +786,7 @@ interface AuthedSettingsRouteChildren {
   AuthedSettingsHakAksesRoute: typeof AuthedSettingsHakAksesRoute
   AuthedSettingsIdentitasRoute: typeof AuthedSettingsIdentitasRoute
   AuthedSettingsKtaRoute: typeof AuthedSettingsKtaRoute
+  AuthedSettingsManualRoute: typeof AuthedSettingsManualRoute
   AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
   AuthedSettingsSinkronisasiRoute: typeof AuthedSettingsSinkronisasiRoute
   AuthedSettingsTampilanRoute: typeof AuthedSettingsTampilanRoute
@@ -783,6 +803,7 @@ const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsHakAksesRoute: AuthedSettingsHakAksesRoute,
   AuthedSettingsIdentitasRoute: AuthedSettingsIdentitasRoute,
   AuthedSettingsKtaRoute: AuthedSettingsKtaRoute,
+  AuthedSettingsManualRoute: AuthedSettingsManualRoute,
   AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
   AuthedSettingsSinkronisasiRoute: AuthedSettingsSinkronisasiRoute,
   AuthedSettingsTampilanRoute: AuthedSettingsTampilanRoute,
