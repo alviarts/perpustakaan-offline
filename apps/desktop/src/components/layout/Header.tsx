@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useRouter, useRouterState } from '@tanstack/react-router';
 import { Search, BookOpen, ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
+import { GlobalSearchDialog } from '@/components/layout/GlobalSearchDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -109,18 +109,17 @@ export function Header() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const identity = useIdentityStore((s) => s.identity);
-  const [searchValue, setSearchValue] = useState('');
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const breadcrumbKeys = resolveBreadcrumbKeys(routerState.location.pathname);
   const breadcrumbLabels = breadcrumbKeys.map((key) => (key.includes(':') ? t(key) : key));
 
-  // Ctrl+K / Cmd+K → focus search (placeholder; akan integrasi dengan global search di sesi 4+)
+  // Ctrl+K / Cmd+K → open the global search command palette.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        searchRef.current?.focus();
+        setSearchOpen((v) => !v);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -160,33 +159,26 @@ export function Header() {
         })}
       </div>
 
-      {/* Global search slot (Devin 4+ akan isi) */}
+      {/* Global search trigger — opens the cmdk command palette (Ctrl+K). */}
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden md:block">
-          <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" />
-          <Input
-            ref={searchRef}
-            type="search"
-            placeholder={t('common:placeholders.search')}
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                const q = searchValue.trim();
-                void router.navigate({
-                  to: '/anggota',
-                  search: q ? { q } : {},
-                });
-              }
-            }}
-            className="h-9 w-64 pl-8 pr-12"
-            data-testid="header-search"
-          />
-          <kbd className="border-border bg-muted text-muted-foreground pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border px-1.5 py-0.5 font-mono text-[10px] md:inline">
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          aria-label={t('common:globalSearch.title', { defaultValue: 'Pencarian Global' })}
+          className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground hidden h-9 w-64 items-center gap-2 rounded-md border px-3 text-sm transition-colors md:flex"
+          data-testid="header-search"
+        >
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="flex-1 text-left">
+            {t('common:globalSearch.placeholder', {
+              defaultValue: 'Cari anggota, buku, peminjaman…',
+            })}
+          </span>
+          <kbd className="border-border bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
             ⌃K
           </kbd>
-        </div>
+        </button>
+        <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
         <Link
           to="/settings/manual"
