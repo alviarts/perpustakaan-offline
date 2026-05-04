@@ -52,5 +52,9 @@
     "label": "Language",
     "id": "Indonesia",
     "en": "English"
+  },
+  "filePicker": {
+    "pick": "Pick file…",
+    "clear": "Remove file"
   }
 }

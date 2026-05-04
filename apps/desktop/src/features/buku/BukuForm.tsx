@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Autocomplete, type AutocompleteOption } from '@/components/shared/Autocomplete';
+import { FilePickerInput } from '@/components/shared/FilePickerInput';
 import { bukuFormSchema, type BukuFormValues } from './schema';
 import type { Buku } from '@/lib/buku';
 import type { MasterItem } from '@/lib/masterData';
@@ -33,9 +34,7 @@ function toFormValues(initial: Buku | null | undefined): BukuFormValues {
     kodeDdc: initial?.kodeDdc ?? '',
     kategori: initial?.kategori ?? '',
     isbn: initial?.isbn ?? '',
-    jumlahEksemplar: initial?.jumlahEksemplar
-      ? String(initial.jumlahEksemplar)
-      : '1',
+    jumlahEksemplar: initial?.jumlahEksemplar ? String(initial.jumlahEksemplar) : '1',
     sumber: initial?.sumber ?? '',
     harga: initial?.harga ? String(initial.harga) : '',
     bahasa: initial?.bahasa ?? '',
@@ -221,10 +220,7 @@ export function BukuForm({
           <Field label={t('buku:fields.rak')}>
             <Input {...register('rak')} />
           </Field>
-          <Field
-            label={t('buku:fields.deskripsi')}
-            className="md:col-span-2"
-          >
+          <Field label={t('buku:fields.deskripsi')} className="md:col-span-2">
             <Input {...register('deskripsi')} />
           </Field>
           <Field
@@ -232,7 +228,25 @@ export function BukuForm({
             hint={t('buku:fields.coverPathHint')}
             className="md:col-span-2"
           >
-            <Input {...register('coverPath')} />
+            <Controller
+              control={control}
+              name="coverPath"
+              render={({ field }) => (
+                <FilePickerInput
+                  value={field.value || null}
+                  onChange={(v) => field.onChange(v ?? '')}
+                  category="buku"
+                  pickLabel={t('buku:fields.coverPick', {
+                    defaultValue: 'Pilih cover…',
+                  })}
+                  clearLabel={t('buku:fields.coverClear', {
+                    defaultValue: 'Hapus cover',
+                  })}
+                  previewSize={120}
+                  testId="field-coverPath"
+                />
+              )}
+            />
           </Field>
         </CardContent>
       </Card>
@@ -276,13 +290,13 @@ interface FieldProps {
 function Field({ label, error, hint, required, children, className }: FieldProps) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      <Label className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <Label className="text-muted-foreground flex items-center gap-1 text-xs font-medium uppercase tracking-wide">
         <span>{label}</span>
         {required && <span className="text-destructive">*</span>}
       </Label>
       {children}
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {hint && !error && <p className="text-muted-foreground text-xs">{hint}</p>}
+      {error && <p className="text-destructive text-xs">{error}</p>}
     </div>
   );
 }

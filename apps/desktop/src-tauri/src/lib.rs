@@ -169,6 +169,9 @@ pub fn run() {
             commands::close_behavior::close_behavior_get,
             commands::close_behavior::close_behavior_set,
             commands::close_behavior::force_quit,
+            commands::assets::assets_save,
+            commands::assets::assets_resolve,
+            commands::assets::assets_delete,
         ])
         .on_window_event(|window, event| {
             // BUG-011: intercept the X-button on the main window and

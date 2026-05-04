@@ -52,5 +52,9 @@
     "label": "Bahasa",
     "id": "Indonesia",
     "en": "English"
+  },
+  "filePicker": {
+    "pick": "Pilih file…",
+    "clear": "Hapus file"
   }
 }
