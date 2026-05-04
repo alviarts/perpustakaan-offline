@@ -287,11 +287,7 @@ const KTA_DEFAULT_LAYOUT_JSON: &str = r##"{
 /// Without this, a fresh install opens "Cetak KTA → Pilih template" with an
 /// empty dropdown and a disabled "Cetak" button (BUG-005).
 fn seed_kta_default_template(conn: &Connection) -> AppResult<()> {
-    let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM kta_templates",
-        [],
-        |row| row.get(0),
-    )?;
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM kta_templates", [], |row| row.get(0))?;
     if count > 0 {
         return Ok(());
     }
@@ -436,16 +432,12 @@ mod tests {
         let kodes: Vec<&str> = rows.iter().map(|(k, _)| k.as_str()).collect();
         assert_eq!(
             kodes,
-            vec![
-                "000", "100", "200", "300", "400", "500", "600", "700", "800", "900",
-            ],
+            vec!["000", "100", "200", "300", "400", "500", "600", "700", "800", "900",],
         );
         // Spot-check a couple of descriptions to guard against a future
         // careless edit reordering or rewriting the array.
-        let by_kode: std::collections::HashMap<&str, &str> = rows
-            .iter()
-            .map(|(k, d)| (k.as_str(), d.as_str()))
-            .collect();
+        let by_kode: std::collections::HashMap<&str, &str> =
+            rows.iter().map(|(k, d)| (k.as_str(), d.as_str())).collect();
         assert_eq!(by_kode.get("000").copied(), Some("Karya Umum"));
         assert_eq!(by_kode.get("400").copied(), Some("Bahasa"));
         assert_eq!(by_kode.get("900").copied(), Some("Sejarah & Geografi"));

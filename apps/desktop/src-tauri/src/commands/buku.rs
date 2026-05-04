@@ -628,8 +628,8 @@ mod tests {
     #[test]
     fn buku_create_seeds_zero_eksemplar_for_catalog_only_entry() {
         let mut conn = setup_db();
-        let buku = buku_create_inner(&mut conn, &make_input("B0001", Some(0)))
-            .expect("create buku");
+        let buku =
+            buku_create_inner(&mut conn, &make_input("B0001", Some(0))).expect("create buku");
         assert_eq!(buku.jumlah_eksemplar, 0);
         assert_eq!(count_eksemplar(&conn, buku.id), 0);
     }
@@ -637,8 +637,8 @@ mod tests {
     #[test]
     fn buku_create_seeds_one_eksemplar_with_zero_padded_kode() {
         let mut conn = setup_db();
-        let buku = buku_create_inner(&mut conn, &make_input("B0001", Some(1)))
-            .expect("create buku");
+        let buku =
+            buku_create_inner(&mut conn, &make_input("B0001", Some(1))).expect("create buku");
         assert_eq!(buku.jumlah_eksemplar, 1);
         assert_eq!(list_kode_eksemplar(&conn, buku.id), vec!["B0001-01"]);
     }
@@ -646,8 +646,8 @@ mod tests {
     #[test]
     fn buku_create_seeds_five_sequential_eksemplar() {
         let mut conn = setup_db();
-        let buku = buku_create_inner(&mut conn, &make_input("B0042", Some(5)))
-            .expect("create buku");
+        let buku =
+            buku_create_inner(&mut conn, &make_input("B0042", Some(5))).expect("create buku");
         assert_eq!(buku.jumlah_eksemplar, 5);
         assert_eq!(
             list_kode_eksemplar(&conn, buku.id),
@@ -664,8 +664,8 @@ mod tests {
     #[test]
     fn buku_create_seeded_eksemplar_are_all_tersedia() {
         let mut conn = setup_db();
-        let buku = buku_create_inner(&mut conn, &make_input("B0007", Some(3)))
-            .expect("create buku");
+        let buku =
+            buku_create_inner(&mut conn, &make_input("B0007", Some(3))).expect("create buku");
         let tersedia: i64 = conn
             .query_row(
                 "SELECT COUNT(*) FROM eksemplar \
@@ -682,8 +682,7 @@ mod tests {
         // BUG-001: when frontend omits jumlahEksemplar (undefined → None),
         // the buku still gets one eksemplar so it can be borrowed.
         let mut conn = setup_db();
-        let buku = buku_create_inner(&mut conn, &make_input("B0010", None))
-            .expect("create buku");
+        let buku = buku_create_inner(&mut conn, &make_input("B0010", None)).expect("create buku");
         assert_eq!(buku.jumlah_eksemplar, 1);
         assert_eq!(count_eksemplar(&conn, buku.id), 1);
     }
@@ -691,8 +690,7 @@ mod tests {
     #[test]
     fn buku_create_rejects_duplicate_kode_buku() {
         let mut conn = setup_db();
-        buku_create_inner(&mut conn, &make_input("B0001", Some(1)))
-            .expect("create first buku");
+        buku_create_inner(&mut conn, &make_input("B0001", Some(1))).expect("create first buku");
         let err = buku_create_inner(&mut conn, &make_input("B0001", Some(2)))
             .expect_err("duplicate should fail");
         assert!(matches!(err, AppError::Validation(_)));
