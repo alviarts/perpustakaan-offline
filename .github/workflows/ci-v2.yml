@@ -3,28 +3,28 @@ name: CI v2 (Tauri + React)
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ['v*']
     paths:
-      - "apps/**"
-      - "packages/**"
-      - "scripts/**"
-      - "docs/legal/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "tsconfig.base.json"
-      - ".github/workflows/ci-v2.yml"
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'docs/legal/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+      - '.github/workflows/ci-v2.yml'
   pull_request:
     paths:
-      - "apps/**"
-      - "packages/**"
-      - "scripts/**"
-      - "docs/legal/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "tsconfig.base.json"
-      - ".github/workflows/ci-v2.yml"
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'docs/legal/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+      - '.github/workflows/ci-v2.yml'
 
 concurrency:
   group: ci-v2-${{ github.ref }}
@@ -178,6 +178,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Extract release notes from CHANGELOG.md
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          if NOTES=$(node scripts/extract-changelog.mjs "${GITHUB_REF_NAME}" 2>/dev/null); then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            NOTES=""
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No CHANGELOG.md section found for ${GITHUB_REF_NAME}; falling back to auto-generated release notes."
+          fi
+          {
+            echo "body<<__CHANGELOG_EOF__"
+            printf '%s\n' "$NOTES"
+            echo "__CHANGELOG_EOF__"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Download Windows installer artifact
         uses: actions/download-artifact@v4
         with:
@@ -193,7 +216,8 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.body }}
+          generate_release_notes: ${{ steps.changelog.outputs.found != 'true' }}
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
           files: |
             artifacts/installer/**/*.exe
