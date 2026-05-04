@@ -9,6 +9,7 @@ const { mockApi } = vi.hoisted(() => ({
   mockApi: {
     pickAndSave: vi.fn(),
     resolve: vi.fn(),
+    readDataUrl: vi.fn(),
     delete: vi.fn(),
   },
 }));
@@ -16,14 +17,6 @@ const { mockApi } = vi.hoisted(() => ({
 vi.mock('@/lib/assets', () => ({
   assetsApi: mockApi,
   IMAGE_EXTS: ['png', 'jpg', 'jpeg', 'webp'] as const,
-}));
-
-vi.mock('@tauri-apps/api/core', () => ({
-  convertFileSrc: (p: string) => `tauri://asset/${p}`,
-}));
-
-vi.mock('@/lib/auth', () => ({
-  isTauri: () => false,
 }));
 
 import { FilePickerInput } from '@/components/shared/FilePickerInput';
@@ -63,6 +56,7 @@ describe('FilePickerInput', () => {
   beforeEach(() => {
     mockApi.pickAndSave.mockReset();
     mockApi.resolve.mockReset();
+    mockApi.readDataUrl.mockReset();
     mockApi.delete.mockReset();
   });
 
@@ -74,7 +68,7 @@ describe('FilePickerInput', () => {
   });
 
   it('uses caller-provided pick / clear labels when supplied', () => {
-    mockApi.resolve.mockResolvedValue('/abs/uploads/anggota/x.jpg');
+    mockApi.readDataUrl.mockResolvedValue('data:image/png;base64,AAA');
     renderPicker({
       value: 'uploads/anggota/x.jpg',
       pickLabel: 'Pilih foto…',
@@ -84,23 +78,37 @@ describe('FilePickerInput', () => {
     expect(screen.getByTestId('picker-clear')).toHaveTextContent('Hapus foto');
   });
 
-  it('resolves the relative path and renders a preview image when value is set', async () => {
-    mockApi.resolve.mockResolvedValue('/abs/uploads/anggota/x.jpg');
+  it('reads the bytes via readDataUrl and renders the preview as an inline data URL', async () => {
+    const dataUrl = 'data:image/jpeg;base64,SGVsbG8=';
+    mockApi.readDataUrl.mockResolvedValue(dataUrl);
     renderPicker({ value: 'uploads/anggota/x.jpg' });
 
     await waitFor(() => {
-      expect(mockApi.resolve).toHaveBeenCalledWith('uploads/anggota/x.jpg');
+      expect(mockApi.readDataUrl).toHaveBeenCalledWith('uploads/anggota/x.jpg');
     });
     const img = await screen.findByTestId('picker-preview');
     expect(img.tagName).toBe('IMG');
-    expect(img).toHaveAttribute('src', '/abs/uploads/anggota/x.jpg');
+    expect(img).toHaveAttribute('src', dataUrl);
+    // Critical regression guard: we no longer call `resolve` (the
+    // asset-protocol path) because that round-trip is what produced the
+    // broken-image glyph on Windows in v1.0.2.
+    expect(mockApi.resolve).not.toHaveBeenCalled();
   });
 
-  it('falls back to the placeholder when resolve returns an empty string', async () => {
-    mockApi.resolve.mockResolvedValue('');
+  it('falls back to the placeholder when readDataUrl returns an empty string', async () => {
+    mockApi.readDataUrl.mockResolvedValue('');
     renderPicker({ value: 'uploads/anggota/missing.jpg' });
     await waitFor(() => {
-      expect(mockApi.resolve).toHaveBeenCalled();
+      expect(mockApi.readDataUrl).toHaveBeenCalled();
+    });
+    expect(screen.queryByTestId('picker-preview')).toBeNull();
+  });
+
+  it('falls back to the placeholder when readDataUrl rejects', async () => {
+    mockApi.readDataUrl.mockRejectedValue(new Error('not found'));
+    renderPicker({ value: 'uploads/anggota/broken.jpg' });
+    await waitFor(() => {
+      expect(mockApi.readDataUrl).toHaveBeenCalled();
     });
     expect(screen.queryByTestId('picker-preview')).toBeNull();
   });
@@ -135,7 +143,7 @@ describe('FilePickerInput', () => {
   });
 
   it('deletes the previous file when replacing an existing value', async () => {
-    mockApi.resolve.mockResolvedValue('/abs/uploads/anggota/old.png');
+    mockApi.readDataUrl.mockResolvedValue('data:image/png;base64,b2xk');
     mockApi.pickAndSave.mockResolvedValue({
       relPath: 'uploads/anggota/new.png',
       absPath: '/abs/uploads/anggota/new.png',
@@ -152,7 +160,7 @@ describe('FilePickerInput', () => {
   });
 
   it('calls onChange(null) and deletes the file when clear is clicked', async () => {
-    mockApi.resolve.mockResolvedValue('/abs/uploads/anggota/x.png');
+    mockApi.readDataUrl.mockResolvedValue('data:image/png;base64,eA==');
     mockApi.delete.mockResolvedValue(undefined);
     const { onChange } = renderPicker({ value: 'uploads/anggota/x.png' });
 
@@ -166,7 +174,7 @@ describe('FilePickerInput', () => {
   });
 
   it('still calls onChange(null) when delete throws (DB row should still drop the reference)', async () => {
-    mockApi.resolve.mockResolvedValue('/abs/uploads/anggota/x.png');
+    mockApi.readDataUrl.mockResolvedValue('data:image/png;base64,eA==');
     mockApi.delete.mockRejectedValue(new Error('disk full'));
     const { onChange } = renderPicker({ value: 'uploads/anggota/x.png' });
 
