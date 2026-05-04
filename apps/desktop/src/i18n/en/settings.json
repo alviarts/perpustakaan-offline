@@ -23,7 +23,10 @@
         "kepala": "Head Librarian",
         "npsn": "NPSN",
         "tahunAjaran": "Academic Year",
-        "logoPath": "Logo Path",
+        "logoPath": "Library Logo",
+        "logoPathHint": "Click to pick a logo file (.png/.jpg/.webp/.svg). The file is copied into the app data folder automatically.",
+        "logoPick": "Pick logo…",
+        "logoClear": "Remove logo",
         "kontak": "Contact"
       },
       "saveSuccess": "Identity saved.",

@@ -40,8 +40,10 @@
     "harga": "Harga (Rp)",
     "rak": "Rak",
     "deskripsi": "Deskripsi",
-    "coverPath": "Cover Path",
-    "coverPathHint": "Path file cover relatif ke %AppData%/PerpustakaanOffline/covers/."
+    "coverPath": "Cover Buku",
+    "coverPathHint": "Klik untuk memilih cover (.png/.jpg/.webp). File otomatis disalin ke folder data aplikasi.",
+    "coverPick": "Pilih cover…",
+    "coverClear": "Hapus cover"
   },
   "form": {
     "newTitle": "Tambah Buku",

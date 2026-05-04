@@ -23,7 +23,10 @@
         "kepala": "Kepala Perpustakaan",
         "npsn": "NPSN",
         "tahunAjaran": "Tahun Ajaran",
-        "logoPath": "Path Logo",
+        "logoPath": "Logo Perpustakaan",
+        "logoPathHint": "Klik untuk memilih file logo (.png/.jpg/.webp/.svg). File otomatis disalin ke folder data aplikasi.",
+        "logoPick": "Pilih logo…",
+        "logoClear": "Hapus logo",
         "kontak": "Kontak"
       },
       "saveSuccess": "Identitas berhasil disimpan.",

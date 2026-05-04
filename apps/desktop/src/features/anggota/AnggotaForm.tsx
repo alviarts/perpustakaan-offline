@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Autocomplete, type AutocompleteOption } from '@/components/shared/Autocomplete';
+import { FilePickerInput } from '@/components/shared/FilePickerInput';
 import { anggotaFormSchema, type AnggotaFormValues } from './schema';
 import type { Anggota } from '@/lib/anggota';
 import { cn } from '@/lib/utils';
@@ -239,15 +240,41 @@ export function AnggotaForm({
                     data-testid="field-aktif"
                     checked={field.value ?? true}
                     onChange={(e) => field.onChange(e.target.checked)}
-                    className="h-4 w-4 rounded border-input"
+                    className="border-input h-4 w-4 rounded"
                   />
-                  <span>{field.value ? t('anggota:list.filterActive') : t('anggota:list.filterInactive')}</span>
+                  <span>
+                    {field.value
+                      ? t('anggota:list.filterActive')
+                      : t('anggota:list.filterInactive')}
+                  </span>
                 </label>
               )}
             />
           </Field>
-          <Field label={t('anggota:fields.fotoPath')} hint={t('anggota:fields.fotoPathHint')}>
-            <Input {...register('fotoPath')} />
+          <Field
+            label={t('anggota:fields.fotoPath')}
+            hint={t('anggota:fields.fotoPathHint')}
+            className="md:col-span-2"
+          >
+            <Controller
+              control={control}
+              name="fotoPath"
+              render={({ field }) => (
+                <FilePickerInput
+                  value={field.value || null}
+                  onChange={(v) => field.onChange(v ?? '')}
+                  category="anggota"
+                  pickLabel={t('anggota:fields.fotoPick', {
+                    defaultValue: 'Pilih foto…',
+                  })}
+                  clearLabel={t('anggota:fields.fotoClear', {
+                    defaultValue: 'Hapus foto',
+                  })}
+                  rounded
+                  testId="field-fotoPath"
+                />
+              )}
+            />
           </Field>
           <Field label={t('anggota:fields.catatan')} className="md:col-span-2">
             <Input {...register('catatan')} />
@@ -256,7 +283,11 @@ export function AnggotaForm({
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={isSubmitting || (!isDirty && !!initial)} data-testid="form-submit">
+        <Button
+          type="submit"
+          disabled={isSubmitting || (!isDirty && !!initial)}
+          data-testid="form-submit"
+        >
           {isSubmitting ? t('common:states.loading') : submitLabel}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
@@ -290,13 +321,13 @@ interface FieldProps {
 function Field({ label, error, hint, required, children, className }: FieldProps) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      <Label className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <Label className="text-muted-foreground flex items-center gap-1 text-xs font-medium uppercase tracking-wide">
         <span>{label}</span>
         {required && <span className="text-destructive">*</span>}
       </Label>
       {children}
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {hint && !error && <p className="text-muted-foreground text-xs">{hint}</p>}
+      {error && <p className="text-destructive text-xs">{error}</p>}
     </div>
   );
 }

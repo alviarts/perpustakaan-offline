@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast-manager';
 import { useIdentityStore } from '@/stores/identityStore';
 import { settingsApi, DEFAULT_IDENTITY } from '@/lib/settings';
+import { FilePickerInput } from '@/components/shared/FilePickerInput';
 import { FieldRow, SettingsSection } from './SettingsSection';
 
 export function IdentitasPage(): JSX.Element {
@@ -32,7 +33,9 @@ export function IdentitasPage(): JSX.Element {
       setIdentity(saved);
       await loadIdentity();
       showToast({
-        title: t('sections.identitas.saveSuccess', { defaultValue: 'Identitas berhasil disimpan.' }),
+        title: t('sections.identitas.saveSuccess', {
+          defaultValue: 'Identitas berhasil disimpan.',
+        }),
       });
     } catch (e) {
       showToast({
@@ -53,12 +56,7 @@ export function IdentitasPage(): JSX.Element {
   };
 
   return (
-    <SettingsSection
-      i18nKey="identitas"
-      onSave={handleSave}
-      onReset={handleReset}
-      saving={saving}
-    >
+    <SettingsSection i18nKey="identitas" onSave={handleSave} onReset={handleReset} saving={saving}>
       <div className="grid gap-4 sm:grid-cols-2">
         <FieldRow
           label={t('sections.identitas.fields.nama', { defaultValue: 'Nama Perpustakaan' })}
@@ -100,10 +98,19 @@ export function IdentitasPage(): JSX.Element {
           <Input id="identitas-kontak" value={draft.kontak} onChange={onChange('kontak')} />
         </FieldRow>
         <FieldRow
-          label={t('sections.identitas.fields.logoPath', { defaultValue: 'Path Logo' })}
+          label={t('sections.identitas.fields.logoPath', { defaultValue: 'Logo Perpustakaan' })}
           htmlFor="identitas-logo"
+          help={t('sections.identitas.fields.logoPathHint')}
         >
-          <Input id="identitas-logo" value={draft.logoPath} onChange={onChange('logoPath')} />
+          <FilePickerInput
+            value={draft.logoPath || null}
+            onChange={(rel) => setDraft((prev) => ({ ...prev, logoPath: rel ?? '' }))}
+            category="identitas"
+            pickLabel={t('sections.identitas.fields.logoPick')}
+            clearLabel={t('sections.identitas.fields.logoClear')}
+            previewSize={96}
+            testId="identitas-logo"
+          />
         </FieldRow>
       </div>
       <FieldRow
