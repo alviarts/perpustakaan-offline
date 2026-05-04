@@ -180,6 +180,7 @@ pub fn run() {
             commands::assets::assets_save,
             commands::assets::assets_resolve,
             commands::assets::assets_delete,
+            commands::assets::assets_read_data_url,
         ])
         .on_window_event(|window, event| {
             // BUG-011: intercept the X-button on the main window and

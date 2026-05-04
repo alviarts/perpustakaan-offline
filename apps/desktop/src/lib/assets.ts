@@ -38,6 +38,15 @@ export interface AssetsRpc {
    */
   resolve(path: string): Promise<string>;
 
+  /**
+   * Read the bytes of a saved asset and return a `data:<mime>;base64,…`
+   * URL the WebView can render directly. Bypasses the `asset://`
+   * protocol scope matcher, which is unreliable on Windows because
+   * canonicalised `\\?\C:\…` paths fail to match `$APPDATA/uploads/**`
+   * patterns and produce broken-image glyphs.
+   */
+  readDataUrl(path: string): Promise<string>;
+
   /** Best-effort delete of an upload. No-op for absolute / empty paths. */
   delete(path: string): Promise<void>;
 }
@@ -57,6 +66,7 @@ const tauriRpc: AssetsRpc = {
     return { relPath: result.relPath, absPath: result.absPath };
   },
   resolve: (path) => invoke<string>('assets_resolve', { relPath: path }),
+  readDataUrl: (path) => invoke<string>('assets_read_data_url', { relPath: path }),
   delete: (path) => invoke<void>('assets_delete', { relPath: path }),
 };
 
@@ -77,6 +87,12 @@ const mockRpc: AssetsRpc = {
   async resolve(path) {
     if (!path) return '';
     return path;
+  },
+  async readDataUrl(path) {
+    // Browser mode never has the actual bytes; return an empty data URL
+    // so callers fall back to the placeholder icon without throwing.
+    if (!path) return '';
+    return '';
   },
   async delete() {
     /* noop */

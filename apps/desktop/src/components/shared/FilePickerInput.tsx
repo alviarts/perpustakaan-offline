@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { convertFileSrc } from '@tauri-apps/api/core';
 import { ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { isTauri } from '@/lib/auth';
 import { assetsApi, type AssetCategory } from '@/lib/assets';
 import { cn } from '@/lib/utils';
 
@@ -74,15 +72,11 @@ export function FilePickerInput({
     let cancelled = false;
     void (async () => {
       try {
-        const abs = await assetsApi.resolve(value);
+        const dataUrl = await assetsApi.readDataUrl(value);
         if (cancelled || requestId.current !== myId) return;
-        if (!abs || abs.startsWith('mock://')) {
-          // Browser-mode mock: we cannot read local files, so just show
-          // the placeholder.
-          setPreviewUrl(null);
-          return;
-        }
-        setPreviewUrl(isTauri() ? convertFileSrc(abs) : abs);
+        // Browser-mode mock returns "" because the bytes aren't on disk;
+        // fall back to the placeholder icon.
+        setPreviewUrl(dataUrl ? dataUrl : null);
       } catch {
         if (!cancelled) setPreviewUrl(null);
       }
