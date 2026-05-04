@@ -9,5 +9,5 @@ pnpm-lock.yaml
 **/playwright-report/**
 **/test-results/**
 src/perpustakaan/**
-docs/migration-v2/**
+docs/archive/migration-v2/**
 docs/screenshots/**
