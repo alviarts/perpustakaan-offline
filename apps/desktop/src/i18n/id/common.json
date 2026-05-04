@@ -19,6 +19,17 @@
   "placeholders": {
     "search": "Cari…"
   },
+  "globalSearch": {
+    "title": "Pencarian Global",
+    "placeholder": "Cari anggota, buku, peminjaman…",
+    "hint": "Ketik minimal 2 huruf untuk mencari…",
+    "busy": "Mencari…",
+    "empty": "Tidak ada hasil yang cocok.",
+    "groupAnggota": "Anggota",
+    "groupBuku": "Buku",
+    "groupPeminjaman": "Peminjaman",
+    "footerHint": "Enter untuk buka • ↑↓ navigasi • Esc tutup"
+  },
   "states": {
     "loading": "Memuat…",
     "empty": "Belum ada data.",

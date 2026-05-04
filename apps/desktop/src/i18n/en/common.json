@@ -19,6 +19,17 @@
   "placeholders": {
     "search": "Search…"
   },
+  "globalSearch": {
+    "title": "Global Search",
+    "placeholder": "Search members, books, loans…",
+    "hint": "Type at least 2 characters to search…",
+    "busy": "Searching…",
+    "empty": "No matching results.",
+    "groupAnggota": "Members",
+    "groupBuku": "Books",
+    "groupPeminjaman": "Loans",
+    "footerHint": "Enter to open • ↑↓ to navigate • Esc to close"
+  },
   "states": {
     "loading": "Loading…",
     "empty": "No data yet.",
