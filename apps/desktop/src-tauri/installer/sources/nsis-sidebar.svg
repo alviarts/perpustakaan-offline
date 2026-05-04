@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  NSIS Welcome / Finish sidebar — 164 × 314 (portrait).
+  Designed natively for this aspect ratio: brand mark in the upper third,
+  product name stacked below, gentle gradient and decorative rays at the
+  bottom so the panel does not feel empty.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 164 314"
+     width="164" height="314"
+     preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0b1e3f"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#fefefe"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="164" height="314" fill="url(#bg)"/>
+
+  <!-- Soft glow behind the mark -->
+  <circle cx="82" cy="92" r="60" fill="#1d4ed8" opacity="0.55"/>
+
+  <!-- Sun / Garuda mark -->
+  <g transform="translate(82 64)">
+    <g fill="url(#sun)">
+      <rect x="-3"  y="-30" width="6" height="14" rx="2"/>
+      <rect x="-3"  y="16"  width="6" height="14" rx="2"/>
+      <rect x="-30" y="-3"  width="14" height="6" rx="2"/>
+      <rect x="16"  y="-3"  width="14" height="6" rx="2"/>
+      <rect x="-22" y="-22" width="14" height="6" rx="2" transform="rotate(45)"/>
+      <rect x="-22" y="16"  width="14" height="6" rx="2" transform="rotate(45)"/>
+      <rect x="8"   y="-22" width="14" height="6" rx="2" transform="rotate(45)"/>
+      <rect x="8"   y="16"  width="14" height="6" rx="2" transform="rotate(45)"/>
+    </g>
+    <circle r="14" fill="url(#sun)"/>
+  </g>
+
+  <!-- Open book -->
+  <g transform="translate(82 116)">
+    <path d="M -50 -8 Q -22 -16 -2 -4 L -2 38 Q -22 26 -50 32 Z"
+          fill="url(#page)" stroke="#cbd5e1" stroke-width="1"/>
+    <path d="M  50 -8 Q  22 -16  2 -4 L  2 38 Q  22 26  50 32 Z"
+          fill="url(#page)" stroke="#cbd5e1" stroke-width="1"/>
+    <rect x="-2" y="-6" width="4" height="44" rx="1.2" fill="#94a3b8"/>
+    <g fill="#475569" opacity="0.55">
+      <rect x="-44" y="2"  width="36" height="3" rx="1.5"/>
+      <rect x="-44" y="10" width="32" height="3" rx="1.5"/>
+      <rect x="-44" y="18" width="36" height="3" rx="1.5"/>
+      <rect x="-44" y="26" width="28" height="3" rx="1.5"/>
+      <rect x="8"   y="2"  width="36" height="3" rx="1.5"/>
+      <rect x="8"   y="10" width="32" height="3" rx="1.5"/>
+      <rect x="8"   y="18" width="36" height="3" rx="1.5"/>
+      <rect x="8"   y="26" width="30" height="3" rx="1.5"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="82" y="206"
+        font-family="Segoe UI, Arial, Helvetica, sans-serif"
+        font-size="18" font-weight="700"
+        text-anchor="middle"
+        fill="#ffffff"
+        letter-spacing="0.5">Perpustakaan</text>
+  <text x="82" y="226"
+        font-family="Segoe UI, Arial, Helvetica, sans-serif"
+        font-size="16" font-weight="500"
+        text-anchor="middle"
+        fill="#cbd5e1"
+        letter-spacing="0.5">Offline</text>
+
+  <!-- Tagline -->
+  <text x="82" y="252"
+        font-family="Segoe UI, Arial, Helvetica, sans-serif"
+        font-size="9" font-weight="400"
+        text-anchor="middle"
+        fill="#cbd5e1"
+        letter-spacing="2">SISTEM MANAJEMEN</text>
+  <text x="82" y="264"
+        font-family="Segoe UI, Arial, Helvetica, sans-serif"
+        font-size="9" font-weight="400"
+        text-anchor="middle"
+        fill="#cbd5e1"
+        letter-spacing="2">PERPUSTAKAAN</text>
+
+  <!-- Footer divider -->
+  <line x1="32" y1="284" x2="132" y2="284"
+        stroke="#1d4ed8" stroke-width="1" opacity="0.6"/>
+  <text x="82" y="298"
+        font-family="Segoe UI, Arial, Helvetica, sans-serif"
+        font-size="10" font-weight="600"
+        text-anchor="middle"
+        fill="#fbbf24"
+        letter-spacing="3">v2</text>
+</svg>
