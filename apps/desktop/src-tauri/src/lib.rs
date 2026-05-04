@@ -152,6 +152,7 @@ pub fn run() {
             commands::backup::backup_schedule_get,
             commands::backup::backup_schedule_set,
             commands::backup::backup_db_path,
+            commands::export::export_write_bytes,
             commands::kta::kta_template_list,
             commands::kta::kta_template_get,
             commands::kta::kta_template_create,
