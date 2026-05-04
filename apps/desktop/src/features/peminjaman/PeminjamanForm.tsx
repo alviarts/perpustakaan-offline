@@ -269,7 +269,7 @@ export function PeminjamanForm() {
                 {t('peminjaman:form.tanggal', { defaultValue: 'Tanggal' })}
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2">
+            <CardContent className="grid gap-3 xl:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">
                   {t('peminjaman:form.tanggalPinjam', { defaultValue: 'Tanggal Pinjam' })}
