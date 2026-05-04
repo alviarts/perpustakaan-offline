@@ -13,6 +13,45 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-05-04
+
+### Fixed
+
+- **FilePickerInput preview broken on Windows** — Logo Perpustakaan,
+  Foto Anggota, and Cover Buku previews rendered the broken-image
+  glyph after a successful upload because Tauri 2's asset-protocol
+  scope matcher failed to match canonicalised `\\?\C:\…` paths against
+  the `$APPDATA/uploads/**` pattern. Replaced the `convertFileSrc`
+  round-trip with a new `assets_read_data_url` Tauri command that
+  reads the bytes through the IPC bridge and returns a
+  `data:<mime>;base64,<payload>` URL the WebView always renders.
+  Works identically on Linux, macOS, and Windows. (#94)
+- **Date input contrast in dark mode** — native calendar / time inputs
+  now inherit the theme via `color-scheme`, so the icon and value
+  remain readable on dark backgrounds. Filter-invert fallback applied
+  to browsers that ignore `color-scheme`. (#91)
+- **Form layout cramped on wide windows** — Anggota / Buku create &
+  edit routes now expand to `max-w-3xl xl:max-w-5xl 2xl:max-w-7xl`
+  instead of clipping at the smaller container width. (#92)
+
+### Changed
+
+- **Per-aspect-ratio Windows installer artwork** — re-exported the
+  four BMPs (`nsis-sidebar.bmp` 164×314, `nsis-header.bmp` 150×57,
+  `wix-banner.bmp` 493×58, `wix-dialog.bmp` 493×312) from per-target
+  SVG sources rendered at the exact target resolution. The previous
+  v1.0.2 installer stretched a single source across all four aspect
+  ratios, producing distorted art. Sources, regen script, and an
+  install-artwork README live in `apps/desktop/src-tauri/installer/`.
+  (#93)
+- **Tooltips on icon-only buttons** — global tooltip wrapper sweep
+  over 7 components so every icon-only button surfaces its label on
+  hover, improving keyboard / screen-reader navigation. (#90)
+- **Responsive Peminjaman date pickers** — flex-wrap "Hari Ini"
+  shortcut so it drops below the date inputs on narrow widths, and
+  promote Peminjaman date pickers to `xl:grid-cols-2` on wide
+  windows. (#91)
+
 ## [1.0.2] - 2026-05-04
 
 ### Added

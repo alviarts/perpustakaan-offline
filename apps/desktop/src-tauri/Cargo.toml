@@ -1,6 +1,6 @@
 [package]
 name = "perpustakaan-desktop"
-version = "1.0.2"
+version = "1.0.3"
 description = "Perpustakaan Offline v2 desktop (Tauri 2)"
 authors = ["alvi arts"]
 edition = "2021"
