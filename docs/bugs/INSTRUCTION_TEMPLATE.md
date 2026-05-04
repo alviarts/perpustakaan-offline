@@ -17,10 +17,12 @@ Branch utama: main
 Bahasa komunikasi: Indonesia. Bahasa commit/PR: English (conventional commits).
 
 Migrasi v2 sudah selesai (v1.0.0, semua 12 sesi merged). Sekarang fase
-post-v1.0.0 bugfix. Ada 9 bug yang ke-discover dari smoke test + Windows
-manual install testing. Detail lengkap di repo:
+post-v1.0.0 bugfix. Ada 11 bug yang ke-discover dari smoke test + Windows
+manual install testing (BUG-001..011). Per 2026-05-04 hampir semua sudah
+resolved — hanya **BUG-008** yang masih in-flight (PR #68). Detail lengkap di
+repo:
 
-- `docs/bugs/POST_V1_BUGS.md`        → 9 bug full detail (where/trigger/observed/expected/suggested fix/DoD)
+- `docs/bugs/POST_V1_BUGS.md`        → 11 bug full detail (where/trigger/observed/expected/suggested fix/DoD)
 - `docs/bugs/PROGRESS.md`            → status table machine-parseable (OPEN/IN_PR/DONE/BLOCKED)
 - `docs/bugs/INSTRUCTION_TEMPLATE.md`→ protokol ini
 
@@ -62,9 +64,11 @@ STEP 4 — Update progress
 STEP 5 — Commit + PR
 11. Commit: `fix(<scope>): <description> (BUG-NNN)` (conventional commit).
     Contoh: `fix(buku): insert eksemplar rows on buku_create (BUG-001)`.
-12. Push branch (kalau dapat 403 dari git-manager proxy, request PAT via
-    secret form `GITHUB_PAT_PERPUSTAKAAN` dan push pakai
-    `git push https://x-access-token:${GITHUB_PAT_PERPUSTAKAAN}@github.com/alviarts/perpustakaan-offline.git <branch>`).
+12. Push branch (kalau dapat 403 dari git-manager proxy, pakai org-level
+    secret `GITHUB_PAT` yang sudah auto-inject sebagai env var:
+    `git push https://x-access-token:${GITHUB_PAT}@github.com/alviarts/perpustakaan-offline.git <branch>`).
+    Kalau token expired, request PAT baru via secret form (`GITHUB_PAT`,
+    `should_save=true`, `save_scope=org`).
 13. Bikin PR. Title: `fix(<scope>): <description> (BUG-NNN)`. Body harus
     berisi:
     - Link ke entry bug di `docs/bugs/POST_V1_BUGS.md`.

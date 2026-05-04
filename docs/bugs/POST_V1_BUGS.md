@@ -5,6 +5,14 @@ Source of truth for all bugs found **after** the 12-session migration to v2 was 
 future Devin session (or human) can pick up the next open bug without re-discovering
 context from scratch.
 
+> **Status (2026-05-04):** All P0/P1/P2 bugs from the initial smoke test are
+> resolved (BUG-001..007, BUG-009..011 merged via PRs #55–#63 and #66). Only
+> **BUG-008** (LOW / DESIGN) remains in flight via PR
+> [#68](https://github.com/alviarts/perpustakaan-offline/pull/68). This file is
+> in maintenance mode — use it as a historical catalog. New bug discoveries
+> should append entries below + add a row to
+> [`PROGRESS.md`](./PROGRESS.md).
+
 - **Smoke test report (Linux dev, full repro details + screenshots):** session
   attachment `test-report.md` from the smoke-test session. The bug entries below
   are derived from that report and from a Windows production-installer test.
@@ -19,10 +27,10 @@ context from scratch.
 | Field | Value |
 |---|---|
 | Severity | **HIGH** |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
 | Reproduces in | Linux dev, presumed Windows prod (same code path) |
-| PR | none yet |
+| PR | [#55](https://github.com/alviarts/perpustakaan-offline/pull/55) (merged 2026-05-04) |
 
 **Where**
 
@@ -86,9 +94,9 @@ entries).
 | Field | Value |
 |---|---|
 | Severity | **MEDIUM** |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#57](https://github.com/alviarts/perpustakaan-offline/pull/57) (merged 2026-05-04) |
 
 **Where**
 
@@ -163,9 +171,9 @@ Then sweep all `description: ... String(err)` call sites and replace with
 | Field | Value |
 |---|---|
 | Severity | **MEDIUM** |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#58](https://github.com/alviarts/perpustakaan-offline/pull/58) (merged 2026-05-04) |
 
 **Where**
 
@@ -231,9 +239,9 @@ failures).
 | Field | Value |
 |---|---|
 | Severity | **MEDIUM** |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#59](https://github.com/alviarts/perpustakaan-offline/pull/59) (merged 2026-05-04) |
 
 **Where**
 
@@ -290,9 +298,9 @@ master arrays (insert only if `SELECT count(*) FROM ddc` = 0).
 | Field | Value |
 |---|---|
 | Severity | **HIGH** |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#56](https://github.com/alviarts/perpustakaan-offline/pull/56) (merged 2026-05-04) |
 
 **Where**
 
@@ -342,9 +350,9 @@ button in the editor restores this seed.
 | Field | Value |
 |---|---|
 | Severity | **MINOR** (cosmetic) |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#60](https://github.com/alviarts/perpustakaan-offline/pull/60) (merged 2026-05-04) |
 
 **Where**
 
@@ -392,9 +400,9 @@ Then add `staticData: { crumb: 'Anggota' }` etc. on each route definition.
 | Field | Value |
 |---|---|
 | Severity | **MINOR** |
-| Status | `OPEN` |
+| Status | `DONE` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#61](https://github.com/alviarts/perpustakaan-offline/pull/61) (merged 2026-05-04) |
 
 **Where**
 
@@ -486,9 +494,9 @@ its sub-line change.
 | Field | Value |
 |---|---|
 | Severity | **HIGH** |
-| Status | `IN_PR` |
+| Status | `SUPERSEDED` |
 | Discovered | Windows production install |
-| PR | [#53](https://github.com/alviarts/perpustakaan-offline/pull/53) (pending merge) |
+| PR | [#53](https://github.com/alviarts/perpustakaan-offline/pull/53) closed without merge; superseded by **BUG-010** in [#62](https://github.com/alviarts/perpustakaan-offline/pull/62) + Windows follow-up [#66](https://github.com/alviarts/perpustakaan-offline/pull/66) (merged 2026-05-04) |
 
 **Where**
 
@@ -547,15 +555,88 @@ References:
 
 ---
 
+### BUG-010 — Buku Manual UI redesign + Tauri 2 CSP externalize
+
+| Field | Value |
+|---|---|
+| Severity | **HIGH** |
+| Status | `DONE` |
+| Discovered | Windows production install (filed during BUG-009 review) |
+| Supersedes | BUG-009 |
+| PR | [#62](https://github.com/alviarts/perpustakaan-offline/pull/62) (merged 2026-05-04); Windows follow-up [#66](https://github.com/alviarts/perpustakaan-offline/pull/66) inlined CSS+JS to fully fix the blank-window regression |
+
+**Where**
+
+- `apps/manual/build.mjs` (manual HTML generator).
+- `apps/desktop/public/manual/` (generated artefacts — gitignored).
+- `apps/desktop/src-tauri/src/commands/manual.rs` (window builder flags).
+
+**Summary**
+
+Replaces the original BUG-009 fix (PR #53, closed without merge) with a
+larger redesign of the Buku Manual surface plus the Tauri 2 production-CSP
+workaround. PR #62 splits the manual into `index.html` + external `style.css`
++ `app.js` and refreshes the visual layout. PR #66 follow-up inlines CSS/JS
+back into a single HTML to fully eliminate the Windows WebView2 blank-window
+edge case under Tauri 2's runtime CSP.
+
+**Definition of done**
+
+- [x] Manual window renders fully styled on Windows production install.
+- [x] X button closes the manual window without Task Manager.
+- [x] Theme toggle + search filter work in the manual.
+- [x] No regression to dev-mode manual rendering.
+
+---
+
+### BUG-011 — System tray + close-behavior setting + clean process exit
+
+| Field | Value |
+|---|---|
+| Severity | **HIGH** |
+| Status | `DONE` |
+| Discovered | Windows production install |
+| PR | [#63](https://github.com/alviarts/perpustakaan-offline/pull/63) (merged 2026-05-04) |
+
+**Where**
+
+- `apps/desktop/src-tauri/src/lib.rs` (window event handler, system tray).
+- `apps/desktop/src/features/settings/...` (close-behavior preference).
+
+**Summary**
+
+The Windows install left orphaned background processes when the main window
+was closed via the X button (the app icon stayed in the system tray but the
+window could not be re-opened, and Task Manager showed the process still
+running). PR #63 adds a system tray icon with a proper context menu
+(Show / Quit), introduces a close-behavior setting ("close to tray" vs.
+"quit on close"), and ensures the process exits cleanly when the user picks
+"Quit".
+
+**Definition of done**
+
+- [x] System tray icon shows on Windows + Linux with Show/Quit menu.
+- [x] Close-behavior setting persists in DB; default is "close to tray".
+- [x] Quitting via tray menu fully terminates the process (no orphans).
+- [x] Manual smoke on Windows installer confirms the regression is gone.
+
+---
+
 ## Operational note — git auth
 
-Devin's GitHub App currently lacks `Contents: write` + `Pull requests: write`
-on this repo, so PRs from a Devin session require a user-supplied PAT (sent via
-the secrets UI). The smoke-test session that produced this backlog used PAT
-`GITHUB_PAT_PERPUSTAKAAN` for PRs #52 and #53.
+Devin's GitHub App lacks `Contents: write` + `Pull requests: write` on this
+repo, so PRs from a Devin session require a user-supplied PAT (sent via the
+secrets UI). As of 2026-05-04, the org-level secret is named **`GITHUB_PAT`**
+(classic, scope `repo`) and is auto-injected as an env var into all Devin
+sessions in the org. To push or create PRs, sessions use:
 
-To unblock future sessions permanently, the user can grant the Devin GitHub
-App write access on
+```bash
+git push https://x-access-token:${GITHUB_PAT}@github.com/alviarts/perpustakaan-offline.git <branch>
+GH_TOKEN=$GITHUB_PAT gh api repos/alviarts/perpustakaan-offline/pulls -X POST ...
+```
+
+To unblock future sessions permanently without a PAT, the user can grant the
+Devin GitHub App write access at
 <https://github.com/alviarts/perpustakaan-offline> →
 Settings → Integrations → GitHub Apps → Devin → Configure.
 
