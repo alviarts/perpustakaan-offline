@@ -219,6 +219,12 @@ fn seed_ddc_if_empty(conn: &Connection) -> AppResult<()> {
 /// need.
 fn apply_additive_migrations(conn: &Connection) -> AppResult<()> {
     add_column_if_missing(conn, "anggota", "agama", "TEXT")?;
+    // Forgot-password flow (PR-5): security question + bcrypt-hashed answer.
+    // Nullable on existing rows so older v2 DBs upgrade in place; users that
+    // never set a question simply cannot use the offline reset flow until an
+    // admin fills it in via Settings → Akun.
+    add_column_if_missing(conn, "users", "security_question", "TEXT")?;
+    add_column_if_missing(conn, "users", "security_answer_hash", "TEXT")?;
     Ok(())
 }
 

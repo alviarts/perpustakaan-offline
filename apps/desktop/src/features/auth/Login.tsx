@@ -12,6 +12,7 @@ import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { useAuthStore } from '@/stores/authStore';
 import { useIdentityStore } from '@/stores/identityStore';
 import { loginRequest } from '@/lib/auth';
+import { ForgotPasswordDialog } from './ForgotPasswordDialog';
 
 export function Login() {
   const { t } = useTranslation(['auth', 'common']);
@@ -26,6 +27,7 @@ export function Login() {
   const [remember, setRemember] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,7 +53,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-background text-foreground">
+    <div className="bg-background text-foreground min-h-screen w-full">
       <div className="absolute right-4 top-4 z-10 flex items-center gap-1">
         <LanguageSwitcher />
         <ThemeSwitcher />
@@ -67,11 +69,11 @@ export function Login() {
             className="w-full max-w-md"
           >
             <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-lg">
                 <BookOpen className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
                   {t('common:tagline')}
                 </p>
                 <h1 className="text-lg font-semibold">{identity.nama}</h1>
@@ -79,7 +81,7 @@ export function Login() {
             </div>
 
             <h2 className="text-3xl font-bold tracking-tight">{t('auth:login.title')}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mt-2 text-sm">
               {t('auth:login.subtitle', { appName: t('common:appName') })}
             </p>
 
@@ -114,7 +116,7 @@ export function Login() {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-accent"
+                    className="text-muted-foreground hover:bg-accent absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -133,10 +135,9 @@ export function Login() {
                 </label>
                 <button
                   type="button"
-                  className="text-sm font-medium text-primary hover:underline"
-                  onClick={() => {
-                    /* TODO: forgot password — Devin 11 (revisi #4) */
-                  }}
+                  className="text-primary text-sm font-medium hover:underline"
+                  onClick={() => setForgotOpen(true)}
+                  data-testid="login-forgot"
                 >
                   {t('auth:login.forgot')}
                 </button>
@@ -145,7 +146,7 @@ export function Login() {
               {errorKey ? (
                 <div
                   role="alert"
-                  className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+                  className="border-destructive/30 bg-destructive/10 text-destructive rounded-md border p-3 text-sm"
                 >
                   {t(`auth:${errorKey}`)}
                 </div>
@@ -160,12 +161,12 @@ export function Login() {
 
         {/* Right: gradient + illustration */}
         <div className="relative hidden overflow-hidden md:block">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-primary/40" />
+          <div className="from-primary via-primary/80 to-primary/40 absolute inset-0 bg-gradient-to-br" />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="relative flex h-full flex-col items-center justify-center gap-8 p-12 text-primary-foreground"
+            className="text-primary-foreground relative flex h-full flex-col items-center justify-center gap-8 p-12"
           >
             <img
               src="/illustrations/login-illustration.svg"
@@ -175,13 +176,13 @@ export function Login() {
             />
             <div className="flex flex-col items-center gap-2 text-center">
               <BookOpen className="h-10 w-10 opacity-80" strokeWidth={1.5} />
-              <p className="max-w-sm text-lg font-medium opacity-95">
-                {t('common:tagline')}
-              </p>
+              <p className="max-w-sm text-lg font-medium opacity-95">{t('common:tagline')}</p>
             </div>
           </motion.div>
         </div>
       </div>
+
+      <ForgotPasswordDialog open={forgotOpen} onOpenChange={setForgotOpen} />
     </div>
   );
 }
