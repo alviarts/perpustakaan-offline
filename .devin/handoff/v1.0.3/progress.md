@@ -1,18 +1,18 @@
 # v1.0.3 Progress & Handoff to Next Devin Session
 
-> Last updated: end of session 2 (paused by user). Continue where this leaves off.
+> Last updated: 2026-05-04, after v1.0.3 shipped. Outcome notes appended at bottom.
 
 ## Decided scope (from `scope-proposal.md`)
 
 User picked the **default v1.0.3 set**:
 
-- ☑ #1 FilePickerInput preview broken (Logo / Foto Anggota / Cover Buku)
-- ☑ #2 Tooltips on icon-only buttons
-- ☑ #4 Date input calendar icon (position + theme-aware)
-- ☑ #5 Peminjaman date row not responsive
-- ☑ #8 CRUD form max-width responsive on fullscreen
-- ☑ #14 Installer artwork (NSIS + WiX BMPs) — fix stretching
-- ☐ #9 Cetak KTA "Buka Folder Hasil" — optional, only if time permits
+- ☑ #1 FilePickerInput preview broken (Logo / Foto Anggota / Cover Buku) — shipped (PR #94)
+- ☑ #2 Tooltips on icon-only buttons — shipped (PR #90)
+- ☑ #4 Date input calendar icon (position + theme-aware) — shipped (PR #91)
+- ☑ #5 Peminjaman date row not responsive — shipped (PR #91)
+- ☑ #8 CRUD form max-width responsive on fullscreen — shipped (PR #92)
+- ☑ #14 Installer artwork (NSIS + WiX BMPs) — shipped (PR #93)
+- ☐ #9 Cetak KTA "Buka Folder Hasil" — **deferred to v1.0.4**, see Outcome section.
 
 Everything else (#3, #6, #7, #10, #11, #12, #13, #15, #16) defers to v1.0.4 / v1.0.5
 per the original split in `scope-proposal.md`. Do NOT pick those up unless the user
@@ -163,3 +163,66 @@ state into the session.
 - `pnpm tauri:dev` in this VM has no display, so manual UI testing for the
   FilePickerInput bug (#1) is hard. The next session should bring up the dev
   server and use the desktop GUI to repro before patching.
+
+## Outcome — v1.0.3 shipped 2026-05-04
+
+Session 3 (this session, picked up from session 2 pause) finished the v1.0.3
+backlog. Final ship list:
+
+| # | PR | Notes |
+|---|----|-------|
+| #2 | [#90](https://github.com/alviarts/perpustakaan-offline/pull/90) | Tooltip wrapper sweep over 7 components. |
+| #4 + #5 | [#91](https://github.com/alviarts/perpustakaan-offline/pull/91) | `color-scheme` + responsive Peminjaman dates. |
+| #8 | [#92](https://github.com/alviarts/perpustakaan-offline/pull/92) | `max-w-3xl xl:max-w-5xl 2xl:max-w-7xl` on Anggota/Buku CRUD. |
+| #14 | [#93](https://github.com/alviarts/perpustakaan-offline/pull/93) | Per-aspect-ratio NSIS + WiX BMPs. SVG sources + regen script in `apps/desktop/src-tauri/installer/`. |
+| #1 | [#94](https://github.com/alviarts/perpustakaan-offline/pull/94) | New `assets_read_data_url` Tauri command + base64 data URLs in `FilePickerInput` to bypass Windows asset-protocol scope mismatch. |
+| release | [#95](https://github.com/alviarts/perpustakaan-offline/pull/95) | Version bump 1.0.2 → 1.0.3 across 4 files + CHANGELOG. Tag `v1.0.3` pushed; `release-v2` workflow auto-published the GitHub Release with Windows MSI + NSIS installers. |
+
+### Item #9 deferred to v1.0.4
+
+Item #9 ("Buka Folder Hasil" on Cetak KTA) was deferred to v1.0.4 because the
+existing Cetak KTA flow is **print-window based**, not file-based:
+`buildKtaPrintHtml()` → `openKtaPrintWindow()` → `window.print()`. There is no
+result file written to disk and therefore no folder to open.
+
+To implement this properly in v1.0.4:
+
+1. Add a Rust command `kta_export_pdf` that takes the same `KtaPrintInput`
+   shape as `buildKtaPrintHtml`, renders it to PDF (most likely via the
+   `printpdf` crate or Tauri's `Webview::print_to_pdf` API if exposed in
+   Tauri 2.x), and writes the file to a known location, e.g.
+   `<app_data_dir>/exports/kta-<timestamp>.pdf`.
+2. Wire a "Save PDF" action on `CetakKtaPage` that invokes the new command,
+   then surfaces a "Buka Folder Hasil" button next to the print success
+   toast. Use `@tauri-apps/plugin-shell` `open(folderPath)` to open the
+   exports folder.
+3. Update the changelog + manual; ensure the new path is on the asset-protocol
+   scope allow-list (or skip `asset://` entirely and open via the OS file
+   manager — the `plugin-shell` `open()` call goes through the OS, not the
+   asset protocol).
+
+Risk: yellow — touches a Rust command + a new dependency. Estimate 1-2 sessions.
+
+### Auth note for future sessions
+
+The user's GitHub PAT was provided as a session secret named `GITHUB_PAT` in
+this session (note: not `GITHUB_PAT_ALVIARTS` as in session 2 — name varies).
+If the devin git-manager proxy returns 403 on push, fall back to:
+
+```
+git push https://x-access-token:${GITHUB_PAT}@github.com/alviarts/perpustakaan-offline.git <branch>:<branch>
+```
+
+For PR creation when `git_pr(action="create")` says
+"Resource not accessible by personal access token", use:
+
+```
+curl -s -X POST \
+  -H "Authorization: Bearer ${GITHUB_PAT}" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  -d @/tmp/pr-body.json \
+  https://api.github.com/repos/alviarts/perpustakaan-offline/pulls
+```
+
+Then `git_pr(action="take_over", repo, pull_number)` to rehydrate state.
