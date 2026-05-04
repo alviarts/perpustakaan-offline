@@ -6,7 +6,8 @@
   "kpi": {
     "anggota": "Total Anggota",
     "buku": "Total Buku",
-    "dipinjam": "Buku Dipinjam"
+    "dipinjam": "Buku Dipinjam",
+    "eksemplarSubline": "{{value}} eksemplar"
   },
   "chart": {
     "ddc": {

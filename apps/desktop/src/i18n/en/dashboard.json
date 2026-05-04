@@ -6,7 +6,8 @@
   "kpi": {
     "anggota": "Total Members",
     "buku": "Total Books",
-    "dipinjam": "Books On Loan"
+    "dipinjam": "Books On Loan",
+    "eksemplarSubline": "{{value}} copies"
   },
   "chart": {
     "ddc": {

@@ -435,9 +435,9 @@ click "Backup Sekarang" because that's destructive.
 | Field | Value |
 |---|---|
 | Severity | **LOW / DESIGN** |
-| Status | `OPEN` (decision needed) |
+| Status | `IN_PR` |
 | Discovered | Linux dev smoke test |
-| PR | none yet |
+| PR | [#68](https://github.com/alviarts/perpustakaan-offline/pull/68) |
 
 **Where**
 
@@ -448,25 +448,36 @@ click "Backup Sekarang" because that's destructive.
 With 1 buku that has `jumlah_eksemplar = 2`, the dashboard shows
 **"Total Buku: 2"**.
 
-**Expected**
+**Decision (2026-05-04, recorded by user)**
 
-Either the KPI label should read "Total Eksemplar", or the underlying query
-should `COUNT(*) FROM buku` (titles) instead of summing eksemplar.
+**Opsi 3 — show both metrics on a single KPI card.** The headline number on
+the "Total Buku" card is the count of distinct **titles** (`COUNT(*) FROM buku`)
+and a small muted sub-line directly underneath shows the number of **physical
+copies** as `"{{count}} eksemplar"`. Rationale: school-library staff care
+primarily about catalog breadth (titles), but losing visibility into physical
+inventory would regress the existing v1.0.0 dashboard. Surfacing both metrics
+on the same card preserves all information without adding a fourth KPI tile or
+re-shuffling the dashboard layout.
 
-**Decision needed before fix**
-
-Confirm with user which interpretation is intended for revisi #9 ("3 hero card
-+ donut + bar"). Most school-library KPIs care about **titles** (catalog size)
-rather than physical copies — "Total Buku" probably means titles, and a
-separate "Total Eksemplar" KPI can be added if the user wants that visible too.
+The label stays `"Total Buku"` in both locales — only the displayed number and
+its sub-line change.
 
 **Definition of done**
 
-- [ ] Decision recorded in this file (replace "Decision needed" above with the
-      chosen interpretation).
-- [ ] Dashboard KPI matches the intended interpretation.
-- [ ] If the interpretation is "titles", the donut/bar charts are sanity-checked
-      to confirm they also use titles, not eksemplar.
+- [x] Decision recorded in this file (Opsi 3).
+- [x] `DashboardKpi.totalBuku` switched to `COUNT(*) FROM buku` (titles).
+- [x] New `DashboardKpi.totalEksemplar` field carries the previous
+      `SUM(jumlah_eksemplar)` value and is rendered as the KPI sub-line.
+- [x] `delta_buku_pct` recomputed against title creation, matching the headline
+      KPI semantics so the trend arrow describes titles added per month, not
+      eksemplar churn.
+- [x] DDC donut + DDC bar already used `COUNT(*) FROM buku GROUP BY kelas`
+      (titles) on `main`, so no further chart changes were needed — sanity
+      check verified.
+- [x] Rust unit tests cover the title vs. eksemplar split, fresh-DB zeroes,
+      `buku_dipinjam` correctness, and the `aktif=1` filter on `total_anggota`.
+- [x] Vitest suite asserts the mock RPC carries both fields with `copies >=
+      titles`.
 
 ---
 
@@ -561,4 +572,4 @@ In recommended fix order before shipping the next installer:
 5. **BUG-003** (MEDIUM) — Settings → Master Data is currently pointless.
 6. **BUG-004** (MEDIUM) — DDC seeding closes the loop on revisi #17.
 7. **BUG-006 / BUG-007** (MINOR) — cosmetic; opportunistic.
-8. **BUG-008** (LOW / DESIGN) — needs user decision before fix.
+8. **BUG-008** (LOW / DESIGN) — design decision recorded above (Opsi 3); fix in PR #68.

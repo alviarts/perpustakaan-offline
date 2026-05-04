@@ -40,6 +40,17 @@ describe('dashboardApi (browser mock)', () => {
     expect(Number.isFinite(kpi.deltaAnggotaPct)).toBe(true);
   });
 
+  it('kpi exposes both totalBuku (titles) and totalEksemplar (copies), with copies >= titles', async () => {
+    // BUG-008 (Opsi 3): the dashboard surfaces both metrics now. By
+    // construction `totalEksemplar` (sum of jumlah_eksemplar) must be at
+    // least `totalBuku` (count of distinct titles), since each title has at
+    // least one copy. Asserting the relationship guards against a regression
+    // that swaps the two fields.
+    const kpi = await dashboardApi.kpi();
+    expect(kpi.totalBuku).toBeGreaterThan(0);
+    expect(kpi.totalEksemplar).toBeGreaterThanOrEqual(kpi.totalBuku);
+  });
+
   it('ddc returns 10 main DDC slices', async () => {
     const ddc = await dashboardApi.ddc();
     expect(ddc.length).toBe(10);
