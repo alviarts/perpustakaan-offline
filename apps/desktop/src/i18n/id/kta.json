@@ -24,7 +24,9 @@
     "delete": "Hapus",
     "setDefault": "Jadikan Default",
     "addField": "Tambah Field",
-    "print": "Cetak"
+    "print": "Cetak",
+    "savePdf": "Simpan PDF",
+    "openFolder": "Buka Folder Hasil"
   },
   "toast": {
     "saved": "Template tersimpan",
@@ -34,6 +36,12 @@
     "selectMember": "Pilih minimal satu anggota",
     "selectTemplate": "Pilih template terlebih dahulu",
     "printing": "Mencetak {{count}} KTA",
-    "printFailed": "Gagal mencetak"
+    "printFailed": "Gagal mencetak",
+    "pdfSaved": "PDF KTA tersimpan",
+    "pdfFailed": "Gagal menyimpan PDF",
+    "openFolderFailed": "Gagal membuka folder hasil"
+  },
+  "lastExport": {
+    "label": "PDF terakhir disimpan"
   }
 }

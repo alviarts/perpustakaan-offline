@@ -53,6 +53,12 @@ export interface KtaTemplateInput {
   isDefault?: boolean;
 }
 
+export interface KtaExportResult {
+  filename: string;
+  absPath: string;
+  dirAbsPath: string;
+}
+
 export interface KtaRpc {
   list: () => Promise<KtaTemplate[]>;
   get: (id: number) => Promise<KtaTemplate>;
@@ -60,6 +66,16 @@ export interface KtaRpc {
   update: (id: number, input: KtaTemplateInput) => Promise<KtaTemplate>;
   delete: (id: number) => Promise<void>;
   setDefault: (id: number) => Promise<KtaTemplate>;
+  /**
+   * Persists a PDF blob (built by jsPDF in the WebView) under
+   * `<app_data>/exports/kta-YYYYMMDD-HHMMSS.pdf` and returns the
+   * resolved paths so the UI can show a follow-up "open folder"
+   * affordance. Browser mode falls back to a Blob download since we
+   * can't write to the user's filesystem.
+   */
+  exportPdf: (bytes: Uint8Array) => Promise<KtaExportResult>;
+  /** Open the exports folder in the OS file manager. */
+  openExportsFolder: () => Promise<string>;
 }
 
 const tauriRpc: KtaRpc = {
@@ -69,6 +85,8 @@ const tauriRpc: KtaRpc = {
   update: (id, input) => invoke('kta_template_update', { id, input }),
   delete: (id) => invoke('kta_template_delete', { id }),
   setDefault: (id) => invoke('kta_template_set_default', { id }),
+  exportPdf: (bytes) => invoke('kta_export_pdf', { bytes: Array.from(bytes) }),
+  openExportsFolder: () => invoke('kta_open_exports_folder'),
 };
 
 const STORAGE_KEY = 'po:kta:templates';
@@ -165,6 +183,30 @@ const mockRpc: KtaRpc = {
     const found = rows.find((r) => r.id === id);
     if (!found) throw new Error(`template id=${id} tidak ditemukan`);
     return found;
+  },
+  async exportPdf(bytes) {
+    // Browser-mode fallback — we can't write into the user's filesystem
+    // so we trigger a download and synthesise a result that mimics what
+    // the Tauri command would have returned.
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[-:T]/g, '')
+      .replace(/\..+$/, '')
+      .replace(/(\d{8})(\d{6})/, '$1-$2');
+    const filename = `kta-${stamp}.pdf`;
+    const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    return { filename, absPath: filename, dirAbsPath: '' };
+  },
+  async openExportsFolder() {
+    return '';
   },
 };
 

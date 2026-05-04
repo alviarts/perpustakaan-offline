@@ -24,7 +24,9 @@
     "delete": "Delete",
     "setDefault": "Set as Default",
     "addField": "Add Field",
-    "print": "Print"
+    "print": "Print",
+    "savePdf": "Save PDF",
+    "openFolder": "Open Output Folder"
   },
   "toast": {
     "saved": "Template saved",
@@ -34,6 +36,12 @@
     "selectMember": "Pick at least one member",
     "selectTemplate": "Pick a template first",
     "printing": "Printing {{count}} KTA",
-    "printFailed": "Failed to print"
+    "printFailed": "Failed to print",
+    "pdfSaved": "KTA PDF saved",
+    "pdfFailed": "Failed to save PDF",
+    "openFolderFailed": "Failed to open output folder"
+  },
+  "lastExport": {
+    "label": "Last saved PDF"
   }
 }

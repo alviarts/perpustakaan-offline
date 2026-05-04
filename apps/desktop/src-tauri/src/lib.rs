@@ -164,6 +164,8 @@ pub fn run() {
             commands::kta::kta_template_update,
             commands::kta::kta_template_delete,
             commands::kta::kta_template_set_default,
+            commands::kta_export::kta_export_pdf,
+            commands::kta_export::kta_open_exports_folder,
             commands::settings::settings_get_many,
             commands::settings::settings_set_many,
             commands::settings::settings_users_list,
