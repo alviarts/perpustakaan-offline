@@ -1,7 +1,8 @@
 /**
  * Manual book HTML generator (revisi #4 + BUG-010 redesign).
  *
- * Reads the legacy `docs/manual.md`, converts to a responsive HTML manual with:
+ * Reads `docs/manual.md` (the canonical user manual source) and converts it
+ * to a responsive HTML manual with:
  *   - Branded hero / cover section
  *   - Sticky table of contents with collapsible h3 children + scroll-spy
  *   - Reading progress bar
@@ -14,11 +15,14 @@
  *   - Placeholder hooks for the library identity (`{{LIB_NAMA}}`) injected at
  *     runtime by the frontend before opening the manual
  *
- * Output (3 sibling files — required so Tauri 2 strict CSP in production
- * does not block inline `<style>` / `<script>` blocks; see BUG-009):
+ * Output (single self-contained HTML file with CSS + JS inlined):
  *   - `apps/desktop/public/manual/index.html`
- *   - `apps/desktop/public/manual/style.css`
- *   - `apps/desktop/public/manual/app.js`
+ *
+ * The CSS / JS are inlined rather than emitted as sibling files because the
+ * Tauri 2 production custom-protocol that bundles secondary-window assets has
+ * occasionally produced blank manual windows on Windows when it tries to fetch
+ * sibling .css/.js (see BUG-009 / BUG-010 + the inline-revert follow-up). A
+ * single self-contained HTML sidesteps that loader path entirely.
  *
  * Markdown rendering is intentionally hand-rolled (no external deps) so the
  * build runs offline without network access during CI.
