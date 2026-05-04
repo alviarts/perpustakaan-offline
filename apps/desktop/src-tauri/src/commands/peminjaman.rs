@@ -1,6 +1,6 @@
 //! Peminjaman + Pengembalian commands.
 //!
-//! Mirrors the v1 Python flow in `src/perpustakaan/models/peminjaman.py`:
+//! Mirrors the v1 Python flow in `legacy/v1/src/perpustakaan/models/peminjaman.py`:
 //! create a `peminjaman` header, insert one `peminjaman_item` row per
 //! eksemplar dipinjam, decrement `buku.jumlah_tersedia`, flip eksemplar
 //! status to `dipinjam`. Pengembalian computes denda = max(0, days_late) *
