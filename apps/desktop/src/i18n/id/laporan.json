@@ -63,7 +63,7 @@
     "restoreFailed": "Restore gagal",
     "lastBackup": "Backup terakhir",
     "scheduleTitle": "Jadwal Backup Otomatis",
-    "scheduleHint": "Cron 5-field. Devin 12 akan menambahkan runner cron-like.",
+    "scheduleHint": "Cron 5-field (mis. \"0 2 * * *\"). Runner berjalan di latar belakang dan menyimpan backup ke folder data aplikasi.",
     "enableSchedule": "Aktifkan jadwal otomatis",
     "cron": "Cron Expression",
     "scheduleSave": "Simpan Jadwal",
