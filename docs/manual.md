@@ -15,7 +15,7 @@ sesuai urutan menu di sidebar.
 
 1. [Instalasi & Jalankan Pertama Kali](#instalasi--jalankan-pertama-kali)
 2. [Login & Akun](#login--akun)
-3. [Tutorial Kontekstual & Toggle Tema (v0.4.1)](#tutorial-kontekstual--toggle-tema-v041)
+3. [Tutorial Kontekstual & Toggle Tema](#tutorial-kontekstual--toggle-tema)
 4. [Dashboard](#dashboard)
 5. [Master Data — Anggota](#master-data--anggota)
 6. [Master Data — Buku](#master-data--buku)
@@ -24,41 +24,57 @@ sesuai urutan menu di sidebar.
 9. [Transaksi — Pengembalian](#transaksi--pengembalian)
 10. [Laporan](#laporan)
 11. [Setting](#setting)
-12. [Tools — Cek Data Ganda](#tools--cek-data-ganda)
-13. [Audit Log Viewer](#audit-log-viewer)
-14. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
-15. [Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)](#cetak-kta-label-barcode-bebas-pustaka-nota)
-16. [Troubleshooting](#troubleshooting)
+12. [Audit Log Viewer](#audit-log-viewer)
+13. [Backup, Reset, & Lokasi Data](#backup-reset--lokasi-data)
+14. [Cetak (KTA, Label Barcode, Bebas Pustaka, Nota)](#cetak-kta-label-barcode-bebas-pustaka-nota)
+15. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Instalasi & Jalankan Pertama Kali
 
-Aplikasi tersedia dalam **2 bentuk** — pilih sesuai preferensi:
+Aplikasi v2 dibangun dengan **Tauri 2** — native installer (bukan PyInstaller .exe).
+Download artefak terbaru dari [halaman Releases](https://github.com/alviarts/perpustakaan-offline/releases) sesuai sistem operasi.
 
-### A. Installer (Setup wizard, recommended)
+### Windows
 
-1. Download `PerpustakaanOffline-Setup-vX.Y.Z.exe` dari [halaman Releases](https://github.com/alviarts/perpustakaan-offline/releases)
-2. Klik 2x file Setup → ikuti wizard (Next → Next → Install)
-3. Aplikasi akan terinstall ke `C:\Program Files\Perpustakaan Offline\`
-4. Shortcut otomatis dibuat di **Start Menu** dan **Desktop**
-5. Klik shortcut **"Perpustakaan Offline"** untuk menjalankan
-6. Untuk uninstall: Control Panel → Programs → Perpustakaan Offline → Uninstall
+Tersedia **dua format installer**, pilih salah satu:
 
-### B. Portable (single .exe, no install)
+| Format | File                                              | Catatan                                                  |
+|--------|---------------------------------------------------|----------------------------------------------------------|
+| MSI    | `PerpustakaanOffline_<versi>_x64_en-US.msi`       | Standar Windows Installer; cocok untuk deployment massal |
+| NSIS   | `PerpustakaanOffline_<versi>_x64-setup.exe`       | Wizard interaktif; cocok untuk install di 1 PC           |
 
-1. Download `PerpustakaanOffline.exe` dari [halaman Releases](https://github.com/alviarts/perpustakaan-offline/releases)
-2. Letakkan `.exe` di folder mana saja (misal `D:\PerpusApp\`)
-3. Klik 2x untuk jalankan — tidak ada proses install
-4. Bisa di-copy ke flashdisk dan dipakai di komputer lain (data ikut tidak — lihat [Lokasi Data](#backup-reset--lokasi-data))
+1. Download salah satu file di atas dari halaman Releases
+2. Klik 2x → ikuti wizard (Next → Next → Install)
+3. Aplikasi terinstall ke `C:\Program Files\PerpustakaanOffline\` (atau lokasi lain yang dipilih)
+4. Shortcut otomatis dibuat di **Start Menu**
+5. Klik shortcut **"PerpustakaanOffline"** untuk menjalankan — saat pertama kali dibuka, database SQLite + seed data otomatis dibuat
+6. Untuk uninstall: Control Panel → Programs → PerpustakaanOffline → Uninstall
+
+### Linux (Ubuntu/Debian)
+
+1. Download `perpustakaan-offline_<versi>_amd64.deb` dari halaman Releases
+2. Install: `sudo apt install ./perpustakaan-offline_<versi>_amd64.deb`
+3. Jalankan dari menu aplikasi atau via terminal: `perpustakaan-offline`
+
+### macOS
+
+1. Download `PerpustakaanOffline_<versi>_x64.dmg` (Intel) atau `_aarch64.dmg` (Apple Silicon)
+2. Buka `.dmg` → drag aplikasi ke folder Applications
+3. Buka via Launchpad atau Spotlight ("PerpustakaanOffline")
 
 ### Catatan Windows Defender / SmartScreen
 
-Karena `.exe` belum kami sign dengan code signing certificate, Windows mungkin menampilkan:
+Karena installer belum kami sign dengan code signing certificate komersial, Windows mungkin menampilkan:
 
 > Windows protected your PC
 
-Klik **"More info"** → **"Run anyway"**. Ini normal untuk software open-source yang tidak disigning.
+Klik **"More info"** → **"Run anyway"**. Ini normal untuk software open-source yang belum disigning.
+
+### macOS Gatekeeper
+
+Kalau muncul *"PerpustakaanOffline can't be opened because Apple cannot check it for malicious software"*, klik kanan icon aplikasi → **Open** → konfirmasi **Open** sekali lagi. Setelah itu bisa dibuka normal.
 
 ---
 
@@ -83,10 +99,10 @@ Akun pertama otomatis menjadi **administrator**; akun berikutnya berperan **oper
 
 ---
 
-## Tutorial Kontekstual & Toggle Tema (v0.4.1)
+## Tutorial Kontekstual & Toggle Tema
 
-> Mulai v0.4.1, tutorial **tidak lagi linear dari awal-akhir aplikasi**.
-> Sekarang tiap menu punya **panduan sendiri** yang muncul otomatis hanya
+> Tutorial **tidak linear dari awal-akhir aplikasi**.
+> Tiap menu punya **panduan sendiri** yang muncul otomatis hanya
 > saat kamu pertama kali membuka menu itu.
 
 ### First-Run di Dashboard
@@ -116,7 +132,7 @@ tombol-tombol pentingnya:
 | **Peminjaman**| **alur 4 langkah**: pilih anggota → cari buku → tambah item → simpan + cetak nota PDF    |
 | **Pengembalian** | cari anggota, daftar pinjam aktif, **Pengembalian Normal** vs **Buku Hilang**          |
 | **Laporan**   | tab-tab laporan, **Ekspor Excel**, grafik kunjungan / top peminjam / kas                 |
-| **Setting**   | tab Identitas → Transaksi → Akun → Bahasa & Tema → Backup Terjadwal → Audit Log (auto-switch tab) |
+| **Setting**   | tab Identitas → KTA → Akun → Hak Akses → Aturan Peminjaman → Master Data → Tampilan → Bahasa → Backup → Sinkronisasi → Audit Log → Tentang (auto-switch tab) |
 
 ### Tombol "?" — Memutar Ulang Tutorial Kapan Saja
 
@@ -127,7 +143,7 @@ setiap menu.
 
 ### Mengulang Semua Tutorial Sekaligus
 
-Buka **Setting → tab "Bahasa & Tema"** lalu klik tombol
+Buka **Setting → tab "Tampilan"** lalu klik tombol
 **Mulai Ulang Semua Tutorial** di bagian bawah. Ini me-reset flag
 `tutorial.<menu>.completed` untuk semua menu sehingga panduan kontekstual
 auto-muncul lagi saat kamu mengunjungi tiap menu.
@@ -176,7 +192,7 @@ Tampilan ringkasan operasional perpustakaan saat ini:
 - Akan jatuh tempo dalam 3 hari ke depan (warning)
 - Sudah terlambat (merah, dengan `sisa_hari` negatif)
 
-### Reminder Otomatis Saat Login (v0.3.0)
+### Reminder Otomatis Saat Login
 
 Saat dashboard pertama kali ter-load setelah login, aplikasi akan otomatis menampilkan **toast notification** di pojok kanan bawah jika ada peminjaman yang:
 - **Sudah terlambat** (overdue)
@@ -449,18 +465,54 @@ Customize teks & layout KTA: header, footer, font, ukuran. Preview real-time.
 - Tombol **Daftar Baru**, **Edit**, **Reset Password**, **Hapus**
 - **Ganti Password Saya** — wajib pakai ini setelah login pertama!
 
-### Tab "Bahasa & Tema"
+### Tab "Tampilan"
 
+Atur **tema gelap/terang** dan **warna aksen UI**:
 
 | Field   | Pilihan                                |
 |---------|----------------------------------------|
-| Bahasa  | `id — Indonesia` / `en — English`      |
 | Tema    | `system` / `light` / `dark`            |
 | Warna   | `blue` / `green` / `dark-blue`         |
 
 Klik **Simpan** → UI berubah live tanpa restart.
 
-### Tab "Backup Terjadwal" (v0.4.0)
+Di bagian bawah ada tombol **Mulai Ulang Semua Tutorial** untuk reset flag
+`tutorial.<menu>.completed` agar panduan kontekstual tiap menu auto-muncul lagi.
+
+### Tab "Bahasa"
+
+| Field   | Pilihan                                |
+|---------|----------------------------------------|
+| Bahasa  | `id — Indonesia` / `en — English`      |
+
+Ubah bahasa di sini akan **switch UI live** tanpa restart — semua label, tombol,
+dan toast notification ikut berganti.
+
+### Tab "Hak Akses"
+
+Untuk role-based access control (RBAC). Hanya akun **administrator** yang
+bisa mengubah:
+
+- **Per-akun permission grant/revoke**: tiap akun bisa diberi izin granular ke modul tertentu (Anggota CRUD, Buku CRUD, Peminjaman, Laporan, dll.)
+- **Default role permissions**: konfigurasi default permission saat akun baru dibuat
+- Saat user tidak punya izin ke suatu modul, menu di sidebar otomatis disembunyikan
+
+### Tab "Master Data"
+
+Kelola seed lookup tables yang dipakai di seluruh aplikasi:
+
+| Lookup       | Penjelasan                                                  |
+|--------------|-------------------------------------------------------------|
+| Kelas        | Daftar kelas (mis. `7A`, `8B`, `XII IPA 1`)                 |
+| Jurusan      | Daftar jurusan (mis. `IPA`, `IPS`, `Bahasa`)                |
+| Agama        | Daftar agama (default: 6 agama resmi Indonesia)             |
+| Kategori     | Kategori buku (Fiksi, Non-fiksi, Referensi, dll.)           |
+| Penerbit     | Daftar penerbit (auto-grow saat input buku baru)            |
+| DDC override | Override label klasifikasi DDC (Dewey Decimal Classification) |
+
+Tambah / edit / hapus baris langsung di tabel.
+
+### Tab "Backup"
 
 Aplikasi bisa **otomatis membuat backup database SQLite** secara harian atau
 mingguan ke folder lokal. File lama akan dihapus otomatis sesuai jumlah
@@ -487,7 +539,7 @@ Daftar file backup tersimpan ditampilkan di tabel paling bawah lengkap dengan
 ukuran & tanggal.
 
 **Catatan operasional:**
-- Scheduler berjalan sebagai daemon thread di dalam aplikasi — backup hanya
+- Scheduler berjalan di background daemon Tauri — backup hanya
   jalan saat aplikasi terbuka. Kalau jadwal terlewat (mis. PC dimatikan
   semalam), saat aplikasi dibuka lagi backup akan langsung dijalankan
   sebagai *catch-up*.
@@ -495,49 +547,28 @@ ukuran & tanggal.
   atau `backup_failed`, lengkap dengan trigger (`scheduled` / `manual` /
   `catchup`) dan jumlah file lama yang ter-prune.
 
-### Tab "Tools"
+### Tab "Sinkronisasi"
 
-Lihat bab terpisah: [Tools — Cek Data Ganda](#tools--cek-data-ganda).
+> Placeholder untuk sinkronisasi data antar perangkat. Saat ini belum
+> ada backend implementation — setting `lastSync` hanya di-update
+> ke timestamp saat ini ketika tombol "Sinkronisasi Sekarang" diklik.
+> Akan diisi di rilis mendatang.
 
 ### Tab "Audit Log"
 
 Lihat bab terpisah: [Audit Log Viewer](#audit-log-viewer).
 
----
+### Tab "Tentang"
 
-## Tools — Cek Data Ganda
-
-
-Fitur baru di v0.3.0 untuk **mendeteksi data duplikat** yang sering terjadi saat
-import Excel berulang atau saat dua operator input data anggota/buku yang sama
-secara bersamaan. Akses lewat **Setting → tab Tools**.
-
-### Cara Pakai
-
-1. **Setting → Tools**
-2. Klik tombol **Scan Duplikat**
-3. Tabel pertama (**Duplikat Anggota**) menampilkan grup anggota dengan **Nama + Kelas** identik (case-insensitive)
-4. Tabel kedua (**Duplikat Buku**) menampilkan grup buku dengan:
-   - **ISBN** sama persis (tipe: `ISBN`), atau
-   - **Judul + Pengarang** sama persis (tipe: `Judul+Pengarang`)
-5. Kolom **Kode Anggota** / **Kode Buku** berisi list kode yang duplikat (mis `A0001, A0098, A0099`)
-6. Status di bawah: *"Tidak ada data ganda"* (hijau) atau *"Ditemukan N grup"* (oranye)
-
-### Cara Bersihkan Duplikat
-
-Setelah kamu identifikasi grup duplikat:
-
-- **Anggota duplikat**: balik ke Master Anggota → cari per kode → pilih satu yang "asli" → hapus yang lain (atau merge manual sebelum hapus kalau punya peminjaman aktif)
-- **Buku duplikat**: balik ke Master Buku → cari per kode → kalau dua buku fisik memang sama, pertahankan satu dan tambahkan jumlah eksemplarnya, hapus duplikat. Kalau memang dua buku berbeda yang kebetulan ISBN-nya tertulis sama, perbaiki ISBN salah satu
-
-> **Saran:** Jalankan Cek Data Ganda **sebelum** dan **sesudah** import Excel besar untuk memastikan tidak ada duplikasi.
+Menampilkan **versi aplikasi**, **link repo GitHub**, dan **lisensi** —
+berguna saat lapor bug supaya tahu versi yang dipakai.
 
 ---
 
 ## Audit Log Viewer
 
 
-Fitur baru di v0.3.0 untuk **melihat riwayat aksi siapa-melakukan-apa-kapan**. Akses
+Fitur untuk **melihat riwayat aksi siapa-melakukan-apa-kapan**. Akses
 lewat **Setting → tab Audit Log**.
 
 ### Yang Tercatat
@@ -572,32 +603,38 @@ lewat **Setting → tab Audit Log**.
 
 ### Lokasi Data
 
-| OS       | Path                                                        |
-|----------|-------------------------------------------------------------|
-| Windows  | `%APPDATA%\PerpustakaanOffline\`                            |
-| macOS    | `~/Library/Application Support/PerpustakaanOffline/`        |
-| Linux    | `~/.local/share/PerpustakaanOffline/`                       |
+v2 menggunakan **Tauri app data directory** dengan bundle identifier
+`id.alviarts.perpustakaan`:
+
+| OS       | Path                                                              |
+|----------|-------------------------------------------------------------------|
+| Windows  | `%APPDATA%\id.alviarts.perpustakaan\`                             |
+| macOS    | `~/Library/Application Support/id.alviarts.perpustakaan/`         |
+| Linux    | `~/.local/share/id.alviarts.perpustakaan/`                        |
 
 Isi folder:
 ```
-PerpustakaanOffline/
-├── perpustakaan.db        # database SQLite (semua data)
+id.alviarts.perpustakaan/
+├── perpustakaan-v2.db     # database SQLite (semua data)
 ├── backup/                # auto-backup (.db dengan timestamp)
 ├── exports/               # output PDF, .xlsx, gambar
-├── photos/                # foto anggota
-└── covers/                # cover buku
+├── photos/                # foto anggota (di-copy saat upload)
+└── covers/                # cover buku (di-copy saat upload)
 ```
+
+> Untuk membuka folder ini cepat: tombol **Buka Folder** di **Setting → Backup**
+> akan langsung membuka folder data di File Explorer / Finder / file manager.
 
 ### Backup Manual
 
-**Cara 1 — Lewat aplikasi**: Laporan → Backup / Reset → **Backup Database (.db)**
+**Cara 1 — Lewat aplikasi**: **Setting → Backup** → tombol **Backup Sekarang** (juga bisa lewat **Laporan → Backup**).
 
 **Cara 2 — Manual file copy**: Copy seluruh folder di atas ke flashdisk / hard disk eksternal / Google Drive.
 
 ### Restore dari Backup
 
 1. Tutup aplikasi
-2. Replace `perpustakaan.db` di folder data dengan file backup
+2. Replace `perpustakaan-v2.db` di folder data dengan file backup
 3. Buka aplikasi → data sudah pulih
 
 ### Pindah ke Komputer Lain
@@ -620,7 +657,7 @@ PerpustakaanOffline/
 | Nota Peminjaman  | A5 / struk | PDF               | Printer biasa atau thermal struk |
 | Nota Pengembalian| A5 / struk | PDF               | Printer biasa atau thermal struk |
 
-### Cetak Nota Peminjaman / Pengembalian (v0.3.0)
+### Cetak Nota Peminjaman / Pengembalian
 
 
 Setelah simpan transaksi peminjaman atau pengembalian, aplikasi akan otomatis
@@ -655,38 +692,42 @@ Scanner USB biasa cukup. Mode **HID Keyboard Wedge** (default scanner USB) — s
 
 ## Troubleshooting
 
-### "Windows protected your PC" saat buka .exe
+### "Windows protected your PC" saat buka installer
 
-→ Klik **More info** → **Run anyway**. Normal untuk software open-source belum disigning.
+→ Klik **More info** → **Run anyway**. Normal untuk software open-source yang belum disigning dengan code signing certificate komersial.
 
-### Aplikasi tidak buka, layar hitam, langsung close
+### Aplikasi tidak buka / layar hitam / langsung close
 
-1. Jalankan dari Command Prompt: `PerpustakaanOffline.exe` → lihat error message
-2. Cek log di folder data: `%APPDATA%\PerpustakaanOffline\app.log`
-3. Coba hapus DB: rename `perpustakaan.db` → `perpustakaan.db.bak` → buka app (akan bikin DB baru, tapi data hilang — backup dulu!)
-4. Buka [GitHub Issues](https://github.com/alviarts/perpustakaan-offline/issues) untuk lapor bug
+1. Coba jalankan dari Command Prompt (Windows) atau terminal (Linux/macOS) untuk lihat error message lengkap
+2. Cek folder data app (lihat [Lokasi Data](#lokasi-data)) — kalau ada masalah I/O, pastikan ada permission tulis
+3. Coba rename DB: `perpustakaan-v2.db` → `perpustakaan-v2.db.bak`, lalu buka app (akan bikin DB baru otomatis, **tapi data hilang** — backup dulu!)
+4. Pastikan WebView2 (Windows) ter-install — sudah default ada di Windows 11, kalau Windows 10 lama mungkin perlu install dari [Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
+5. Buka [GitHub Issues](https://github.com/alviarts/perpustakaan-offline/issues) untuk lapor bug, sertakan info OS + versi app + langkah reproduksi
 
 ### Login gagal "username/password salah"
 
-- Default: `admin` / `admin123`
-- Kalau lupa password admin: hapus DB (data hilang!) atau lihat instruksi reset password di [docs/reset-password.md](reset-password.md) (TBD di v0.2)
+- Default akun pertama kali: `admin` / `admin123`
+- Sudah ganti password tapi lupa? → buka [Login screen](#login--akun) → link **Lupa Password?** akan minta jawaban *security question* yang kamu set saat ganti password (jika fitur sudah aktif di rilis terbaru)
+- Sebagai fallback terakhir: tutup app, hapus `perpustakaan-v2.db` di folder data, buka app → admin default akan re-create. **PERINGATAN:** semua data hilang — backup dulu kalau perlu.
 
 ### Barcode scanner tidak bekerja
 
-- Pastikan scanner di mode **HID Keyboard** (lihat manual scanner)
-- Test di Notepad — scan barcode harus muncul sebagai teks
-- Pastikan field input aplikasi sudah dalam keadaan focus
+- Pastikan scanner di mode **HID Keyboard Wedge** (lihat manual scanner)
+- Test di Notepad — scan barcode harus muncul sebagai teks + Enter
+- Pastikan field input di aplikasi sudah dalam keadaan focus sebelum scan
 
-### Cetak PDF tidak muncul
+### Cetak PDF / nota tidak muncul
 
-- Cek folder `exports/` di folder data aplikasi
-- Pastikan tidak ada PDF reader yang nge-block (Adobe Reader / SumatraPDF kadang lock file)
+- Cek folder `exports/` di [folder data aplikasi](#lokasi-data)
+- Pastikan tidak ada PDF reader yang nge-lock file (Adobe Reader / SumatraPDF kadang lock file output)
+- Kalau printer thermal output terpotong: atur margin printer atau cetak ke A4 lalu potong
 
 ### Import Excel error
 
 - Pastikan format file `.xlsx` (bukan `.xls` lama)
-- Header kolom harus persis sesuai Template (download dari aplikasi)
-- Tanggal harus format `YYYY-MM-DD` (text), bukan format Excel date
+- Header kolom harus **persis sesuai Template** — download Template dari toolbar Master Anggota / Master Buku
+- Tanggal harus format `YYYY-MM-DD` (text cell), bukan format Excel date
+- Kalau ada baris error spesifik, dialog akan tampil daftar baris + kolom yang gagal
 
 ---
 
@@ -696,13 +737,14 @@ Scanner USB biasa cukup. Mode **HID Keyboard Wedge** (default scanner USB) — s
 - **GitHub Discussions** (untuk pertanyaan umum): https://github.com/alviarts/perpustakaan-offline/discussions
 
 Saat lapor bug, sertakan:
-1. Versi aplikasi (ada di pojok kiri atas: `v0.3.1`)
-2. OS Windows (10 / 11)
-3. Langkah reproduksi
-4. Screenshot / error message
-5. Log di `%APPDATA%\PerpustakaanOffline\app.log` (kalau ada)
+1. **Versi aplikasi** (cek di **Setting → Tentang**)
+2. **OS + versi** (Windows 10/11, Ubuntu 22.04, macOS 14, dst.)
+3. **Langkah reproduksi** (urutan klik / aksi)
+4. **Screenshot** atau error message yang muncul
+5. **Output developer tools** kalau ada (kanan-klik di window aplikasi → Inspect Element → Console di rilis dev build)
 
 ---
+
 
 # 🇬🇧 English Version
 
@@ -710,40 +752,46 @@ This is a translated short version of the manual. Indonesian version above is mo
 
 ## Quick Start
 
-1. Download `PerpustakaanOffline-Setup.exe` (installer) or `PerpustakaanOffline.exe` (portable) from [Releases](https://github.com/alviarts/perpustakaan-offline/releases)
-2. Run → Login with `admin` / `admin123` → **change password immediately** (Setting → Account Management)
-3. Switch UI language: **Setting → Language & Theme → Language: en — English**
+1. Download the latest installer for your OS from [Releases](https://github.com/alviarts/perpustakaan-offline/releases):
+   - **Windows:** `PerpustakaanOffline_<version>_x64-setup.exe` (NSIS) or `..._x64_en-US.msi` (MSI)
+   - **Linux:** `perpustakaan-offline_<version>_amd64.deb`
+   - **macOS:** `PerpustakaanOffline_<version>_x64.dmg` or `_aarch64.dmg`
+2. Install → launch → login with `admin` / `admin123` → **change password immediately** (Setting → Akun)
+3. Switch UI language: **Setting → Bahasa → `en — English`**
 
 ## Main Modules
 
 | Module           | Purpose                                                                |
 |------------------|------------------------------------------------------------------------|
 | **Dashboard**    | At-a-glance KPIs + auto-popup reminder for overdue / due-soon loans     |
-| **Members**      | Student CRUD, ID card printing, **batch class promotion**, clearance letter |
+| **Members**      | Student CRUD, ID card printing, **batch class promotion**, clearance letter, **Excel import/export** |
 | **Books**        | Book CRUD, multi-copy management, DDC classification, label printing   |
 | **Visits**       | Daily visit log (individual or batch by class)                         |
 | **Borrow**       | Issue books, **prompt to print receipt** after save                    |
 | **Return**       | Process returns, calculate overdue fines, mark lost books, **print receipt** |
 | **Reports**      | Backup/Restore, charts, top borrowers, top books, finance ledger       |
-| **Settings**     | Library identity, transaction parameters, accounts, language, theme    |
-| **Settings → Tools** | **Duplicate scanner** (members & books) — detect data dupes      |
-| **Settings → Audit Log** | **Activity history viewer** — who-did-what-when, with search |
+| **Settings**     | 12 tabs: identity, KTA layout, accounts, RBAC, transaction rules, master data, theme, language, scheduled backup, sync (placeholder), audit log, about |
 
-## What's New in v0.3.0
+## Highlights
 
-- **Batch class promotion** — toolbar button on Members; map old class → new class for all students at once
-- **Print receipt prompt** — after saving a borrow / return transaction, app asks if you want to generate a PDF receipt
-- **Duplicate detection (Tools)** — Settings → Tools → *Scan Duplicates*: finds members with same Name + Class, books with same ISBN or Title + Author
-- **Auto due-date reminder** — dashboard pops up a toast on first load if loans are overdue or due in 3 days
-- **Audit log viewer** — Settings → Audit Log: searchable history of create / update / delete / login actions
+- **Tauri 2 desktop app** — native installer, no Python runtime required
+- **Bilingual UI** — Indonesian / English live toggle
+- **Bcrypt password hashing** with optional security question for offline password recovery
+- **Cron-like scheduled backup** with configurable retention + audit-logged backup operations
+- **Auto due-date reminder** on dashboard first load (overdue / due in 3 days toast)
+- **Audit log viewer** — searchable history of create / update / delete / login actions
+- **Global Ctrl+K command palette** — quick-search anggota / buku / peminjaman
+- **System tray** with configurable close behavior (minimize-to-tray vs close)
 
 ## Data Location
 
-- **Windows**: `%APPDATA%\PerpustakaanOffline\`
-- **macOS**: `~/Library/Application Support/PerpustakaanOffline/`
-- **Linux**: `~/.local/share/PerpustakaanOffline/`
+v2 uses Tauri's app data directory with bundle identifier `id.alviarts.perpustakaan`:
 
-Backup the entire folder to preserve all data.
+- **Windows**: `%APPDATA%\id.alviarts.perpustakaan\`
+- **macOS**: `~/Library/Application Support/id.alviarts.perpustakaan/`
+- **Linux**: `~/.local/share/id.alviarts.perpustakaan/`
+
+Backup the entire folder to preserve all data. Database file: `perpustakaan-v2.db`.
 
 ## Default Login
 
@@ -760,22 +808,23 @@ Backup the entire folder to preserve all data.
 | Fine per overdue day     | Rp 500      |
 | Default replacement cost | Rp 50,000   |
 
-Adjust in **Setting → Transactions**.
+Adjust in **Setting → Aturan Peminjaman**.
 
 ## Bug Reports & Help
 
 - GitHub Issues: https://github.com/alviarts/perpustakaan-offline/issues
-- Include version, OS, steps to reproduce, screenshot, and `app.log` content
+- Include version (**Setting → Tentang**), OS, steps to reproduce, screenshot, and any console error messages
 
 ---
 
-*Manual ini akan diperbarui mengikuti perkembangan aplikasi. Versi terakhir: untuk
-v0.3.0. Cek [Releases](https://github.com/alviarts/perpustakaan-offline/releases)
+*Manual ini akan diperbarui mengikuti perkembangan aplikasi. Cek
+[Releases](https://github.com/alviarts/perpustakaan-offline/releases)
 untuk catatan rilis terbaru.*
 
 ## Riwayat Update Manual
 
-| Versi   | Tanggal     | Perubahan                                                                  |
-|---------|-------------|----------------------------------------------------------------------------|
-| v0.3.0  | 2026-05     | Tambah dokumentasi: Naik Kelas batch, Cetak Nota, Cek Data Ganda, Reminder Jatuh Tempo otomatis, Audit Log viewer + screenshot 14–17 |
-| v0.1.1  | 2025-09     | Versi awal manual (561 baris) — instalasi, login, dashboard, master data, transaksi, laporan, setting, backup, cetak, sync, troubleshooting |
+| Versi   | Tanggal     | Perubahan                                                                                            |
+|---------|-------------|------------------------------------------------------------------------------------------------------|
+| v1.x    | 2026-05     | Refresh manual untuk v2 (Tauri + React): instalasi multi-OS, lokasi data `id.alviarts.perpustakaan`, settings 12 tab, drop section Tools (tidak ada di v2), troubleshooting v2-flavored, English section diringkas |
+| v0.3.0  | 2026-05     | (legacy v1) Tambah dokumentasi: Naik Kelas batch, Cetak Nota, Cek Data Ganda, Reminder Jatuh Tempo otomatis, Audit Log viewer + screenshot 14–17 |
+| v0.1.1  | 2025-09     | (legacy v1) Versi awal manual (561 baris) — instalasi, login, dashboard, master data, transaksi, laporan, setting, backup, cetak, sync, troubleshooting |
