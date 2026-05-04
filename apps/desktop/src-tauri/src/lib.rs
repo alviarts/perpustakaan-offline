@@ -92,6 +92,11 @@ pub fn run() {
                 })
                 .build(app)?;
 
+            // PR-6: spawn the backup-scheduler runner. It ticks every 60s,
+            // reads the schedule from settings, and writes auto-backups into
+            // <app_data_dir>/backups/. No-op if the schedule is disabled.
+            commands::backup_runner::spawn_backup_scheduler(app.handle());
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

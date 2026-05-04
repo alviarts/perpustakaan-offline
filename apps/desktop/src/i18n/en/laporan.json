@@ -63,7 +63,7 @@
     "restoreFailed": "Restore failed",
     "lastBackup": "Last backup",
     "scheduleTitle": "Auto Backup Schedule",
-    "scheduleHint": "5-field cron. Session 12 adds the cron-like runner.",
+    "scheduleHint": "5-field cron (e.g. \"0 2 * * *\"). The runner ticks in the background and writes backups to the app data folder.",
     "enableSchedule": "Enable schedule",
     "cron": "Cron Expression",
     "scheduleSave": "Save Schedule",

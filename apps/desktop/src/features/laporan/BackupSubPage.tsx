@@ -46,7 +46,11 @@ export function LaporanBackup() {
     try {
       let target: string;
       if (isTauri()) {
-        const picked = await openDialog({ directory: true, multiple: false, title: t('laporan:backup.pickFolder', { defaultValue: 'Pilih folder backup' }) });
+        const picked = await openDialog({
+          directory: true,
+          multiple: false,
+          title: t('laporan:backup.pickFolder', { defaultValue: 'Pilih folder backup' }),
+        });
         if (!picked || Array.isArray(picked)) {
           setBusy(false);
           return;
@@ -146,10 +150,10 @@ export function LaporanBackup() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="grid gap-2 text-sm">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+            <Label className="text-muted-foreground text-xs uppercase tracking-wider">
               {t('laporan:backup.currentDb', { defaultValue: 'File DB Aktif' })}
             </Label>
-            <code className="overflow-x-auto whitespace-nowrap rounded-md bg-muted px-2 py-1.5 text-xs">
+            <code className="bg-muted overflow-x-auto whitespace-nowrap rounded-md px-2 py-1.5 text-xs">
               {dbPath || '...'}
             </code>
           </div>
@@ -159,7 +163,12 @@ export function LaporanBackup() {
               <FolderOpen className="mr-2 h-4 w-4" />
               {t('laporan:backup.createBtn', { defaultValue: 'Backup Sekarang' })}
             </Button>
-            <Button variant="outline" onClick={handleRestore} disabled={busy} data-testid="backup-restore">
+            <Button
+              variant="outline"
+              onClick={handleRestore}
+              disabled={busy}
+              data-testid="backup-restore"
+            >
               <Upload className="mr-2 h-4 w-4" />
               {t('laporan:backup.restoreBtn', { defaultValue: 'Restore dari File' })}
             </Button>
@@ -170,7 +179,7 @@ export function LaporanBackup() {
               <div className="font-medium text-emerald-700 dark:text-emerald-300">
                 {t('laporan:backup.lastBackup', { defaultValue: 'Backup terakhir' })}
               </div>
-              <div className="mt-1 break-all text-muted-foreground">{lastBackup.path}</div>
+              <div className="text-muted-foreground mt-1 break-all">{lastBackup.path}</div>
               <div className="text-muted-foreground">
                 SHA256: <code className="text-[10px]">{lastBackup.checksum}</code>
               </div>
@@ -189,7 +198,8 @@ export function LaporanBackup() {
           </CardTitle>
           <CardDescription>
             {t('laporan:backup.scheduleHint', {
-              defaultValue: 'Cron 5-field. Devin 12 akan menambahkan runner cron-like.',
+              defaultValue:
+                'Cron 5-field (mis. "0 2 * * *"). Runner berjalan di latar belakang dan menyimpan backup ke folder data aplikasi.',
             })}
           </CardDescription>
         </CardHeader>
@@ -210,7 +220,10 @@ export function LaporanBackup() {
                 </Label>
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="cron-input" className="text-xs uppercase tracking-wider text-muted-foreground">
+                <Label
+                  htmlFor="cron-input"
+                  className="text-muted-foreground text-xs uppercase tracking-wider"
+                >
                   {t('laporan:backup.cron', { defaultValue: 'Cron Expression' })}
                 </Label>
                 <Input
@@ -221,11 +234,12 @@ export function LaporanBackup() {
                   className="font-mono text-sm"
                   data-testid="schedule-cron"
                 />
-                <p className="text-xs text-muted-foreground">{describeCron(cronInput)}</p>
+                <p className="text-muted-foreground text-xs">{describeCron(cronInput)}</p>
               </div>
               {schedule.lastRun && (
-                <div className="text-xs text-muted-foreground">
-                  {t('laporan:backup.lastRun', { defaultValue: 'Terakhir berjalan' })}: {schedule.lastRun}
+                <div className="text-muted-foreground text-xs">
+                  {t('laporan:backup.lastRun', { defaultValue: 'Terakhir berjalan' })}:{' '}
+                  {schedule.lastRun}
                 </div>
               )}
               <Button onClick={handleScheduleSave} disabled={saving} data-testid="schedule-save">
