@@ -142,6 +142,41 @@
 }
 
 /*
+ * Theme-aware native date inputs (revisi v1.0.3 #4).
+ *
+ * `color-scheme` opts native form widgets (calendar picker indicator,
+ * autofill, scrollbars) into the matching colour scheme so the calendar
+ * icon is dark on light backgrounds and light on dark backgrounds. We
+ * apply it on the root via `.dark` so every `<input type="date">` —
+ * whether it goes through the `DatePicker` wrapper or a raw `<Input>` —
+ * picks up the right colour.
+ *
+ * Fallback: explicitly invert the `::-webkit-calendar-picker-indicator`
+ * in dark mode for engines (older Linux WebKit) that don't honour
+ * `color-scheme` reliably.
+ */
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+.dark input[type='date']::-webkit-calendar-picker-indicator,
+.dark input[type='time']::-webkit-calendar-picker-indicator,
+.dark input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.dark input[type='month']::-webkit-calendar-picker-indicator,
+.dark input[type='week']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+}
+input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/*
  * Density modifier (revisi #24 — Settings → Tampilan).
  *
  * `data-density="compact"` shrinks vertical paddings on table rows and
