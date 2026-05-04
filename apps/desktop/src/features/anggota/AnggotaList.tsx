@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, CreditCard, FileSpreadsheet, Plus, Search } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Download,
+  FileSpreadsheet,
+  Loader2,
+  Plus,
+  Search,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +26,7 @@ import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { ImportExcelDialog } from './ImportExcelDialog';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
+import { runAnggotaExport } from '@/lib/anggotaExport';
 import { useToast } from '@/components/ui/toast-manager';
 
 const PAGE_SIZE = 20;
@@ -63,6 +73,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
   const [kelasOptions, setKelasOptions] = useState<string[]>([]);
   const [jurusanOptions, setJurusanOptions] = useState<string[]>([]);
   const [importOpen, setImportOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const page = Math.max(1, search.page ?? 1);
   const offset = (page - 1) * PAGE_SIZE;
@@ -102,8 +113,14 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
 
   useEffect(() => {
     void Promise.all([
-      anggotaApi.distinct('kelas').then(setKelasOptions).catch(() => undefined),
-      anggotaApi.distinct('jurusan').then(setJurusanOptions).catch(() => undefined),
+      anggotaApi
+        .distinct('kelas')
+        .then(setKelasOptions)
+        .catch(() => undefined),
+      anggotaApi
+        .distinct('jurusan')
+        .then(setJurusanOptions)
+        .catch(() => undefined),
     ]);
   }, [items.length]);
 
@@ -114,6 +131,39 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery]);
+
+  const handleExport = useCallback(async (): Promise<void> => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const res = await runAnggotaExport({
+        query: debouncedQuery,
+        kelas: search.kelas || undefined,
+        jurusan: search.jurusan || undefined,
+        aktif: aktifFilter,
+        sortBy: sort?.key ?? 'nama',
+        sortDir: sort?.dir,
+      });
+      if (!res) return; // user cancelled the dialog
+      showToast({
+        title: t('anggota:feedback.exportSuccess', {
+          count: res.count,
+          defaultValue: 'Ekspor selesai: {{count}} anggota.',
+        }),
+        description: res.path,
+      });
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('anggota:feedback.exportError', {
+          defaultValue: 'Gagal mengekspor anggota.',
+        }),
+        description: formatTauriError(err),
+      });
+    } finally {
+      setExporting(false);
+    }
+  }, [exporting, debouncedQuery, search.kelas, search.jurusan, aktifFilter, sort, showToast, t]);
 
   const columns: DataTableColumn<Anggota>[] = useMemo(
     () => [
@@ -131,7 +181,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
         cell: (row) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.nama}</span>
-            {row.email && <span className="text-xs text-muted-foreground">{row.email}</span>}
+            {row.email && <span className="text-muted-foreground text-xs">{row.email}</span>}
           </div>
         ),
       },
@@ -176,7 +226,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t('anggota:title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('anggota:subtitle')}</p>
+          <p className="text-muted-foreground text-sm">{t('anggota:subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -186,6 +236,21 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
           >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('anggota:list.import')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => void handleExport()}
+            disabled={exporting}
+            data-testid="anggota-export"
+          >
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {exporting
+              ? t('anggota:list.exportBusy', { defaultValue: 'Mengekspor…' })
+              : t('anggota:list.export', { defaultValue: 'Ekspor Excel' })}
           </Button>
           <Button variant="outline" asChild data-testid="anggota-cetak-kta">
             <Link to="/anggota/cetak-kta">
@@ -204,7 +269,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
 
       <div className="mb-4 grid gap-3 md:grid-cols-[2fr,1fr,1fr,1fr]">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             data-testid="anggota-search"
             value={query}
@@ -231,7 +296,9 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
         </Select>
         <Select
           value={search.jurusan ?? '__all__'}
-          onValueChange={(v) => onSearchChange({ jurusan: v === '__all__' ? undefined : v, page: 1 })}
+          onValueChange={(v) =>
+            onSearchChange({ jurusan: v === '__all__' ? undefined : v, page: 1 })
+          }
         >
           <SelectTrigger data-testid="filter-jurusan">
             <SelectValue placeholder={t('anggota:list.filterJurusan')} />
@@ -247,7 +314,9 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
         </Select>
         <Select
           value={status}
-          onValueChange={(v) => onSearchChange({ status: v as AnggotaListSearch['status'], page: 1 })}
+          onValueChange={(v) =>
+            onSearchChange({ status: v as AnggotaListSearch['status'], page: 1 })
+          }
         >
           <SelectTrigger data-testid="filter-status">
             <SelectValue />
@@ -276,7 +345,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
         onRowClick={(row) => void navigate({ to: '/anggota/$id', params: { id: String(row.id) } })}
       />
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+      <div className="text-muted-foreground mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
         <span>{t('anggota:list.showing', { from: showingFrom, to: showingTo, total })}</span>
         <div className="flex items-center gap-2">
           <Button

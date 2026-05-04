@@ -4,7 +4,8 @@
   "list": {
     "addNew": "Tambah Anggota",
     "import": "Impor Excel",
-    "exportPlaceholder": "Ekspor (segera)",
+    "export": "Ekspor Excel",
+    "exportBusy": "Mengekspor…",
     "searchPlaceholder": "Cari nama, NIS, kelas, atau jurusan…",
     "filterAktif": "Status",
     "filterKelas": "Kelas",
@@ -92,6 +93,8 @@
     "deleteSuccess": "Anggota dihapus.",
     "deleteError": "Gagal menghapus anggota: {{message}}",
     "importSuccess": "Impor selesai: {{inserted}} anggota berhasil ditambahkan.",
+    "exportSuccess": "Ekspor selesai: {{count}} anggota.",
+    "exportError": "Gagal mengekspor anggota.",
     "loadError": "Gagal memuat data anggota."
   },
   "breadcrumb": {

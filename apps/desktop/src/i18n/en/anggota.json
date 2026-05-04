@@ -4,7 +4,8 @@
   "list": {
     "addNew": "Add Member",
     "import": "Import Excel",
-    "exportPlaceholder": "Export (soon)",
+    "export": "Export Excel",
+    "exportBusy": "Exporting…",
     "searchPlaceholder": "Search name, ID, class, or major…",
     "filterAktif": "Status",
     "filterKelas": "Class",
@@ -92,6 +93,8 @@
     "deleteSuccess": "Member deleted.",
     "deleteError": "Failed to delete member: {{message}}",
     "importSuccess": "Import done: {{inserted}} members added.",
+    "exportSuccess": "Export done: {{count}} members.",
+    "exportError": "Failed to export members.",
     "loadError": "Failed to load members."
   },
   "breadcrumb": {
