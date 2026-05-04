@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/stores/authStore';
 import { useIdentityStore } from '@/stores/identityStore';
 import { logoutRequest } from '@/lib/auth';
@@ -180,14 +181,19 @@ export function Header() {
         </button>
         <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
-        <Link
-          to="/settings/manual"
-          data-testid="header-manual"
-          aria-label={t('common:menu.manualBook')}
-          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hidden h-9 w-9 items-center justify-center rounded-md md:flex"
-        >
-          <BookOpen className="h-4 w-4" />
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/settings/manual"
+              data-testid="header-manual"
+              aria-label={t('common:menu.manualBook')}
+              className="text-muted-foreground hover:bg-accent hover:text-accent-foreground hidden h-9 w-9 items-center justify-center rounded-md md:flex"
+            >
+              <BookOpen className="h-4 w-4" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>{t('common:menu.manualBook')}</TooltipContent>
+        </Tooltip>
 
         <LanguageSwitcher />
         <ThemeSwitcher />

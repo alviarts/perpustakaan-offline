@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Select,
   SelectContent,
@@ -105,16 +106,21 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
                   <span className="text-xs uppercase tracking-wide opacity-60 mr-2">{f.kind}</span>
                   {f.kind === 'static' ? f.text : f.id}
                 </span>
-                <button
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeField(f.id);
-                  }}
-                  aria-label="Hapus field"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeField(f.id);
+                      }}
+                      aria-label="Hapus field"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Hapus field</TooltipContent>
+                </Tooltip>
               </li>
             ))}
           </ul>

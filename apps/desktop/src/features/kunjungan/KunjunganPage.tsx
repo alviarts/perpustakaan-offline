@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -186,14 +187,21 @@ export function KunjunganPage() {
                       </td>
                       <td className="px-3 py-2 text-right">
                         {r.sumber === 'manual' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(r.id)}
-                            aria-label={t('common:actions.delete', { defaultValue: 'Hapus' })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(r.id)}
+                                aria-label={t('common:actions.delete', { defaultValue: 'Hapus' })}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {t('common:actions.delete', { defaultValue: 'Hapus' })}
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </td>
                     </tr>

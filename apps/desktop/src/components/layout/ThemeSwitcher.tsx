@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useThemeStore, type Theme } from '@/stores/themeStore';
 
 export function ThemeSwitcher() {
@@ -24,11 +25,16 @@ export function ThemeSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t('theme.label')}>
-          <ActiveIcon className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label={t('theme.label')}>
+              <ActiveIcon className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{t('theme.label')}</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-48 animate-fade-in">
         {items.map(({ value, icon: Icon, labelKey }) => (
           <DropdownMenuItem

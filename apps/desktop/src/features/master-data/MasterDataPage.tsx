@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,22 +103,38 @@ export function MasterDataPage() {
       header: '',
       cell: (row) => (
         <div className="flex justify-end gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setEditing(row)}
-            data-testid={`master-edit-${row.kode ?? row.id}`}
-          >
-            <Pencil className="h-3 w-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setDeleting(row)}
-            data-testid={`master-delete-${row.kode ?? row.id}`}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setEditing(row)}
+                aria-label={t('common:actions.edit', { defaultValue: 'Edit' })}
+                data-testid={`master-edit-${row.kode ?? row.id}`}
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {t('common:actions.edit', { defaultValue: 'Edit' })}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDeleting(row)}
+                aria-label={t('common:actions.delete', { defaultValue: 'Hapus' })}
+                data-testid={`master-delete-${row.kode ?? row.id}`}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {t('common:actions.delete', { defaultValue: 'Hapus' })}
+            </TooltipContent>
+          </Tooltip>
         </div>
       ),
       className: 'w-24',
