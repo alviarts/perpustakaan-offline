@@ -21,7 +21,7 @@ project: perpustakaan-offline
 migration: v1 (python+customtkinter) -> v2 (tauri 2.0 + react 18 + ts + tailwind 3 + shadcn + zustand)
 total_sessions: 12
 schema_version: 1
-last_updated: 2026-05-03 (session 12)
+last_updated: 2026-05-04 (post-migration cleanup; v1 deleted)
 ```
 
 ## Sessions
@@ -154,3 +154,72 @@ JANGAN bypass dependency.
 - `IN_PROGRESS` — sedang dikerjakan oleh Devin (branch belum merge).
 - `COMPLETED` — PR sudah merged ke `main`.
 - `BLOCKED` — dependency belum kelar atau ada blocker eksternal.
+
+## Post-Migration (2026-05-04)
+
+Migrasi 12 sesi selesai pada 2026-05-03 dengan rilis **v1.0.0** (PR
+[#49](https://github.com/alviarts/perpustakaan-offline/pull/49)). Pekerjaan
+dilanjutkan untuk hardening v2 dan decommission v1:
+
+### v1.0.1 patch
+
+- [#65](https://github.com/alviarts/perpustakaan-offline/pull/65) — version
+  bump ke 1.0.1.
+
+### Bug fixes (lihat `docs/bugs/POST_V1_BUGS.md`)
+
+| Bug | PR | Status |
+|---|---|---|
+| BUG-001 buku eksemplar seed | [#55](https://github.com/alviarts/perpustakaan-offline/pull/55) | merged |
+| BUG-002 Tauri error formatting | [#57](https://github.com/alviarts/perpustakaan-offline/pull/57) | merged |
+| BUG-003 anggota dropdowns dari master | [#58](https://github.com/alviarts/perpustakaan-offline/pull/58) | merged |
+| BUG-004 DDC main classes seed | [#59](https://github.com/alviarts/perpustakaan-offline/pull/59) | merged |
+| BUG-005 KTA template seed | [#56](https://github.com/alviarts/perpustakaan-offline/pull/56) | merged |
+| BUG-006 breadcrumb sub-route | [#60](https://github.com/alviarts/perpustakaan-offline/pull/60) | merged |
+| BUG-007 backup DB path | [#61](https://github.com/alviarts/perpustakaan-offline/pull/61) | merged |
+| BUG-008 dashboard KPI titles | [#68](https://github.com/alviarts/perpustakaan-offline/pull/68) | open |
+| BUG-009 / BUG-010 manual UI + Tauri 2 CSP | [#62](https://github.com/alviarts/perpustakaan-offline/pull/62) | merged |
+| BUG-011 system tray + close behavior | [#63](https://github.com/alviarts/perpustakaan-offline/pull/63) | merged |
+| Manual CSP follow-up (inline CSS+JS) | [#66](https://github.com/alviarts/perpustakaan-offline/pull/66) | merged |
+
+### Post-v1.0 features
+
+- [#69](https://github.com/alviarts/perpustakaan-offline/pull/69) — photo /
+  cover / logo uploader.
+- [#70](https://github.com/alviarts/perpustakaan-offline/pull/70) — anggota
+  Excel export.
+- [#71](https://github.com/alviarts/perpustakaan-offline/pull/71) — kunjungan
+  illustration upgrade.
+- [#72](https://github.com/alviarts/perpustakaan-offline/pull/72) — Ctrl+K
+  global search palette.
+- [#73](https://github.com/alviarts/perpustakaan-offline/pull/73) — CHANGELOG
+  auto-release workflow.
+- [#74](https://github.com/alviarts/perpustakaan-offline/pull/74) — forgot
+  password (security question flow).
+- [#75](https://github.com/alviarts/perpustakaan-offline/pull/75) — backup
+  cron scheduler runner.
+- [#76](https://github.com/alviarts/perpustakaan-offline/pull/76) — Settings →
+  Manual tab.
+- [#77](https://github.com/alviarts/perpustakaan-offline/pull/77) — rustfmt
+  drift cleanup di `commands/buku.rs` + `db/mod.rs`.
+
+### Documentation refresh
+
+- [#78](https://github.com/alviarts/perpustakaan-offline/pull/78) — README
+  refresh ke v2 stack + drop dead i18n key.
+- [#81](https://github.com/alviarts/perpustakaan-offline/pull/81) — user
+  manual v2 (Tauri install, v2 Settings tabs, v2 paths).
+
+### v1 codebase deletion
+
+[#80](https://github.com/alviarts/perpustakaan-offline/pull/80) — Python +
+CustomTkinter + PyInstaller stack, plus assets, tests, scripts, dan v1-only
+docs dihapus permanen. **253 files removed (~24.5k LOC).** v1 history tetap
+accessible via `git log --all` + `git checkout <pre-deletion-sha> -- <path>`.
+**Google Sheets sync feature drop permanen** (no v2 replacement, accept loss).
+
+---
+
+Mulai dari titik ini, file ini berfungsi sebagai catatan historis migrasi v1
+→ v2. Pekerjaan baru tidak perlu menambah session entry — track via PR
+description, `docs/bugs/`, dan `CHANGELOG.md` sebagai gantinya.
