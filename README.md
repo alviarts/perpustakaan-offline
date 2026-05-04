@@ -4,7 +4,7 @@
 
 Inspirasi: SIM-Perpus v.1.2.2 (Excel + VBA) oleh **Kang Sur**, ditulis ulang menjadi aplikasi desktop modern dengan tetap mempertahankan alur kerja yang familiar bagi pustakawan sekolah.
 
-> **Catatan:** v1 (Python + CustomTkinter, sampai `v0.6.2`) masih tersedia sebagai referensi historis di `src/perpustakaan/` plus workflow `ci-legacy-v1.yml.disabled`, tetapi sudah **tidak di-maintain**. Pengembangan aktif ada di `apps/desktop/` (v2).
+> **Catatan:** v1 (Python + CustomTkinter, sampai `v0.6.2`) sudah diarsipkan ke [`legacy/v1/`](legacy/v1/) sebagai referensi historis dan **tidak di-maintain**. Pengembangan aktif ada di `apps/desktop/` (v2).
 
 ---
 
@@ -145,12 +145,16 @@ perpustakaan-offline/
 │   ├── manual.md                 # End-user manual (rendered inline by PR #76)
 │   ├── bugs/                     # Post-v1 bug tracker (POST_V1_BUGS.md, PROGRESS.md)
 │   └── migration-v2/             # Sesi 1–12 migration notes (REVISION_BACKLOG.md, PROGRESS.md)
-├── scripts/                      # Dev tooling: i18n-lint, extract-changelog
-├── src/perpustakaan/             # ⚠️ v1 Python codebase (frozen, not built/tested)
-├── tests/                        # ⚠️ v1 Python pytest suite (CI disabled)
-├── pyproject.toml                # ⚠️ v1 Python config
-├── requirements.txt              # ⚠️ v1 Python deps
-├── build.spec / build.bat        # ⚠️ v1 PyInstaller config
+├── scripts/                      # Dev tooling: i18n-lint, migrate-v1-to-v2
+├── legacy/v1/                    # ⚠️ Frozen v1 archive (Python source, pytest, assets, installer, PyInstaller spec)
+│   ├── src/perpustakaan/         # v1 Python source (CustomTkinter + SQLite)
+│   ├── tests/                    # v1 pytest suite
+│   ├── assets/                   # v1 PIL animations, fonts, illustrations
+│   ├── installer/                # v1 Inno Setup script + lang files
+│   ├── scripts/                  # v1 Python tooling (gen_animations, etc.)
+│   ├── pyproject.toml            # v1 Python config
+│   ├── requirements.txt          # v1 Python deps
+│   └── build.spec / build.bat    # v1 PyInstaller config
 ├── package.json                  # v2 root: workspace scripts
 ├── pnpm-workspace.yaml
 ├── pnpm-lock.yaml
