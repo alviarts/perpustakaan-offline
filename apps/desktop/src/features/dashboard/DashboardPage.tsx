@@ -114,6 +114,15 @@ export function DashboardPage() {
             <KpiCard
               label={t('dashboard:kpi.buku', { defaultValue: 'Total Buku' })}
               value={loading ? '—' : (kpi?.totalBuku ?? 0).toLocaleString('id-ID')}
+              subline={
+                loading || !kpi
+                  ? undefined
+                  : t('dashboard:kpi.eksemplarSubline', {
+                      count: kpi.totalEksemplar,
+                      value: kpi.totalEksemplar.toLocaleString('id-ID'),
+                      defaultValue: '{{value}} eksemplar',
+                    })
+              }
               delta={kpi?.deltaBukuPct}
               Icon={BookOpen}
               tone="emerald"

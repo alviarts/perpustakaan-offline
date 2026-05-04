@@ -3,7 +3,10 @@ import { isTauri } from '@/lib/auth';
 
 export interface DashboardKpi {
   totalAnggota: number;
+  /** Number of distinct titles in the catalog. Headline metric on the "Total Buku" KPI card. */
   totalBuku: number;
+  /** Sum of `jumlah_eksemplar` across all buku — physical copies. Sub-line on the "Total Buku" KPI card. */
+  totalEksemplar: number;
   bukuDipinjam: number;
   deltaAnggotaPct: number;
   deltaBukuPct: number;
@@ -76,10 +79,11 @@ const mockRpc: DashboardRpc = {
   async kpi() {
     return {
       totalAnggota: 128,
-      totalBuku: 1843,
+      totalBuku: 412,
+      totalEksemplar: 1843,
       bukuDipinjam: 24,
       deltaAnggotaPct: pctDelta(128, 120),
-      deltaBukuPct: pctDelta(1843, 1810),
+      deltaBukuPct: pctDelta(412, 401),
       deltaPinjamPct: pctDelta(24, 18),
     };
   },

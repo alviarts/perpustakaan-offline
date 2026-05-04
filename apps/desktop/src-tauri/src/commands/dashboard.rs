@@ -1,6 +1,6 @@
 //! Dashboard aggregate queries (revisi #9).
 
-use rusqlite::params;
+use rusqlite::{params, Connection};
 use serde::Serialize;
 use tauri::State;
 
@@ -11,7 +11,13 @@ use crate::AppState;
 #[serde(rename_all = "camelCase")]
 pub struct DashboardKpi {
     pub total_anggota: i64,
+    /// Number of distinct titles in the catalog (`COUNT(*) FROM buku`).
+    /// This is the headline KPI; physical-copy count lives in
+    /// [`DashboardKpi::total_eksemplar`].
     pub total_buku: i64,
+    /// Sum of `jumlah_eksemplar` across all buku, i.e. physical copies.
+    /// Rendered as the sub-line on the "Total Buku" KPI card.
+    pub total_eksemplar: i64,
     pub buku_dipinjam: i64,
     pub delta_anggota_pct: f64,
     pub delta_buku_pct: f64,
@@ -71,13 +77,24 @@ pub fn dashboard_kpi(state: State<'_, AppState>) -> AppResult<DashboardKpi> {
         .db
         .lock()
         .map_err(|e| AppError::Internal(e.to_string()))?;
+    Ok(dashboard_kpi_inner(&conn))
+}
 
+/// Pure inner helper so the KPI shape can be unit-tested without spinning up
+/// a Tauri runtime. Reads only — never mutates the connection.
+pub(crate) fn dashboard_kpi_inner(conn: &Connection) -> DashboardKpi {
     let total_anggota: i64 = conn
         .query_row("SELECT COUNT(*) FROM anggota WHERE aktif = 1", [], |r| {
             r.get(0)
         })
         .unwrap_or(0);
+    // BUG-008 (Opsi 3): "Total Buku" headline KPI counts distinct titles;
+    // physical-copy count lives in `total_eksemplar` and is rendered as the
+    // sub-line on the same card.
     let total_buku: i64 = conn
+        .query_row("SELECT COUNT(*) FROM buku", [], |r| r.get(0))
+        .unwrap_or(0);
+    let total_eksemplar: i64 = conn
         .query_row(
             "SELECT COALESCE(SUM(jumlah_eksemplar), 0) FROM buku",
             [],
@@ -111,6 +128,9 @@ pub fn dashboard_kpi(state: State<'_, AppState>) -> AppResult<DashboardKpi> {
         )
         .unwrap_or(0);
 
+    // Title-based delta: matches the headline `total_buku` semantics so the
+    // arrow + percent on the KPI card describe titles added this month vs.
+    // last month, not eksemplar churn.
     let buku_now: i64 = conn
         .query_row(
             "SELECT COUNT(*) FROM buku
@@ -147,14 +167,15 @@ pub fn dashboard_kpi(state: State<'_, AppState>) -> AppResult<DashboardKpi> {
         )
         .unwrap_or(0);
 
-    Ok(DashboardKpi {
+    DashboardKpi {
         total_anggota,
         total_buku,
+        total_eksemplar,
         buku_dipinjam,
         delta_anggota_pct: pct_delta(anggota_now, anggota_prev),
         delta_buku_pct: pct_delta(buku_now, buku_prev),
         delta_pinjam_pct: pct_delta(pinjam_now, pinjam_prev),
-    })
+    }
 }
 
 #[tauri::command]
@@ -324,4 +345,125 @@ pub fn dashboard_top_buku(
         .collect::<rusqlite::Result<Vec<_>>>()
         .map_err(AppError::from)?;
     Ok(rows)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    fn setup_db() -> Connection {
+        let conn = Connection::open_in_memory().expect("open in-memory db");
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .expect("enable foreign_keys");
+        crate::db::run_migrations(&conn).expect("run migrations");
+        conn
+    }
+
+    fn seed_buku(conn: &Connection, kode: &str, judul: &str, jumlah_eksemplar: i64) -> i64 {
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia)
+             VALUES (?1, ?2, ?3, ?3)",
+            params![kode, judul, jumlah_eksemplar],
+        )
+        .expect("insert buku");
+        conn.last_insert_rowid()
+    }
+
+    fn seed_anggota(conn: &Connection, kode: &str, nama: &str) -> i64 {
+        conn.execute(
+            "INSERT INTO anggota (kode_anggota, nama, aktif) VALUES (?1, ?2, 1)",
+            params![kode, nama],
+        )
+        .expect("insert anggota");
+        conn.last_insert_rowid()
+    }
+
+    fn seed_dipinjam_item(conn: &Connection, anggota_id: i64, buku_id: i64) {
+        // Minimal peminjaman header so the item FK is satisfied; status of the
+        // header itself doesn't matter for `buku_dipinjam` (the KPI counts
+        // items with status='dipinjam', not headers).
+        conn.execute(
+            "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, tanggal_jatuh_tempo, status)
+             VALUES (printf('P%010d', abs(random())), ?1, date('now'), date('now', '+7 days'), 'dipinjam')",
+            params![anggota_id],
+        )
+        .expect("insert peminjaman header");
+        let peminjaman_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO peminjaman_item (peminjaman_id, buku_id, status) VALUES (?1, ?2, 'dipinjam')",
+            params![peminjaman_id, buku_id],
+        )
+        .expect("insert peminjaman_item");
+    }
+
+    #[test]
+    fn dashboard_kpi_total_buku_counts_titles_not_eksemplar() {
+        // BUG-008 (Opsi 3): with 3 distinct titles and 7 physical copies in
+        // total, the headline `total_buku` must report titles (3) and
+        // `total_eksemplar` must report copies (7). Pre-fix this test would
+        // have failed because `total_buku` summed jumlah_eksemplar.
+        let conn = setup_db();
+        seed_buku(&conn, "B0001", "Bumi Manusia", 2);
+        seed_buku(&conn, "B0002", "Laskar Pelangi", 4);
+        seed_buku(&conn, "B0003", "Sapiens", 1);
+
+        let kpi = dashboard_kpi_inner(&conn);
+        assert_eq!(kpi.total_buku, 3, "headline KPI must count distinct titles");
+        assert_eq!(
+            kpi.total_eksemplar, 7,
+            "sub-line KPI must sum jumlah_eksemplar"
+        );
+    }
+
+    #[test]
+    fn dashboard_kpi_returns_zeroes_on_fresh_db() {
+        // Fresh install with no buku rows yet: both metrics must be 0 and the
+        // delta percentages must be finite (the pct_delta helper returns 0 or
+        // 100 for the divide-by-zero edge case, never NaN/Inf which would
+        // serialize poorly to JSON).
+        let conn = setup_db();
+        let kpi = dashboard_kpi_inner(&conn);
+        assert_eq!(kpi.total_buku, 0);
+        assert_eq!(kpi.total_eksemplar, 0);
+        assert_eq!(kpi.total_anggota, 0);
+        assert_eq!(kpi.buku_dipinjam, 0);
+        assert!(kpi.delta_anggota_pct.is_finite());
+        assert!(kpi.delta_buku_pct.is_finite());
+        assert!(kpi.delta_pinjam_pct.is_finite());
+    }
+
+    #[test]
+    fn dashboard_kpi_buku_dipinjam_counts_items_not_headers() {
+        // 1 title with 5 copies, 1 anggota, 2 of the 5 copies currently on
+        // loan -> buku_dipinjam = 2 even though the schema also has 1
+        // peminjaman header row.
+        let conn = setup_db();
+        let buku_id = seed_buku(&conn, "B0010", "Atomic Habits", 5);
+        let anggota_id = seed_anggota(&conn, "A0001", "Adelia");
+        seed_dipinjam_item(&conn, anggota_id, buku_id);
+        seed_dipinjam_item(&conn, anggota_id, buku_id);
+
+        let kpi = dashboard_kpi_inner(&conn);
+        assert_eq!(kpi.total_buku, 1);
+        assert_eq!(kpi.total_eksemplar, 5);
+        assert_eq!(kpi.buku_dipinjam, 2);
+    }
+
+    #[test]
+    fn dashboard_kpi_total_anggota_excludes_inactive() {
+        // `total_anggota` filters `aktif = 1` per spec — make sure inactive
+        // members don't leak into the headline.
+        let conn = setup_db();
+        seed_anggota(&conn, "A0001", "Adelia");
+        seed_anggota(&conn, "A0002", "Bagas");
+        conn.execute(
+            "UPDATE anggota SET aktif = 0 WHERE kode_anggota = 'A0002'",
+            [],
+        )
+        .expect("deactivate anggota");
+
+        let kpi = dashboard_kpi_inner(&conn);
+        assert_eq!(kpi.total_anggota, 1);
+    }
 }

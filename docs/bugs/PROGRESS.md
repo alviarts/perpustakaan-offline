@@ -10,8 +10,6 @@ in queue. Companion to [`POST_V1_BUGS.md`](./POST_V1_BUGS.md) (full detail) and
   triage order below, fixes it, opens a PR, and updates the row to
   `status: IN_PR` + the `pr` URL. After the user merges, update to
   `status: DONE` + `completed_at`.
-- `BUG-008` is `BLOCKED` until the user records a design decision in
-  `POST_V1_BUGS.md`.
 - Update the row order only if the user redirects priorities — keep it stable
   otherwise.
 
@@ -29,7 +27,7 @@ in queue. Companion to [`POST_V1_BUGS.md`](./POST_V1_BUGS.md) (full detail) and
 | BUG-007 | Backup tab shows the wrong DB path                                     | MINOR        | DONE    | https://github.com/alviarts/perpustakaan-offline/pull/61 | 2026-05-04   | —             |
 | BUG-010 | Buku Manual UI redesign + Tauri 2 CSP externalize (supersedes BUG-009) | HIGH         | DONE    | https://github.com/alviarts/perpustakaan-offline/pull/62 | 2026-05-04   | BUG-009       |
 | BUG-011 | System tray + close-behavior setting + clean process exit              | HIGH         | DONE    | https://github.com/alviarts/perpustakaan-offline/pull/63 | 2026-05-04   | —             |
-| BUG-008 | Dashboard "Total Buku" counts eksemplar, not titles                    | LOW / DESIGN | BLOCKED | —                                                        | —            | user decision |
+| BUG-008 | Dashboard "Total Buku" counts eksemplar, not titles                    | LOW / DESIGN | IN_PR   | https://github.com/alviarts/perpustakaan-offline/pull/68 | —            | —             |
 
 > **Hotfix follow-up:** PR [#66](https://github.com/alviarts/perpustakaan-offline/pull/66)
 > (`fix(manual): inline CSS+JS into HTML`) merged on 2026-05-04 as a Windows-only

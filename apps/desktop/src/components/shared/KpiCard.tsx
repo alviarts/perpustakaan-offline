@@ -11,6 +11,12 @@ export interface KpiCardProps {
   tone?: 'primary' | 'sky' | 'emerald' | 'amber';
   loading?: boolean;
   hint?: string;
+  /**
+   * Optional secondary metric rendered as a small muted line directly below
+   * the headline value (e.g. "1.843 eksemplar" beneath "412" titles on the
+   * Total Buku card). Hidden while `loading=true`.
+   */
+  subline?: string;
 }
 
 const TONE: Record<NonNullable<KpiCardProps['tone']>, string> = {
@@ -33,6 +39,7 @@ export function KpiCard({
   tone = 'primary',
   loading = false,
   hint,
+  subline,
 }: KpiCardProps): React.ReactElement {
   const showDelta = typeof delta === 'number' && Number.isFinite(delta);
   const trendUp = showDelta && delta > 0.5;
@@ -58,7 +65,17 @@ export function KpiCard({
       {loading ? (
         <div className="h-8 w-24 animate-pulse rounded bg-muted" />
       ) : (
-        <div className="text-3xl font-semibold tracking-tight">{value}</div>
+        <div className="flex flex-col gap-0.5">
+          <div className="text-3xl font-semibold tracking-tight">{value}</div>
+          {subline ? (
+            <div
+              className="text-xs text-muted-foreground"
+              data-testid="kpi-card-subline"
+            >
+              {subline}
+            </div>
+          ) : null}
+        </div>
       )}
 
       <div className="flex items-center gap-1 text-xs">
