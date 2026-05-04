@@ -168,13 +168,19 @@
       },
       "empty": "Belum ada catatan."
     },
+    "manual": {
+      "label": "Manual",
+      "summary": "Panduan pengguna lengkap, bisa dicari dari daftar isi.",
+      "toc": "Daftar isi",
+      "searchPlaceholder": "Cari judul bagian…",
+      "noMatches": "Tidak ada bagian yang cocok."
+    },
     "tentang": {
       "label": "Tentang",
-      "summary": "Versi aplikasi, kredit, link manual.",
+      "summary": "Versi aplikasi, kredit, lisensi.",
       "version": "Versi",
       "credits": "Kredit",
       "creditsValue": "alvi arts / vwrks",
-      "openManual": "Buka Manual",
       "openRepo": "Repositori GitHub",
       "license": "Lisensi"
     }

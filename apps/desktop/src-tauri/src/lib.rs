@@ -165,7 +165,6 @@ pub fn run() {
             commands::settings::settings_permissions_get,
             commands::settings::settings_permissions_save,
             commands::settings::settings_audit_log_query,
-            commands::manual::open_manual,
             commands::close_behavior::close_behavior_get,
             commands::close_behavior::close_behavior_set,
             commands::close_behavior::force_quit,
