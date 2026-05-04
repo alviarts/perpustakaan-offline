@@ -63,7 +63,7 @@ function EditBukuRoute() {
   }, [id, navigate, showToast, t]);
 
   return (
-    <div className="container mx-auto max-w-3xl p-6 md:p-8">
+    <div className="container mx-auto max-w-3xl xl:max-w-5xl 2xl:max-w-7xl p-6 md:p-8">
       <div className="mb-6 flex items-center justify-between">
         <Button asChild variant="ghost" size="sm">
           <Link to="/buku">
