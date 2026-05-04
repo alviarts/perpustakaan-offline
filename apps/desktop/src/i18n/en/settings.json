@@ -99,11 +99,30 @@
         "createSuccess": "User created.",
         "updateSuccess": "User updated.",
         "deleteSuccess": "User deleted.",
-        "passwordReset": "Password reset."
+        "passwordReset": "Password reset.",
+        "securityQuestionSaved": "Security question saved."
       },
       "delete": {
         "title": "Delete user \"{{name}}\"?",
         "description": "The user will no longer be able to log in once deleted."
+      },
+      "security": {
+        "action": "Security Question",
+        "title": "Security Question for {{username}}",
+        "description": "Used when this user forgets their password from the Login screen. Answers are stored hashed; they cannot be retrieved.",
+        "questionLabel": "Question",
+        "questionPicker": "Pick a question",
+        "customQuestion": "Custom question",
+        "answerLabel": "Answer",
+        "answerHint": "Case-insensitive. Leading/trailing whitespace is ignored.",
+        "save": "Save Question",
+        "options": {
+          "pet": "What was the name of your first pet?",
+          "school": "What is the name of your elementary school?",
+          "city": "What city were you born in?",
+          "book": "What is your favourite book?",
+          "teacher": "Who was your favourite teacher?"
+        }
       }
     },
     "hakAkses": {

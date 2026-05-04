@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { KeyRound, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,13 +20,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast-manager';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import {
-  type UserInput,
-  type UserRecord,
-  type UserRole,
-  settingsApi,
-} from '@/lib/settings';
+import { type UserInput, type UserRecord, type UserRole, settingsApi } from '@/lib/settings';
+import { setSecurityQuestion } from '@/lib/auth';
 import { FieldRow, SettingsSection } from './SettingsSection';
+
+const SECURITY_QUESTION_OPTION_KEYS = ['pet', 'school', 'city', 'book', 'teacher'] as const;
+const CUSTOM_QUESTION_VALUE = '__custom__';
 
 interface UserFormState extends UserInput {
   password: string;
@@ -57,8 +57,15 @@ export function AkunPage(): JSX.Element {
   const [creating, setCreating] = React.useState(false);
   const [resetting, setResetting] = React.useState<UserRecord | null>(null);
   const [deleting, setDeleting] = React.useState<UserRecord | null>(null);
+  const [securityFor, setSecurityFor] = React.useState<UserRecord | null>(null);
   const [form, setForm] = React.useState<UserFormState>(EMPTY_FORM);
   const [resetPw, setResetPw] = React.useState('');
+  const [securityQuestionKey, setSecurityQuestionKey] = React.useState<string>(
+    SECURITY_QUESTION_OPTION_KEYS[0],
+  );
+  const [securityCustomQuestion, setSecurityCustomQuestion] = React.useState('');
+  const [securityAnswer, setSecurityAnswer] = React.useState('');
+  const [securitySaving, setSecuritySaving] = React.useState(false);
 
   const reload = React.useCallback(async () => {
     setLoading(true);
@@ -100,7 +107,9 @@ export function AkunPage(): JSX.Element {
           aktif: form.aktif,
         });
         showToast({
-          title: t('sections.akun.feedback.updateSuccess', { defaultValue: 'Pengguna berhasil diperbarui.' }),
+          title: t('sections.akun.feedback.updateSuccess', {
+            defaultValue: 'Pengguna berhasil diperbarui.',
+          }),
         });
       } else {
         await settingsApi.createUser({
@@ -111,7 +120,9 @@ export function AkunPage(): JSX.Element {
           password: form.password,
         });
         showToast({
-          title: t('sections.akun.feedback.createSuccess', { defaultValue: 'Pengguna berhasil ditambahkan.' }),
+          title: t('sections.akun.feedback.createSuccess', {
+            defaultValue: 'Pengguna berhasil ditambahkan.',
+          }),
         });
       }
       setEditing(null);
@@ -130,7 +141,9 @@ export function AkunPage(): JSX.Element {
     if (!deleting) return;
     await settingsApi.deleteUser(deleting.id);
     showToast({
-      title: t('sections.akun.feedback.deleteSuccess', { defaultValue: 'Pengguna berhasil dihapus.' }),
+      title: t('sections.akun.feedback.deleteSuccess', {
+        defaultValue: 'Pengguna berhasil dihapus.',
+      }),
     });
     setDeleting(null);
     void reload();
@@ -140,10 +153,51 @@ export function AkunPage(): JSX.Element {
     if (!resetting) return;
     await settingsApi.resetPassword(resetting.id, resetPw);
     showToast({
-      title: t('sections.akun.feedback.passwordReset', { defaultValue: 'Password berhasil direset.' }),
+      title: t('sections.akun.feedback.passwordReset', {
+        defaultValue: 'Password berhasil direset.',
+      }),
     });
     setResetting(null);
     setResetPw('');
+  };
+
+  const openSecurity = (u: UserRecord): void => {
+    setSecurityFor(u);
+    setSecurityQuestionKey(SECURITY_QUESTION_OPTION_KEYS[0]);
+    setSecurityCustomQuestion('');
+    setSecurityAnswer('');
+  };
+
+  const handleSaveSecurityQuestion = async (): Promise<void> => {
+    if (!securityFor) return;
+    const question =
+      securityQuestionKey === CUSTOM_QUESTION_VALUE
+        ? securityCustomQuestion.trim()
+        : t(`sections.akun.security.options.${securityQuestionKey}`, {
+            defaultValue: securityQuestionKey,
+          });
+    setSecuritySaving(true);
+    try {
+      await setSecurityQuestion({
+        userId: securityFor.id,
+        question,
+        answer: securityAnswer,
+      });
+      showToast({
+        title: t('sections.akun.feedback.securityQuestionSaved', {
+          defaultValue: 'Pertanyaan keamanan berhasil disimpan.',
+        }),
+      });
+      setSecurityFor(null);
+    } catch (e) {
+      showToast({
+        title: t('sections.identitas.saveError', { defaultValue: 'Gagal menyimpan' }),
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setSecuritySaving(false);
+    }
   };
 
   const dialogOpen = creating || editing !== null;
@@ -188,13 +242,13 @@ export function AkunPage(): JSX.Element {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                <td colSpan={6} className="text-muted-foreground p-6 text-center">
                   …
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                <td colSpan={6} className="text-muted-foreground p-6 text-center">
                   —
                 </td>
               </tr>
@@ -209,10 +263,15 @@ export function AkunPage(): JSX.Element {
                       ? t('sections.akun.active', { defaultValue: 'Aktif' })
                       : t('sections.akun.inactive', { defaultValue: 'Nonaktif' })}
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">{fmtDate(u.lastLoginAt)}</td>
+                  <td className="text-muted-foreground px-3 py-2">{fmtDate(u.lastLoginAt)}</td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(u)} aria-label="edit">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openEdit(u)}
+                        aria-label="edit"
+                      >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button
@@ -229,10 +288,21 @@ export function AkunPage(): JSX.Element {
                       <Button
                         size="icon"
                         variant="ghost"
+                        onClick={() => openSecurity(u)}
+                        aria-label={t('sections.akun.security.action', {
+                          defaultValue: 'Pertanyaan Keamanan',
+                        })}
+                        data-testid={`akun-security-${u.id}`}
+                      >
+                        <KeyRound className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => setDeleting(u)}
                         aria-label="delete"
                       >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        <Trash2 className="text-destructive h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </td>
@@ -328,6 +398,97 @@ export function AkunPage(): JSX.Element {
             </Button>
             <Button onClick={handleResetPassword}>
               {t('actions.save', { defaultValue: 'Simpan' })}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={securityFor !== null} onOpenChange={(o) => !o && setSecurityFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t('sections.akun.security.title', {
+                username: securityFor?.username ?? '',
+                defaultValue: `Pertanyaan Keamanan untuk ${securityFor?.username ?? ''}`,
+              })}
+            </DialogTitle>
+            <DialogDescription>
+              {t('sections.akun.security.description', {
+                defaultValue:
+                  'Dipakai pengguna saat lupa password di layar Login. Jawaban disimpan ter-hash; tidak bisa dilihat ulang.',
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <FieldRow
+              label={t('sections.akun.security.questionLabel', { defaultValue: 'Pertanyaan' })}
+            >
+              <Select value={securityQuestionKey} onValueChange={setSecurityQuestionKey}>
+                <SelectTrigger
+                  aria-label={t('sections.akun.security.questionPicker', {
+                    defaultValue: 'Pilih pertanyaan',
+                  })}
+                  data-testid="akun-security-question-picker"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SECURITY_QUESTION_OPTION_KEYS.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {t(`sections.akun.security.options.${key}`, { defaultValue: key })}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={CUSTOM_QUESTION_VALUE}>
+                    {t('sections.akun.security.customQuestion', {
+                      defaultValue: 'Pertanyaan Sendiri',
+                    })}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldRow>
+            {securityQuestionKey === CUSTOM_QUESTION_VALUE ? (
+              <FieldRow
+                label={t('sections.akun.security.customQuestion', {
+                  defaultValue: 'Pertanyaan Sendiri',
+                })}
+              >
+                <Input
+                  value={securityCustomQuestion}
+                  onChange={(e) => setSecurityCustomQuestion(e.target.value)}
+                  data-testid="akun-security-custom-question"
+                />
+              </FieldRow>
+            ) : null}
+            <FieldRow label={t('sections.akun.security.answerLabel', { defaultValue: 'Jawaban' })}>
+              <div className="space-y-1">
+                <Input
+                  value={securityAnswer}
+                  onChange={(e) => setSecurityAnswer(e.target.value)}
+                  data-testid="akun-security-answer"
+                />
+                <p className="text-muted-foreground text-xs">
+                  {t('sections.akun.security.answerHint', {
+                    defaultValue: 'Tidak peka huruf besar/kecil. Spasi awal/akhir diabaikan.',
+                  })}
+                </p>
+              </div>
+            </FieldRow>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSecurityFor(null)}>
+              ✕
+            </Button>
+            <Button
+              onClick={handleSaveSecurityQuestion}
+              disabled={
+                securitySaving ||
+                securityAnswer.trim().length < 2 ||
+                (securityQuestionKey === CUSTOM_QUESTION_VALUE &&
+                  securityCustomQuestion.trim().length === 0)
+              }
+              data-testid="akun-security-save"
+            >
+              {t('sections.akun.security.save', { defaultValue: 'Simpan Pertanyaan' })}
             </Button>
           </DialogFooter>
         </DialogContent>

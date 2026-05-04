@@ -99,11 +99,30 @@
         "createSuccess": "Pengguna berhasil ditambahkan.",
         "updateSuccess": "Pengguna berhasil diperbarui.",
         "deleteSuccess": "Pengguna berhasil dihapus.",
-        "passwordReset": "Password berhasil direset."
+        "passwordReset": "Password berhasil direset.",
+        "securityQuestionSaved": "Pertanyaan keamanan berhasil disimpan."
       },
       "delete": {
         "title": "Hapus pengguna \"{{name}}\"?",
         "description": "Pengguna tidak akan bisa login lagi setelah dihapus."
+      },
+      "security": {
+        "action": "Pertanyaan Keamanan",
+        "title": "Pertanyaan Keamanan untuk {{username}}",
+        "description": "Dipakai pengguna saat lupa password di layar Login. Jawaban disimpan ter-hash; tidak bisa dilihat ulang.",
+        "questionLabel": "Pertanyaan",
+        "questionPicker": "Pilih pertanyaan",
+        "customQuestion": "Pertanyaan Sendiri",
+        "answerLabel": "Jawaban",
+        "answerHint": "Tidak peka huruf besar/kecil. Spasi awal/akhir diabaikan.",
+        "save": "Simpan Pertanyaan",
+        "options": {
+          "pet": "Nama hewan peliharaan pertama Anda?",
+          "school": "Nama sekolah dasar Anda?",
+          "city": "Kota tempat Anda lahir?",
+          "book": "Judul buku favorit Anda?",
+          "teacher": "Nama guru favorit Anda?"
+        }
       }
     },
     "hakAkses": {
