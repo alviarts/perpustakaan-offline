@@ -103,5 +103,36 @@
     "new": "Add",
     "edit": "Edit",
     "cetakKta": "Print ID Card"
+  },
+  "detail": {
+    "tabsLabel": "Member details",
+    "tab": {
+      "edit": "Edit Profile",
+      "history": "Loan History"
+    }
+  },
+  "history": {
+    "loadError": "Failed to load history: {{msg}}",
+    "stats": {
+      "total": "Total Loans",
+      "totalHint": "{{count}} books touched",
+      "aktif": "Currently Borrowed",
+      "overdueHint": "{{count}} overdue",
+      "onTime": "On time",
+      "denda": "Total Fines",
+      "dibayar": "Paid {{value}}",
+      "lastPinjam": "Last Loan"
+    },
+    "topBuku": {
+      "title": "Most-borrowed books",
+      "subtitle": "Top 5 titles by loan count",
+      "count": "{{count}}× borrowed"
+    },
+    "timeline": {
+      "title": "Loan History",
+      "subtitle": "{{count}} most recent entries",
+      "empty": "No loans recorded yet.",
+      "returned": "returned {{date}}"
+    }
   }
 }
