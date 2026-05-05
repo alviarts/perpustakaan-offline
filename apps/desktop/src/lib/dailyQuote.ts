@@ -34,6 +34,18 @@ export function getQuoteForDate(date: Date): Quote {
 }
 
 /**
+ * Look up a bundled quote by its position in the pool. Used by the
+ * dashboard rotation (FEAT-11) which holds the index in component state
+ * and re-renders whenever it changes.
+ */
+export function getQuoteByIndex(index: number): Quote {
+  // Same modulo guard as quoteIndexForDate so out-of-range arguments
+  // never throw — the rotation should be best-effort, not crash-prone.
+  const safe = ((index % QUOTES.length) + QUOTES.length) % QUOTES.length;
+  return QUOTES[safe] as Quote;
+}
+
+/**
  * 1-indexed day-of-year in the date's local calendar (Asia/Jakarta in our
  * deployment). Calculated by walking the local day boundaries — Date.UTC
  * would mis-bucket the last day of the year for users east of UTC.
@@ -45,4 +57,29 @@ function computeDayOfYear(date: Date): number {
   // Indonesia (no DST) but the rounding is robust against future relocations.
   const dayMs = 24 * 60 * 60 * 1000;
   return Math.floor(diffMs / dayMs) + 1;
+}
+
+/**
+ * Pick the next quote index for the dashboard rotation, biased so the
+ * result is never equal to `currentIndex`. Used by `DashboardPage` to
+ * rotate the quote-of-the-day card every 5 minutes (FEAT-11).
+ *
+ * `rng` is the random source — defaults to `Math.random` but injected by
+ * tests for determinism. The returned index is always in `[0, QUOTE_COUNT)`.
+ *
+ * Edge case: when `QUOTE_COUNT === 1` we have nothing to rotate to, so we
+ * return that single index regardless of `currentIndex`. The bundle ships
+ * 122 quotes so this branch never trips in practice, but it guards against
+ * future refactors that might prune the list.
+ */
+export function pickNextQuoteIndex(
+  currentIndex: number,
+  rng: () => number = Math.random,
+): number {
+  if (QUOTES.length <= 1) return 0;
+  // Sample uniformly from the (length-1) candidate indexes that aren't the
+  // current one; mapping `pick >= currentIndex → pick + 1` skips it without
+  // a rejection loop, so the function always terminates in O(1).
+  const pick = Math.floor(rng() * (QUOTES.length - 1));
+  return pick >= currentIndex ? pick + 1 : pick;
 }

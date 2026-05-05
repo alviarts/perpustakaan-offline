@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import { Users, BookOpen, ArrowLeftRight, BookPlus, UserPlus, Sparkles, Quote } from 'lucide-react';
@@ -10,8 +10,9 @@ import { ChartPie } from '@/components/shared/ChartPie';
 import { ChartBar } from '@/components/shared/ChartBar';
 import { LiveClock } from '@/components/shared/LiveClock';
 import { OverduePanel } from '@/features/dashboard/OverduePanel';
-import { getQuoteForDate } from '@/lib/dailyQuote';
+import { getQuoteByIndex, pickNextQuoteIndex, quoteIndexForDate } from '@/lib/dailyQuote';
 import { formatTauriError } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 import {
   dashboardApi,
   type DashboardKpi,
@@ -36,6 +37,19 @@ interface DashboardData {
   topPeminjam: TopPeminjam[];
   topBuku: TopBuku[];
 }
+
+/**
+ * How long the dashboard quote-of-the-day stays on screen before rotating
+ * to a new pick (FEAT-11). 5 minutes is short enough to feel alive but long
+ * enough that users reading the screen aren't distracted.
+ */
+const QUOTE_ROTATE_MS = 5 * 60 * 1000;
+
+/**
+ * Duration of the leave (fade-out + slide-up) phase. Matches the duration
+ * of the corresponding `slide-up` keyframe so leave/enter feel symmetric.
+ */
+const QUOTE_LEAVE_MS = 300;
 
 export function DashboardPage() {
   const { t } = useTranslation(['dashboard', 'common']);
@@ -78,7 +92,33 @@ export function DashboardPage() {
     data.kpi.totalBuku === 0 &&
     data.kpi.bukuDipinjam === 0;
 
-  const dailyQuote = useMemo(() => getQuoteForDate(new Date()), []);
+  // Quote-of-the-day rotation (FEAT-11). Initial index is deterministic per
+  // calendar day (matches the pre-rotation behavior so reload-day-1 always
+  // shows the same first quote). Every QUOTE_ROTATE_MS we trigger a leave
+  // animation, swap the index, then mount the new quote with the
+  // `slide-up` keyframe via `key={quoteIndex}`.
+  const [quoteIndex, setQuoteIndex] = useState(() => quoteIndexForDate(new Date()));
+  const [quoteLeaving, setQuoteLeaving] = useState(false);
+
+  useEffect(() => {
+    let leaveTimer: ReturnType<typeof setTimeout> | null = null;
+    const rotateTimer = setInterval(() => {
+      setQuoteLeaving(true);
+      leaveTimer = setTimeout(() => {
+        // setState updater form is required: the interval closure captures
+        // the original quoteIndex but we want to rotate from whichever
+        // index is current right now.
+        setQuoteIndex((prev) => pickNextQuoteIndex(prev));
+        setQuoteLeaving(false);
+      }, QUOTE_LEAVE_MS);
+    }, QUOTE_ROTATE_MS);
+    return () => {
+      clearInterval(rotateTimer);
+      if (leaveTimer !== null) clearTimeout(leaveTimer);
+    };
+  }, []);
+
+  const dailyQuote = getQuoteByIndex(quoteIndex);
 
   return (
     <div className="flex flex-col gap-6 p-6" data-testid="dashboard-page">
@@ -104,7 +144,27 @@ export function DashboardPage() {
       >
         <CardContent className="flex items-start gap-3 p-4">
           <Quote className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
-          <div className="flex flex-col gap-1">
+          {/*
+            Two-phase fade-slide animation:
+            - When `quoteLeaving` is true, the existing element transitions
+              to `opacity-0 -translate-y-2` over 300 ms (slide up + fade out).
+            - When the timer fires we flip `quoteIndex`, which changes the
+              `key` and forces React to remount this div. The fresh mount
+              plays `animate-slide-up` (300 ms), entering from below with a
+              fade-in. Net effect: ≈600 ms swap, no flicker.
+            `motion-reduce` users get the new quote without animation.
+          */}
+          <div
+            key={quoteIndex}
+            className={cn(
+              'flex flex-col gap-1',
+              quoteLeaving
+                ? '-translate-y-2 opacity-0 transition-all duration-300 ease-out'
+                : 'motion-safe:animate-slide-up',
+              'motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none motion-reduce:animate-none',
+            )}
+            aria-live="polite"
+          >
             <p className="text-sm italic leading-relaxed text-foreground">
               {`"${dailyQuote.text}"`}
             </p>
