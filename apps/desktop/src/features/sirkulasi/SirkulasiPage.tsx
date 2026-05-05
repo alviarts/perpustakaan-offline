@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   Keyboard,
   Loader2,
+  RefreshCw,
+  RotateCcw,
   ScanLine,
   ShieldCheck,
   Trash2,
@@ -499,8 +501,77 @@ export function SirkulasiPage() {
             </div>
 
             {scanner.error && (
-              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm text-destructive">
-                {scanner.error}
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                <p className="font-medium">
+                  {scanner.errorKind === 'permission'
+                    ? t('sirkulasi:scanner.permissionTitle', {
+                        defaultValue: 'Akses kamera diblokir',
+                      })
+                    : scanner.errorKind === 'no-device'
+                      ? t('sirkulasi:scanner.noDeviceTitle', {
+                          defaultValue: 'Kamera tidak ditemukan',
+                        })
+                      : scanner.errorKind === 'in-use'
+                        ? t('sirkulasi:scanner.inUseTitle', {
+                            defaultValue: 'Kamera sedang dipakai aplikasi lain',
+                          })
+                        : t('sirkulasi:scanner.errorTitle', {
+                            defaultValue: 'Gagal memulai kamera',
+                          })}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-destructive/80">
+                  {scanner.errorKind === 'permission'
+                    ? t('sirkulasi:scanner.permissionHelp', {
+                        defaultValue:
+                          'Buka pengaturan aplikasi/browser, ubah izin kamera ke "Izinkan", lalu klik Coba lagi. Jika tombol Coba lagi tidak memunculkan prompt izin, klik Muat ulang halaman.',
+                      })
+                    : scanner.errorKind === 'no-device'
+                      ? t('sirkulasi:scanner.noDeviceHelp', {
+                          defaultValue:
+                            'Pastikan kamera webcam tersambung dan tidak dinonaktifkan di Device Manager.',
+                        })
+                      : scanner.errorKind === 'in-use'
+                        ? t('sirkulasi:scanner.inUseHelp', {
+                            defaultValue:
+                              'Tutup aplikasi lain yang sedang menggunakan kamera (Zoom, Meet, Camera, dll), lalu klik Coba lagi.',
+                          })
+                        : scanner.error}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      void scanner.start();
+                    }}
+                    disabled={scanner.starting}
+                  >
+                    {scanner.starting ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                    )}
+                    {t('sirkulasi:scanner.retry', { defaultValue: 'Coba lagi' })}
+                  </Button>
+                  {scanner.errorKind === 'permission' && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          window.location.reload();
+                        }
+                      }}
+                    >
+                      <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                      {t('sirkulasi:scanner.reload', {
+                        defaultValue: 'Muat ulang halaman',
+                      })}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 

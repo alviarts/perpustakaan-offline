@@ -11,7 +11,16 @@
     "stop": "Matikan kamera",
     "starting": "Membuka kamera…",
     "off": "Kamera belum aktif",
-    "devicePlaceholder": "Pilih kamera"
+    "devicePlaceholder": "Pilih kamera",
+    "retry": "Coba lagi",
+    "reload": "Muat ulang halaman",
+    "errorTitle": "Gagal memulai kamera",
+    "permissionTitle": "Akses kamera diblokir",
+    "permissionHelp": "Buka pengaturan aplikasi/browser, ubah izin kamera ke \"Izinkan\", lalu klik Coba lagi. Jika tombol Coba lagi tidak memunculkan prompt izin, klik Muat ulang halaman.",
+    "noDeviceTitle": "Kamera tidak ditemukan",
+    "noDeviceHelp": "Pastikan kamera webcam tersambung dan tidak dinonaktifkan di Device Manager.",
+    "inUseTitle": "Kamera sedang dipakai aplikasi lain",
+    "inUseHelp": "Tutup aplikasi lain yang sedang menggunakan kamera (Zoom, Meet, Camera, dll), lalu klik Coba lagi."
   },
   "manual": {
     "placeholder": "Atau ketik / scan pakai USB scanner (Enter untuk submit)",
