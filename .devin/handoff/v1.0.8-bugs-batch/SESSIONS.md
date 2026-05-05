@@ -74,8 +74,8 @@ Each entry is a markdown section with frontmatter-like fields:
 
 - **session_id**: `devin-b879714a60e242ffa66120093f0b7265`
 - **item_id**: BUG-19 + FEAT-16 (PR A — KTA foto fit + 10 desain baru)
-- **branch**: `devin/1778012760-pr-a-kta-foto-fit-and-presets` (TBD on push)
-- **pr**: TBD
+- **branch**: `devin/1778013996-pr-a-kta-foto-fit-and-presets`
+- **pr**: #127 (draft)
 - **started_at**: 2026-05-05T20:46:00Z
-- **status**: STARTED
-- **notes**: Claiming PR A per master prompt. BUG-19 implements 2-layer fix (backend `smart_fit_to_portrait` in `assets.rs` + frontend `computeCoverFit` utility used by `pdf.ts`/`print.ts`/preview); FEAT-16 adds 10 new KTA presets to `presets.ts` (total ~20), with extended unit tests.
+- **status**: STARTED → DRAFT_PR_OPEN
+- **notes**: Claimed PR A per master prompt. BUG-19 layer 2 (frontend cover-fit canvas pre-crop in `pdf.ts` via new `lib/imageFit.ts` helpers) DONE + 9 unit tests; total 281 tests pass. Draft PR #127 opened to make progress visible. Layer 1 (backend `smart_fit_to_portrait_bytes` + `assets_refit_anggota_photos` command + admin "Re-fit semua foto" UI) and FEAT-16 (10 new KTA presets) work continues on the same branch.
