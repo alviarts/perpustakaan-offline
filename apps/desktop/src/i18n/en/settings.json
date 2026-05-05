@@ -173,7 +173,39 @@
       },
       "syncNow": "Sync now",
       "syncSuccess": "Sync succeeded.",
-      "syncError": "Sync failed."
+      "syncError": "Sync failed.",
+      "guide": {
+        "title": "How to get Spreadsheet ID & API Key",
+        "intro": "Synchronization needs two values: the Spreadsheet ID of the Google Sheet you want to sync to, and a Google Cloud API key that can call the Google Sheets API. Follow these steps.",
+        "spreadsheetId": {
+          "title": "1. Spreadsheet ID",
+          "step1": "Open the Google Sheet you want to use (or create a new one at https://sheets.google.com).",
+          "step2": "Look at the URL in your browser's address bar. It follows this pattern:",
+          "exampleUrl": "https://docs.google.com/spreadsheets/d/1aBcDeFgHIjkLMNopQRstUvWxYz0123456789AbcDe/edit#gid=0",
+          "step3": "Copy the ID portion — the long token between /d/ and /edit. In the example above it is: 1aBcDeFgHIjkLMNopQRstUvWxYz0123456789AbcDe.",
+          "step4": "Paste it into the Spreadsheet ID field above."
+        },
+        "apiKey": {
+          "title": "2. API Key (Google Cloud Console)",
+          "step1": "Open the Google Cloud Console at https://console.cloud.google.com/. Sign in with the same Google account (free, no credit card required).",
+          "step2": "Create a new project (or pick an existing one) from the project picker in the top-left.",
+          "step3": "Enable the Google Sheets API: open https://console.cloud.google.com/apis/library/sheets.googleapis.com and click Enable.",
+          "step4": "Open APIs & Services → Credentials, then click Create Credentials → API key. A new key will appear.",
+          "step5": "Copy the API key value (it is a long string starting with AIza...) and paste it into the API Key field above.",
+          "step6": "Recommended: click the API key name, then under API restrictions choose Restrict key and check only Google Sheets API so the key cannot be misused."
+        },
+        "sharing": {
+          "title": "3. Spreadsheet sharing settings",
+          "intro": "Because synchronization uses an API key (not OAuth), the spreadsheet must be readable by anyone with the link so the API key can access it:",
+          "step1": "Open the spreadsheet → click the Share button (top-right).",
+          "step2": "Under General access, pick Anyone with the link.",
+          "step3": "Set the role to Viewer (read only) — or Editor if the app needs to write back to the sheet.",
+          "step4": "Click Done. The spreadsheet is now reachable with your API key."
+        },
+        "openCloudConsole": "Open Google Cloud Console",
+        "openSheetsApi": "Open Google Sheets API page",
+        "devNote": "Note: the synchronization backend is still under development. The Spreadsheet ID and API Key you save now will be stored locally and used automatically once full sync ships in a future release."
+      }
     },
     "auditLog": {
       "label": "Audit Log",
