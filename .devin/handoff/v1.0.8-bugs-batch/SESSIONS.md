@@ -89,3 +89,37 @@ Each entry is a markdown section with frontmatter-like fields:
   - Branch: `devin/1778013996-pr-a-kta-foto-fit-and-presets` (HEAD = `326df6a`).
   - Remaining work: **FEAT-16** — add 10 new KTA preset layouts to `apps/desktop/src/features/kta/presets.ts` and update `apps/desktop/tests/unit/ktaPresets.test.ts` from `toHaveLength(10)` → `toHaveLength(20)`. Spec for the 10 preset IDs/themes is in PR #127 body (TODO checklist) and `BUGS.md` PR A section.
   - After FEAT-16: re-run all gates, update PR body (drop the PAUSED preamble + add test plan), `curl PATCH /pulls/127 {"draft": false}`, wait CI green via `git pr_checks`, then on this v108-handoff branch flip PROGRESS.md PR A rows from `PAUSED` → `IN_PR` and update SESSIONS.md.
+
+---
+
+### devin-e87e91dd1b25420eb46e75b6d779fb27 — PAT rotation #2
+
+- **session_id**: `devin-e87e91dd1b25420eb46e75b6d779fb27`
+- **item_id**: META (PAT rotation, not a v1.0.8 batch item)
+- **rotated_at**: 2026-05-05T21:16:54Z
+- **status**: COMPLETED
+- **notes**: User rotated `GITHUB_PAT_ALVIARTS` org-scoped secret again (auto-injection was missing at session start, length 0). New PAT: **fine-grained** type (prefix `github_pat_`, length 93) — different format from previous classic PAT (`ghp_c1xaCP...`, length 40). Both formats are accepted by the curl-based push/PR flow; no WORKFLOW.md change needed (the existing 4-test verification block already documents both length 40 + 90+ as valid).
+- **4-test verification PASSED**:
+  - `/user` → login: alviarts ✓
+  - `/repos/alviarts/perpustakaan-offline` → permissions admin/maintain/push/triage/pull all true ✓
+  - `/pulls/127` → state: open, draft: True (PR A still paused, expected) ✓
+  - `/rate_limit` → limit: 5000, remaining: 4980 ✓
+- **next devin**: PAT siap dipakai untuk semua sisa Phase 1 items. Cek `Last rotated` date di WORKFLOW.md kalau curiga PAT expired (current rotation: 2026-05-05).
+
+---
+
+### devin-e87e91dd1b25420eb46e75b6d779fb27 — PR B (FEAT-17 + FEAT-18) claim
+
+- **session_id**: `devin-e87e91dd1b25420eb46e75b6d779fb27`
+- **item_id**: FEAT-17 + FEAT-18 (PR B — Peminjaman: perpanjangan + reservasi)
+- **branch**: `devin/1778015814-pr-b-peminjaman-extend-and-reserve`
+- **pr**: TBD (will be opened as draft after first gate-green commit)
+- **started_at**: 2026-05-05T21:16:54Z
+- **status**: STARTED
+- **notes**: Picked PR B per master prompt — first OPEN row group with no `depends_on` and no live IN_PROGRESS_BY lock. PR A (BUG-19 + FEAT-16) is PAUSED with PR #127 (draft), so it is explicitly skipped per the "Active PR in flight / PAUSED rows" lock policy. FEAT-17 will land first inside PR B (extend), then FEAT-18 (reservasi) will be layered on top so the FEAT-17 reservation-block guard can call into the FEAT-18 reservation table.
+- **plan**:
+  - Backend (Rust): additive migration adds `peminjaman.kali_perpanjangan`, `peminjaman.tanggal_perpanjangan_terakhir`; new `reservasi_buku` table; new commands `peminjaman_perpanjang(loan_id, days?)`, `reservasi_create/cancel/list_by_buku/list_by_anggota/mark_diambil/check_expired_tick`; settings keys `peminjaman.max_perpanjangan` (default 1, range 0-3) + `peminjaman.block_perpanjangan_jika_denda` (default false). Audit log entry on each extend.
+  - Frontend (TS/React): `PerpanjangDialog.tsx` + Perpanjang button on `PeminjamanList.tsx` row; `ReservasiPage.tsx` route + sidebar link; conditional Reservasi button on `BukuList.tsx` row when buku status `dipinjam`; Pengembalian return-flow toast showing `slot_rak` + nama anggota berikutnya; `AturanPeminjamanPage.tsx` 2 new fields.
+  - i18n: id+en parity for all new strings.
+  - Tests: vitest + cargo test (target: net positive new tests).
+- **pickup**: if pause: branch `devin/1778015814-pr-b-peminjaman-extend-and-reserve`, draft PR (TBD). Master prompt + this entry are sufficient context.
