@@ -131,6 +131,7 @@
     "hakAkses": {
       "label": "Hak Akses",
       "summary": "Matriks izin per peran (admin, pustakawan).",
+      "headerArea": "Area",
       "roles": {
         "admin": "Admin",
         "pustakawan": "Pustakawan"
