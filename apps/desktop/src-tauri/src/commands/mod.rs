@@ -12,6 +12,7 @@ pub mod kas;
 pub mod kta;
 pub mod kta_export;
 pub mod kunjungan;
+pub mod label_buku;
 pub mod laporan;
 pub mod master_data;
 pub mod peminjaman;

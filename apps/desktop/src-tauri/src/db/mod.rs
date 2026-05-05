@@ -29,9 +29,11 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SCHEMA_SQL)?;
     conn.execute_batch(MASTER_DATA_SQL)?;
     conn.execute_batch(KTA_SQL)?;
+    conn.execute_batch(LABEL_BUKU_SQL)?;
     apply_additive_migrations(conn)?;
     seed_master_data(conn)?;
     seed_kta_default_template(conn)?;
+    seed_label_buku_default_template(conn)?;
     log::info!("schema migrations applied (idempotent)");
     Ok(())
 }
@@ -47,6 +49,23 @@ CREATE TABLE IF NOT EXISTS kta_templates (
     updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_kta_default ON kta_templates(is_default);
+"#;
+
+/// Label Buku templates — mirror of `kta_templates` for spine/cover labels
+/// (v1.0.6 #22). Schema is identical so we can reuse the editor pattern; the
+/// `layout_json` carries Avery-style field arrays with a different `kind`
+/// vocabulary (`barcode`, `judul`, `kodeBuku`, `kodeEksemplar`, …).
+const LABEL_BUKU_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS label_buku_templates (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama        TEXT    NOT NULL UNIQUE,
+    deskripsi   TEXT,
+    layout_json TEXT    NOT NULL,
+    is_default  INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_label_buku_default ON label_buku_templates(is_default);
 "#;
 
 const MASTER_DATA_SQL: &str = r#"
@@ -304,6 +323,45 @@ fn seed_kta_default_template(conn: &Connection) -> AppResult<()> {
     Ok(())
 }
 
+/// Default Label Buku template seeded on first launch (v1.0.6 #22). Mirrors
+/// `defaultLayout()` in `apps/desktop/src/lib/labelBuku.ts`. 70 × 35 mm
+/// (Avery J8160-style) with header, judul, kodeBuku, kodeEksemplar, and a
+/// Code-128 barcode of the kodeEksemplar.
+const LABEL_BUKU_DEFAULT_TEMPLATE_NAME: &str = "Template Default";
+const LABEL_BUKU_DEFAULT_TEMPLATE_DESC: &str = "Layout standar 70 × 35 mm dengan judul + barcode";
+const LABEL_BUKU_DEFAULT_LAYOUT_JSON: &str = r##"{
+  "widthMm": 70,
+  "heightMm": 35,
+  "background": "#ffffff",
+  "fields": [
+    {"id":"identitas","kind":"identitas","x":4,"y":4,"width":92,"height":10,"fontSize":9,"fontWeight":"bold","color":"#0f172a","align":"center"},
+    {"id":"judul","kind":"judul","x":4,"y":18,"width":92,"height":12,"fontSize":10,"fontWeight":"bold","color":"#0f172a","align":"center"},
+    {"id":"kode","kind":"kodeBuku","x":4,"y":34,"width":40,"height":10,"fontSize":11,"fontWeight":"bold","color":"#0f172a","align":"left"},
+    {"id":"barcode","kind":"barcode","x":4,"y":50,"width":92,"height":36},
+    {"id":"kodeek","kind":"kodeEksemplar","x":4,"y":88,"width":92,"height":10,"fontSize":8,"color":"#475569","align":"center"}
+  ]
+}"##;
+
+fn seed_label_buku_default_template(conn: &Connection) -> AppResult<()> {
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM label_buku_templates", [], |row| {
+        row.get(0)
+    })?;
+    if count > 0 {
+        return Ok(());
+    }
+    conn.execute(
+        "INSERT INTO label_buku_templates (nama, deskripsi, layout_json, is_default)
+         VALUES (?1, ?2, ?3, 1)",
+        rusqlite::params![
+            LABEL_BUKU_DEFAULT_TEMPLATE_NAME,
+            LABEL_BUKU_DEFAULT_TEMPLATE_DESC,
+            LABEL_BUKU_DEFAULT_LAYOUT_JSON,
+        ],
+    )?;
+    log::info!("seeded default label_buku_templates row (is_default=1)");
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -473,6 +531,91 @@ mod tests {
             .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
             .unwrap();
         assert_eq!(count, 10);
+    }
+
+    #[test]
+    fn fresh_install_seeds_one_default_label_buku_template() {
+        let conn = fresh_conn();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM label_buku_templates", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(count, 1);
+        let default_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM label_buku_templates WHERE is_default = 1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(default_count, 1);
+    }
+
+    #[test]
+    fn seeded_label_buku_template_layout_is_valid_json_with_required_kinds() {
+        let conn = fresh_conn();
+        let layout: String = conn
+            .query_row(
+                "SELECT layout_json FROM label_buku_templates WHERE is_default = 1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        let parsed: serde_json::Value =
+            serde_json::from_str(&layout).expect("layout_json must be valid JSON");
+        assert!(parsed.is_object());
+        let fields = parsed
+            .get("fields")
+            .and_then(|f| f.as_array())
+            .expect("layout.fields must be array");
+        let kinds: std::collections::HashSet<&str> = fields
+            .iter()
+            .filter_map(|f| f.get("kind").and_then(|k| k.as_str()))
+            .collect();
+        for required in ["judul", "kodeBuku", "kodeEksemplar", "barcode"] {
+            assert!(
+                kinds.contains(required),
+                "default label layout must include kind={required}"
+            );
+        }
+    }
+
+    #[test]
+    fn label_buku_seed_is_idempotent_across_runs() {
+        let conn = fresh_conn();
+        run_migrations(&conn).unwrap();
+        run_migrations(&conn).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM label_buku_templates", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn label_buku_seed_skips_when_user_already_has_templates() {
+        let conn = fresh_conn();
+        conn.execute("DELETE FROM label_buku_templates", [])
+            .unwrap();
+        conn.execute(
+            "INSERT INTO label_buku_templates (nama, deskripsi, layout_json, is_default)
+             VALUES ('Custom', NULL, '{\"fields\":[]}', 0)",
+            [],
+        )
+        .unwrap();
+        seed_label_buku_default_template(&conn).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM label_buku_templates", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(count, 1);
+        let nama: String = conn
+            .query_row("SELECT nama FROM label_buku_templates", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(nama, "Custom");
     }
 
     #[test]
