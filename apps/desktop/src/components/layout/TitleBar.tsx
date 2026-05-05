@@ -48,7 +48,7 @@ interface TitleBarProps {
 export function TitleBar({ appName }: TitleBarProps): JSX.Element {
   const { t } = useTranslation(['common']);
   const [maximized, setMaximized] = useState(false);
-  const label = appName ?? t('common:appName', { defaultValue: 'Perpustakaan Offline' });
+  const label = appName ?? t('common:appName', { defaultValue: 'Perpustakaan Nusantara' });
 
   // Sync the maximize-button icon with the actual window state, including
   // when the user drags-to-edge or hits the OS shortcut (Super+Up on GNOME,

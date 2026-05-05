@@ -61,7 +61,7 @@ pub fn run() {
             let tray_menu = Menu::with_items(app, &[&buka_item, &keluar_item])?;
 
             let _tray = TrayIconBuilder::with_id("po-main")
-                .tooltip("Perpustakaan Offline")
+                .tooltip("Perpustakaan Nusantara")
                 .icon(
                     app.default_window_icon()
                         .cloned()
