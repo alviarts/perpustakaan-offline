@@ -29,6 +29,8 @@ const identity: LibraryIdentity = {
   tahunAjaran: '2024/2025',
   logoPath: '',
   kontak: '-',
+  ttdKepsekPath: '',
+  kepalaSekolah: '',
 };
 
 function makeAnggota(overrides: Partial<Anggota> = {}): Anggota {

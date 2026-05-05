@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Anggota } from '@/lib/anggota';
-import type { KtaField, KtaFieldKind, KtaLayout } from '@/lib/kta';
+import { defaultBackLayout, type KtaField, type KtaFieldKind, type KtaLayout } from '@/lib/kta';
 import type { LibraryIdentity } from '@/stores/identityStore';
 import { KtaPreview } from './KtaPreview';
 
@@ -22,35 +23,60 @@ interface Props {
   preview: { anggota: Anggota | null; identity: LibraryIdentity };
 }
 
-const FIELD_KINDS: { value: KtaFieldKind; label: string }[] = [
-  { value: 'static', label: 'Teks Statis' },
-  { value: 'identitas', label: 'Identitas Perpustakaan' },
-  { value: 'nama', label: 'Nama Anggota' },
-  { value: 'kodeAnggota', label: 'Kode / NIS' },
-  { value: 'kelas', label: 'Kelas' },
-  { value: 'jurusan', label: 'Jurusan' },
-  { value: 'agama', label: 'Agama' },
-  { value: 'foto', label: 'Foto' },
-  { value: 'qr', label: 'QR Code' },
-  { value: 'rect', label: 'Dekorasi (Kotak)' },
+const FIELD_KINDS: KtaFieldKind[] = [
+  'static',
+  'identitas',
+  'nama',
+  'kodeAnggota',
+  'kelas',
+  'jurusan',
+  'agama',
+  'tempatTanggalLahir',
+  'jenisKelamin',
+  'alamat',
+  'noTelp',
+  'tahunMasuk',
+  'berlakuSd',
+  'namaKepsek',
+  'foto',
+  'ttdKepsek',
+  'qr',
+  'rect',
 ];
 
-export function TemplateEditor({ layout, onChange, preview }: Props) {
-  const [selectedId, setSelectedId] = useState<string | null>(layout.fields[0]?.id ?? null);
+type Side = 'front' | 'back';
 
-  const selected = useMemo(
-    () => layout.fields.find((f) => f.id === selectedId) ?? null,
-    [layout.fields, selectedId],
+export function TemplateEditor({ layout, onChange, preview }: Props) {
+  const { t } = useTranslation('kta');
+  const [side, setSide] = useState<Side>('front');
+  const activeLayout = side === 'back' ? layout.back ?? null : layout;
+  const [selectedId, setSelectedId] = useState<string | null>(
+    layout.fields[0]?.id ?? null,
   );
 
+  const selected = useMemo(
+    () => activeLayout?.fields.find((f) => f.id === selectedId) ?? null,
+    [activeLayout, selectedId],
+  );
+
+  const setActiveLayout = (next: KtaLayout) => {
+    if (side === 'back') {
+      onChange({ ...layout, back: next });
+    } else {
+      onChange({ ...next, back: layout.back ?? null });
+    }
+  };
+
   const updateField = (id: string, patch: Partial<KtaField>) => {
-    onChange({
-      ...layout,
-      fields: layout.fields.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+    if (!activeLayout) return;
+    setActiveLayout({
+      ...activeLayout,
+      fields: activeLayout.fields.map((f) => (f.id === id ? { ...f, ...patch } : f)),
     });
   };
 
   const addField = () => {
+    if (!activeLayout) return;
     const id = `f-${Date.now()}`;
     const next: KtaField = {
       id,
@@ -64,38 +90,134 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
       color: '#0f172a',
       align: 'left',
     };
-    onChange({ ...layout, fields: [...layout.fields, next] });
+    setActiveLayout({ ...activeLayout, fields: [...activeLayout.fields, next] });
     setSelectedId(id);
   };
 
   const removeField = (id: string) => {
-    onChange({ ...layout, fields: layout.fields.filter((f) => f.id !== id) });
+    if (!activeLayout) return;
+    setActiveLayout({
+      ...activeLayout,
+      fields: activeLayout.fields.filter((f) => f.id !== id),
+    });
     if (selectedId === id) setSelectedId(null);
   };
 
+  const addBackSide = () => {
+    onChange({ ...layout, back: defaultBackLayout() });
+    setSide('back');
+    const firstId = defaultBackLayout().fields[0]?.id ?? null;
+    setSelectedId(firstId);
+  };
+
+  const removeBackSide = () => {
+    if (!window.confirm(t('side.removeBackConfirm', 'Hapus seluruh layout sisi belakang?'))) {
+      return;
+    }
+    onChange({ ...layout, back: null });
+    setSide('front');
+    setSelectedId(layout.fields[0]?.id ?? null);
+  };
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="space-y-3" data-testid="kta-template-editor">
+      <div
+        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3"
+        role="tablist"
+        aria-label={t('side.label', 'Sisi')}
+      >
+        <div className="flex items-center gap-1">
+          <SideTab
+            active={side === 'front'}
+            onClick={() => {
+              setSide('front');
+              setSelectedId(layout.fields[0]?.id ?? null);
+            }}
+            label={t('side.front', 'Depan')}
+            testId="kta-side-front"
+          />
+          <SideTab
+            active={side === 'back'}
+            disabled={!layout.back}
+            onClick={() => {
+              if (!layout.back) return;
+              setSide('back');
+              setSelectedId(layout.back.fields[0]?.id ?? null);
+            }}
+            label={t('side.back', 'Belakang')}
+            testId="kta-side-back"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground hidden md:inline">
+            {side === 'front'
+              ? t('side.frontHint', 'Edit field-field di sisi depan kartu.')
+              : t(
+                  'side.backHint',
+                  'Sisi belakang dicetak di halaman 2 (atau halaman terpisah pada PDF). Berisi Tata Tertib secara default.',
+                )}
+          </span>
+          {!layout.back ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addBackSide}
+              data-testid="kta-add-back"
+            >
+              <Plus className="size-3.5 mr-1" />
+              {t('side.addBack', 'Tambah Sisi Belakang')}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={removeBackSide}
+              data-testid="kta-remove-back"
+            >
+              <Trash2 className="size-3.5 mr-1" />
+              {t('side.removeBack', 'Hapus Sisi Belakang')}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="rounded-lg border border-border bg-muted/40 p-6 flex items-center justify-center">
-        <KtaPreview
-          layout={layout}
-          anggota={preview.anggota}
-          identity={preview.identity}
-          selectedFieldId={selectedId}
-          onSelectField={setSelectedId}
-          scale={2.4}
-        />
+        {activeLayout ? (
+          <KtaPreview
+            layout={activeLayout}
+            anggota={preview.anggota}
+            identity={preview.identity}
+            selectedFieldId={selectedId}
+            onSelectField={setSelectedId}
+            scale={2.4}
+          />
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            {t(
+              'side.backHint',
+              'Sisi belakang dicetak di halaman 2 (atau halaman terpisah pada PDF). Berisi Tata Tertib secara default.',
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
         <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">Daftar Field</h3>
-            <Button size="sm" variant="outline" onClick={addField} data-testid="kta-field-add">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addField}
+              disabled={!activeLayout}
+              data-testid="kta-field-add"
+            >
               <Plus className="size-3.5 mr-1" /> Tambah
             </Button>
           </div>
           <ul className="space-y-1 max-h-56 overflow-auto">
-            {layout.fields.map((f) => (
+            {(activeLayout?.fields ?? []).map((f) => (
               <li
                 key={f.id}
                 className={`flex items-center justify-between rounded-md px-2 py-1.5 text-sm cursor-pointer ${
@@ -104,7 +226,9 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
                 onClick={() => setSelectedId(f.id)}
               >
                 <span className="truncate">
-                  <span className="text-xs uppercase tracking-wide opacity-60 mr-2">{f.kind}</span>
+                  <span className="text-xs uppercase tracking-wide opacity-60 mr-2">
+                    {t(`field.${f.kind}`, f.kind)}
+                  </span>
                   {f.kind === 'static' ? f.text : f.id}
                 </span>
                 <Tooltip>
@@ -134,37 +258,83 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
           />
         )}
 
-        <div className="rounded-lg border border-border bg-card p-4 space-y-2">
-          <h3 className="text-sm font-semibold">Dimensi Kartu (mm)</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs">Lebar</Label>
-              <Input
-                type="number"
-                step="0.1"
-                value={layout.widthMm}
-                onChange={(e) =>
-                  onChange({ ...layout, widthMm: Number.parseFloat(e.target.value) || 0 })
-                }
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Tinggi</Label>
-              <Input
-                type="number"
-                step="0.1"
-                value={layout.heightMm}
-                onChange={(e) =>
-                  onChange({ ...layout, heightMm: Number.parseFloat(e.target.value) || 0 })
-                }
-              />
+        {activeLayout && (
+          <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+            <h3 className="text-sm font-semibold">Dimensi Kartu (mm)</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Lebar</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={activeLayout.widthMm}
+                  onChange={(e) =>
+                    setActiveLayout({
+                      ...activeLayout,
+                      widthMm: Number.parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Tinggi</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={activeLayout.heightMm}
+                  onChange={(e) =>
+                    setActiveLayout({
+                      ...activeLayout,
+                      heightMm: Number.parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
       </div>
     </div>
   );
 }
+
+function SideTab({
+  active,
+  disabled,
+  onClick,
+  label,
+  testId,
+}: {
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  label: string;
+  testId?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      disabled={disabled}
+      onClick={onClick}
+      data-testid={testId}
+      className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+        active
+          ? 'bg-primary text-primary-foreground'
+          : disabled
+            ? 'text-muted-foreground/60 cursor-not-allowed'
+            : 'hover:bg-muted'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+const IMAGE_KINDS: KtaFieldKind[] = ['foto', 'qr', 'ttdKepsek', 'rect'];
+const TEXT_OVERRIDE_KINDS: KtaFieldKind[] = ['static', 'berlakuSd'];
 
 function FieldEditor({
   field,
@@ -173,7 +343,8 @@ function FieldEditor({
   field: KtaField;
   onChange: (patch: Partial<KtaField>) => void;
 }) {
-  const isText = !['foto', 'qr'].includes(field.kind);
+  const { t } = useTranslation('kta');
+  const isText = !IMAGE_KINDS.includes(field.kind);
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3" data-testid="kta-field-editor">
       <h3 className="text-sm font-semibold">Edit Field</h3>
@@ -187,15 +358,15 @@ function FieldEditor({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {FIELD_KINDS.map((k) => (
-              <SelectItem key={k.value} value={k.value}>
-                {k.label}
+            {FIELD_KINDS.map((kind) => (
+              <SelectItem key={kind} value={kind}>
+                {t(`field.${kind}`, kind)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      {field.kind === 'static' && (
+      {TEXT_OVERRIDE_KINDS.includes(field.kind) && (
         <div>
           <Label className="text-xs">Teks</Label>
           <Input

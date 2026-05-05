@@ -15,6 +15,17 @@ pub struct LibraryIdentity {
     pub tahun_ajaran: String,
     pub logo_path: String,
     pub kontak: String,
+    /// Path file TTD kepala sekolah (FEAT-03). Disimpan dengan key
+    /// `lib.ttd_kepsek_path` — diisi via FilePickerInput di Settings →
+    /// Identitas dan dipakai oleh KTA renderer ketika template punya
+    /// field `ttdKepsek`.
+    #[serde(default)]
+    pub ttd_kepsek_path: String,
+    /// Nama kepala sekolah (FEAT-03). Berbeda dengan `kepala` (kepala
+    /// perpustakaan). Disimpan dengan key `lib.kepala_sekolah` dan
+    /// dipakai oleh field `namaKepsek` di template KTA.
+    #[serde(default)]
+    pub kepala_sekolah: String,
 }
 
 const KEY_NAMA: &str = "lib.nama";
@@ -24,6 +35,8 @@ const KEY_NPSN: &str = "lib.npsn";
 const KEY_TAHUN: &str = "lib.tahun_ajaran";
 const KEY_LOGO: &str = "lib.logo_path";
 const KEY_KONTAK: &str = "lib.kontak";
+const KEY_TTD_KEPSEK: &str = "lib.ttd_kepsek_path";
+const KEY_KEPALA_SEKOLAH: &str = "lib.kepala_sekolah";
 
 const DEFAULT_NAMA: &str = "Perpustakaan Sekolah";
 const DEFAULT_TAHUN: &str = "2024/2025";
@@ -65,6 +78,8 @@ pub fn identity_get(state: State<'_, AppState>) -> AppResult<LibraryIdentity> {
         tahun_ajaran: read_setting(&conn, KEY_TAHUN, DEFAULT_TAHUN)?,
         logo_path: read_setting(&conn, KEY_LOGO, "")?,
         kontak: read_setting(&conn, KEY_KONTAK, "-")?,
+        ttd_kepsek_path: read_setting(&conn, KEY_TTD_KEPSEK, "")?,
+        kepala_sekolah: read_setting(&conn, KEY_KEPALA_SEKOLAH, "")?,
     })
 }
 
@@ -86,6 +101,8 @@ pub fn identity_save(
         write_setting(&conn, KEY_TAHUN, &payload.tahun_ajaran)?;
         write_setting(&conn, KEY_LOGO, &payload.logo_path)?;
         write_setting(&conn, KEY_KONTAK, &payload.kontak)?;
+        write_setting(&conn, KEY_TTD_KEPSEK, &payload.ttd_kepsek_path)?;
+        write_setting(&conn, KEY_KEPALA_SEKOLAH, &payload.kepala_sekolah)?;
     }
     let _ = app.emit("identity:changed", &payload);
     Ok(payload)

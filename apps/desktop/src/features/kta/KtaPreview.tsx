@@ -7,6 +7,7 @@ import {
   type KtaLayout,
 } from '@/lib/kta';
 import type { LibraryIdentity } from '@/stores/identityStore';
+import { resolveKtaFieldText } from './resolveField';
 
 const MM_TO_PX = 3.78;
 
@@ -196,41 +197,43 @@ function FieldNode({
   if (field.kind === 'foto') {
     return (
       <div style={wrapperStyle} onClick={onClick}>
-        {anggota?.fotoPath ? (
-          <img
-            src={anggota.fotoPath}
-            alt="Foto"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              background: '#e2e8f0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#64748b',
-              fontSize: 10,
-            }}
-          >
-            FOTO
-          </div>
-        )}
+        <FotoSlot src={anggota?.fotoPath ?? null} />
+      </div>
+    );
+  }
+  if (field.kind === 'ttdKepsek') {
+    return (
+      <div style={wrapperStyle} onClick={onClick}>
+        <SignatureSlot src={identity.ttdKepsekPath || null} />
       </div>
     );
   }
   if (field.kind === 'qr') {
     return (
-      <div style={wrapperStyle} onClick={onClick}>
+      <div
+        style={{
+          ...wrapperStyle,
+          justifyContent: 'center',
+        }}
+        onClick={onClick}
+      >
         {qrDataUrl ? (
-          <img src={qrDataUrl} alt="QR" style={{ width: '100%', height: '100%' }} />
+          <img
+            src={qrDataUrl}
+            alt="QR"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              aspectRatio: '1 / 1',
+              objectFit: 'contain',
+            }}
+          />
         ) : (
           <div
             style={{
-              width: '100%',
-              height: '100%',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              aspectRatio: '1 / 1',
               background: '#f1f5f9',
               display: 'flex',
               alignItems: 'center',
@@ -245,7 +248,7 @@ function FieldNode({
       </div>
     );
   }
-  const text = resolveFieldText(field, anggota, identity);
+  const text = resolveKtaFieldText(field, anggota, identity, 'preview');
   return (
     <div style={wrapperStyle} onClick={onClick}>
       <span style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span>
@@ -253,27 +256,60 @@ function FieldNode({
   );
 }
 
-function resolveFieldText(
-  field: KtaField,
-  anggota: Anggota | null,
-  identity: LibraryIdentity,
-): string {
-  switch (field.kind) {
-    case 'static':
-      return field.text ?? '';
-    case 'identitas':
-      return identity.nama;
-    case 'nama':
-      return anggota?.nama ?? 'Nama Anggota';
-    case 'kodeAnggota':
-      return anggota?.kodeAnggota ?? 'KODE-XXX';
-    case 'kelas':
-      return anggota?.kelas ?? '-';
-    case 'jurusan':
-      return anggota?.jurusan ?? '-';
-    case 'agama':
-      return anggota?.agama ?? '-';
-    default:
-      return '';
-  }
+function PlaceholderBox({ label, fontSize = 10 }: { label: string; fontSize?: number }) {
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        background: '#e2e8f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#64748b',
+        fontSize,
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+/**
+ * BUG-06 — render the foto with an `onError` fallback. When the file at
+ * `fotoPath` cannot be resolved (path moved, deleted, missing on this
+ * machine, etc.) the browser would otherwise display the broken-image
+ * glyph + alt text. We swap to the same placeholder used when no foto
+ * is set so the preview / cetak / PDF stay clean.
+ */
+function FotoSlot({ src }: { src: string | null }) {
+  const [errored, setErrored] = useState(false);
+  useEffect(() => {
+    setErrored(false);
+  }, [src]);
+  if (!src || errored) return <PlaceholderBox label="FOTO" />;
+  return (
+    <img
+      src={src}
+      alt="Foto"
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
+function SignatureSlot({ src }: { src: string | null }) {
+  const [errored, setErrored] = useState(false);
+  useEffect(() => {
+    setErrored(false);
+  }, [src]);
+  if (!src || errored) return <PlaceholderBox label="TTD" fontSize={9} />;
+  return (
+    <img
+      src={src}
+      alt="TTD"
+      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+      onError={() => setErrored(true)}
+    />
+  );
 }

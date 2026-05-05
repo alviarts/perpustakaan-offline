@@ -21,13 +21,19 @@
         "nama": "Nama Perpustakaan",
         "alamat": "Alamat",
         "kepala": "Kepala Perpustakaan",
+        "kepalaSekolah": "Kepala Sekolah",
+        "kepalaSekolahHint": "Nama kepala sekolah, dipakai oleh KTA pada blok tanda tangan (terpisah dari kepala perpustakaan).",
         "npsn": "NPSN",
         "tahunAjaran": "Tahun Ajaran",
         "logoPath": "Logo Perpustakaan",
         "logoPathHint": "Klik untuk memilih file logo (.png/.jpg/.webp/.svg). File otomatis disalin ke folder data aplikasi.",
         "logoPick": "Pilih logo…",
         "logoClear": "Hapus logo",
-        "kontak": "Kontak"
+        "kontak": "Kontak",
+        "ttdKepsek": "TTD Kepala Sekolah",
+        "ttdKepsekHint": "Gambar tanda tangan (PNG transparan ideal). Digunakan otomatis oleh template KTA bila memiliki field TTD Kepsek.",
+        "ttdKepsekPick": "Pilih file TTD",
+        "ttdKepsekClear": "Hapus TTD"
       },
       "saveSuccess": "Identitas berhasil disimpan.",
       "saveError": "Gagal menyimpan identitas."
