@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookMarked, CalendarClock, RotateCw, X } from 'lucide-react';
+import { BookMarked, CalendarClock, Plus, RotateCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,6 +20,7 @@ import {
   type ReservasiRow,
   type ReservasiStatus,
 } from '@/lib/reservasi';
+import { CreateReservasiDialog } from './CreateReservasiDialog';
 
 type FilterValue = 'all' | 'menunggu' | 'siap_diambil';
 
@@ -39,6 +40,7 @@ export function ReservasiPage() {
   const [loading, setLoading] = useState(true);
   const [pendingCancel, setPendingCancel] = useState<ReservasiRow | null>(null);
   const [pendingPickup, setPendingPickup] = useState<ReservasiRow | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [working, setWorking] = useState(false);
 
   const reload = useCallback(async () => {
@@ -292,6 +294,13 @@ export function ReservasiPage() {
             </SelectContent>
           </Select>
           <Button
+            onClick={() => setCreateOpen(true)}
+            data-testid="reservasi-create-open"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t('reservasi:action.create', { defaultValue: 'Reservasi (Antri)' })}
+          </Button>
+          <Button
             variant="outline"
             onClick={handleCheckExpired}
             data-testid="reservasi-check-expired"
@@ -355,6 +364,12 @@ export function ReservasiPage() {
           }) as string
         }
         onConfirm={() => (pendingPickup ? handlePickup(pendingPickup) : Promise.resolve())}
+      />
+
+      <CreateReservasiDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={() => void reload()}
       />
     </div>
   );
