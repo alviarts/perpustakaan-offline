@@ -13,6 +13,102 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-05-05
+
+### Added
+
+- **Notifikasi peminjaman telat (bell + dashboard)** — header sekarang
+  punya bell icon dengan badge angka jumlah peminjaman yang sudah lewat
+  jatuh tempo, plus panel "Peminjaman Telat" di Dashboard yang
+  menampilkan list anggota + buku + tanggal jatuh tempo + jumlah hari
+  telat. Backend baru: `peminjaman_overdue_list` Tauri command. Refresh
+  otomatis tiap kali tab Dashboard / Peminjaman dibuka. (#107)
+- **Riwayat peminjaman per anggota** — di halaman detail anggota,
+  tab baru "Riwayat Peminjaman" menampilkan timeline lengkap (statistik
+  total + aktif + selesai + telat, top 5 buku yang dipinjam, dan tabel
+  semua transaksi diurutkan dari terbaru). Backend: `anggota_loan_history`
+  Tauri command dengan agregasi SQL. (#108)
+- **Label barcode buku + 10 template preset** — fitur baru "Cetak Label"
+  di halaman Buku untuk batch-print barcode label dengan format Code-128.
+  10 preset tersedia (mis. Avery 5160, custom 70×30mm, dll). Editor
+  template support custom dimensi, font, posisi field, dan filled-rect
+  decoration. CRUD template via `label_buku.rs` Tauri commands + tabel
+  baru `label_buku_templates`. (#109)
+- **Import wizard Excel/CSV (anggota & buku)** — dialog wizard 4-step
+  (upload file → preview parse → mapping field → confirm import) untuk
+  bulk-create data anggota atau buku dari spreadsheet. Validasi field
+  inline (range tahun, format jenis kelamin, dll), error report CSV
+  download, dan template Excel pre-formatted. Library bersama:
+  `apps/desktop/src/lib/importWizard.ts`. (#110)
+- **Mode sirkulasi webcam (Ctrl+L)** — halaman baru `/sirkulasi`
+  dengan dua mode (Pinjam / Kembalikan) yang membaca barcode buku
+  via webcam laptop pakai `@zxing/browser`. Format barcode supported:
+  Code-128, Code-39, EAN-13, EAN-8, QR. Backend: `eksemplar_resolve` +
+  `peminjaman_aktif_by_eksemplar`. Shortcut global Ctrl/Cmd+L untuk
+  jump ke halaman dari mana saja. (#111)
+- **Tutorial inline cara dapat ID Spreadsheet & API Key** — di
+  `Pengaturan → Sinkronisasi`, di bawah form, panel selalu-tampil yang
+  berisi 3 sub-section bernumber: (1) ID Spreadsheet — copy dari URL
+  Google Sheets, (2) API Key — Google Cloud Console → enable Sheets
+  API → Credentials → Create API key, (3) Sharing settings — set
+  spreadsheet ke "Anyone with the link". 2 tombol shortcut langsung ke
+  Cloud Console & halaman Sheets API. Dev-note transparan: backend
+  sinkronisasi masih placeholder di v1.0.6 — field tersimpan lokal
+  tapi belum ada call ke Sheets API. Backend full sinkron dijadwalkan
+  untuk v1.0.7+. Manual book di-update dengan instruksi identik.
+  (#116)
+
+### Fixed
+
+- **Cetak KTA: preview tidak kepotong di kolom kanan 320px** —
+  panel preview di `Cetak KTA` sebelumnya mencoba render kartu pada
+  scale yang membuat header "KARTU TANDA ANGGOTA" terpotong jadi
+  "KARTU ANG..." dan body kartu meluap keluar viewport. Layout flex
+  + `fitToWidth` pada `KtaPreview` sekarang menjamin kartu pas di
+  kolom dengan aspect-ratio mm akurat. (#112)
+- **Ikon kalender input date tidak terlihat di mode gelap** — native
+  `<input type="date">` calendar picker indicator dan picker popup
+  default warnanya gelap, jadi invisible di dark mode. Fix: `.dark
+  { color-scheme: dark }` di `globals.css` opt-in ke dark scheme
+  untuk semua native form widgets — calendar icon, autofill dropdown,
+  scrollbars semua ikut tema gelap. (#113)
+- **Daftar Isi Manual diklik tidak scroll ke section tujuan** —
+  link TOC sebelumnya hanya memperbarui hash URL tanpa benar-benar
+  scroll ke heading karena heading-heading di markdown tidak punya
+  ID anchor. Sekarang ManualPage menambahkan `id` slugified ke setiap
+  heading rendered ReactMarkdown, dan klik TOC pakai
+  `scrollIntoView({ behavior: 'smooth', block: 'start' })`. (#114)
+- **Hasil cetak KTA: foto broken + proporsi teks tidak konsisten** —
+  dua bug dalam satu PR. (1) Popup window cetak menerima relative
+  path foto anggota seperti `uploads/foto.png` yang tidak bisa
+  resolve di luar konteks Tauri webview, jadi tampil sebagai
+  broken-image icon. Fix: load foto via `assetsApi.readDataUrl()` jadi
+  base64 inline sebelum render HTML. (2) `fontSize` template KTA
+  disimpan dalam piksel mati, padahal kartu di-render di 3 ukuran
+  berbeda (template editor scale=2.4, preview fitToWidth ~280px,
+  cetak scale=1 ~756px) — text terlihat proporsi berbeda di tiap
+  view. Fix: konversi semua `font-size` ke unit `cqi` (1cqi = 1%
+  lebar card) + tambah `container-type: inline-size` di card
+  wrapper. Editor + preview + cetak sekarang tampil identik
+  proporsinya. (#115)
+
+### Notes
+
+- **Tab Sinkronisasi**: ditandai sebagai *placeholder + tutorial
+  setup* di v1.0.6. Form menyimpan ID Spreadsheet & API Key secara
+  lokal, tapi backend belum mengirim data ke Google Sheets — itu
+  dijadwalkan ke v1.0.7+. Dev-note transparan dipasang di panel
+  tutorial supaya user tahu nilai yang mereka simpan akan otomatis
+  dipakai begitu sinkronisasi penuh dirilis. Setup tidak sia-sia.
+- **Windows SmartScreen**: installer v1.0.6 tetap unsigned (tidak ada
+  Authenticode certificate), jadi user akan melihat warning "Windows
+  protected your PC" saat install pertama. Workaround user-side: klik
+  "More info" → "Run anyway". Setelah upload release, installer
+  v1.0.6 akan di-submit ke Microsoft SmartScreen (https://www.microsoft.com/en-us/wdsi/filesubmission)
+  untuk reputation building. Solusi permanen: code-signing
+  certificate (EV ~USD 300–600/tahun, OV ~USD 100–250/tahun, Azure
+  Trusted Signing ~USD 10/bulan) — dijadwalkan ke versi berikutnya.
+
 ## [1.0.5] - 2026-05-04
 
 ### Added
