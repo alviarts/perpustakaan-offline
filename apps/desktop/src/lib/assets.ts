@@ -20,6 +20,19 @@ export interface AssetSaveResult {
   absPath: string;
 }
 
+/**
+ * Result payload for [`AssetsRpc.refitAnggotaPhotos`]. Mirrors the
+ * `RefitResult` struct on the Rust side. All counters are `u32` and
+ * sum to `total` (a foto row is always counted in exactly one of
+ * `refit / skipped / failed`).
+ */
+export interface RefitAnggotaPhotosResult {
+  total: number;
+  refit: number;
+  skipped: number;
+  failed: number;
+}
+
 export interface AssetsRpc {
   /**
    * Pop the OS file picker (image filter), copy the chosen file under
@@ -49,6 +62,15 @@ export interface AssetsRpc {
 
   /** Best-effort delete of an upload. No-op for absolute / empty paths. */
   delete(path: string): Promise<void>;
+
+  /**
+   * BUG-19 — admin-triggered batch that re-fits every existing
+   * anggota foto to portrait 3:4. Existing files outside `<app_data>`
+   * (legacy v1 absolute paths) are skipped. New uploads are already
+   * cropped at save time; this command exists only to migrate
+   * pre-existing photos uploaded before the smart-fit pipeline shipped.
+   */
+  refitAnggotaPhotos(): Promise<RefitAnggotaPhotosResult>;
 }
 
 const tauriRpc: AssetsRpc = {
@@ -68,6 +90,7 @@ const tauriRpc: AssetsRpc = {
   resolve: (path) => invoke<string>('assets_resolve', { relPath: path }),
   readDataUrl: (path) => invoke<string>('assets_read_data_url', { relPath: path }),
   delete: (path) => invoke<void>('assets_delete', { relPath: path }),
+  refitAnggotaPhotos: () => invoke<RefitAnggotaPhotosResult>('assets_refit_anggota_photos'),
 };
 
 /**
@@ -96,6 +119,9 @@ const mockRpc: AssetsRpc = {
   },
   async delete() {
     /* noop */
+  },
+  async refitAnggotaPhotos() {
+    return { total: 0, refit: 0, skipped: 0, failed: 0 };
   },
 };
 
