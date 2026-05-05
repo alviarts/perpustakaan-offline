@@ -2,8 +2,8 @@
   "title": "Sirkulasi (Webcam)",
   "subtitle": "Pindai barcode anggota dan eksemplar untuk peminjaman/pengembalian cepat. Pintasan: Ctrl+L.",
   "mode": {
-    "pinjam": "Pinjam",
-    "kembalikan": "Kembalikan"
+    "pinjam": "Scan Anggota Pinjam",
+    "kembalikan": "Scan Kembalikan Pinjaman"
   },
   "scanner": {
     "title": "Pemindai",

@@ -2,8 +2,8 @@
   "title": "Circulation (Webcam)",
   "subtitle": "Scan member and copy barcodes for fast loan/return processing. Shortcut: Ctrl+L.",
   "mode": {
-    "pinjam": "Loan",
-    "kembalikan": "Return"
+    "pinjam": "Scan Member Borrow",
+    "kembalikan": "Scan Return Loan"
   },
   "scanner": {
     "title": "Scanner",

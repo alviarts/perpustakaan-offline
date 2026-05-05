@@ -86,6 +86,17 @@ pub struct PeminjamanListResult {
 pub struct PeminjamanCreateInput {
     pub anggota_id: i64,
     pub buku_ids: Vec<i64>,
+    /// Optional override telling the backend which physical copy
+    /// (`eksemplar.id`) to mark as borrowed for each entry in
+    /// `buku_ids`. When provided, the i-th entry MUST belong to the
+    /// i-th `buku_ids` and be currently `tersedia`. Used by the webcam
+    /// circulation flow so the exact scanned barcode is the one
+    /// recorded as on-loan — without this, the backend silently picks
+    /// the lowest-id available copy via FIFO and the operator's later
+    /// return scan fails to find an active loan
+    /// (BUG-17 in v1.0.7 batch).
+    #[serde(default)]
+    pub eksemplar_ids: Option<Vec<i64>>,
     pub tanggal_pinjam: Option<String>,
     pub tanggal_jatuh_tempo: Option<String>,
     pub catatan: Option<String>,
@@ -623,18 +634,17 @@ pub fn peminjaman_get(state: State<'_, AppState>, id: i64) -> AppResult<Peminjam
     Ok(PeminjamanDetail { header, items })
 }
 
-#[tauri::command]
-pub fn peminjaman_create(
-    state: State<'_, AppState>,
+/// Inner implementation that takes a borrowed `Connection` so unit tests
+/// can drive it without spinning up a Tauri `AppState`. The public
+/// `peminjaman_create` command is a thin wrapper that locks the shared
+/// state and forwards to this function.
+pub fn peminjaman_create_inner(
+    conn: &mut rusqlite::Connection,
     input: PeminjamanCreateInput,
 ) -> AppResult<PeminjamanDetail> {
     if input.buku_ids.is_empty() {
         return Err(AppError::Validation("buku_ids tidak boleh kosong".into()));
     }
-    let mut conn = state
-        .db
-        .lock()
-        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     let anggota: Option<(i64, bool)> = conn
         .query_row(
@@ -649,7 +659,7 @@ pub fn peminjaman_create(
         return Err(AppError::Validation("anggota tidak aktif".into()));
     }
 
-    let maks = setting_int(&conn, "transaksi.maks_buku_pinjam", DEFAULT_MAKS_PINJAM);
+    let maks = setting_int(conn, "transaksi.maks_buku_pinjam", DEFAULT_MAKS_PINJAM);
     let aktif_count: i64 = conn.query_row(
         "SELECT COUNT(*) FROM peminjaman_item pi \
          JOIN peminjaman p ON p.id = pi.peminjaman_id \
@@ -664,7 +674,7 @@ pub fn peminjaman_create(
     }
 
     let lama = setting_int(
-        &conn,
+        conn,
         "transaksi.lama_pinjam_hari",
         DEFAULT_LAMA_PINJAM_HARI,
     );
@@ -688,6 +698,21 @@ pub fn peminjaman_create(
         ));
     }
 
+    // When the caller supplies a per-row eksemplar override, validate the
+    // shape upfront so we don't open a transaction we have to roll back.
+    let eksemplar_overrides = match input.eksemplar_ids.as_ref() {
+        Some(list) if list.is_empty() => None,
+        Some(list) => {
+            if list.len() != input.buku_ids.len() {
+                return Err(AppError::Validation(
+                    "eksemplar_ids harus sama panjang dengan buku_ids".into(),
+                ));
+            }
+            Some(list.clone())
+        }
+        None => None,
+    };
+
     let tx = conn.transaction()?;
     let nomor = next_nomor_pinjam(&tx)?;
     tx.execute(
@@ -704,21 +729,53 @@ pub fn peminjaman_create(
     )?;
     let peminjaman_id = tx.last_insert_rowid();
 
-    for buku_id in &input.buku_ids {
-        let eks: Option<(i64, String)> = tx
-            .query_row(
-                "SELECT id, kode_eksemplar FROM eksemplar \
-                 WHERE buku_id = ?1 AND status = 'tersedia' \
-                 ORDER BY id ASC LIMIT 1",
-                params![buku_id],
-                |r| Ok((r.get(0)?, r.get::<_, String>(1)?)),
-            )
-            .optional()?;
-        let (eksemplar_id, _kode) = eks.ok_or_else(|| {
-            AppError::Validation(format!(
-                "tidak ada eksemplar tersedia untuk buku id={buku_id}"
-            ))
-        })?;
+    for (idx, buku_id) in input.buku_ids.iter().enumerate() {
+        let eksemplar_id = if let Some(overrides) = eksemplar_overrides.as_ref() {
+            // Caller (typically the Sirkulasi webcam page) scanned a
+            // specific physical copy — make sure that copy is tersedia
+            // and actually belongs to the requested buku before booking
+            // it. Anything else means the operator scanned the wrong
+            // barcode or the basket got out of sync, both of which
+            // deserve a clear validation error.
+            let ek = overrides[idx];
+            let row: Option<(i64, i64, String)> = tx
+                .query_row(
+                    "SELECT id, buku_id, status FROM eksemplar WHERE id = ?1",
+                    params![ek],
+                    |r| Ok((r.get(0)?, r.get(1)?, r.get::<_, String>(2)?)),
+                )
+                .optional()?;
+            let (_, owner_buku_id, status) = row.ok_or_else(|| {
+                AppError::Validation(format!("eksemplar id={ek} tidak ditemukan"))
+            })?;
+            if owner_buku_id != *buku_id {
+                return Err(AppError::Validation(format!(
+                    "eksemplar id={ek} bukan milik buku id={buku_id}"
+                )));
+            }
+            if status != "tersedia" {
+                return Err(AppError::Validation(format!(
+                    "eksemplar id={ek} tidak tersedia (status={status})"
+                )));
+            }
+            ek
+        } else {
+            let eks: Option<(i64, String)> = tx
+                .query_row(
+                    "SELECT id, kode_eksemplar FROM eksemplar \
+                     WHERE buku_id = ?1 AND status = 'tersedia' \
+                     ORDER BY id ASC LIMIT 1",
+                    params![buku_id],
+                    |r| Ok((r.get(0)?, r.get::<_, String>(1)?)),
+                )
+                .optional()?;
+            let (eksemplar_id, _kode) = eks.ok_or_else(|| {
+                AppError::Validation(format!(
+                    "tidak ada eksemplar tersedia untuk buku id={buku_id}"
+                ))
+            })?;
+            eksemplar_id
+        };
         tx.execute(
             "INSERT INTO peminjaman_item (peminjaman_id, buku_id, eksemplar_id, status) \
              VALUES (?1, ?2, ?3, 'dipinjam')",
@@ -743,9 +800,21 @@ pub fn peminjaman_create(
 
     tx.commit()?;
 
-    let header = select_peminjaman_row(&conn, peminjaman_id)?;
-    let items = list_items_for(&conn, peminjaman_id)?;
+    let header = select_peminjaman_row(conn, peminjaman_id)?;
+    let items = list_items_for(conn, peminjaman_id)?;
     Ok(PeminjamanDetail { header, items })
+}
+
+#[tauri::command]
+pub fn peminjaman_create(
+    state: State<'_, AppState>,
+    input: PeminjamanCreateInput,
+) -> AppResult<PeminjamanDetail> {
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    peminjaman_create_inner(&mut conn, input)
 }
 
 #[tauri::command]
@@ -1555,6 +1624,142 @@ mod tests {
         assert_eq!(active.anggota_nama, "Sari");
         assert_eq!(active.kode_eksemplar, "B-001-01");
         assert_eq!(active.judul, "Bumi Manusia");
+    }
+
+    #[test]
+    fn peminjaman_create_with_eksemplar_ids_books_the_specific_copies() {
+        // Two eksemplar of the same buku — without an override the
+        // backend would FIFO-pick e1, but the operator scanned e2 in
+        // the webcam basket and we expect e2 to be the one recorded
+        // on-loan (BUG-17 regression guard).
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Sari", None);
+        let (bid, e1) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Bumi Manusia", "B-001-01", "tersedia");
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, 'B-001-02', 'tersedia')",
+            params![bid],
+        )
+        .expect("seed second eksemplar");
+        let e2 = conn.last_insert_rowid();
+
+        let detail = peminjaman_create_inner(
+            &mut conn,
+            PeminjamanCreateInput {
+                anggota_id: aid,
+                buku_ids: vec![bid],
+                eksemplar_ids: Some(vec![e2]),
+                tanggal_pinjam: Some("2024-01-01".into()),
+                tanggal_jatuh_tempo: Some("2024-01-08".into()),
+                catatan: None,
+            },
+        )
+        .expect("create");
+
+        assert_eq!(detail.items.len(), 1);
+        assert_eq!(detail.items[0].eksemplar_id, Some(e2));
+        // The other eksemplar must remain tersedia.
+        let s1: String = conn
+            .query_row(
+                "SELECT status FROM eksemplar WHERE id = ?1",
+                params![e1],
+                |r| r.get(0),
+            )
+            .expect("status e1");
+        assert_eq!(s1, "tersedia");
+        let s2: String = conn
+            .query_row(
+                "SELECT status FROM eksemplar WHERE id = ?1",
+                params![e2],
+                |r| r.get(0),
+            )
+            .expect("status e2");
+        assert_eq!(s2, "dipinjam");
+    }
+
+    #[test]
+    fn peminjaman_create_without_eksemplar_ids_falls_back_to_fifo() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Sari", None);
+        let (bid, e1) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Bumi Manusia", "B-001-01", "tersedia");
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, 'B-001-02', 'tersedia')",
+            params![bid],
+        )
+        .expect("seed second eksemplar");
+
+        let detail = peminjaman_create_inner(
+            &mut conn,
+            PeminjamanCreateInput {
+                anggota_id: aid,
+                buku_ids: vec![bid],
+                eksemplar_ids: None,
+                tanggal_pinjam: Some("2024-01-01".into()),
+                tanggal_jatuh_tempo: Some("2024-01-08".into()),
+                catatan: None,
+            },
+        )
+        .expect("create");
+
+        assert_eq!(detail.items.len(), 1);
+        assert_eq!(
+            detail.items[0].eksemplar_id,
+            Some(e1),
+            "FIFO must pick the lowest-id available copy when no override is supplied"
+        );
+    }
+
+    #[test]
+    fn peminjaman_create_rejects_eksemplar_belonging_to_other_buku() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Sari", None);
+        let (b1, _e1) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Buku Satu", "B-001-01", "tersedia");
+        let (_b2, e_other) =
+            seed_buku_with_eksemplar(&conn, "B-002", "Buku Dua", "B-002-01", "tersedia");
+
+        let err = peminjaman_create_inner(
+            &mut conn,
+            PeminjamanCreateInput {
+                anggota_id: aid,
+                buku_ids: vec![b1],
+                eksemplar_ids: Some(vec![e_other]),
+                tanggal_pinjam: Some("2024-01-01".into()),
+                tanggal_jatuh_tempo: Some("2024-01-08".into()),
+                catatan: None,
+            },
+        )
+        .expect_err("must reject eksemplar from another buku");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("bukan milik buku")),
+            other => panic!("expected validation error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn peminjaman_create_rejects_eksemplar_ids_length_mismatch() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Sari", None);
+        let (b1, _) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Buku Satu", "B-001-01", "tersedia");
+
+        let err = peminjaman_create_inner(
+            &mut conn,
+            PeminjamanCreateInput {
+                anggota_id: aid,
+                buku_ids: vec![b1],
+                eksemplar_ids: Some(vec![1, 2]),
+                tanggal_pinjam: Some("2024-01-01".into()),
+                tanggal_jatuh_tempo: Some("2024-01-08".into()),
+                catatan: None,
+            },
+        )
+        .expect_err("must reject mismatched lengths");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("sama panjang")),
+            other => panic!("expected validation error, got {other:?}"),
+        }
     }
 
     #[test]

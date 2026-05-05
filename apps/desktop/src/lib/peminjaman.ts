@@ -57,6 +57,16 @@ export interface PeminjamanListResult {
 export interface PeminjamanCreateInput {
   anggotaId: number;
   bukuIds: number[];
+  /**
+   * Optional per-row physical-copy override paired with `bukuIds`. When
+   * provided, the i-th `eksemplarId` is the exact `eksemplar.id` to mark
+   * as borrowed for the i-th `bukuId`. The Sirkulasi (webcam) flow uses
+   * this so the scanned barcode is the one actually recorded on-loan —
+   * without it, the backend silently picks the lowest-id available copy
+   * via FIFO and the operator's later return scan can fail to find an
+   * active loan.
+   */
+  eksemplarIds?: number[];
   tanggalPinjam?: string;
   tanggalJatuhTempo?: string;
   catatan?: string;
