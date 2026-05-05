@@ -110,7 +110,8 @@
     "detail": "Detail Pengembalian",
     "selectFirst": "Pilih peminjaman dari hasil pencarian",
     "allReturned": "Semua item sudah dikembalikan",
-    "dendaPreview": "Terlambat {{count}} hari · Rp {{denda}}"
+    "dendaPreview": "Terlambat {{count}} hari · Rp {{denda}}",
+    "bayarQuick": "Rp {{value}}"
   },
   "breadcrumb": {
     "new": "Pinjam Baru",

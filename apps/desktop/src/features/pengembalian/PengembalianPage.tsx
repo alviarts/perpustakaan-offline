@@ -9,8 +9,19 @@ import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { useToast } from '@/components/ui/toast-manager';
 import { calculateDenda, peminjamanApi, type PeminjamanDetail, type PeminjamanRow } from '@/lib/peminjaman';
 import { formatTauriError } from '@/lib/errors';
+import { DEFAULT_LOAN_RULES, settingsApi, type LoanRules } from '@/lib/settings';
 
-const DENDA_PER_HARI = 500;
+/**
+ * Multipliers for the denda quick-input buttons (FEAT-08 in the v1.0.7
+ * batch). The label and value derive from the live `dendaPerHari`
+ * setting, so changing Aturan Peminjaman to e.g. 1500 turns the buttons
+ * into "Rp 1.500 / Rp 3.000 / Rp 4.500" automatically.
+ */
+const DENDA_QUICK_MULTIPLIERS: readonly number[] = [1, 2, 3];
+
+function formatRupiah(value: number): string {
+  return value.toLocaleString('id-ID');
+}
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -28,6 +39,23 @@ export function PengembalianPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bayar, setBayar] = useState<string>('0');
   const [submitting, setSubmitting] = useState(false);
+  const [loanRules, setLoanRules] = useState<LoanRules>(DEFAULT_LOAN_RULES);
+
+  useEffect(() => {
+    let cancel = false;
+    settingsApi
+      .getLoanRules()
+      .then((rules) => {
+        if (!cancel) setLoanRules(rules);
+      })
+      .catch(() => {
+        // Settings unavailable (mock/offline) — fall through with the
+        // baked-in defaults so the page is still usable.
+      });
+    return () => {
+      cancel = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancel = false;
@@ -77,8 +105,12 @@ export function PengembalianPage() {
 
   const dendaPreview = useMemo(() => {
     if (!detail) return { hariTerlambat: 0, denda: 0 };
-    return calculateDenda(detail.header.tanggalJatuhTempo, todayIso(), DENDA_PER_HARI);
-  }, [detail]);
+    return calculateDenda(
+      detail.header.tanggalJatuhTempo,
+      todayIso(),
+      loanRules.dendaPerHari,
+    );
+  }, [detail, loanRules.dendaPerHari]);
 
   function toggle(itemId: number): void {
     const next = new Set(selected);
@@ -273,6 +305,30 @@ export function PengembalianPage() {
                           min="0"
                           data-testid="pengembalian-bayar"
                         />
+                        <div
+                          className="mt-2 flex flex-wrap gap-1.5"
+                          data-testid="pengembalian-bayar-quick"
+                        >
+                          {DENDA_QUICK_MULTIPLIERS.map((mult) => {
+                            const value = loanRules.dendaPerHari * mult;
+                            return (
+                              <Button
+                                key={mult}
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => setBayar(String(value))}
+                                data-testid={`pengembalian-bayar-quick-${mult}x`}
+                              >
+                                {t('peminjaman:pengembalian.bayarQuick', {
+                                  defaultValue: 'Rp {{value}}',
+                                  value: formatRupiah(value),
+                                })}
+                              </Button>
+                            );
+                          })}
+                        </div>
                       </div>
                       <div className="flex items-end">
                         <Button
