@@ -9,6 +9,7 @@ pub mod dashboard;
 pub mod export;
 pub mod identity;
 pub mod kta;
+pub mod kta_export;
 pub mod kunjungan;
 pub mod laporan;
 pub mod master_data;
