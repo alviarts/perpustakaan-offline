@@ -30,7 +30,7 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | BUG-16  | D        | Sidebar tab Pengaturan hilang saat scroll konten tab — harus sticky/fixed                          | MEDIUM   | IN_PR  | #123 | —            | —          |
 | FEAT-13 | D        | Cetak Label & Barcode Buku: tombol "Buka Folder Hasil" + link buka folder di toast PDF             | LOW      | IN_PR  | #123 | —            | —          |
 | FEAT-15 | D        | Manual: FAB pojok kanan bawah scroll cepat ke atas / Daftar Isi                                    | LOW      | IN_PR  | #123 | —            | —          |
-| FEAT-11 | E        | Dashboard quote-of-the-day rotasi tiap 5 menit dengan animasi                                      | LOW      | OPEN   | —   | —            | —          |
+| FEAT-11 | E        | Dashboard quote-of-the-day rotasi tiap 5 menit dengan animasi                                      | LOW      | IN_PR  | #124 | —            | —          |
 
 ## Release plan
 
