@@ -73,5 +73,29 @@
   "filePicker": {
     "pick": "Pick file…",
     "clear": "Remove file"
+  },
+  "profile": {
+    "title": "User Profile",
+    "description": "Edit your account biodata. Username, role, and password are managed in Settings → Accounts.",
+    "username": "Username",
+    "role": "Role",
+    "fullName": "Full Name",
+    "tempatLahir": "Place of Birth",
+    "tanggalLahir": "Date of Birth",
+    "jenisKelamin": "Gender",
+    "agama": "Religion",
+    "telepon": "Phone",
+    "email": "Email",
+    "alamat": "Address",
+    "choose": "Choose…",
+    "male": "Male",
+    "female": "Female",
+    "changePhoto": "Change Photo",
+    "removePhoto": "Remove",
+    "saving": "Saving…",
+    "saved": "Profile saved",
+    "saveFailed": "Failed to save profile",
+    "loadFailed": "Failed to load profile",
+    "validationName": "Full name is required"
   }
 }

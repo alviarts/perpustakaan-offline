@@ -73,5 +73,29 @@
   "filePicker": {
     "pick": "Pilih file…",
     "clear": "Hapus file"
+  },
+  "profile": {
+    "title": "Profil Pengguna",
+    "description": "Ubah biodata akun Anda. Username, peran, dan kata sandi diatur lewat Pengaturan → Akun.",
+    "username": "Username",
+    "role": "Peran",
+    "fullName": "Nama Lengkap",
+    "tempatLahir": "Tempat Lahir",
+    "tanggalLahir": "Tanggal Lahir",
+    "jenisKelamin": "Jenis Kelamin",
+    "agama": "Agama",
+    "telepon": "Telepon",
+    "email": "Email",
+    "alamat": "Alamat",
+    "choose": "Pilih…",
+    "male": "Laki-laki",
+    "female": "Perempuan",
+    "changePhoto": "Ubah Foto",
+    "removePhoto": "Hapus",
+    "saving": "Menyimpan…",
+    "saved": "Profil disimpan",
+    "saveFailed": "Gagal menyimpan profil",
+    "loadFailed": "Gagal memuat profil",
+    "validationName": "Nama lengkap wajib diisi"
   }
 }

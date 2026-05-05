@@ -18,6 +18,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useIdentityStore } from '@/stores/identityStore';
 import { logoutRequest } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { ProfilDialog } from '@/features/profile/ProfilDialog';
+import { useUserAvatar } from '@/hooks/useUserAvatar';
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'common:menu.dashboard',
@@ -111,6 +113,8 @@ export function Header() {
   const logout = useAuthStore((s) => s.logout);
   const identity = useIdentityStore((s) => s.identity);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [profilOpen, setProfilOpen] = useState(false);
+  const avatarUrl = useUserAvatar(user?.id);
 
   const breadcrumbKeys = resolveBreadcrumbKeys(routerState.location.pathname);
   const breadcrumbLabels = breadcrumbKeys.map((key) => (key.includes(':') ? t(key) : key));
@@ -205,8 +209,20 @@ export function Header() {
               data-testid="user-menu"
               className="border-border hover:bg-accent flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm"
             >
-              <span className="bg-primary/15 text-primary flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
-                {(user?.fullName ?? '?').slice(0, 1).toUpperCase()}
+              <span
+                className="bg-primary/15 text-primary flex h-7 w-7 items-center justify-center overflow-hidden rounded-full text-xs font-semibold"
+                aria-hidden="true"
+              >
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                  />
+                ) : (
+                  <>{(user?.fullName ?? '?').slice(0, 1).toUpperCase()}</>
+                )}
               </span>
               <span className="hidden text-left md:block">
                 <span className="block text-xs font-medium leading-tight">
@@ -220,7 +236,10 @@ export function Header() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>{user?.username ?? '—'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem
+              onClick={() => setProfilOpen(true)}
+              data-testid="open-profil"
+            >
               <UserIcon className="mr-2 h-4 w-4" />
               {t('common:menu.profile')}
             </DropdownMenuItem>
@@ -232,6 +251,7 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <ProfilDialog open={profilOpen} onOpenChange={setProfilOpen} />
     </header>
   );
 }
