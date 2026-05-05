@@ -13,6 +13,145 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-05-05
+
+### Added
+
+- **Sirkulasi: rename tombol jadi lebih jelas** — di header halaman
+  Sirkulasi (Webcam), "Pinjam" sekarang jadi "Scan Anggota Pinjam" dan
+  "Kembalikan" jadi "Scan Kembalikan Pinjaman" (id + en) supaya
+  operator baru langsung paham urutan flow scan-anggota → scan-buku.
+  (#120)
+- **Sirkulasi (peminjaman): backend hormati eksemplar yang di-scan** —
+  command `peminjaman_create` sekarang accept optional `eksemplar_ids`
+  override (paired with `buku_ids`) sehingga eksemplar yang persis
+  di-scan operator yang dibooking, bukan eksemplar lowest-id pilihan
+  FIFO. Internal split: tauri wrapper tipis + `peminjaman_create_inner`
+  yang di-cover 4 unit test baru (specific copy booked, FIFO fallback,
+  wrong-buku rejection, length-mismatch rejection). (#120)
+- **Aturan Peminjaman: backend skip hari libur saat hitung denda** —
+  `billable_late_days()` baru baca `transaksi.hari_libur` (default
+  `[0]` = Minggu) dan skip weekday-weekday tersebut dari perhitungan
+  hari telat. Sebelumnya backend murni kalender, mengabaikan setting
+  yang sudah disediakan UI Aturan Peminjaman. Enam unit test cover
+  edge cases (early return, Sunday-only, no holidays, full weekend
+  skip, CSV parsing). (#121)
+- **Pengembalian: quick-input denda 1×/2×/3×** — di field "Bayar
+  Denda", tiga tombol shortcut otomatis kalkulasi nominal dari aturan
+  peminjaman (denda per hari × hari telat × multiplier). Operator
+  tidak perlu hitung manual lagi. (#121)
+- **KTA: biodata lengkap + nama & TTD kepala sekolah** — Template
+  Editor sekarang punya 18 jenis field (dari 10): `tempatTanggalLahir`
+  (gabungan + format Indonesia), `jenisKelamin` (auto-map L/P →
+  Laki-laki/Perempuan), `alamat`, `noTelp`, `tahunMasuk` (derived dari
+  `tanggal_daftar`), `berlakuSd` (override eksplisit), `namaKepsek`
+  (dari `Settings → Identitas → Kepala Sekolah`, terpisah dari Kepala
+  Perpustakaan), `ttdKepsek` (slot gambar untuk file TTD). Template
+  lama tetap kompatibel — field baru optional. (#122)
+- **KTA: editor halaman belakang per-template + Tata Tertib default** —
+  setiap template KTA bisa punya layout `back` terpisah. Template baru
+  pre-filled dengan Tata Tertib default. Saat cetak/PDF, halaman 2
+  ditambah otomatis kalau template punya `back` layout. Template
+  single-page lama tetap kompatibel. (#122)
+- **Cetak Label & Barcode Buku: tombol "Buka Folder Hasil" + last-export
+  ribbon** — parity dengan Cetak KTA. Backend command baru
+  (`label_buku_export_pdf` + `label_buku_open_exports_folder`) menulis
+  ke `<APPDATA>/exports/labels/` (terpisah dari folder exports KTA).
+  Setelah generate PDF, ribbon emerald di header tampilkan filename +
+  link "Buka Folder Hasil". 5 unit test cover validasi header `%PDF-`,
+  oversize, empty, filename pattern. (#123)
+- **Manual: floating action button scroll-to-top** — FAB di pojok
+  kanan bawah halaman Manual yang muncul setelah scroll > 200px,
+  klik = `scrollTo({ top: 0, behavior: 'smooth' })`. Tidak menghalangi
+  konten saat hidden. (#123)
+- **Dashboard: quote-of-the-day rotasi tiap 5 menit dengan animasi** —
+  quote sekarang berganti otomatis tiap 5 menit dengan animasi
+  fade-slide (300 ms leave: fade out + slide up; 300 ms enter: fade in
+  + slide up dari +8 px ke 0). Quote awal tetap deterministik per-hari
+  (anti-flicker saat user pindah halaman dan kembali — timer reset ke
+  fresh 5 menit). Helper baru `pickNextQuoteIndex(currentIndex, rng?)`
+  jamin tidak pernah quote yang sama 2× berturut-turut. Respect
+  `prefers-reduced-motion`. (#124)
+
+### Fixed
+
+- **Sirkulasi (Webcam): scan QR KTA `member:1` → "Kode tidak dikenali"** —
+  `handleScan` sekarang parse QR payload via `parseQrPayload` dulu dan
+  lookup member by ID kalau payload-nya format `member:<id>` (yang
+  dicetak di KTA). Sebelumnya `getByKode` dijalankan di raw QR text
+  dan tidak pernah match `kode_anggota`. Legacy/manual codes tetap
+  bisa lewat fallback. (#120)
+- **Sirkulasi (Kembalikan): scan eksemplar barcode → "Tidak ada
+  peminjaman aktif" walau ada loan aktif** — root cause:
+  `peminjaman_create` silently pilih lowest-id eksemplar via FIFO
+  instead of copy yang di-scan operator, jadi return scan cari
+  `kode_eksemplar` yang tidak pernah tercatat on-loan. Sirkulasi page
+  sekarang pass `eksemplarIds` yang persis di-scan ke backend (lihat
+  Added: backend override). (#120)
+- **Barcode/QR scanner susah baca walau barcode terlihat jelas** —
+  switch zxing dari `decodeFromVideoDevice` ke `decodeFromConstraints`
+  dengan resolusi `1280×720` ideal + `facingMode=environment`. Default
+  fallback sebelumnya ~640×480, terlalu rendah untuk decode Code-128
+  di label buku ukuran biasa pada jarak arm's-length. (#120)
+- **Aturan Peminjaman "Maksimum buku" = 3 tapi sistem block di 2** —
+  konstanta `DEFAULT_MAKS_PINJAM` di backend dulu `2` sementara
+  frontend default `3`. Pada fresh install (user belum pernah klik
+  Simpan), UI tampilkan 3 tapi backend tolak peminjaman ketiga.
+  Konstanta di-align ke `3` + regression test yang assert kedua sisi
+  konsisten. (#121)
+- **Toast error peminjaman menampilkan raw JSON** — `AppError::Serialize`
+  dulu pakai `self.to_string()` yang inject prefix `validation: ` /
+  `not found: ` ke field `message`, sehingga user lihat
+  `{"code":"validation","message":"validation: melebihi maksimal …"}`.
+  Sekarang serialize output `String` mentah; `formatTauriError` di
+  frontend mengenali shape `{ code, message }` dan strip prefix lama
+  secara idempoten (backward-compatible dengan shape `{ Validation:
+  "…" }`). 4 vitest case baru. (#121)
+- **KTA: QR code gepeng (aspect ratio rusak) di semua template** —
+  Preview pasang `aspect-ratio: 1/1` di `<img>` QR. Print pakai wrapper
+  flex pusat + `object-fit:contain`. PDF pakai `Math.min(width,
+  height)` sebagai sisi square sebelum `addImage`, di-center
+  horizontal/vertikal di slot field. Hasilnya scannable di scanner
+  Android/iOS. (#122)
+- **KTA: foto anggota tampil sebagai broken-image** — komponen
+  `FotoSlot` baru pakai state `errored` untuk fallback ke
+  `PlaceholderBox label="FOTO"` saat `<img onError>` triggered.
+  Print/PDF pakai helper `imgWithFallback()` yang tulis SVG inline
+  `data:image/svg+xml;utf8,…` saat `src` null/empty atau
+  `readDataUrl()` gagal. PDF fallback ke rect placeholder slate-200
+  saat `addImage` melempar. TTD kepsek pakai pola yang sama. (#122)
+- **Pengaturan: action bar (Default / Hapus / Simpan) mepet bawah
+  window** — `SettingsLayout` outer container `p-6` → `px-6 pt-6
+  pb-10`. Action bar di bottom card sekarang punya gap minimal ~40 px
+  dari window edge di semua tab Pengaturan. (#123)
+- **Layout Cetak KTA + Cetak Label & Barcode mepet ke border
+  kiri/kanan** — outermost wrapper di `CetakKtaPage` dan
+  `CetakLabelPage` sekarang pakai `flex flex-col gap-6 p-6` (konsisten
+  dengan `DashboardPage`, `PeminjamanList`, `LaporanLayout`, dst).
+  Konten tidak lagi mepet ke viewport edge. (#123)
+- **Topbar global search: placeholder wrap & nabrak garis container** —
+  search button placeholder span pakai `min-w-0 flex-1 truncate
+  text-left`; container pakai `min-w-0 overflow-hidden whitespace-nowrap
+  lg:w-72 xl:w-80`; `kbd` shortcut pakai `shrink-0`. Placeholder
+  sekarang single-line + ellipsis, tidak pernah wrap. (#123)
+- **Sidebar tab Pengaturan hilang saat scroll konten tab** —
+  `SettingsLayout` aside pakai `lg:sticky lg:top-6
+  lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto`.
+  Sidebar tetap visible saat konten tab discroll; sidebar sendiri
+  scroll independen kalau item-nya overflow. (#123)
+
+### Notes
+
+- **Sinkronisasi Google Sheets**: masih placeholder di v1.0.7. Backend
+  belum mengirim data ke Sheets API — masih dijadwalkan untuk versi
+  berikutnya. Form di `Pengaturan → Sinkronisasi` tetap menyimpan
+  ID Spreadsheet & API Key secara lokal supaya nilai user dipakai
+  otomatis begitu sinkronisasi penuh dirilis.
+- **Windows installer**: tetap unsigned di v1.0.7. SmartScreen warning
+  expected pada install pertama (workaround user-side: klik
+  "More info" → "Run anyway"). Solusi permanen (code-signing
+  certificate) masih dijadwalkan ke versi berikutnya.
+
 ## [1.0.6] - 2026-05-05
 
 ### Added
