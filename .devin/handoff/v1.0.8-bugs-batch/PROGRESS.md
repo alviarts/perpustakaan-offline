@@ -14,8 +14,8 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 
 | id      | pr_group | title                                                                              | severity | status | pr  | completed_at | depends_on |
 | ------- | -------- | ---------------------------------------------------------------------------------- | -------- | ------ | --- | ------------ | ---------- |
-| BUG-19  | A        | KTA PDF export: foto gepeng (stretch ke aspect ratio slot, tidak preserve)        | HIGH     | OPEN   | —   | —            | —          |
-| FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | OPEN   | —   | —            | —          |
+| BUG-19  | A        | KTA PDF export: foto gepeng (stretch ke aspect ratio slot, tidak preserve)        | HIGH     | IN_PROGRESS_BY_devin-b879714a60e242ffa66120093f0b7265:2026-05-05T20:46:00Z | —   | —            | —          |
+| FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | IN_PROGRESS_BY_devin-b879714a60e242ffa66120093f0b7265:2026-05-05T20:46:00Z | —   | —            | —          |
 | FEAT-17 | B        | Peminjaman: perpanjangan otomatis (1-klik extend, max N× configurable)            | HIGH     | OPEN   | —   | —            | —          |
 | FEAT-18 | B        | Buku: reservasi/booking (antrian saat buku sedang dipinjam)                       | MEDIUM   | OPEN   | —   | —            | —          |
 | FEAT-19 | C        | Anggota: bulk import dari Excel/CSV (template + validasi NIS unik)                | HIGH     | OPEN   | —   | —            | —          |

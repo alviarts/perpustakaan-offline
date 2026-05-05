@@ -67,3 +67,15 @@ Each entry is a markdown section with frontmatter-like fields:
 - **WORKFLOW.md updated**: added 4-test verification block + last-rotated date.
 - **CONTINUOUS_AUTOMATION.md updated**: added PAT-rotation fallback flow at setup step 2.
 - **next devin**: PAT siap dipakai. Tidak perlu request ulang sampai expiration berikutnya. Cek `Last rotated` date di WORKFLOW.md kalau curiga PAT expired.
+
+---
+
+### devin-b879714a60e242ffa66120093f0b7265 — PR A (BUG-19 + FEAT-16)
+
+- **session_id**: `devin-b879714a60e242ffa66120093f0b7265`
+- **item_id**: BUG-19 + FEAT-16 (PR A — KTA foto fit + 10 desain baru)
+- **branch**: `devin/1778012760-pr-a-kta-foto-fit-and-presets` (TBD on push)
+- **pr**: TBD
+- **started_at**: 2026-05-05T20:46:00Z
+- **status**: STARTED
+- **notes**: Claiming PR A per master prompt. BUG-19 implements 2-layer fix (backend `smart_fit_to_portrait` in `assets.rs` + frontend `computeCoverFit` utility used by `pdf.ts`/`print.ts`/preview); FEAT-16 adds 10 new KTA presets to `presets.ts` (total ~20), with extended unit tests.
