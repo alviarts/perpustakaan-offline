@@ -17,8 +17,14 @@ in continuous autonomous mode.
 1. Clone https://github.com/alviarts/perpustakaan-offline if not present in your VM.
    Checkout main, pull latest.
 2. Verify GITHUB_PAT_ALVIARTS env var is present (org-scoped, auto-injected).
-   If not, request it via the secrets tool with should_save=true, save_scope=org,
-   then ask the user to provide it once. Subsequent sessions will inherit.
+   Run the 4-test PAT verification from WORKFLOW.md "Authentication" section
+   to confirm identity, repo access, PR read, and rate limit. If any test fails:
+     - PAT is expired/revoked. Request new one via `secrets` tool with
+       should_save=true, save_scope=org, secret_name=GITHUB_PAT_ALVIARTS.
+     - Send blocking message_user with link to https://github.com/settings/tokens
+       and the required scopes. Wait for user to paste new PAT.
+     - Re-run the 4-test verification to confirm rotation worked.
+     - Append SESSIONS.md entry: "PAT rotated <date>, prefix <ghp_xxx>".
 3. Read these 4 files in order, end-to-end:
    - .devin/handoff/v1.0.8-bugs-batch/SESSION_HANDOFF.md
    - .devin/handoff/v1.0.8-bugs-batch/WORKFLOW.md

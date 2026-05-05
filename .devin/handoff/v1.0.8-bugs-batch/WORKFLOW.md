@@ -39,8 +39,37 @@ The release PR (PR I) lands last after every item is merged.
 GitHub PAT `GITHUB_PAT_ALVIARTS` is stored as an **org-scoped secret** and auto-injected into every Devin session. Verify with:
 
 ```bash
-echo "${GITHUB_PAT_ALVIARTS:0:10}..."   # should print prefix, not "..."
+echo "${GITHUB_PAT_ALVIARTS:0:10}... (length: ${#GITHUB_PAT_ALVIARTS})"
+# Expected: ghp_xxxxxxxx... (length: 40) for classic PAT
+# Or:       github_pat_xxx... (length: 90+) for fine-grained PAT
 ```
+
+**Last rotated:** 2026-05-05 (PAT prefix `ghp_c1xaCP...`). Permissions verified: full repo admin (admin/maintain/push/triage/pull = true). Rate limit: 5000 req/hour authenticated.
+
+**4-test verification** (run at session start to catch expired/revoked PAT early):
+
+```bash
+# Test 1 — auth /user (PAT valid + identity correct):
+curl -sS -H "Authorization: token ${GITHUB_PAT_ALVIARTS}" \
+  https://api.github.com/user | python3 -c "import sys,json; d=json.load(sys.stdin); print('login:', d.get('login'))"
+# Expected: login: alviarts
+
+# Test 2 — repo access (PAT scoped to right repo + has write access):
+curl -sS -H "Authorization: token ${GITHUB_PAT_ALVIARTS}" \
+  https://api.github.com/repos/alviarts/perpustakaan-offline | python3 -c "import sys,json; d=json.load(sys.stdin); print('perms:', d.get('permissions'))"
+# Expected: perms: {'admin': True, 'push': True, ...}
+
+# Test 3 — PR read (sanity check):
+curl -sS -H "Authorization: token ${GITHUB_PAT_ALVIARTS}" \
+  https://api.github.com/repos/alviarts/perpustakaan-offline/pulls/126 | python3 -c "import sys,json; d=json.load(sys.stdin); print('PR #126:', d.get('state'))"
+
+# Test 4 — rate limit (confirms quota OK + PAT scope readable):
+curl -sS -H "Authorization: token ${GITHUB_PAT_ALVIARTS}" \
+  https://api.github.com/rate_limit | python3 -c "import sys,json; d=json.load(sys.stdin)['rate']; print('limit:', d['limit'], 'remaining:', d['remaining'])"
+# Expected: limit: 5000 (anything <100 means PAT is unauth or rate-limited)
+```
+
+If any test fails, the PAT is expired/revoked/scoped wrong. Request new one via the `secrets` tool with `should_save=true, save_scope=org` and ask user to provide it. Reference [`SESSIONS.md`](./SESSIONS.md) for last-known-good rotation date.
 
 The built-in `git_pr action="create"` tool returns "Resource not accessible by personal access token" with this PAT (limitation of the PAT type vs the tool's expected GitHub App scope). **Workaround pakai `curl` ke API langsung:**
 

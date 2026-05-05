@@ -52,3 +52,18 @@ Each entry is a markdown section with frontmatter-like fields:
 ---
 
 <!-- Append new entries below this line. Newest at the bottom. -->
+
+### devin-159bdc498990452ba6f4e38dec2ff5f3 — PAT rotation
+
+- **session_id**: `devin-159bdc498990452ba6f4e38dec2ff5f3`
+- **item_id**: META (PAT rotation, not a v1.0.8 batch item)
+- **rotated_at**: 2026-05-05T20:50:00+00:00
+- **status**: COMPLETED
+- **notes**: User rotated `GITHUB_PAT_ALVIARTS` org-scoped secret. Old prefix `ghp_zGSXKE...` → new prefix `ghp_c1xaCP...` (length 40, classic PAT). Verified via 4 endpoint tests:
+  - `/user` → login: alviarts ✓
+  - `/repos/alviarts/perpustakaan-offline` → permissions admin/maintain/push/triage/pull all true ✓
+  - `/pulls/126` → state: open, mergeable: true ✓
+  - `/rate_limit` → limit: 5000, remaining: 4995 ✓
+- **WORKFLOW.md updated**: added 4-test verification block + last-rotated date.
+- **CONTINUOUS_AUTOMATION.md updated**: added PAT-rotation fallback flow at setup step 2.
+- **next devin**: PAT siap dipakai. Tidak perlu request ulang sampai expiration berikutnya. Cek `Last rotated` date di WORKFLOW.md kalau curiga PAT expired.
