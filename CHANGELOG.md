@@ -13,6 +13,24 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-05-04
+
+### Added
+
+- **KTA template library: 10 preset designs + gallery picker** —
+  `Settings → Template KTA` now exposes a "Galeri Template" button that
+  opens a modal showing 10 ready-to-use card designs at CR-80
+  (85.6 × 53.98 mm) — Klasik Polos, Strip Atas Teal, Sidebar Rail Navy,
+  Minimalis Modern, Sash Diagonal Rose, Portrait Tengah Emerald,
+  Tradisional Amber, Pelajar Modern Indigo, Emas Eksklusif Gold, and
+  QR Forward Cyan. Each thumbnail renders the design at scale=0.55 via
+  the live `KtaPreview` so what you see is what prints. Picking a
+  preset loads its layout into the editor — operators can tweak
+  colours / fields / positions before saving. Schema gains a `'rect'`
+  `KtaFieldKind` for filled rectangle decorations (with optional
+  `fill` hex + `radius` mm); existing user templates are unchanged
+  because they have no `rect` fields. (#105)
+
 ## [1.0.4] - 2026-05-04
 
 ### Added
