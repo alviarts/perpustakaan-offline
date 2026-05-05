@@ -142,18 +142,21 @@
 }
 
 /*
- * Theme-aware native date inputs (revisi v1.0.3 #4).
+ * Theme-aware native date inputs.
  *
  * `color-scheme` opts native form widgets (calendar picker indicator,
  * autofill, scrollbars) into the matching colour scheme so the calendar
  * icon is dark on light backgrounds and light on dark backgrounds. We
  * apply it on the root via `.dark` so every `<input type="date">` —
  * whether it goes through the `DatePicker` wrapper or a raw `<Input>` —
- * picks up the right colour.
+ * picks up the right colour. Both WebView2 (Windows) and webkit2gtk-4.1
+ * (Linux Tauri build) honour this, so no explicit `filter: invert()` is
+ * applied — doing so would flip the already-light dark-mode icon back to
+ * black and make it invisible (regression observed in v1.0.5).
  *
- * Fallback: explicitly invert the `::-webkit-calendar-picker-indicator`
- * in dark mode for engines (older Linux WebKit) that don't honour
- * `color-scheme` reliably.
+ * The picker indicator is always interactive across <input type=date|time|
+ * datetime-local|month|week>, so we surface a pointer cursor and a small
+ * opacity bump on hover for affordance.
  */
 :root {
   color-scheme: light;
@@ -161,18 +164,19 @@
 .dark {
   color-scheme: dark;
 }
-.dark input[type='date']::-webkit-calendar-picker-indicator,
-.dark input[type='time']::-webkit-calendar-picker-indicator,
-.dark input[type='datetime-local']::-webkit-calendar-picker-indicator,
-.dark input[type='month']::-webkit-calendar-picker-indicator,
-.dark input[type='week']::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-}
-input[type='date']::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='month']::-webkit-calendar-picker-indicator,
+input[type='week']::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.85;
 }
-input[type='date']::-webkit-calendar-picker-indicator:hover {
+input[type='date']::-webkit-calendar-picker-indicator:hover,
+input[type='time']::-webkit-calendar-picker-indicator:hover,
+input[type='datetime-local']::-webkit-calendar-picker-indicator:hover,
+input[type='month']::-webkit-calendar-picker-indicator:hover,
+input[type='week']::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 
