@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { assetsApi } from '@/lib/assets';
 import type { Anggota } from '@/lib/anggota';
 import { buildQrPayload, type KtaField, type KtaLayout } from '@/lib/kta';
 import type { LibraryIdentity } from '@/stores/identityStore';
@@ -45,11 +46,51 @@ async function buildQrDataUrl(memberId: number): Promise<string> {
   });
 }
 
+/**
+ * Convert a member's saved foto path to a self-contained `data:` URL.
+ *
+ * `anggota.fotoPath` is a relative-to-app-data path resolved by Tauri at
+ * runtime via the `assets_resolve` / `assets_read_data_url` commands. The
+ * generated print HTML is opened in a separate `window.open('', '_blank')`
+ * popup that is **not** a Tauri webview — its document context cannot
+ * resolve those paths and the `<img>` would render broken (regression
+ * surfaced in v1.0.5: KTA print preview shows alt text instead of the
+ * member's photo). Inlining the bytes as a base64 `data:` URL — the same
+ * trick `pdf.ts::loadFotoDataUrl` already uses — keeps the print HTML
+ * self-contained and works even when the print window has no Tauri
+ * privileges.
+ */
+async function loadFotoDataUrl(fotoPath: string | null | undefined): Promise<string | null> {
+  if (!fotoPath) return null;
+  try {
+    return await assetsApi.readDataUrl(fotoPath);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Map a stored layout `fontSize` (CSS px at the card's natural
+ * `widthMm * 3.78` size) to a `cqi`-relative CSS expression so the text
+ * scales with the card's actual rendered width. Mirrors the same helper
+ * in `KtaPreview.tsx` — keeping the math identical between the in-app
+ * preview and the print HTML is what makes "what you see is what you
+ * print" work for v1.0.6 onwards.
+ */
+function fontSizeCqiPrint(fontSizePx: number, layoutWidthMm: number): string {
+  const refWidthPx = layoutWidthMm * MM_TO_PX;
+  if (refWidthPx <= 0) return `${fontSizePx}px`;
+  const cqi = (fontSizePx / refWidthPx) * 100;
+  return `${cqi.toFixed(4)}cqi`;
+}
+
 function fieldHtml(
   field: KtaField,
   anggota: Anggota,
   identity: LibraryIdentity,
   qrUrl: string,
+  fotoUrl: string | null,
+  layoutWidthMm: number,
 ): string {
   const baseStyle = [
     'position:absolute',
@@ -71,9 +112,9 @@ function fieldHtml(
   }
 
   if (field.kind === 'foto') {
-    const src = anggota.fotoPath
-      ? escape(anggota.fotoPath)
-      : 'data:image/svg+xml;utf8,' +
+    const src =
+      fotoUrl ??
+      'data:image/svg+xml;utf8,' +
         encodeURIComponent(
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 80"><rect width="100%" height="100%" fill="#e2e8f0"/><text x="50%" y="55%" text-anchor="middle" fill="#64748b" font-size="10" font-family="sans-serif">FOTO</text></svg>`,
         );
@@ -88,7 +129,7 @@ function fieldHtml(
   const align = field.align ?? 'left';
   const justify = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start';
   const textStyle = [
-    `font-size:${field.fontSize ?? 10}px`,
+    `font-size:${fontSizeCqiPrint(field.fontSize ?? 10, layoutWidthMm)}`,
     `font-weight:${field.fontWeight ?? 'normal'}`,
     `color:${field.color ?? '#0f172a'}`,
     `text-align:${align}`,
@@ -112,10 +153,22 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
   const widthPx = Math.round(layout.widthMm * MM_TO_PX);
   const heightPx = Math.round(layout.heightMm * MM_TO_PX);
 
+  // Pre-load QR + foto data URLs for every member in parallel so the final
+  // HTML is fully self-contained (no Tauri-specific path resolution needed
+  // inside the popup print window).
+  const resources = await Promise.all(
+    anggota.map(async (a) => ({
+      anggota: a,
+      qrUrl: await buildQrDataUrl(a.id),
+      fotoUrl: await loadFotoDataUrl(a.fotoPath),
+    })),
+  );
+
   const cards: string[] = [];
-  for (const a of anggota) {
-    const qrUrl = await buildQrDataUrl(a.id);
-    const fields = layout.fields.map((f) => fieldHtml(f, a, identity, qrUrl)).join('');
+  for (const r of resources) {
+    const fields = layout.fields
+      .map((f) => fieldHtml(f, r.anggota, identity, r.qrUrl, r.fotoUrl, layout.widthMm))
+      .join('');
     cards.push(
       `<div class="kta-card" style="width:${widthPx}px;height:${heightPx}px;background:${layout.background ?? '#ffffff'};">${fields}</div>`,
     );
@@ -137,6 +190,8 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
     overflow: hidden;
     box-sizing: border-box;
     page-break-inside: avoid;
+    /* Required so child text fields can use cqi units for font-size. */
+    container-type: inline-size;
   }
   @media print {
     body { background: #ffffff; padding: 0; }

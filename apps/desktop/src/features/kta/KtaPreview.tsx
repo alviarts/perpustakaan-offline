@@ -28,6 +28,36 @@ interface Props {
   className?: string;
 }
 
+/**
+ * Convert a `fontSize` value stored in the layout (CSS pixels at the
+ * card's *natural* `widthMm * 3.78` size, i.e. scale=1 / physical print
+ * scale) into a CSS expression that scales proportionally with the
+ * card's actual rendered width.
+ *
+ * Why: the card is rendered at three different sizes — TemplateEditor
+ * preview at scale=2.4, CetakKtaPage preview at fitToWidth (~280px in a
+ * 320px column), and the print popup at scale=1 (physical mm size). If
+ * we rendered `font-size: ${px}px` literally, a 24px header that fits
+ * comfortably at scale=1 print would look tiny in the editor, prompting
+ * users to crank fontSize up — which then renders the printed card with
+ * oversized, clipped, or wrapped text. Mapping fontSize px to `cqi`
+ * (1cqi = 1% of the card's inline size) keeps the *relative* size of
+ * every text identical across editor/preview/print.
+ *
+ * `cqi` requires the card itself to have `container-type: inline-size`
+ * (set on the wrapping `<div data-testid="kta-preview">`).
+ */
+function fontSizeCqi(
+  fontSizePx: number | undefined,
+  layoutWidthMm: number,
+): string | undefined {
+  if (!fontSizePx) return undefined;
+  const refWidthPx = layoutWidthMm * MM_TO_PX;
+  if (refWidthPx <= 0) return `${fontSizePx}px`;
+  const cqi = (fontSizePx / refWidthPx) * 100;
+  return `${cqi.toFixed(4)}cqi`;
+}
+
 export function KtaPreview({
   layout,
   anggota,
@@ -81,6 +111,11 @@ export function KtaPreview({
         borderRadius: 8,
         overflow: 'hidden',
         boxShadow: '0 4px 18px rgba(15, 23, 42, 0.12)',
+        // Establish an inline-size containment context so child fields can
+        // size their `font-size` via `cqi` (see `fontSizeCqi`). Without
+        // this, fonts stay at their stored pixel value and look
+        // disproportionate at scales other than 1.
+        containerType: 'inline-size',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onSelectField?.(null);
@@ -93,6 +128,7 @@ export function KtaPreview({
           anggota={anggota}
           identity={identity}
           qrDataUrl={qrDataUrl}
+          layoutWidthMm={layout.widthMm}
           selected={selectedFieldId === field.id}
           onSelect={onSelectField}
         />
@@ -106,6 +142,7 @@ function FieldNode({
   anggota,
   identity,
   qrDataUrl,
+  layoutWidthMm,
   selected,
   onSelect,
 }: {
@@ -113,6 +150,7 @@ function FieldNode({
   anggota: Anggota | null;
   identity: LibraryIdentity;
   qrDataUrl: string | null;
+  layoutWidthMm: number;
   selected: boolean;
   onSelect?: (id: string) => void;
 }) {
@@ -122,7 +160,7 @@ function FieldNode({
     top: `${field.y}%`,
     width: `${field.width}%`,
     height: `${field.height}%`,
-    fontSize: field.fontSize ? `${field.fontSize}px` : undefined,
+    fontSize: fontSizeCqi(field.fontSize, layoutWidthMm),
     fontWeight: field.fontWeight ?? 'normal',
     color: field.color ?? '#0f172a',
     textAlign: field.align ?? 'left',
