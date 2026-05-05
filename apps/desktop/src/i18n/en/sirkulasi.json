@@ -11,7 +11,16 @@
     "stop": "Disable camera",
     "starting": "Opening camera…",
     "off": "Camera not active",
-    "devicePlaceholder": "Select camera"
+    "devicePlaceholder": "Select camera",
+    "retry": "Try again",
+    "reload": "Reload page",
+    "errorTitle": "Could not start camera",
+    "permissionTitle": "Camera access blocked",
+    "permissionHelp": "Open the app/browser settings, change camera permission to \"Allow\", then click Try again. If Try again does not re-prompt, click Reload page.",
+    "noDeviceTitle": "Camera not found",
+    "noDeviceHelp": "Make sure a webcam is connected and not disabled in Device Manager.",
+    "inUseTitle": "Camera in use by another app",
+    "inUseHelp": "Close any other app using the camera (Zoom, Meet, Camera, etc.), then click Try again."
   },
   "manual": {
     "placeholder": "Or type / scan via USB scanner (Enter to submit)",

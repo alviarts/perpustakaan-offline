@@ -24,12 +24,28 @@ export interface UseBarcodeScannerOptions {
   cooldownMs?: number;
 }
 
+/**
+ * Categorisation of camera-startup errors so the UI can render different
+ * recovery hints. `'permission'` covers the case where the user (or a
+ * stricter browser policy) denied camera access — that is the only one
+ * where re-calling `start()` may not re-prompt and the user has to flip
+ * a setting first.
+ */
+export type ScannerErrorKind =
+  | 'permission'
+  | 'no-device'
+  | 'in-use'
+  | 'unsupported'
+  | 'other';
+
 export interface UseBarcodeScannerResult {
   videoRef: React.RefObject<HTMLVideoElement>;
   active: boolean;
   /** True while waiting for `getUserMedia`/permission. */
   starting: boolean;
   error: string | null;
+  /** Structured tag for the most recent error, mirrors `error` lifecycle. */
+  errorKind: ScannerErrorKind | null;
   start: () => Promise<void>;
   stop: () => void;
   /** List of cameras the browser exposed, ordered as MediaDevices returns them. */
@@ -37,6 +53,38 @@ export interface UseBarcodeScannerResult {
   /** Currently selected `deviceId`. Falls back to the first device. */
   selectedDeviceId: string | null;
   selectDevice: (deviceId: string) => void;
+}
+
+/**
+ * Map a `getUserMedia` failure to one of {@link ScannerErrorKind}.
+ *
+ * `getUserMedia` rejects with a `DOMException` whose `name` is set to the
+ * spec-defined value (NotAllowedError, NotFoundError, etc.). We special-
+ * case the ones that need different UX recovery hints and lump the rest
+ * under `'other'`.
+ */
+export function classifyScannerError(e: unknown): ScannerErrorKind {
+  if (e && typeof e === 'object' && 'name' in e) {
+    const name = (e as { name: unknown }).name;
+    if (typeof name === 'string') {
+      switch (name) {
+        case 'NotAllowedError':
+        case 'PermissionDeniedError':
+        case 'SecurityError':
+          return 'permission';
+        case 'NotFoundError':
+        case 'OverconstrainedError':
+          return 'no-device';
+        case 'NotReadableError':
+        case 'TrackStartError':
+          return 'in-use';
+      }
+    }
+  }
+  if (e instanceof Error && /getUserMedia/i.test(e.message)) {
+    return 'unsupported';
+  }
+  return 'other';
 }
 
 const HINTS = (() => {
@@ -70,6 +118,7 @@ export function useBarcodeScanner(
   const [active, setActive] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<ScannerErrorKind | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
@@ -83,10 +132,12 @@ export function useBarcodeScanner(
   const start = useCallback(async (): Promise<void> => {
     if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       setError('Browser tidak mendukung akses kamera (getUserMedia tidak tersedia).');
+      setErrorKind('unsupported');
       return;
     }
     setStarting(true);
     setError(null);
+    setErrorKind(null);
     try {
       // List devices first so the UI can show a picker. Some browsers
       // populate the device labels only after the user grants permission,
@@ -144,6 +195,7 @@ export function useBarcodeScanner(
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
+      setErrorKind(classifyScannerError(e));
       setActive(false);
     } finally {
       setStarting(false);
@@ -179,6 +231,7 @@ export function useBarcodeScanner(
     active,
     starting,
     error,
+    errorKind,
     start,
     stop,
     devices,
