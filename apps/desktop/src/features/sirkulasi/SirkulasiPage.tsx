@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-manager';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
+import { parseQrPayload } from '@/lib/kta';
 import {
   peminjamanApi,
   type ActiveLoanForEksemplar,
@@ -117,7 +118,13 @@ export function SirkulasiPage() {
 
   /**
    * Try to interpret the scanned text. Order:
-   * 1. Pinjam mode without anggota → look up `anggota_get_by_kode`.
+   * 1. Pinjam mode without anggota → first try the KTA QR payload
+   *    (`member:<id>`) printed by the KTA card flow, then fall back to
+   *    looking up the raw text via `anggota_get_by_kode`. The QR path is
+   *    what actually makes the webcam-printed KTA scannable —
+   *    `getByKode` only matches the `kode_anggota` column, so without
+   *    parsing the QR payload first the scan would fail with "unknown
+   *    code" even though the QR decoded fine (BUG-01).
    * 2. Resolve as eksemplar (always attempted second).
    * 3. Kembalikan mode → use `peminjaman_aktif_by_eksemplar`.
    */
@@ -126,6 +133,24 @@ export function SirkulasiPage() {
     if (!code) return;
 
     if (mode === 'pinjam' && !anggota) {
+      const memberId = parseQrPayload(code);
+      if (memberId !== null) {
+        try {
+          const a = await anggotaApi.get(memberId);
+          setAnggota(a);
+          showToast({
+            title: t('sirkulasi:toast.anggotaSet', { defaultValue: 'Anggota terpilih' }),
+            description: `${a.kodeAnggota} · ${a.nama}`,
+          });
+          beep('ok');
+          return;
+        } catch {
+          // Fall through — the QR was a member:<id> shape but the id
+          // didn't resolve (e.g. member was deleted). Try the kode
+          // path next; if that also fails the eksemplar branch will
+          // surface a clean "unknown code" toast.
+        }
+      }
       try {
         const a = await anggotaApi.getByKode(code);
         if (a) {
@@ -285,13 +310,16 @@ export function SirkulasiPage() {
     }
     setSubmitting(true);
     try {
-      // Backend `peminjaman_create` saat ini menerima `bukuIds`. Untuk
-      // kompatibilitas, kirim daftar bukuId — eksemplar otomatis akan
-      // dipilih oleh backend (FIFO bedasarkan id). Itu sudah cukup karena
-      // operator hanya butuh tahu eksemplar yg dipinjam = jumlah scan.
+      // Pass both bukuIds and the matching eksemplarIds so the backend
+      // records the exact physical copies that were scanned. Without
+      // the eksemplarIds override the backend silently picks the
+      // lowest-id available copy via FIFO, which can disagree with the
+      // barcode the operator actually scanned and break the later
+      // return flow (BUG-17).
       const detail = await peminjamanApi.create({
         anggotaId: anggota.id,
         bukuIds: usable.map((b) => b.eksemplar.bukuId),
+        eksemplarIds: usable.map((b) => b.eksemplar.eksemplarId),
         tanggalPinjam: todayIso(),
         tanggalJatuhTempo: plusDays(7),
       });
@@ -407,7 +435,7 @@ export function SirkulasiPage() {
             }}
           >
             <ShieldCheck className="mr-1.5 h-4 w-4" />
-            {t('sirkulasi:mode.pinjam', { defaultValue: 'Pinjam' })}
+            {t('sirkulasi:mode.pinjam', { defaultValue: 'Scan Anggota Pinjam' })}
           </Button>
           <Button
             variant={mode === 'kembalikan' ? 'default' : 'outline'}
@@ -418,7 +446,7 @@ export function SirkulasiPage() {
             }}
           >
             <Undo2 className="mr-1.5 h-4 w-4" />
-            {t('sirkulasi:mode.kembalikan', { defaultValue: 'Kembalikan' })}
+            {t('sirkulasi:mode.kembalikan', { defaultValue: 'Scan Kembalikan Pinjaman' })}
           </Button>
         </div>
       </div>

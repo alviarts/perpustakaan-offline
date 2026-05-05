@@ -160,8 +160,30 @@ export function useBarcodeScanner(
         throw new Error('Video element belum siap');
       }
 
-      controlsRef.current = await reader.decodeFromVideoDevice(
-        preferred ?? undefined,
+      // Ask the browser for a higher-resolution stream than the zxing
+      // default (which falls back to roughly 640×480 on most webcams).
+      // Code-128 barcodes printed at A4-label scale are too small for
+      // 480p to decode reliably — the user reports having to hold the
+      // book very close to the lens before the scan registers (BUG-18).
+      // 1280×720 doubles the linear pixel budget, restores reliable
+      // decoding at a normal arm's-length distance, and is supported by
+      // virtually every laptop/USB webcam on the market. The browser
+      // is free to fall back to the next-best size if 720p is not
+      // available — `ideal` is a soft constraint, not `exact`.
+      const videoConstraints: MediaTrackConstraints = preferred
+        ? {
+            deviceId: { exact: preferred },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }
+        : {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          };
+
+      controlsRef.current = await reader.decodeFromConstraints(
+        { audio: false, video: videoConstraints },
         video,
         (result: Result | undefined, err) => {
           if (result) {
