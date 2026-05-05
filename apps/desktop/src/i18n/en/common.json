@@ -74,6 +74,45 @@
     "pick": "Pick file…",
     "clear": "Remove file"
   },
+  "importWizard": {
+    "step": {
+      "upload": "Upload",
+      "map": "Mapping",
+      "preview": "Preview",
+      "result": "Result"
+    },
+    "upload": {
+      "help": "Pick an .xlsx, .xls, or .csv file. Headers must be on the first row.",
+      "pick": "Pick file",
+      "template": "Download template"
+    },
+    "map": {
+      "help": "Match file columns to application fields. Unused columns can be left blank.",
+      "colSource": "Source column",
+      "colSample": "Sample value",
+      "colTarget": "Application field",
+      "skip": "Skip",
+      "missingTitle": "Required fields not mapped"
+    },
+    "preview": {
+      "valid": "{{count}} rows ready",
+      "invalid": "{{count}} rows skipped (error)",
+      "limit": "Showing first {{shown}} of {{total}} rows",
+      "colError": "Error"
+    },
+    "result": {
+      "inserted": "Inserted",
+      "skipped": "Skipped",
+      "errors": "Errors",
+      "errorListTitle": "Error list",
+      "downloadErrors": "Download error CSV",
+      "message": "Message"
+    },
+    "submit": "Import {{count}} rows",
+    "toastDone": "Import complete",
+    "toastSummary": "{{inserted}} inserted, {{skipped}} skipped",
+    "toastFailed": "Import failed"
+  },
   "notifications": {
     "title": "Notifications",
     "overdueTitle": "Overdue Loans",
