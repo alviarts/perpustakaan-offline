@@ -64,11 +64,25 @@ export interface BackupSchedule {
   lastRun: string | null;
 }
 
+export type KasJenis = 'masuk' | 'keluar';
+export type KasSumber = 'manual' | 'denda' | 'hilang' | 'modal';
+
+export interface KasMutationInput {
+  tanggal: string;
+  keterangan: string;
+  jenis: KasJenis;
+  sumber: KasSumber;
+  nominal: number;
+}
+
 export interface LaporanRpc {
   grafik: (from: string, to: string, granularity?: Granularity) => Promise<GrafikBucket[]>;
   topPeminjam: (from: string, to: string, limit?: number) => Promise<TopPeminjamRow[]>;
   topBuku: (from: string, to: string, limit?: number) => Promise<TopBukuRow[]>;
   kas: (from: string, to: string) => Promise<KasSummary>;
+  kasCreate: (input: KasMutationInput) => Promise<KasRow>;
+  kasUpdate: (id: number, input: KasMutationInput) => Promise<KasRow>;
+  kasDelete: (id: number) => Promise<void>;
   backupCreate: (targetDir: string) => Promise<BackupResult>;
   backupRestore: (filePath: string, expectedChecksum?: string) => Promise<BackupResult>;
   backupScheduleGet: () => Promise<BackupSchedule>;
@@ -84,6 +98,9 @@ const tauriRpc: LaporanRpc = {
   topBuku: (from, to, limit) =>
     invoke<TopBukuRow[]>('laporan_top_buku', { from, to, limit }),
   kas: (from, to) => invoke<KasSummary>('laporan_kas', { from, to }),
+  kasCreate: (input) => invoke<KasRow>('kas_create', { input }),
+  kasUpdate: (id, input) => invoke<KasRow>('kas_update', { input: { id, ...input } }),
+  kasDelete: (id) => invoke<void>('kas_delete', { id }),
   backupCreate: (targetDir) => invoke<BackupResult>('backup_create', { targetDir }),
   backupRestore: (filePath, expectedChecksum) =>
     invoke<BackupResult>('backup_restore', { filePath, expectedChecksum }),
@@ -222,6 +239,29 @@ const mockRpc: LaporanRpc = {
       rows: seedRows,
       cumulative,
     };
+  },
+  async kasCreate(input) {
+    return {
+      id: Math.floor(Math.random() * 100_000),
+      tanggal: input.tanggal,
+      keterangan: input.keterangan,
+      jenis: input.jenis,
+      sumber: input.sumber,
+      nominal: input.nominal,
+    };
+  },
+  async kasUpdate(id, input) {
+    return {
+      id,
+      tanggal: input.tanggal,
+      keterangan: input.keterangan,
+      jenis: input.jenis,
+      sumber: input.sumber,
+      nominal: input.nominal,
+    };
+  },
+  async kasDelete() {
+    return undefined;
   },
   async backupCreate() {
     return {

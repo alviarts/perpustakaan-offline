@@ -47,7 +47,36 @@
     "saldo": "Saldo Akhir",
     "breakdown": "Breakdown Pemasukan",
     "breakdownHint": "Manual / denda / hilang / modal",
-    "detail": "Detail Kas"
+    "detail": "Detail Kas",
+    "add": "+ Tambah Kas",
+    "confirmDelete": "Hapus entri kas ini?",
+    "confirmDeleteAuto": "Hapus entri kas auto-generated ini? Perubahan akan dicatat di audit log.",
+    "jenisOption": {
+      "masuk": "Pemasukan",
+      "keluar": "Pengeluaran"
+    },
+    "sumberOption": {
+      "manual": "Manual",
+      "denda": "Denda",
+      "hilang": "Ganti hilang",
+      "modal": "Modal"
+    },
+    "form": {
+      "createTitle": "Tambah Kas",
+      "editTitle": "Edit Kas",
+      "tanggal": "Tanggal",
+      "nominal": "Nominal (Rp)",
+      "jenis": "Jenis",
+      "sumber": "Sumber",
+      "keterangan": "Keterangan",
+      "keteranganPlaceholder": "Contoh: Sumbangan wali murid",
+      "warnAuto": "Entri ini terhubung ke peminjaman / pengembalian otomatis. Perubahan akan tetap dicatat di audit log.",
+      "errorNominal": "Nominal harus lebih besar dari 0.",
+      "errorKeterangan": "Keterangan wajib diisi.",
+      "savedCreate": "Kas baru tersimpan.",
+      "savedUpdate": "Kas diperbarui.",
+      "deleted": "Kas dihapus."
+    }
   },
   "backup": {
     "title": "Backup Database",

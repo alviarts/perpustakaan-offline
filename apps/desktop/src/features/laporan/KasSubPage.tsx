@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChartPie } from '@/components/shared/ChartPie';
 import { useToast } from '@/components/ui/toast-manager';
-import { laporanApi, toCsv, type KasSummary } from '@/lib/laporan';
+import { laporanApi, toCsv, type KasRow, type KasSummary } from '@/lib/laporan';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
 import { formatTauriError } from '@/lib/errors';
+import { KasFormDialog } from './KasFormDialog';
 
 const RUPIAH = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -16,11 +18,16 @@ const RUPIAH = new Intl.NumberFormat('id-ID', {
 });
 
 export function LaporanKas() {
-  const { t } = useTranslation(['laporan']);
+  const { t } = useTranslation(['laporan', 'common']);
   const { showToast } = useToast();
   const [range, setRange] = useState(presetRangeMonth);
   const [data, setData] = useState<KasSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<KasRow | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  const reload = useCallback(() => setRefreshTick((n) => n + 1), []);
 
   useEffect(() => {
     let cancel = false;
@@ -44,7 +51,41 @@ export function LaporanKas() {
     return () => {
       cancel = true;
     };
-  }, [range, showToast, t]);
+  }, [range, refreshTick, showToast, t]);
+
+  function openCreate(): void {
+    setEditing(null);
+    setDialogOpen(true);
+  }
+
+  function openEdit(row: KasRow): void {
+    setEditing(row);
+    setDialogOpen(true);
+  }
+
+  async function handleDelete(row: KasRow): Promise<void> {
+    const isAuto = row.sumber !== 'manual';
+    const msg = isAuto
+      ? t('laporan:kas.confirmDeleteAuto', {
+          defaultValue:
+            'Hapus entri kas auto-generated ini? Perubahan akan dicatat di audit log.',
+        })
+      : t('laporan:kas.confirmDelete', { defaultValue: 'Hapus entri kas ini?' });
+    if (!window.confirm(msg)) return;
+    try {
+      await laporanApi.kasDelete(row.id);
+      showToast({
+        title: t('laporan:kas.form.deleted', { defaultValue: 'Kas dihapus.' }),
+      });
+      reload();
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('laporan:error.load', { defaultValue: 'Gagal menghapus' }),
+        description: formatTauriError(err),
+      });
+    }
+  }
 
   function handleExportCsv(): void {
     if (!data) return;
@@ -82,6 +123,11 @@ export function LaporanKas() {
         onExportPdf={handleExportPdf}
         exportDisabled={!data || data.rows.length === 0}
       />
+      <div className="flex justify-end">
+        <Button onClick={openCreate} data-testid="kas-add">
+          {t('laporan:kas.add', { defaultValue: '+ Tambah Kas' })}
+        </Button>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <SummaryCell tone="emerald" label={t('laporan:kas.masuk', { defaultValue: 'Total Masuk' })} value={data?.totalMasuk ?? 0} loading={loading} />
@@ -136,11 +182,14 @@ export function LaporanKas() {
                       <th className="px-3 py-2">{t('laporan:column.tanggal', { defaultValue: 'Tanggal' })}</th>
                       <th className="px-3 py-2">{t('laporan:column.keterangan', { defaultValue: 'Keterangan' })}</th>
                       <th className="px-3 py-2 text-right">{t('laporan:column.nominal', { defaultValue: 'Nominal' })}</th>
+                      <th className="px-3 py-2 text-right">
+                        <span className="sr-only">{t('common:actions.actions', { defaultValue: 'Aksi' })}</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.rows.map((r) => (
-                      <tr key={r.id} className="border-t">
+                      <tr key={r.id} className="border-t hover:bg-muted/30">
                         <td className="px-3 py-2 text-xs text-muted-foreground">{r.tanggal}</td>
                         <td className="px-3 py-2">
                           <div>{r.keterangan}</div>
@@ -156,6 +205,26 @@ export function LaporanKas() {
                           {r.jenis === 'masuk' ? '+' : '−'}
                           {RUPIAH.format(r.nominal)}
                         </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEdit(r)}
+                            data-testid={`kas-edit-${r.id}`}
+                          >
+                            {t('common:actions.edit', { defaultValue: 'Edit' })}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              void handleDelete(r);
+                            }}
+                            data-testid={`kas-delete-${r.id}`}
+                          >
+                            {t('common:actions.delete', { defaultValue: 'Hapus' })}
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -165,6 +234,13 @@ export function LaporanKas() {
           </CardContent>
         </Card>
       </div>
+
+      <KasFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initial={editing}
+        onSaved={reload}
+      />
     </div>
   );
 }
