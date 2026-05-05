@@ -24,12 +24,12 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | BUG-06  | C        | KTA preview: foto anggota tampil sebagai broken-image (verify saat eksekusi)                       | MEDIUM   | IN_PR  | #122 | —            | —          |
 | FEAT-03 | C        | KTA depan: tambah field biodata lengkap + TTD kepala sekolah                                       | MEDIUM   | IN_PR  | #122 | —            | —          |
 | FEAT-04 | C        | KTA back-side editable per-template + Tata Tertib default + cetak halaman 2                        | MEDIUM   | IN_PR  | #122 | —            | FEAT-03    |
-| BUG-05  | D        | Pengaturan: action bar (Jadikan Default / Hapus / Simpan) mepet bawah window                       | MEDIUM   | OPEN   | —   | —            | —          |
-| BUG-12  | D        | Layout halaman Cetak KTA + Cetak Label & Barcode mepet ke border kiri/kanan                        | MEDIUM   | OPEN   | —   | —            | —          |
-| BUG-14  | D        | Topbar global search: placeholder wrap & nabrak garis container                                    | LOW      | OPEN   | —   | —            | —          |
-| BUG-16  | D        | Sidebar tab Pengaturan hilang saat scroll konten tab — harus sticky/fixed                          | MEDIUM   | OPEN   | —   | —            | —          |
-| FEAT-13 | D        | Cetak Label & Barcode Buku: tombol "Buka Folder Hasil" + link buka folder di toast PDF             | LOW      | OPEN   | —   | —            | —          |
-| FEAT-15 | D        | Manual: FAB pojok kanan bawah scroll cepat ke atas / Daftar Isi                                    | LOW      | OPEN   | —   | —            | —          |
+| BUG-05  | D        | Pengaturan: action bar (Jadikan Default / Hapus / Simpan) mepet bawah window                       | MEDIUM   | IN_PR  | #123 | —            | —          |
+| BUG-12  | D        | Layout halaman Cetak KTA + Cetak Label & Barcode mepet ke border kiri/kanan                        | MEDIUM   | IN_PR  | #123 | —            | —          |
+| BUG-14  | D        | Topbar global search: placeholder wrap & nabrak garis container                                    | LOW      | IN_PR  | #123 | —            | —          |
+| BUG-16  | D        | Sidebar tab Pengaturan hilang saat scroll konten tab — harus sticky/fixed                          | MEDIUM   | IN_PR  | #123 | —            | —          |
+| FEAT-13 | D        | Cetak Label & Barcode Buku: tombol "Buka Folder Hasil" + link buka folder di toast PDF             | LOW      | IN_PR  | #123 | —            | —          |
+| FEAT-15 | D        | Manual: FAB pojok kanan bawah scroll cepat ke atas / Daftar Isi                                    | LOW      | IN_PR  | #123 | —            | —          |
 | FEAT-11 | E        | Dashboard quote-of-the-day rotasi tiap 5 menit dengan animasi                                      | LOW      | OPEN   | —   | —            | —          |
 
 ## Release plan
