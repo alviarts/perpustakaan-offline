@@ -238,7 +238,8 @@
       "summary": "Full user guide, searchable via the table of contents.",
       "toc": "Table of contents",
       "searchPlaceholder": "Search section titles…",
-      "noMatches": "No matching sections."
+      "noMatches": "No matching sections.",
+      "scrollToTop": "Back to top"
     },
     "tentang": {
       "label": "About",

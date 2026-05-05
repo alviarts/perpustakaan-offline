@@ -2,8 +2,9 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Search } from 'lucide-react';
+import { ArrowUp, Search } from 'lucide-react';
 import manualSrc from '@docs/manual.md?raw';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SettingsSection } from './SettingsSection';
@@ -87,9 +88,34 @@ function extractToc(markdown: string): TocEntry[] {
 
 const TOC = extractToc(manualSrc);
 
+/**
+ * Scroll threshold (in pixels) at which the floating "scroll to top" button
+ * fades in. Tuned so a user has to scroll past the first paragraph or two
+ * before it appears — otherwise it would flicker on every tiny scroll.
+ */
+const SCROLL_TO_TOP_THRESHOLD = 200;
+
 export function ManualPage(): JSX.Element {
   const { t } = useTranslation('settings');
   const [query, setQuery] = React.useState('');
+  const [showScrollTop, setShowScrollTop] = React.useState(false);
+  // Lazily resolved on first scroll event so we don't depend on render order.
+  // The Manual sits inside the global app `<main>` which is the actual
+  // scroll container (set via `overflow-y-auto` in `AppShell`). `window`
+  // never scrolls in this app.
+  const scrollerRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    const scroller = document.querySelector<HTMLElement>('[data-testid="app-main"]');
+    if (!scroller) return undefined;
+    scrollerRef.current = scroller;
+    const onScroll = (): void => {
+      setShowScrollTop(scroller.scrollTop > SCROLL_TO_TOP_THRESHOLD);
+    };
+    onScroll();
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    return () => scroller.removeEventListener('scroll', onScroll);
+  }, []);
 
   const trimmedQuery = query.trim().toLowerCase();
   const filteredToc = React.useMemo(() => {
@@ -101,6 +127,12 @@ export function ManualPage(): JSX.Element {
     const node = document.getElementById(id);
     if (!node) return;
     node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleScrollToTop = (): void => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -252,6 +284,20 @@ export function ManualPage(): JSX.Element {
           </ReactMarkdown>
         </article>
       </div>
+
+      <Button
+        type="button"
+        size="icon"
+        onClick={handleScrollToTop}
+        aria-label={t('sections.manual.scrollToTop', { defaultValue: 'Naik ke atas' })}
+        className={cn(
+          'fixed bottom-6 right-6 z-30 h-11 w-11 rounded-full shadow-lg transition-opacity duration-200',
+          showScrollTop ? 'opacity-100' : 'pointer-events-none opacity-0',
+        )}
+        data-testid="manual-scroll-top"
+      >
+        <ArrowUp className="h-5 w-5" />
+      </Button>
     </SettingsSection>
   );
 }

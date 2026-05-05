@@ -46,6 +46,10 @@ export function CetakLabelPage() {
   const [search, setSearch] = useState('');
   const [printing, setPrinting] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
+  const [openingFolder, setOpeningFolder] = useState(false);
+  const [lastExport, setLastExport] = useState<{ filename: string; dirAbsPath: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     void (async () => {
@@ -222,24 +226,11 @@ export function CetakLabelPage() {
         return;
       }
       const bytes = await buildLabelBukuPdfBytes({ layout, items, identity });
-      const stamp = new Date()
-        .toISOString()
-        .replace(/[-:T]/g, '')
-        .replace(/\..+$/, '')
-        .replace(/(\d{8})(\d{6})/, '$1-$2');
-      const filename = `label-buku-${stamp}.pdf`;
-      const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 0);
+      const result = await labelBukuApi.exportPdf(new Uint8Array(bytes));
+      setLastExport({ filename: result.filename, dirAbsPath: result.dirAbsPath });
       showToast({
         title: t('toast.pdfSaved', { defaultValue: 'PDF tersimpan' }),
-        description: filename,
+        description: result.filename,
       });
     } catch (e) {
       showToast({
@@ -252,19 +243,68 @@ export function CetakLabelPage() {
     }
   };
 
+  const handleOpenFolder = async () => {
+    setOpeningFolder(true);
+    try {
+      await labelBukuApi.openExportsFolder();
+    } catch (e) {
+      showToast({
+        title: t('toast.openFolderFailed', { defaultValue: 'Gagal membuka folder hasil' }),
+        description: e instanceof Error ? e.message : String(e),
+        variant: 'destructive',
+      });
+    } finally {
+      setOpeningFolder(false);
+    }
+  };
+
   return (
-    <div className="space-y-6" data-testid="cetak-label-page">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {t('cetak.title', { defaultValue: 'Cetak Label & Barcode Buku' })}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t('cetak.subtitle', {
-            defaultValue:
-              'Pilih template lalu pilih buku — satu label akan dicetak untuk tiap eksemplar.',
-          })}
-        </p>
+    <div className="flex flex-col gap-6 p-6" data-testid="cetak-label-page">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            {t('cetak.title', { defaultValue: 'Cetak Label & Barcode Buku' })}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t('cetak.subtitle', {
+              defaultValue:
+                'Pilih template lalu pilih buku — satu label akan dicetak untuk tiap eksemplar.',
+            })}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleOpenFolder}
+          disabled={openingFolder}
+          data-testid="cetak-label-open-folder"
+        >
+          <FolderOpen className="size-4 mr-1" />
+          {t('cetak.openFolder', { defaultValue: 'Buka Folder Hasil' })}
+        </Button>
       </div>
+
+      {lastExport ? (
+        <div
+          className="flex flex-wrap items-center gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200"
+          data-testid="cetak-label-last-export"
+          role="status"
+        >
+          <FileDown className="size-4" />
+          <span>
+            {t('cetak.lastExport', { defaultValue: 'PDF terakhir disimpan' })}:{' '}
+            <code className="font-mono">{lastExport.filename}</code>
+          </span>
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-emerald-900 underline dark:text-emerald-200"
+            onClick={handleOpenFolder}
+            disabled={openingFolder}
+          >
+            {t('cetak.openFolder', { defaultValue: 'Buka Folder Hasil' })}
+          </Button>
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">

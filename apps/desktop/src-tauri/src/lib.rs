@@ -180,6 +180,8 @@ pub fn run() {
             commands::label_buku::label_buku_template_update,
             commands::label_buku::label_buku_template_delete,
             commands::label_buku::label_buku_template_set_default,
+            commands::label_buku_export::label_buku_export_pdf,
+            commands::label_buku_export::label_buku_open_exports_folder,
             commands::settings::settings_get_many,
             commands::settings::settings_set_many,
             commands::settings::settings_users_list,

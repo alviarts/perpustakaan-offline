@@ -66,6 +66,16 @@ export interface LabelBukuTemplateInput {
   isDefault?: boolean;
 }
 
+/**
+ * Result from `label_buku_export_pdf`. Mirrors the KTA shape; UI uses
+ * `dirAbsPath` to wire up an "Open folder" button on the success toast.
+ */
+export interface LabelBukuExportResult {
+  filename: string;
+  absPath: string;
+  dirAbsPath: string;
+}
+
 export interface LabelBukuRpc {
   list: () => Promise<LabelBukuTemplate[]>;
   get: (id: number) => Promise<LabelBukuTemplate>;
@@ -73,6 +83,15 @@ export interface LabelBukuRpc {
   update: (id: number, input: LabelBukuTemplateInput) => Promise<LabelBukuTemplate>;
   delete: (id: number) => Promise<void>;
   setDefault: (id: number) => Promise<LabelBukuTemplate>;
+  /**
+   * Persists a PDF blob (built by jsPDF) under
+   * `<app_data>/exports/labels/label-buku-YYYYMMDD-HHMMSS.pdf` and
+   * returns the resolved paths so the UI can show a "buka folder"
+   * follow-up. Browser/mock mode falls back to a Blob download.
+   */
+  exportPdf: (bytes: Uint8Array) => Promise<LabelBukuExportResult>;
+  /** Open the labels exports folder in the OS file manager. */
+  openExportsFolder: () => Promise<string>;
 }
 
 const tauriRpc: LabelBukuRpc = {
@@ -82,6 +101,8 @@ const tauriRpc: LabelBukuRpc = {
   update: (id, input) => invoke('label_buku_template_update', { id, input }),
   delete: (id) => invoke('label_buku_template_delete', { id }),
   setDefault: (id) => invoke('label_buku_template_set_default', { id }),
+  exportPdf: (bytes) => invoke('label_buku_export_pdf', { bytes: Array.from(bytes) }),
+  openExportsFolder: () => invoke('label_buku_open_exports_folder'),
 };
 
 const STORAGE_KEY = 'po:label-buku:templates';
@@ -178,6 +199,31 @@ const mockRpc: LabelBukuRpc = {
     const found = rows.find((r) => r.id === id);
     if (!found) throw new Error(`template id=${id} tidak ditemukan`);
     return found;
+  },
+  async exportPdf(bytes) {
+    // Browser/mock fallback: trigger a Blob download. We can't write to the
+    // user's filesystem so `absPath` / `dirAbsPath` are best-effort hints.
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[-:T]/g, '')
+      .replace(/\..+$/, '')
+      .replace(/(\d{8})(\d{6})/, '$1-$2');
+    const filename = `label-buku-${stamp}.pdf`;
+    const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    return { filename, absPath: filename, dirAbsPath: '' };
+  },
+  async openExportsFolder() {
+    // Mock: nothing to open. Surface the same path string the Tauri impl
+    // would return so callers can branch on empty string for "no folder".
+    return '';
   },
 };
 

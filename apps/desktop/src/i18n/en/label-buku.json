@@ -35,6 +35,8 @@
     "savePdf": "Save PDF",
     "saving": "Saving…",
     "manageTemplates": "Manage Templates",
+    "openFolder": "Open Output Folder",
+    "lastExport": "Last saved PDF",
     "summary": "{{books}} books selected · {{labels}} labels to print",
     "empty": "No matching books",
     "col": {
@@ -55,6 +57,7 @@
     "printing": "Printing {{count}} labels",
     "printFailed": "Failed to print",
     "pdfSaved": "PDF saved",
-    "pdfFailed": "Failed to save PDF"
+    "pdfFailed": "Failed to save PDF",
+    "openFolderFailed": "Failed to open output folder"
   }
 }

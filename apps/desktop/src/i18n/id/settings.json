@@ -238,7 +238,8 @@
       "summary": "Panduan pengguna lengkap, bisa dicari dari daftar isi.",
       "toc": "Daftar isi",
       "searchPlaceholder": "Cari judul bagian…",
-      "noMatches": "Tidak ada bagian yang cocok."
+      "noMatches": "Tidak ada bagian yang cocok.",
+      "scrollToTop": "Naik ke atas"
     },
     "tentang": {
       "label": "Tentang",

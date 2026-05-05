@@ -35,6 +35,8 @@
     "savePdf": "Simpan PDF",
     "saving": "Menyimpan…",
     "manageTemplates": "Kelola Template",
+    "openFolder": "Buka Folder Hasil",
+    "lastExport": "PDF terakhir disimpan",
     "summary": "{{books}} buku terpilih · {{labels}} label akan dicetak",
     "empty": "Tidak ada buku yang cocok",
     "col": {
@@ -55,6 +57,7 @@
     "printing": "Mencetak {{count}} label",
     "printFailed": "Gagal mencetak",
     "pdfSaved": "PDF tersimpan",
-    "pdfFailed": "Gagal menyimpan PDF"
+    "pdfFailed": "Gagal menyimpan PDF",
+    "openFolderFailed": "Gagal membuka folder hasil"
   }
 }
