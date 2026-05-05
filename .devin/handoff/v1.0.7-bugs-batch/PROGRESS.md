@@ -20,10 +20,10 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | BUG-09  | B        | Aturan Peminjaman "Maksimum buku" = 3 tapi sistem block di 2; audit semua setting peminjaman       | HIGH     | IN_PR  | #121 | —            | —          |
 | BUG-10  | B        | Toast error peminjaman menampilkan raw JSON `{"code":"validation",...}`                            | MEDIUM   | IN_PR  | #121 | —            | —          |
 | FEAT-08 | B        | Pengembalian: quick-input buttons (1×/2×/3× denda per hari) di field Bayar Denda                   | MEDIUM   | IN_PR  | #121 | —            | BUG-09     |
-| BUG-02  | C        | Template KTA: QR code gepeng (aspect ratio rusak) di semua template                                | HIGH     | OPEN   | —   | —            | —          |
-| BUG-06  | C        | KTA preview: foto anggota tampil sebagai broken-image (verify saat eksekusi)                       | MEDIUM   | OPEN   | —   | —            | —          |
-| FEAT-03 | C        | KTA depan: tambah field biodata lengkap + TTD kepala sekolah                                       | MEDIUM   | OPEN   | —   | —            | —          |
-| FEAT-04 | C        | KTA back-side editable per-template + Tata Tertib default + cetak halaman 2                        | MEDIUM   | OPEN   | —   | —            | FEAT-03    |
+| BUG-02  | C        | Template KTA: QR code gepeng (aspect ratio rusak) di semua template                                | HIGH     | IN_PR  | #122 | —            | —          |
+| BUG-06  | C        | KTA preview: foto anggota tampil sebagai broken-image (verify saat eksekusi)                       | MEDIUM   | IN_PR  | #122 | —            | —          |
+| FEAT-03 | C        | KTA depan: tambah field biodata lengkap + TTD kepala sekolah                                       | MEDIUM   | IN_PR  | #122 | —            | —          |
+| FEAT-04 | C        | KTA back-side editable per-template + Tata Tertib default + cetak halaman 2                        | MEDIUM   | IN_PR  | #122 | —            | FEAT-03    |
 | BUG-05  | D        | Pengaturan: action bar (Jadikan Default / Hapus / Simpan) mepet bawah window                       | MEDIUM   | OPEN   | —   | —            | —          |
 | BUG-12  | D        | Layout halaman Cetak KTA + Cetak Label & Barcode mepet ke border kiri/kanan                        | MEDIUM   | OPEN   | —   | —            | —          |
 | BUG-14  | D        | Topbar global search: placeholder wrap & nabrak garis container                                    | LOW      | OPEN   | —   | —            | —          |
