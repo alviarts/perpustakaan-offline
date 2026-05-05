@@ -16,6 +16,12 @@
     "export": "Ekspor",
     "import": "Impor"
   },
+  "titleBar": {
+    "minimize": "Minimalkan",
+    "maximize": "Maksimalkan",
+    "restore": "Pulihkan",
+    "close": "Tutup"
+  },
   "placeholders": {
     "search": "Cari…"
   },

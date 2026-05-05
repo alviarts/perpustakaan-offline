@@ -53,13 +53,13 @@ export function Login() {
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen w-full">
+    <div className="bg-background text-foreground h-full w-full overflow-y-auto">
       <div className="absolute right-4 top-4 z-10 flex items-center gap-1">
         <LanguageSwitcher />
         <ThemeSwitcher />
       </div>
 
-      <div className="grid min-h-screen md:grid-cols-2">
+      <div className="grid min-h-full md:grid-cols-2">
         {/* Left: form */}
         <div className="flex items-center justify-center p-6 md:p-12">
           <motion.div

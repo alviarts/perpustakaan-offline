@@ -45,7 +45,7 @@ export function AppShell() {
   }, [toggle]);
 
   return (
-    <div className="flex h-screen min-h-[600px] min-w-[800px] overflow-hidden bg-background text-foreground">
+    <div className="flex h-full min-h-0 min-w-[800px] overflow-hidden bg-background text-foreground">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
