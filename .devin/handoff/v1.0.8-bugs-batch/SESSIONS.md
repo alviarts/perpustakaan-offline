@@ -113,10 +113,11 @@ Each entry is a markdown section with frontmatter-like fields:
 - **session_id**: `devin-e87e91dd1b25420eb46e75b6d779fb27`
 - **item_id**: FEAT-17 + FEAT-18 (PR B — Peminjaman: perpanjangan + reservasi)
 - **branch**: `devin/1778015814-pr-b-peminjaman-extend-and-reserve`
-- **pr**: TBD (will be opened as draft after first gate-green commit)
+- **pr**: #128 (DRAFT) — https://github.com/alviarts/perpustakaan-offline/pull/128
 - **started_at**: 2026-05-05T21:16:54Z
-- **status**: STARTED
-- **notes**: Picked PR B per master prompt — first OPEN row group with no `depends_on` and no live IN_PROGRESS_BY lock. PR A (BUG-19 + FEAT-16) is PAUSED with PR #127 (draft), so it is explicitly skipped per the "Active PR in flight / PAUSED rows" lock policy. FEAT-17 will land first inside PR B (extend), then FEAT-18 (reservasi) will be layered on top so the FEAT-17 reservation-block guard can call into the FEAT-18 reservation table.
+- **first_push_at**: 2026-05-05T22:35:00Z (commit ea44e7d — backend + 12 unit tests, 143/143 cargo green)
+- **status**: PR_OPEN (draft, backend complete; frontend in progress)
+- **notes**: Picked PR B per master prompt — first OPEN row group with no `depends_on` and no live IN_PROGRESS_BY lock. PR A (BUG-19 + FEAT-16) is PAUSED with PR #127 (draft), so it is explicitly skipped per the "Active PR in flight / PAUSED rows" lock policy. FEAT-17 + FEAT-18 backend landed together in commit ea44e7d (143/143 backend tests pass). Frontend (PerpanjangDialog, ReservasiPage, BukuList button, Pengembalian toast, AturanPeminjamanPage fields, i18n, vitest) on-going. Will convert draft → ready-for-review when all gates green.
 - **plan**:
   - Backend (Rust): additive migration adds `peminjaman.kali_perpanjangan`, `peminjaman.tanggal_perpanjangan_terakhir`; new `reservasi_buku` table; new commands `peminjaman_perpanjang(loan_id, days?)`, `reservasi_create/cancel/list_by_buku/list_by_anggota/mark_diambil/check_expired_tick`; settings keys `peminjaman.max_perpanjangan` (default 1, range 0-3) + `peminjaman.block_perpanjangan_jika_denda` (default false). Audit log entry on each extend.
   - Frontend (TS/React): `PerpanjangDialog.tsx` + Perpanjang button on `PeminjamanList.tsx` row; `ReservasiPage.tsx` route + sidebar link; conditional Reservasi button on `BukuList.tsx` row when buku status `dipinjam`; Pengembalian return-flow toast showing `slot_rak` + nama anggota berikutnya; `AturanPeminjamanPage.tsx` 2 new fields.
