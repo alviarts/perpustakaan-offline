@@ -119,6 +119,49 @@ pub struct PeminjamanQuickStats {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AnggotaLoanSummary {
+    pub total_peminjaman: i64,
+    pub total_item: i64,
+    pub aktif_count: i64,
+    pub overdue_count: i64,
+    pub total_denda: i64,
+    pub total_bayar: i64,
+    pub last_pinjam: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnggotaTopBuku {
+    pub buku_id: i64,
+    pub kode_buku: String,
+    pub judul: String,
+    pub jumlah: i64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnggotaLoanHistoryRow {
+    pub peminjaman_id: i64,
+    pub nomor_pinjam: String,
+    pub tanggal_pinjam: String,
+    pub tanggal_jatuh_tempo: String,
+    pub tanggal_kembali: Option<String>,
+    pub status: String,
+    pub total_item: i64,
+    pub total_denda: i64,
+    pub buku_judul_pertama: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnggotaLoanHistory {
+    pub summary: AnggotaLoanSummary,
+    pub top_buku: Vec<AnggotaTopBuku>,
+    pub history: Vec<AnggotaLoanHistoryRow>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OverdueRow {
     pub peminjaman_id: i64,
     pub item_id: i64,
@@ -774,6 +817,138 @@ pub fn peminjaman_overdue_list(
     peminjaman_overdue_list_inner(&conn, limit)
 }
 
+pub fn anggota_loan_history_inner(
+    conn: &rusqlite::Connection,
+    id: i64,
+    limit: Option<i64>,
+) -> AppResult<AnggotaLoanHistory> {
+    let cap = limit.unwrap_or(100).clamp(1, 1000);
+
+    // Reject unknown anggota with NotFound so the UI can redirect.
+    let exists: bool = conn
+        .query_row(
+            "SELECT 1 FROM anggota WHERE id = ?1",
+            params![id],
+            |_| Ok(true),
+        )
+        .optional()?
+        .unwrap_or(false);
+    if !exists {
+        return Err(AppError::NotFound(format!("anggota id={id}")));
+    }
+
+    // Header-level aggregates (one row per peminjaman). Counted separately
+    // from item-level aggregates so the LEFT JOIN below does not multiply
+    // total_denda / total_bayar by item count.
+    let (total_peminjaman, total_denda, total_bayar, last_pinjam): (
+        i64,
+        i64,
+        i64,
+        Option<String>,
+    ) = conn.query_row(
+        "SELECT COUNT(*), \
+                COALESCE(SUM(total_denda), 0), \
+                COALESCE(SUM(total_bayar), 0), \
+                MAX(tanggal_pinjam) \
+         FROM peminjaman WHERE anggota_id = ?1",
+        params![id],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+    )?;
+
+    // Item-level aggregates. Joined back to peminjaman to filter overdue
+    // items via the header's tanggal_jatuh_tempo.
+    let (total_item, aktif_count, overdue_count): (i64, i64, i64) = conn.query_row(
+        "SELECT \
+            COALESCE(COUNT(*), 0), \
+            COALESCE(SUM(CASE WHEN pi.status = 'dipinjam' THEN 1 ELSE 0 END), 0), \
+            COALESCE(SUM(CASE WHEN pi.status = 'dipinjam' \
+                              AND p.tanggal_jatuh_tempo < date('now') THEN 1 ELSE 0 END), 0) \
+         FROM peminjaman_item pi \
+         JOIN peminjaman p ON p.id = pi.peminjaman_id \
+         WHERE p.anggota_id = ?1",
+        params![id],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+    )?;
+
+    let summary = AnggotaLoanSummary {
+        total_peminjaman,
+        total_item,
+        aktif_count,
+        overdue_count,
+        total_denda,
+        total_bayar,
+        last_pinjam,
+    };
+
+    let mut top_stmt = conn.prepare(
+        "SELECT b.id, b.kode_buku, b.judul, COUNT(*) AS jumlah \
+         FROM peminjaman_item pi \
+         JOIN peminjaman p ON p.id = pi.peminjaman_id \
+         JOIN buku b ON b.id = pi.buku_id \
+         WHERE p.anggota_id = ?1 \
+         GROUP BY b.id, b.kode_buku, b.judul \
+         ORDER BY jumlah DESC, b.judul ASC \
+         LIMIT 5",
+    )?;
+    let top_buku: Vec<AnggotaTopBuku> = top_stmt
+        .query_map(params![id], |r| {
+            Ok(AnggotaTopBuku {
+                buku_id: r.get(0)?,
+                kode_buku: r.get(1)?,
+                judul: r.get(2)?,
+                jumlah: r.get(3)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+
+    let mut hist_stmt = conn.prepare(
+        "SELECT p.id, p.nomor_pinjam, p.tanggal_pinjam, p.tanggal_jatuh_tempo, \
+                p.tanggal_kembali, p.status, p.total_denda, \
+                COALESCE((SELECT COUNT(*) FROM peminjaman_item pi WHERE pi.peminjaman_id = p.id), 0), \
+                (SELECT b.judul FROM peminjaman_item pi \
+                 JOIN buku b ON b.id = pi.buku_id \
+                 WHERE pi.peminjaman_id = p.id ORDER BY pi.id ASC LIMIT 1) \
+         FROM peminjaman p \
+         WHERE p.anggota_id = ?1 \
+         ORDER BY p.tanggal_pinjam DESC, p.id DESC \
+         LIMIT ?2",
+    )?;
+    let history: Vec<AnggotaLoanHistoryRow> = hist_stmt
+        .query_map(params![id, cap], |r| {
+            Ok(AnggotaLoanHistoryRow {
+                peminjaman_id: r.get(0)?,
+                nomor_pinjam: r.get(1)?,
+                tanggal_pinjam: r.get(2)?,
+                tanggal_jatuh_tempo: r.get(3)?,
+                tanggal_kembali: r.get(4)?,
+                status: r.get(5)?,
+                total_denda: r.get(6)?,
+                total_item: r.get(7)?,
+                buku_judul_pertama: r.get(8)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+
+    Ok(AnggotaLoanHistory {
+        summary,
+        top_buku,
+        history,
+    })
+}
+
+#[tauri::command]
+pub fn anggota_loan_history(
+    state: State<'_, AppState>,
+    id: i64,
+    limit: Option<i64>,
+) -> AppResult<AnggotaLoanHistory> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    anggota_loan_history_inner(&conn, id, limit)
+}
+
 #[tauri::command]
 pub fn anggota_summary(state: State<'_, AppState>, id: i64) -> AppResult<AnggotaSummary> {
     let conn = state
@@ -1048,5 +1223,126 @@ mod tests {
         // None → default 50, returns all 5
         let rows = peminjaman_overdue_list_inner(&conn, None).expect("query");
         assert_eq!(rows.len(), 5);
+    }
+
+    #[test]
+    fn loan_history_returns_not_found_for_unknown_anggota() {
+        let conn = setup_db();
+        let err = anggota_loan_history_inner(&conn, 999, None).expect_err("unknown");
+        assert!(matches!(err, AppError::NotFound(_)));
+    }
+
+    #[test]
+    fn loan_history_returns_zeroed_summary_when_no_loans() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Budi", None);
+        let h = anggota_loan_history_inner(&conn, aid, None).expect("query");
+        assert_eq!(h.summary.total_peminjaman, 0);
+        assert_eq!(h.summary.total_item, 0);
+        assert_eq!(h.summary.aktif_count, 0);
+        assert_eq!(h.summary.overdue_count, 0);
+        assert_eq!(h.summary.total_denda, 0);
+        assert_eq!(h.summary.total_bayar, 0);
+        assert!(h.summary.last_pinjam.is_none());
+        assert!(h.history.is_empty());
+        assert!(h.top_buku.is_empty());
+    }
+
+    #[test]
+    fn loan_history_aggregates_summary_top_buku_and_history() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Budi", Some("X-A"));
+        let other = seed_anggota(&conn, "A0002", "Ani", None);
+        let b1 = seed_buku(&conn, "B0001", "Matematika 1");
+        let b2 = seed_buku(&conn, "B0002", "Sejarah");
+
+        // Three peminjaman for Budi:
+        //   PJ-1: 2024-01-05, 2 books (b1+b1) - dipinjam (still active, on time)
+        //   PJ-2: 2024-02-10, 1 book (b1)     - dikembalikan
+        //   PJ-3: 2020-03-01, 1 book (b2)     - overdue (still dipinjam)
+        // One peminjaman for Ani — must be excluded.
+        seed_pinjaman(&conn, "PJ-1", aid, b1, "2024-01-05", "2099-01-12", "dipinjam");
+        // Add second item to PJ-1 so total_item > 1.
+        conn.execute(
+            "INSERT INTO peminjaman_item (peminjaman_id, buku_id, status) \
+             SELECT id, ?1, 'dikembalikan' FROM peminjaman WHERE nomor_pinjam = 'PJ-1'",
+            params![b1],
+        )
+        .expect("seed extra item PJ-1");
+        // Bump total_denda for PJ-1.
+        conn.execute(
+            "UPDATE peminjaman SET total_denda = 1500, total_bayar = 1500 \
+             WHERE nomor_pinjam = 'PJ-1'",
+            [],
+        )
+        .expect("update denda PJ-1");
+
+        seed_pinjaman(
+            &conn, "PJ-2", aid, b1, "2024-02-10", "2024-02-17", "dikembalikan",
+        );
+        conn.execute(
+            "UPDATE peminjaman SET status = 'dikembalikan', total_denda = 500, total_bayar = 500 \
+             WHERE nomor_pinjam = 'PJ-2'",
+            [],
+        )
+        .expect("update PJ-2");
+
+        seed_pinjaman(&conn, "PJ-3", aid, b2, "2020-03-01", "2020-03-08", "dipinjam");
+
+        seed_pinjaman(
+            &conn, "PJ-X", other, b1, "2024-01-01", "2024-01-08", "dipinjam",
+        );
+
+        let h = anggota_loan_history_inner(&conn, aid, None).expect("query");
+        assert_eq!(h.summary.total_peminjaman, 3);
+        assert_eq!(h.summary.total_item, 4); // 2+1+1
+        assert_eq!(h.summary.aktif_count, 2); // PJ-1 first item still dipinjam + PJ-3
+        assert_eq!(h.summary.overdue_count, 1); // PJ-3 only
+        assert_eq!(h.summary.total_denda, 2000);
+        assert_eq!(h.summary.total_bayar, 2000);
+        assert_eq!(h.summary.last_pinjam.as_deref(), Some("2024-02-10"));
+
+        // top_buku ordered by count desc; b1 has 3 borrows, b2 has 1.
+        assert_eq!(h.top_buku.len(), 2);
+        assert_eq!(h.top_buku[0].kode_buku, "B0001");
+        assert_eq!(h.top_buku[0].jumlah, 3);
+        assert_eq!(h.top_buku[1].kode_buku, "B0002");
+        assert_eq!(h.top_buku[1].jumlah, 1);
+
+        // history ordered by tanggal_pinjam DESC.
+        assert_eq!(h.history.len(), 3);
+        assert_eq!(h.history[0].nomor_pinjam, "PJ-2");
+        assert_eq!(h.history[0].total_item, 1);
+        assert_eq!(h.history[1].nomor_pinjam, "PJ-1");
+        assert_eq!(h.history[1].total_item, 2);
+        assert_eq!(h.history[2].nomor_pinjam, "PJ-3");
+        assert_eq!(h.history[2].buku_judul_pertama.as_deref(), Some("Sejarah"));
+    }
+
+    #[test]
+    fn loan_history_clamps_limit() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Budi", None);
+        let bid = seed_buku(&conn, "B0001", "X");
+        for i in 0..5 {
+            seed_pinjaman(
+                &conn,
+                &format!("PJ-{i}"),
+                aid,
+                bid,
+                &format!("2024-01-0{}", i + 1),
+                &format!("2024-01-1{}", i + 1),
+                "dikembalikan",
+            );
+        }
+        // limit=2 returns most recent 2
+        let h = anggota_loan_history_inner(&conn, aid, Some(2)).expect("query");
+        assert_eq!(h.history.len(), 2);
+        // limit=0 → clamped to 1
+        let h = anggota_loan_history_inner(&conn, aid, Some(0)).expect("query");
+        assert_eq!(h.history.len(), 1);
+        // None → default 100, returns all 5
+        let h = anggota_loan_history_inner(&conn, aid, None).expect("query");
+        assert_eq!(h.history.len(), 5);
     }
 }

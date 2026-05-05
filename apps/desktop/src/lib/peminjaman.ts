@@ -82,6 +82,41 @@ export interface PeminjamanQuickStats {
   totalAktif: number;
 }
 
+export interface AnggotaLoanSummary {
+  totalPeminjaman: number;
+  totalItem: number;
+  aktifCount: number;
+  overdueCount: number;
+  totalDenda: number;
+  totalBayar: number;
+  lastPinjam?: string | null;
+}
+
+export interface AnggotaTopBuku {
+  bukuId: number;
+  kodeBuku: string;
+  judul: string;
+  jumlah: number;
+}
+
+export interface AnggotaLoanHistoryRow {
+  peminjamanId: number;
+  nomorPinjam: string;
+  tanggalPinjam: string;
+  tanggalJatuhTempo: string;
+  tanggalKembali?: string | null;
+  status: 'dipinjam' | 'sebagian' | 'dikembalikan' | 'terlambat' | 'hilang';
+  totalItem: number;
+  totalDenda: number;
+  bukuJudulPertama?: string | null;
+}
+
+export interface AnggotaLoanHistory {
+  summary: AnggotaLoanSummary;
+  topBuku: AnggotaTopBuku[];
+  history: AnggotaLoanHistoryRow[];
+}
+
 export interface OverdueRow {
   peminjamanId: number;
   itemId: number;
@@ -127,6 +162,7 @@ interface PeminjamanRpc {
   kembalikan(input: PeminjamanReturnInput): Promise<PeminjamanReturnResult>;
   quickStats(): Promise<PeminjamanQuickStats>;
   overdueList(limit?: number): Promise<OverdueRow[]>;
+  anggotaLoanHistory(id: number, limit?: number): Promise<AnggotaLoanHistory>;
   search(query: string): Promise<PeminjamanRow[]>;
   anggotaSummary(id: number): Promise<AnggotaSummary>;
   bukuSummary(id: number): Promise<BukuSummary>;
@@ -203,6 +239,10 @@ const tauriRpc: PeminjamanRpc = {
   async overdueList(limit) {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<OverdueRow[]>('peminjaman_overdue_list', { limit });
+  },
+  async anggotaLoanHistory(id, limit) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<AnggotaLoanHistory>('anggota_loan_history', { id, limit });
   },
   async search(query) {
     const { invoke } = await import('@tauri-apps/api/core');
@@ -372,6 +412,61 @@ const mockRpc: PeminjamanRpc = {
     }
     rows.sort((a, b) => b.hariTerlambat - a.hariTerlambat);
     return rows.slice(0, cap);
+  },
+  async anggotaLoanHistory(id, limit) {
+    const state = readMock();
+    const today = todayIso();
+    const cap = Math.max(1, Math.min(limit ?? 100, 1000));
+    const headers = state.rows.filter((r) => r.anggotaId === id);
+    const summary: AnggotaLoanSummary = {
+      totalPeminjaman: headers.length,
+      totalItem: 0,
+      aktifCount: 0,
+      overdueCount: 0,
+      totalDenda: 0,
+      totalBayar: 0,
+      lastPinjam: headers.length > 0 ? headers[0]!.tanggalPinjam : null,
+    };
+    const counts = new Map<number, AnggotaTopBuku>();
+    const history: AnggotaLoanHistoryRow[] = [];
+    for (const h of headers) {
+      const items = state.items.filter((i) => i.peminjamanId === h.id);
+      summary.totalItem += items.length;
+      summary.totalDenda += h.totalDenda;
+      summary.totalBayar += h.totalBayar;
+      const judulPertama = items[0]?.bukuJudul ?? null;
+      for (const i of items) {
+        const c = counts.get(i.bukuId);
+        if (c) c.jumlah += 1;
+        else
+          counts.set(i.bukuId, {
+            bukuId: i.bukuId,
+            kodeBuku: i.bukuKode,
+            judul: i.bukuJudul,
+            jumlah: 1,
+          });
+        if (i.status === 'dipinjam') {
+          summary.aktifCount += 1;
+          if (dayDiff(today, h.tanggalJatuhTempo) > 0) summary.overdueCount += 1;
+        }
+      }
+      history.push({
+        peminjamanId: h.id,
+        nomorPinjam: h.nomorPinjam,
+        tanggalPinjam: h.tanggalPinjam,
+        tanggalJatuhTempo: h.tanggalJatuhTempo,
+        tanggalKembali: h.tanggalKembali,
+        status: h.status as AnggotaLoanHistoryRow['status'],
+        totalItem: items.length,
+        totalDenda: h.totalDenda,
+        bukuJudulPertama: judulPertama,
+      });
+    }
+    history.sort((a, b) => b.tanggalPinjam.localeCompare(a.tanggalPinjam));
+    const topBuku = [...counts.values()]
+      .sort((a, b) => b.jumlah - a.jumlah || a.judul.localeCompare(b.judul))
+      .slice(0, 5);
+    return { summary, topBuku, history: history.slice(0, cap) };
   },
   async search(query) {
     const state = readMock();

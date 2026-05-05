@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, History, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { AnggotaForm } from '@/features/anggota/AnggotaForm';
+import { AnggotaRiwayatPanel } from '@/features/anggota/AnggotaRiwayatPanel';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { toAnggotaInput } from '@/features/anggota/schema';
 import { useToast } from '@/components/ui/toast-manager';
 import { formatTauriError } from '@/lib/errors';
+import { cn } from '@/lib/utils';
+
+type AnggotaDetailTab = 'edit' | 'history';
 
 export const Route = createFileRoute('/_authed/anggota/$id')({
   component: EditAnggotaRoute,
@@ -27,6 +31,7 @@ function EditAnggotaRoute() {
   const [jurusan, setJurusan] = useState<string[]>([]);
   const [agama, setAgama] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [tab, setTab] = useState<AnggotaDetailTab>('edit');
 
   useEffect(() => {
     let cancelled = false;
@@ -67,14 +72,37 @@ function EditAnggotaRoute() {
         </Button>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold tracking-tight">{t('anggota:form.editTitle')}</h1>
         <p className="text-sm text-muted-foreground">{t('anggota:form.editSubtitle')}</p>
       </div>
 
+      <div
+        role="tablist"
+        aria-label={t('anggota:detail.tabsLabel', { defaultValue: 'Detail anggota' })}
+        className="mb-6 inline-flex items-center gap-1 rounded-md border bg-muted/40 p-1 text-sm"
+      >
+        <TabButton
+          active={tab === 'edit'}
+          onClick={() => setTab('edit')}
+          icon={<Pencil className="h-3.5 w-3.5" />}
+          testid="anggota-tab-edit"
+        >
+          {t('anggota:detail.tab.edit', { defaultValue: 'Edit Profil' })}
+        </TabButton>
+        <TabButton
+          active={tab === 'history'}
+          onClick={() => setTab('history')}
+          icon={<History className="h-3.5 w-3.5" />}
+          testid="anggota-tab-history"
+        >
+          {t('anggota:detail.tab.history', { defaultValue: 'Riwayat Peminjaman' })}
+        </TabButton>
+      </div>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">{t('common:states.loading')}</p>
-      ) : item ? (
+      ) : item && tab === 'edit' ? (
         <AnggotaForm
           initial={item}
           kelasOptions={kelas}
@@ -98,6 +126,8 @@ function EditAnggotaRoute() {
             }
           }}
         />
+      ) : item ? (
+        <AnggotaRiwayatPanel anggotaId={item.id} />
       ) : null}
 
       <ConfirmDialog
@@ -123,5 +153,34 @@ function EditAnggotaRoute() {
         }}
       />
     </div>
+  );
+}
+
+interface TabButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  testid?: string;
+  children: React.ReactNode;
+}
+
+function TabButton({ active, onClick, icon, testid, children }: TabButtonProps) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      data-testid={testid}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+        active
+          ? 'bg-background text-foreground shadow-sm'
+          : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {icon}
+      {children}
+    </button>
   );
 }

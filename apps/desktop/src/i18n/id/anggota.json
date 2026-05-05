@@ -103,5 +103,36 @@
     "new": "Tambah",
     "edit": "Edit",
     "cetakKta": "Cetak KTA"
+  },
+  "detail": {
+    "tabsLabel": "Detail anggota",
+    "tab": {
+      "edit": "Edit Profil",
+      "history": "Riwayat Peminjaman"
+    }
+  },
+  "history": {
+    "loadError": "Gagal memuat riwayat: {{msg}}",
+    "stats": {
+      "total": "Total Peminjaman",
+      "totalHint": "{{count}} buku diakses",
+      "aktif": "Sedang Dipinjam",
+      "overdueHint": "{{count}} terlambat",
+      "onTime": "Tepat waktu",
+      "denda": "Total Denda",
+      "dibayar": "Sudah dibayar {{value}}",
+      "lastPinjam": "Pinjam Terakhir"
+    },
+    "topBuku": {
+      "title": "Buku Sering Dipinjam",
+      "subtitle": "5 judul teratas berdasarkan jumlah peminjaman",
+      "count": "{{count}}× pinjam"
+    },
+    "timeline": {
+      "title": "Riwayat Peminjaman",
+      "subtitle": "{{count}} entri terbaru",
+      "empty": "Belum ada peminjaman tercatat.",
+      "returned": "kembali {{date}}"
+    }
   }
 }
