@@ -47,7 +47,36 @@
     "saldo": "Closing Balance",
     "breakdown": "Income Breakdown",
     "breakdownHint": "Manual / fines / lost / capital",
-    "detail": "Cash Detail"
+    "detail": "Cash Detail",
+    "add": "+ Add Entry",
+    "confirmDelete": "Delete this cash entry?",
+    "confirmDeleteAuto": "Delete this auto-generated cash entry? The change will be recorded in the audit log.",
+    "jenisOption": {
+      "masuk": "Income",
+      "keluar": "Expense"
+    },
+    "sumberOption": {
+      "manual": "Manual",
+      "denda": "Fine",
+      "hilang": "Lost-book replacement",
+      "modal": "Capital"
+    },
+    "form": {
+      "createTitle": "Add Cash Entry",
+      "editTitle": "Edit Cash Entry",
+      "tanggal": "Date",
+      "nominal": "Amount (IDR)",
+      "jenis": "Type",
+      "sumber": "Source",
+      "keterangan": "Notes",
+      "keteranganPlaceholder": "e.g. Donation from parents",
+      "warnAuto": "This entry is linked to a loan/return record. The edit will still be recorded in the audit log.",
+      "errorNominal": "Amount must be greater than 0.",
+      "errorKeterangan": "Notes are required.",
+      "savedCreate": "Cash entry saved.",
+      "savedUpdate": "Cash entry updated.",
+      "deleted": "Cash entry deleted."
+    }
   },
   "backup": {
     "title": "Database Backup",
