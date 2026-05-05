@@ -49,12 +49,22 @@ interface TocEntry {
   id: string;
 }
 
+/**
+ * Convert a heading text to its anchor id. We mirror GitHub's heading-anchor
+ * algorithm: strip non-alphanumeric characters but preserve every whitespace
+ * character as a single dash. This matters for headings containing `&` or
+ * em-dash (e.g. "Login & Akun", "Master Data — Anggota") — the surrounding
+ * spaces collapse into double-dash slugs (`login--akun`, `master-data--anggota`)
+ * which is the convention `docs/manual.md` was authored against. Collapsing
+ * runs of whitespace with `\s+` would produce single-dash slugs and break
+ * every "Daftar Isi" link in the rendered manual.
+ */
 const slugify = (s: string): string =>
   s
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
-    .replace(/\s+/g, '-');
+    .replace(/\s/g, '-');
 
 function extractToc(markdown: string): TocEntry[] {
   const lines = markdown.split('\n');
@@ -183,11 +193,28 @@ export function ManualPage(): JSX.Element {
               hr: () => <hr className="border-border my-6" />,
               a: ({ children, href }) => {
                 const isExternal = href != null && /^https?:\/\//.test(href);
+                const isHash = href != null && href.startsWith('#');
+                // Hash-only links from the manual's "Daftar Isi" should scroll
+                // to the matching heading inside the article. We handle this
+                // explicitly to bypass the SPA router and to use smooth scroll.
+                const handleHashClick = isHash
+                  ? (e: React.MouseEvent<HTMLAnchorElement>) => {
+                      e.preventDefault();
+                      const id = href.slice(1);
+                      if (!id) return;
+                      const node = document.getElementById(id);
+                      if (node) {
+                        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        window.history.replaceState(null, '', `#${id}`);
+                      }
+                    }
+                  : undefined;
                 return (
                   <a
                     href={href}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
+                    onClick={handleHashClick}
                     className="text-primary underline-offset-2 hover:underline"
                   >
                     {children}

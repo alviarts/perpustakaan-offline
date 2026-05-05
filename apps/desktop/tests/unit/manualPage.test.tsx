@@ -76,6 +76,27 @@ describe('ManualPage', () => {
   it('emits anchor IDs on h2 headings so the TOC scroll-jump works', () => {
     renderManual();
     const heading = screen.getByRole('heading', { name: /Login & Akun/i, level: 2 });
-    expect(heading.id).toBe('login-akun');
+    // Slugifier preserves the whitespace around `&` (and em-dash etc.) as
+    // double-dashes, mirroring `docs/manual.md`'s GitHub-style anchors.
+    expect(heading.id).toBe('login--akun');
+  });
+
+  it('renders Daftar-Isi anchor IDs that match docs/manual.md links', () => {
+    renderManual();
+    // Spot-check a handful of well-known sections that use `&` / em-dash —
+    // they must produce the exact ids referenced from `[…](#…)` in the
+    // markdown source so the in-app jump actually works.
+    expect(
+      screen.getByRole('heading', { name: /Instalasi & Jalankan Pertama Kali/i, level: 2 }).id,
+    ).toBe('instalasi--jalankan-pertama-kali');
+    expect(
+      screen.getByRole('heading', { name: /Master Data — Anggota/i, level: 2 }).id,
+    ).toBe('master-data--anggota');
+    expect(
+      screen.getByRole('heading', {
+        name: /Backup, Reset, & Lokasi Data/i,
+        level: 2,
+      }).id,
+    ).toBe('backup-reset--lokasi-data');
   });
 });
