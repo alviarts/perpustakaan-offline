@@ -13,10 +13,10 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 
 | id      | pr_group | title                                                                                              | severity | status | pr  | completed_at | depends_on |
 | ------- | -------- | -------------------------------------------------------------------------------------------------- | -------- | ------ | --- | ------------ | ---------- |
-| BUG-01  | A        | Sirkulasi (Webcam): scan QR KTA `member:1` → toast "Kode tidak dikenali"                           | HIGH     | OPEN   | —   | —            | —          |
-| BUG-17  | A        | Sirkulasi (Kembalikan): scan eksemplar barcode → "tidak ada peminjaman aktif" walau ada loan aktif | HIGH     | OPEN   | —   | —            | —          |
-| BUG-18  | A        | Barcode/QR scanner susah baca walau barcode terlihat jelas (tuning camera + decoder)               | MEDIUM   | OPEN   | —   | —            | —          |
-| FEAT-07 | A        | Rename tombol Sirkulasi: Pinjam → "Scan Anggota Pinjam", Kembalikan → "Scan Kembalikan Pinjaman"   | LOW      | OPEN   | —   | —            | —          |
+| BUG-01  | A        | Sirkulasi (Webcam): scan QR KTA `member:1` → toast "Kode tidak dikenali"                           | HIGH     | IN_PR  | #120 | —            | —          |
+| BUG-17  | A        | Sirkulasi (Kembalikan): scan eksemplar barcode → "tidak ada peminjaman aktif" walau ada loan aktif | HIGH     | IN_PR  | #120 | —            | —          |
+| BUG-18  | A        | Barcode/QR scanner susah baca walau barcode terlihat jelas (tuning camera + decoder)               | MEDIUM   | IN_PR  | #120 | —            | —          |
+| FEAT-07 | A        | Rename tombol Sirkulasi: Pinjam → "Scan Anggota Pinjam", Kembalikan → "Scan Kembalikan Pinjaman"   | LOW      | IN_PR  | #120 | —            | —          |
 | BUG-09  | B        | Aturan Peminjaman "Maksimum buku" = 3 tapi sistem block di 2; audit semua setting peminjaman       | HIGH     | OPEN   | —   | —            | —          |
 | BUG-10  | B        | Toast error peminjaman menampilkan raw JSON `{"code":"validation",...}`                            | MEDIUM   | OPEN   | —   | —            | —          |
 | FEAT-08 | B        | Pengembalian: quick-input buttons (1×/2×/3× denda per hari) di field Bayar Denda                   | MEDIUM   | OPEN   | —   | —            | BUG-09     |
