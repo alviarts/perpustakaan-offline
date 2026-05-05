@@ -18,6 +18,7 @@ import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedSirkulasiIndexRouteImport } from './routes/_authed/sirkulasi/index'
 import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
+import { Route as AuthedReservasiIndexRouteImport } from './routes/_authed/reservasi/index'
 import { Route as AuthedPengembalianIndexRouteImport } from './routes/_authed/pengembalian/index'
 import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/peminjaman/index'
 import { Route as AuthedLaporanIndexRouteImport } from './routes/_authed/laporan/index'
@@ -94,6 +95,11 @@ const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedReservasiIndexRoute = AuthedReservasiIndexRouteImport.update({
+  id: '/reservasi/',
+  path: '/reservasi/',
+  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedPengembalianIndexRoute = AuthedPengembalianIndexRouteImport.update({
   id: '/pengembalian/',
@@ -299,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/laporan/': typeof AuthedLaporanIndexRoute
   '/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/pengembalian/': typeof AuthedPengembalianIndexRoute
+  '/reservasi/': typeof AuthedReservasiIndexRoute
   '/settings/': typeof AuthedSettingsIndexRoute
   '/sirkulasi/': typeof AuthedSirkulasiIndexRoute
 }
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/laporan': typeof AuthedLaporanIndexRoute
   '/peminjaman': typeof AuthedPeminjamanIndexRoute
   '/pengembalian': typeof AuthedPengembalianIndexRoute
+  '/reservasi': typeof AuthedReservasiIndexRoute
   '/settings': typeof AuthedSettingsIndexRoute
   '/sirkulasi': typeof AuthedSirkulasiIndexRoute
 }
@@ -383,6 +391,7 @@ export interface FileRoutesById {
   '/_authed/laporan/': typeof AuthedLaporanIndexRoute
   '/_authed/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/_authed/pengembalian/': typeof AuthedPengembalianIndexRoute
+  '/_authed/reservasi/': typeof AuthedReservasiIndexRoute
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
   '/_authed/sirkulasi/': typeof AuthedSirkulasiIndexRoute
 }
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/laporan/'
     | '/peminjaman/'
     | '/pengembalian/'
+    | '/reservasi/'
     | '/settings/'
     | '/sirkulasi/'
   fileRoutesByTo: FileRoutesByTo
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/laporan'
     | '/peminjaman'
     | '/pengembalian'
+    | '/reservasi'
     | '/settings'
     | '/sirkulasi'
   id:
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/_authed/laporan/'
     | '/_authed/peminjaman/'
     | '/_authed/pengembalian/'
+    | '/_authed/reservasi/'
     | '/_authed/settings/'
     | '/_authed/sirkulasi/'
   fileRoutesById: FileRoutesById
@@ -584,6 +596,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthedSettingsIndexRouteImport
       parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/reservasi/': {
+      id: '/_authed/reservasi/'
+      path: '/reservasi'
+      fullPath: '/reservasi/'
+      preLoaderRoute: typeof AuthedReservasiIndexRouteImport
+      parentRoute: typeof AuthedRoute
     }
     '/_authed/pengembalian/': {
       id: '/_authed/pengembalian/'
@@ -891,6 +910,7 @@ interface AuthedRouteChildren {
   AuthedBukuIndexRoute: typeof AuthedBukuIndexRoute
   AuthedPeminjamanIndexRoute: typeof AuthedPeminjamanIndexRoute
   AuthedPengembalianIndexRoute: typeof AuthedPengembalianIndexRoute
+  AuthedReservasiIndexRoute: typeof AuthedReservasiIndexRoute
   AuthedSirkulasiIndexRoute: typeof AuthedSirkulasiIndexRoute
 }
 
@@ -911,6 +931,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBukuIndexRoute: AuthedBukuIndexRoute,
   AuthedPeminjamanIndexRoute: AuthedPeminjamanIndexRoute,
   AuthedPengembalianIndexRoute: AuthedPengembalianIndexRoute,
+  AuthedReservasiIndexRoute: AuthedReservasiIndexRoute,
   AuthedSirkulasiIndexRoute: AuthedSirkulasiIndexRoute,
 }
 

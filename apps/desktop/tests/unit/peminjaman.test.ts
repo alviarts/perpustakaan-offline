@@ -78,4 +78,54 @@ describe('peminjamanApi (browser mock)', () => {
     expect(stats.aktifHariIni).toBeGreaterThanOrEqual(1);
     expect(stats.totalAktif).toBe(2);
   });
+
+  it('initializes kaliPerpanjangan=0 on create', async () => {
+    const detail = await peminjamanApi.create({ anggotaId: 1, bukuIds: [10] });
+    expect(detail.header.kaliPerpanjangan).toBe(0);
+    expect(detail.header.tanggalPerpanjanganTerakhir ?? null).toBeNull();
+  });
+
+  it('extends tanggalJatuhTempo by N days and increments kaliPerpanjangan', async () => {
+    const created = await peminjamanApi.create({ anggotaId: 1, bukuIds: [10] });
+    const oldJt = created.header.tanggalJatuhTempo;
+    const result = await peminjamanApi.perpanjang({
+      peminjamanId: created.header.id,
+      days: 5,
+    });
+    expect(result.kaliPerpanjangan).toBe(1);
+    expect(result.tanggalJatuhTempoLama).toBe(oldJt);
+    expect(result.tanggalJatuhTempoBaru).not.toBe(oldJt);
+    const oldT = new Date(oldJt + 'T00:00:00Z').getTime();
+    const newT = new Date(result.tanggalJatuhTempoBaru + 'T00:00:00Z').getTime();
+    expect((newT - oldT) / 86_400_000).toBe(5);
+    expect(result.header.kaliPerpanjangan).toBe(1);
+  });
+
+  it('rejects perpanjang once max reached', async () => {
+    const created = await peminjamanApi.create({ anggotaId: 1, bukuIds: [10] });
+    await peminjamanApi.perpanjang({ peminjamanId: created.header.id });
+    await expect(
+      peminjamanApi.perpanjang({ peminjamanId: created.header.id }),
+    ).rejects.toThrow(/maksimum/i);
+  });
+
+  it('rejects perpanjang for already-returned peminjaman', async () => {
+    const created = await peminjamanApi.create({ anggotaId: 1, bukuIds: [10] });
+    await peminjamanApi.kembalikan({
+      peminjamanId: created.header.id,
+      itemIds: created.items.map((i) => i.id),
+    });
+    await expect(
+      peminjamanApi.perpanjang({ peminjamanId: created.header.id }),
+    ).rejects.toThrow();
+  });
+
+  it('return result includes empty reservasiPromoted by default', async () => {
+    const created = await peminjamanApi.create({ anggotaId: 1, bukuIds: [10] });
+    const result = await peminjamanApi.kembalikan({
+      peminjamanId: created.header.id,
+      itemIds: created.items.map((i) => i.id),
+    });
+    expect(result.reservasiPromoted).toEqual([]);
+  });
 });

@@ -41,7 +41,9 @@
     "printNota": "Print Nota",
     "return": "Kembalikan",
     "returnSelected_one": "Kembalikan {{count}} item",
-    "returnSelected_other": "Kembalikan {{count}} item"
+    "returnSelected_other": "Kembalikan {{count}} item",
+    "perpanjang": "Perpanjang",
+    "perpanjangShort": "+{{days}} hari"
   },
   "form": {
     "title": "Pinjam Baru",
@@ -76,11 +78,16 @@
     "denda": "Denda & Pembayaran",
     "totalDenda": "Total Denda",
     "totalBayar": "Total Bayar",
-    "bayar": "Bayar Denda"
+    "bayar": "Bayar Denda",
+    "kaliPerpanjangan": "Sudah diperpanjang {{count}}× (max {{max}}×)",
+    "perpanjanganTerakhir": "Terakhir diperpanjang {{tanggal}}"
   },
   "confirm": {
     "returnTitle": "Konfirmasi Pengembalian",
-    "returnDesc": "Item terpilih akan ditandai sebagai dikembalikan. Lanjutkan?"
+    "returnDesc": "Item terpilih akan ditandai sebagai dikembalikan. Lanjutkan?",
+    "perpanjangTitle": "Perpanjang Peminjaman",
+    "perpanjangDesc": "Jatuh tempo akan diperpanjang dari {{old}} menjadi {{baru}} ({{days}} hari). Lanjutkan?",
+    "perpanjangButton": "Perpanjang"
   },
   "feedback": {
     "loadError": "Gagal memuat peminjaman",
@@ -88,7 +95,10 @@
     "createError": "Gagal membuat peminjaman",
     "returned": "Pengembalian berhasil",
     "returnError": "Gagal mengembalikan",
-    "printError": "Gagal mencetak nota"
+    "printError": "Gagal mencetak nota",
+    "perpanjangSuccess": "Diperpanjang. Jatuh tempo baru: {{baru}} ({{kali}}/{{max}}×)",
+    "perpanjangError": "Gagal memperpanjang",
+    "reservasiPromoted": "Buku \"{{judul}}\" di-reserve oleh {{nama}} — simpan di rak {{slot}} (kedaluwarsa {{expired}})"
   },
   "error": {
     "anggotaRequired": "Pilih anggota terlebih dahulu",

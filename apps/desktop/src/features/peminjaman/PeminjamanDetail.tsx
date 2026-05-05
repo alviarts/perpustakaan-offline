@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, BookOpen, Printer, Undo2, User2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, CalendarPlus, Printer, Undo2, User2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,6 +24,12 @@ export function PeminjamanDetailView() {
   const [bayar, setBayar] = useState<string>('0');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [perpanjangOpen, setPerpanjangOpen] = useState(false);
+  const [perpanjangPreview, setPerpanjangPreview] = useState<{
+    days: number;
+    baru: string;
+  } | null>(null);
+  const [extending, setExtending] = useState(false);
 
   async function load(): Promise<void> {
     try {
@@ -66,7 +72,7 @@ export function PeminjamanDetailView() {
     if (selected.size === 0) return;
     setSubmitting(true);
     try {
-      await peminjamanApi.kembalikan({
+      const res = await peminjamanApi.kembalikan({
         peminjamanId: id,
         itemIds: Array.from(selected),
         bayar: Number(bayar) || 0,
@@ -74,6 +80,21 @@ export function PeminjamanDetailView() {
       showToast({
         title: t('peminjaman:feedback.returned', { defaultValue: 'Pengembalian berhasil' }),
       });
+      // FEAT-18: surface promoted reservasi to operator so they know to
+      // physically pull the book off the return cart and shelve it under
+      // the assigned slot for the next anggota.
+      for (const promo of res.reservasiPromoted ?? []) {
+        showToast({
+          title: t('peminjaman:feedback.reservasiPromoted', {
+            judul: promo.bukuJudul,
+            nama: promo.anggotaNama,
+            slot: promo.slotRak,
+            expired: promo.expiredAt,
+            defaultValue:
+              'Buku "{{judul}}" di-reserve oleh {{nama}} — simpan di rak {{slot}} (kedaluwarsa {{expired}})',
+          }),
+        });
+      }
       setConfirmOpen(false);
       await load();
     } catch (err) {
@@ -84,6 +105,54 @@ export function PeminjamanDetailView() {
       });
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function openPerpanjangDialog(): void {
+    if (!detail) return;
+    // Default extend window matches `transaksi.lama_pinjam_hari` —
+    // backend will use that setting too when `days` is omitted, so we
+    // hard-code 7 here as a safe preview value.
+    const days = 7;
+    const baru = new Date(
+      new Date(detail.header.tanggalJatuhTempo + 'T00:00:00Z').getTime() +
+        days * 86_400_000,
+    )
+      .toISOString()
+      .slice(0, 10);
+    setPerpanjangPreview({ days, baru });
+    setPerpanjangOpen(true);
+  }
+
+  async function handlePerpanjang(): Promise<void> {
+    if (!detail) return;
+    setExtending(true);
+    try {
+      const res = await peminjamanApi.perpanjang({
+        peminjamanId: id,
+        days: perpanjangPreview?.days,
+      });
+      showToast({
+        title: t('peminjaman:feedback.perpanjangSuccess', {
+          baru: res.tanggalJatuhTempoBaru,
+          kali: res.kaliPerpanjangan,
+          max: res.maxPerpanjangan,
+          defaultValue:
+            'Diperpanjang. Jatuh tempo baru: {{baru}} ({{kali}}/{{max}}×)',
+        }),
+      });
+      setPerpanjangOpen(false);
+      await load();
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('peminjaman:feedback.perpanjangError', {
+          defaultValue: 'Gagal memperpanjang',
+        }),
+        description: formatTauriError(err),
+      });
+    } finally {
+      setExtending(false);
     }
   }
 
@@ -123,6 +192,16 @@ export function PeminjamanDetailView() {
           </div>
         </div>
         <div className="flex gap-2">
+          {activeItems.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={openPerpanjangDialog}
+              data-testid="peminjaman-perpanjang"
+            >
+              <CalendarPlus className="mr-2 h-4 w-4" />
+              {t('peminjaman:action.perpanjang', { defaultValue: 'Perpanjang' })}
+            </Button>
+          )}
           <Button variant="outline" onClick={handlePrintNota}>
             <Printer className="mr-2 h-4 w-4" />
             {t('peminjaman:action.printNota', { defaultValue: 'Print Nota' })}
@@ -243,6 +322,29 @@ export function PeminjamanDetailView() {
                 </span>
                 <span className="font-medium">{header.tanggalJatuhTempo}</span>
               </div>
+              {header.kaliPerpanjangan > 0 && (
+                <div
+                  className="text-xs text-muted-foreground"
+                  data-testid="peminjaman-kali-perpanjangan"
+                >
+                  {t('peminjaman:detail.kaliPerpanjangan', {
+                    count: header.kaliPerpanjangan,
+                    max: 1,
+                    defaultValue:
+                      'Sudah diperpanjang {{count}}× (max {{max}}×)',
+                  })}
+                  {header.tanggalPerpanjanganTerakhir && (
+                    <>
+                      {' '}
+                      ·{' '}
+                      {t('peminjaman:detail.perpanjanganTerakhir', {
+                        tanggal: header.tanggalPerpanjanganTerakhir,
+                        defaultValue: 'Terakhir diperpanjang {{tanggal}}',
+                      })}
+                    </>
+                  )}
+                </div>
+              )}
               {header.tanggalKembali && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
@@ -287,6 +389,29 @@ export function PeminjamanDetailView() {
         })}
         confirmText={t('peminjaman:action.return', { defaultValue: 'Kembalikan' }) as string}
         onConfirm={handleReturn}
+      />
+
+      <ConfirmDialog
+        open={perpanjangOpen}
+        onOpenChange={(open) => {
+          if (!extending) setPerpanjangOpen(open);
+        }}
+        title={t('peminjaman:confirm.perpanjangTitle', {
+          defaultValue: 'Perpanjang Peminjaman',
+        })}
+        description={t('peminjaman:confirm.perpanjangDesc', {
+          old: header.tanggalJatuhTempo,
+          baru: perpanjangPreview?.baru ?? '',
+          days: perpanjangPreview?.days ?? 7,
+          defaultValue:
+            'Jatuh tempo akan diperpanjang dari {{old}} menjadi {{baru}} ({{days}} hari). Lanjutkan?',
+        })}
+        confirmText={
+          t('peminjaman:confirm.perpanjangButton', {
+            defaultValue: 'Perpanjang',
+          }) as string
+        }
+        onConfirm={handlePerpanjang}
       />
     </div>
   );

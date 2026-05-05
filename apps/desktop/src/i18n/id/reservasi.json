@@ -1,0 +1,65 @@
+{
+  "title": "Reservasi Buku",
+  "subtitle": "Antrian buku yang sedang dipinjam — anggota lain bisa daftar untuk dipanggil saat buku kembali",
+  "empty": "Belum ada reservasi aktif",
+  "column": {
+    "urutan": "Antrian",
+    "anggota": "Anggota",
+    "buku": "Buku",
+    "tanggalRequest": "Tanggal Request",
+    "status": "Status",
+    "slot": "Slot Rak",
+    "expired": "Kedaluwarsa",
+    "aksi": "Aksi"
+  },
+  "status": {
+    "menunggu": "Menunggu",
+    "siap_diambil": "Siap Diambil",
+    "diambil": "Diambil",
+    "expired": "Kedaluwarsa",
+    "dibatalkan": "Dibatalkan"
+  },
+  "filter": {
+    "all": "Semua Aktif",
+    "menunggu": "Menunggu",
+    "siap_diambil": "Siap Diambil"
+  },
+  "action": {
+    "create": "Reservasi (Antri)",
+    "createShort": "Antri",
+    "cancel": "Batalkan",
+    "markDiambil": "Tandai Diambil",
+    "checkExpired": "Cek Kedaluwarsa"
+  },
+  "confirm": {
+    "createTitle": "Buat Reservasi",
+    "createDesc": "Anggota {{nama}} akan masuk antrian untuk buku \"{{judul}}\". Lanjutkan?",
+    "createButton": "Masukkan Antrian",
+    "cancelTitle": "Batalkan Reservasi",
+    "cancelDesc": "Reservasi ini akan ditandai dibatalkan dan antrian berikutnya akan naik ke urutan yang lebih atas. Lanjutkan?",
+    "cancelButton": "Batalkan",
+    "markDiambilTitle": "Tandai Diambil",
+    "markDiambilDesc": "Konfirmasi anggota {{nama}} sudah mengambil buku \"{{judul}}\" dari rak {{slot}}.",
+    "markDiambilButton": "Tandai Diambil"
+  },
+  "feedback": {
+    "loadError": "Gagal memuat reservasi",
+    "createSuccess": "Reservasi dibuat — urutan ke-{{urutan}}",
+    "createError": "Gagal membuat reservasi",
+    "cancelSuccess": "Reservasi dibatalkan",
+    "cancelError": "Gagal membatalkan reservasi",
+    "markDiambilSuccess": "Reservasi ditandai sudah diambil",
+    "markDiambilError": "Gagal menandai diambil",
+    "checkExpiredDone": "{{count}} reservasi kedaluwarsa diproses"
+  },
+  "countdown": {
+    "today": "Hari ini",
+    "days_one": "{{count}} hari lagi",
+    "days_other": "{{count}} hari lagi",
+    "overdue": "Lewat {{count}} hari"
+  },
+  "panel": {
+    "myReservasi": "Reservasi Saya",
+    "myReservasiEmpty": "Belum punya reservasi aktif"
+  }
+}
