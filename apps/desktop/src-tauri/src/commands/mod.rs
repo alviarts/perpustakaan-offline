@@ -16,4 +16,5 @@ pub mod laporan;
 pub mod master_data;
 pub mod peminjaman;
 pub mod settings;
+pub mod user_profile;
 pub mod window_state;

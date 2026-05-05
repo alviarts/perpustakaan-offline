@@ -280,6 +280,26 @@ CREATE INDEX IF NOT EXISTS idx_user_permissions_user ON user_permissions(user_id
 CREATE INDEX IF NOT EXISTS idx_user_permissions_key  ON user_permissions(permission_key);
 
 -- ----------------------------------------------------------------------------
+-- User profile / biodata (v1.0.4 #16) — admin/pustakawan can edit display name,
+-- portrait, contact info, and personal data. Username + role + password remain
+-- managed by Settings → Akun. One row per users.id; FK ON DELETE CASCADE so
+-- removing the user also wipes their biodata.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id        INTEGER PRIMARY KEY,
+    foto_path      TEXT,
+    tanggal_lahir  TEXT,             -- ISO date YYYY-MM-DD, nullable
+    tempat_lahir   TEXT,
+    telepon        TEXT,
+    email          TEXT,
+    alamat         TEXT,
+    jenis_kelamin  TEXT,             -- 'L' | 'P' | NULL
+    agama          TEXT,
+    updated_at     TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ----------------------------------------------------------------------------
 -- Audit log (siapa-melakukan-apa)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS audit_log (

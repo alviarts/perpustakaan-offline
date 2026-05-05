@@ -79,6 +79,13 @@ fn compress_opts_for(category: &str) -> Option<CompressOpts> {
             max_dim: 512,
             jpeg_quality: 92,
         }),
+        // Operator/admin biodata portraits (v1.0.4 #16). Same envelope as
+        // anggota: header avatar tops out around 28 px and the profile
+        // dialog preview at ~96 px, so 800 px is plenty even on hi-DPI.
+        "user" => Some(CompressOpts {
+            max_dim: 800,
+            jpeg_quality: 85,
+        }),
         _ => None,
     }
 }

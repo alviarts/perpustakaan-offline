@@ -8,7 +8,7 @@ import { isTauri } from '@/lib/auth';
  * validated by `validate_category` in `commands/assets.rs`, so adding a
  * new category here also requires bumping the allow-list there.
  */
-export type AssetCategory = 'anggota' | 'buku' | 'identitas';
+export type AssetCategory = 'anggota' | 'buku' | 'identitas' | 'user';
 
 /** Image extensions accepted by the Tauri file dialog and the backend. */
 export const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp'] as const;
