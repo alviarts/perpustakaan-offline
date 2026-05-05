@@ -9,6 +9,7 @@ import { KpiCard } from '@/components/shared/KpiCard';
 import { ChartPie } from '@/components/shared/ChartPie';
 import { ChartBar } from '@/components/shared/ChartBar';
 import { LiveClock } from '@/components/shared/LiveClock';
+import { OverduePanel } from '@/features/dashboard/OverduePanel';
 import { getQuoteForDate } from '@/lib/dailyQuote';
 import { formatTauriError } from '@/lib/errors';
 import {
@@ -159,6 +160,8 @@ export function DashboardPage() {
               loading={loading}
             />
           </section>
+
+          <OverduePanel />
 
           <section className="grid gap-4 lg:grid-cols-2">
             <Card>

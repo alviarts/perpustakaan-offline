@@ -74,6 +74,15 @@
     "pick": "Pilih file…",
     "clear": "Hapus file"
   },
+  "notifications": {
+    "title": "Notifikasi",
+    "overdueTitle": "Peminjaman Terlambat",
+    "overdueSubtitle": "{{count}} buku belum dikembalikan",
+    "overdueEmpty": "Tidak ada keterlambatan",
+    "overdueEmptyHint": "Semua peminjaman tepat waktu.",
+    "daysLate": "{{days}} hari",
+    "viewAll": "Lihat semua di Peminjaman"
+  },
   "profile": {
     "title": "Profil Pengguna",
     "description": "Ubah biodata akun Anda. Username, peran, dan kata sandi diatur lewat Pengaturan → Akun.",
