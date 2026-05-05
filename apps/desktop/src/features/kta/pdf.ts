@@ -102,6 +102,21 @@ function placeCard(idx: number, cols: number, rows: number, cardW: number, cardH
   };
 }
 
+function drawRectField(doc: jsPDF, field: KtaField, rect: CardRect): void {
+  const fx = rect.x + (field.x / 100) * rect.width;
+  const fy = rect.y + (field.y / 100) * rect.height;
+  const fw = (field.width / 100) * rect.width;
+  const fh = (field.height / 100) * rect.height;
+  const rgb = parseHexRgb(field.fill) ?? [15, 23, 42];
+  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+  const r = Math.max(0, field.radius ?? 0);
+  if (r > 0) {
+    doc.roundedRect(fx, fy, fw, fh, r, r, 'F');
+  } else {
+    doc.rect(fx, fy, fw, fh, 'F');
+  }
+}
+
 function drawCardBorder(doc: jsPDF, rect: CardRect): void {
   doc.setDrawColor(...CARD_BORDER_RGB);
   doc.setLineDashPattern([1, 1], 0);
@@ -228,7 +243,9 @@ export async function buildKtaPdfBytes(input: KtaPdfInput): Promise<Uint8Array> 
     ]);
 
     for (const f of layout.fields) {
-      if (f.kind === 'foto') {
+      if (f.kind === 'rect') {
+        drawRectField(doc, f, rect);
+      } else if (f.kind === 'foto') {
         drawFotoField(doc, f, rect, fotoUrl);
       } else if (f.kind === 'qr') {
         drawQrField(doc, f, rect, qrUrl);

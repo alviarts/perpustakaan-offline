@@ -64,6 +64,12 @@ function fieldHtml(
     'align-items:center',
   ].join(';');
 
+  if (field.kind === 'rect') {
+    const fill = field.fill ?? '#0f172a';
+    const radius = field.radius ? `border-radius:${Math.max(0, field.radius)}mm;` : '';
+    return `<div style="${baseStyle};background:${fill};${radius}padding:0"></div>`;
+  }
+
   if (field.kind === 'foto') {
     const src = anggota.fotoPath
       ? escape(anggota.fotoPath)
