@@ -1,0 +1,60 @@
+{
+  "menu": {
+    "cetak": "Print Labels",
+    "settings": "Book Label Templates"
+  },
+  "settings": {
+    "title": "Book Labels — Template Editor",
+    "subtitle": "Configure book barcode label layout: title, code, barcode/QR.",
+    "list": "Template List",
+    "newTemplate": "New Template",
+    "fieldName": "Template Name",
+    "fieldDescription": "Description",
+    "save": "Save",
+    "delete": "Delete",
+    "setDefault": "Set as Default"
+  },
+  "gallery": {
+    "open": "Template Gallery",
+    "title": "Book Label Template Gallery",
+    "description": "Pick one of the bundled designs as a starting point. You can still tweak colours, positions, and text via the template editor.",
+    "use": "Use this template",
+    "applied": "Template loaded",
+    "appliedHint": "Click 'Save' to persist, or adjust colour / position first."
+  },
+  "cetak": {
+    "title": "Print Book Labels & Barcodes",
+    "subtitle": "Pick a template then pick books — one label is printed per copy.",
+    "searchPlaceholder": "Search title / book code / author…",
+    "selectAll": "Select all",
+    "clearAll": "Clear selection",
+    "template": "Template",
+    "selectTemplate": "Pick template…",
+    "print": "Print",
+    "printing": "Preparing…",
+    "savePdf": "Save PDF",
+    "saving": "Saving…",
+    "manageTemplates": "Manage Templates",
+    "summary": "{{books}} books selected · {{labels}} labels to print",
+    "empty": "No matching books",
+    "col": {
+      "kode": "Code",
+      "judul": "Title",
+      "eksemplar": "Copies"
+    }
+  },
+  "toast": {
+    "nameRequired": "Template name is required",
+    "saved": "Template saved",
+    "saveFailed": "Failed to save",
+    "deleted": "Template deleted",
+    "defaultSet": "Default template set",
+    "selectBook": "Select at least one book",
+    "selectTemplate": "Pick a template first",
+    "noEksemplar": "Selected books have no copies to print",
+    "printing": "Printing {{count}} labels",
+    "printFailed": "Failed to print",
+    "pdfSaved": "PDF saved",
+    "pdfFailed": "Failed to save PDF"
+  }
+}

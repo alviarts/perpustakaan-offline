@@ -27,6 +27,7 @@ import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/set
 import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
 import { Route as AuthedSettingsManualRouteImport } from './routes/_authed/settings/manual'
+import { Route as AuthedSettingsLabelBukuRouteImport } from './routes/_authed/settings/label-buku'
 import { Route as AuthedSettingsKtaRouteImport } from './routes/_authed/settings/kta'
 import { Route as AuthedSettingsIdentitasRouteImport } from './routes/_authed/settings/identitas'
 import { Route as AuthedSettingsHakAksesRouteImport } from './routes/_authed/settings/hak-akses'
@@ -43,6 +44,7 @@ import { Route as AuthedLaporanKasRouteImport } from './routes/_authed/laporan/k
 import { Route as AuthedLaporanGrafikRouteImport } from './routes/_authed/laporan/grafik'
 import { Route as AuthedLaporanBackupRouteImport } from './routes/_authed/laporan/backup'
 import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
+import { Route as AuthedBukuCetakLabelRouteImport } from './routes/_authed/buku/cetak-label'
 import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
 import { Route as AuthedAnggotaCetakKtaRouteImport } from './routes/_authed/anggota/cetak-kta'
@@ -139,6 +141,11 @@ const AuthedSettingsManualRoute = AuthedSettingsManualRouteImport.update({
   path: '/manual',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsLabelBukuRoute = AuthedSettingsLabelBukuRouteImport.update({
+  id: '/label-buku',
+  path: '/label-buku',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
 const AuthedSettingsKtaRoute = AuthedSettingsKtaRouteImport.update({
   id: '/kta',
   path: '/kta',
@@ -221,6 +228,11 @@ const AuthedBukuNewRoute = AuthedBukuNewRouteImport.update({
   path: '/buku/new',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedBukuCetakLabelRoute = AuthedBukuCetakLabelRouteImport.update({
+  id: '/buku/cetak-label',
+  path: '/buku/cetak-label',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedBukuIdRoute = AuthedBukuIdRouteImport.update({
   id: '/buku/$id',
   path: '/buku/$id',
@@ -253,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
+  '/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/buku/new': typeof AuthedBukuNewRoute
   '/laporan/backup': typeof AuthedLaporanBackupRoute
   '/laporan/grafik': typeof AuthedLaporanGrafikRoute
@@ -269,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
   '/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/settings/kta': typeof AuthedSettingsKtaRoute
+  '/settings/label-buku': typeof AuthedSettingsLabelBukuRoute
   '/settings/manual': typeof AuthedSettingsManualRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
@@ -290,6 +304,7 @@ export interface FileRoutesByTo {
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
+  '/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/buku/new': typeof AuthedBukuNewRoute
   '/laporan/backup': typeof AuthedLaporanBackupRoute
   '/laporan/grafik': typeof AuthedLaporanGrafikRoute
@@ -306,6 +321,7 @@ export interface FileRoutesByTo {
   '/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
   '/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/settings/kta': typeof AuthedSettingsKtaRoute
+  '/settings/label-buku': typeof AuthedSettingsLabelBukuRoute
   '/settings/manual': typeof AuthedSettingsManualRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
@@ -331,6 +347,7 @@ export interface FileRoutesById {
   '/_authed/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
   '/_authed/buku/$id': typeof AuthedBukuIdRoute
+  '/_authed/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/_authed/buku/new': typeof AuthedBukuNewRoute
   '/_authed/laporan/backup': typeof AuthedLaporanBackupRoute
   '/_authed/laporan/grafik': typeof AuthedLaporanGrafikRoute
@@ -347,6 +364,7 @@ export interface FileRoutesById {
   '/_authed/settings/hak-akses': typeof AuthedSettingsHakAksesRoute
   '/_authed/settings/identitas': typeof AuthedSettingsIdentitasRoute
   '/_authed/settings/kta': typeof AuthedSettingsKtaRoute
+  '/_authed/settings/label-buku': typeof AuthedSettingsLabelBukuRoute
   '/_authed/settings/manual': typeof AuthedSettingsManualRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
   '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
@@ -372,6 +390,7 @@ export interface FileRouteTypes {
     | '/anggota/cetak-kta'
     | '/anggota/new'
     | '/buku/$id'
+    | '/buku/cetak-label'
     | '/buku/new'
     | '/laporan/backup'
     | '/laporan/grafik'
@@ -388,6 +407,7 @@ export interface FileRouteTypes {
     | '/settings/hak-akses'
     | '/settings/identitas'
     | '/settings/kta'
+    | '/settings/label-buku'
     | '/settings/manual'
     | '/settings/master-data'
     | '/settings/sinkronisasi'
@@ -409,6 +429,7 @@ export interface FileRouteTypes {
     | '/anggota/cetak-kta'
     | '/anggota/new'
     | '/buku/$id'
+    | '/buku/cetak-label'
     | '/buku/new'
     | '/laporan/backup'
     | '/laporan/grafik'
@@ -425,6 +446,7 @@ export interface FileRouteTypes {
     | '/settings/hak-akses'
     | '/settings/identitas'
     | '/settings/kta'
+    | '/settings/label-buku'
     | '/settings/manual'
     | '/settings/master-data'
     | '/settings/sinkronisasi'
@@ -449,6 +471,7 @@ export interface FileRouteTypes {
     | '/_authed/anggota/cetak-kta'
     | '/_authed/anggota/new'
     | '/_authed/buku/$id'
+    | '/_authed/buku/cetak-label'
     | '/_authed/buku/new'
     | '/_authed/laporan/backup'
     | '/_authed/laporan/grafik'
@@ -465,6 +488,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/hak-akses'
     | '/_authed/settings/identitas'
     | '/_authed/settings/kta'
+    | '/_authed/settings/label-buku'
     | '/_authed/settings/manual'
     | '/_authed/settings/master-data'
     | '/_authed/settings/sinkronisasi'
@@ -612,6 +636,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsManualRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
+    '/_authed/settings/label-buku': {
+      id: '/_authed/settings/label-buku'
+      path: '/label-buku'
+      fullPath: '/settings/label-buku'
+      preLoaderRoute: typeof AuthedSettingsLabelBukuRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
     '/_authed/settings/kta': {
       id: '/_authed/settings/kta'
       path: '/kta'
@@ -724,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBukuNewRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/buku/cetak-label': {
+      id: '/_authed/buku/cetak-label'
+      path: '/buku/cetak-label'
+      fullPath: '/buku/cetak-label'
+      preLoaderRoute: typeof AuthedBukuCetakLabelRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/buku/$id': {
       id: '/_authed/buku/$id'
       path: '/buku/$id'
@@ -786,6 +824,7 @@ interface AuthedSettingsRouteChildren {
   AuthedSettingsHakAksesRoute: typeof AuthedSettingsHakAksesRoute
   AuthedSettingsIdentitasRoute: typeof AuthedSettingsIdentitasRoute
   AuthedSettingsKtaRoute: typeof AuthedSettingsKtaRoute
+  AuthedSettingsLabelBukuRoute: typeof AuthedSettingsLabelBukuRoute
   AuthedSettingsManualRoute: typeof AuthedSettingsManualRoute
   AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
   AuthedSettingsSinkronisasiRoute: typeof AuthedSettingsSinkronisasiRoute
@@ -803,6 +842,7 @@ const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsHakAksesRoute: AuthedSettingsHakAksesRoute,
   AuthedSettingsIdentitasRoute: AuthedSettingsIdentitasRoute,
   AuthedSettingsKtaRoute: AuthedSettingsKtaRoute,
+  AuthedSettingsLabelBukuRoute: AuthedSettingsLabelBukuRoute,
   AuthedSettingsManualRoute: AuthedSettingsManualRoute,
   AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
   AuthedSettingsSinkronisasiRoute: AuthedSettingsSinkronisasiRoute,
@@ -824,6 +864,7 @@ interface AuthedRouteChildren {
   AuthedAnggotaCetakKtaRoute: typeof AuthedAnggotaCetakKtaRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
   AuthedBukuIdRoute: typeof AuthedBukuIdRoute
+  AuthedBukuCetakLabelRoute: typeof AuthedBukuCetakLabelRoute
   AuthedBukuNewRoute: typeof AuthedBukuNewRoute
   AuthedPeminjamanIdRoute: typeof AuthedPeminjamanIdRoute
   AuthedPeminjamanNewRoute: typeof AuthedPeminjamanNewRoute
@@ -842,6 +883,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAnggotaCetakKtaRoute: AuthedAnggotaCetakKtaRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
   AuthedBukuIdRoute: AuthedBukuIdRoute,
+  AuthedBukuCetakLabelRoute: AuthedBukuCetakLabelRoute,
   AuthedBukuNewRoute: AuthedBukuNewRoute,
   AuthedPeminjamanIdRoute: AuthedPeminjamanIdRoute,
   AuthedPeminjamanNewRoute: AuthedPeminjamanNewRoute,

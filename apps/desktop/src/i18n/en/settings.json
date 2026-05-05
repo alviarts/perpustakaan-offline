@@ -53,6 +53,10 @@
       "label": "Member Card (KTA)",
       "summary": "Card template, barcode, fonts."
     },
+    "labelBuku": {
+      "label": "Book Labels & Barcodes",
+      "summary": "Book barcode label templates for spine & cover stickers."
+    },
     "tampilan": {
       "label": "Appearance",
       "summary": "Theme, text size, layout density.",

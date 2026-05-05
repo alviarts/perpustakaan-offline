@@ -74,6 +74,20 @@ export const SECTIONS: SectionDef[] = [
     keywords: ['kta', 'kartu', 'member card', 'template', 'barcode'],
   },
   {
+    id: 'label-buku',
+    to: '/settings/label-buku',
+    i18nKey: 'labelBuku',
+    Icon: BookText,
+    keywords: [
+      'label buku',
+      'book label',
+      'barcode buku',
+      'spine label',
+      'punggung buku',
+      'template',
+    ],
+  },
+  {
     id: 'tampilan',
     to: '/settings/tampilan',
     i18nKey: 'tampilan',

@@ -1,0 +1,60 @@
+{
+  "menu": {
+    "cetak": "Cetak Label",
+    "settings": "Template Label Buku"
+  },
+  "settings": {
+    "title": "Label Buku — Template Editor",
+    "subtitle": "Atur layout label barcode buku: judul, kode, barcode/QR.",
+    "list": "Daftar Template",
+    "newTemplate": "Template Baru",
+    "fieldName": "Nama Template",
+    "fieldDescription": "Deskripsi",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "setDefault": "Jadikan Default"
+  },
+  "gallery": {
+    "open": "Galeri Template",
+    "title": "Galeri Template Label Buku",
+    "description": "Pilih salah satu desain bawaan untuk dijadikan titik awal. Setelah dipilih, Anda tetap bisa mengubah warna, posisi, dan teks lewat editor template.",
+    "use": "Gunakan template ini",
+    "applied": "Template dimuat",
+    "appliedHint": "Klik 'Simpan' untuk menyimpan, atau ubah dulu warna / posisi sesuai kebutuhan."
+  },
+  "cetak": {
+    "title": "Cetak Label & Barcode Buku",
+    "subtitle": "Pilih template lalu pilih buku — satu label akan dicetak untuk tiap eksemplar.",
+    "searchPlaceholder": "Cari judul / kode buku / pengarang…",
+    "selectAll": "Pilih semua",
+    "clearAll": "Hapus semua",
+    "template": "Template",
+    "selectTemplate": "Pilih template…",
+    "print": "Cetak",
+    "printing": "Menyiapkan…",
+    "savePdf": "Simpan PDF",
+    "saving": "Menyimpan…",
+    "manageTemplates": "Kelola Template",
+    "summary": "{{books}} buku terpilih · {{labels}} label akan dicetak",
+    "empty": "Tidak ada buku yang cocok",
+    "col": {
+      "kode": "Kode",
+      "judul": "Judul",
+      "eksemplar": "Eksemplar"
+    }
+  },
+  "toast": {
+    "nameRequired": "Nama template wajib diisi",
+    "saved": "Template tersimpan",
+    "saveFailed": "Gagal menyimpan",
+    "deleted": "Template dihapus",
+    "defaultSet": "Template default diatur",
+    "selectBook": "Pilih minimal satu buku",
+    "selectTemplate": "Pilih template terlebih dahulu",
+    "noEksemplar": "Buku terpilih tidak punya eksemplar untuk dicetak",
+    "printing": "Mencetak {{count}} label",
+    "printFailed": "Gagal mencetak",
+    "pdfSaved": "PDF tersimpan",
+    "pdfFailed": "Gagal menyimpan PDF"
+  }
+}

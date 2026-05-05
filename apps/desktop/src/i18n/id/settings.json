@@ -53,6 +53,10 @@
       "label": "Kartu Tanda Anggota",
       "summary": "Template kartu, barcode, font."
     },
+    "labelBuku": {
+      "label": "Label Buku & Barcode",
+      "summary": "Template label barcode buku untuk stiker punggung & cover."
+    },
     "tampilan": {
       "label": "Tampilan",
       "summary": "Tema, ukuran teks, kerapatan tampilan.",

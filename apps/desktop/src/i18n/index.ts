@@ -13,6 +13,7 @@ import idLaporan from './id/laporan.json';
 import idSettings from './id/settings.json';
 import idMasterData from './id/master-data.json';
 import idKta from './id/kta.json';
+import idLabelBuku from './id/label-buku.json';
 import idErrors from './id/errors.json';
 
 import enCommon from './en/common.json';
@@ -27,6 +28,7 @@ import enLaporan from './en/laporan.json';
 import enSettings from './en/settings.json';
 import enMasterData from './en/master-data.json';
 import enKta from './en/kta.json';
+import enLabelBuku from './en/label-buku.json';
 import enErrors from './en/errors.json';
 
 export const NAMESPACES = [
@@ -42,6 +44,7 @@ export const NAMESPACES = [
   'settings',
   'masterData',
   'kta',
+  'label-buku',
   'errors',
 ] as const;
 
@@ -62,6 +65,7 @@ const resources = {
     settings: idSettings,
     masterData: idMasterData,
     kta: idKta,
+    'label-buku': idLabelBuku,
     errors: idErrors,
   },
   en: {
@@ -77,6 +81,7 @@ const resources = {
     settings: enSettings,
     masterData: enMasterData,
     kta: enKta,
+    'label-buku': enLabelBuku,
     errors: enErrors,
   },
 } as const;

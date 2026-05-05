@@ -9,6 +9,7 @@ import {
   FileSpreadsheet,
   Pencil,
   Plus,
+  Printer,
   Search,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -205,6 +206,12 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           <Button variant="outline" onClick={() => setImportOpen(true)} data-testid="buku-import">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('buku:list.import')}
+          </Button>
+          <Button variant="outline" asChild data-testid="buku-cetak-label">
+            <Link to="/buku/cetak-label">
+              <Printer className="mr-2 h-4 w-4" />
+              {t('label-buku:menu.cetak', { defaultValue: 'Cetak Label' })}
+            </Link>
           </Button>
           <Button asChild data-testid="buku-add">
             <Link to="/buku/new">
