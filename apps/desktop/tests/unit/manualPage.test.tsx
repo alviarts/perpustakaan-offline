@@ -65,13 +65,22 @@ describe('ManualPage', () => {
     }
   });
 
-  it('shows an empty-state message when the search has no matches', async () => {
-    renderManual();
-    const user = userEvent.setup();
-    const search = screen.getByTestId('manual-search');
-    await user.type(search, 'zzznotinmanual');
-    expect(screen.getByText(/Tidak ada bagian yang cocok/i)).toBeInTheDocument();
-  });
+  it(
+    'shows an empty-state message when the search has no matches',
+    async () => {
+      renderManual();
+      const user = userEvent.setup();
+      const search = screen.getByTestId('manual-search');
+      await user.type(search, 'zzznotinmanual');
+      expect(screen.getByText(/Tidak ada bagian yang cocok/i)).toBeInTheDocument();
+    },
+    // The full manual.md re-renders on every keystroke when the search
+    // input updates state, so 14 chars × the ~200ms render cost can push
+    // this past the default 5s when the suite runs in parallel. Give it
+    // breathing room — the user-facing perf is still snappy because real
+    // usage doesn't render the manual at this density.
+    15000,
+  );
 
   it('emits anchor IDs on h2 headings so the TOC scroll-jump works', () => {
     renderManual();

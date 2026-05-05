@@ -549,10 +549,69 @@ ukuran & tanggal.
 
 ### Tab "Sinkronisasi"
 
-> Placeholder untuk sinkronisasi data antar perangkat. Saat ini belum
-> ada backend implementation — setting `lastSync` hanya di-update
-> ke timestamp saat ini ketika tombol "Sinkronisasi Sekarang" diklik.
-> Akan diisi di rilis mendatang.
+Sinkronisasi opsional ke **Google Sheets** sebagai backup eksternal /
+read-only mirror. Form di tab ini meminta dua nilai: **ID Spreadsheet**
+(target sheet) dan **API Key** (kredensial Google Cloud yang punya
+akses ke Google Sheets API).
+
+> **Status v1.0.6:** field tersimpan secara lokal tapi backend belum
+> mengirim data — tombol "Sinkron sekarang" hanya men-update kolom
+> `lastSync`. Sinkron penuh akan dirilis di versi berikutnya. Anda
+> tetap bisa mengisi nilai sekarang supaya nanti tidak perlu setup lagi.
+
+#### Cara dapat ID Spreadsheet
+
+1. Buka spreadsheet Google Sheets yang akan dipakai (atau buat baru di
+   <https://sheets.google.com>).
+2. Lihat URL di bilah alamat browser. Formatnya:
+
+   ```
+   https://docs.google.com/spreadsheets/d/<ID-SPREADSHEET>/edit#gid=0
+   ```
+
+3. **Copy bagian `<ID-SPREADSHEET>`** — teks panjang antara `/d/` dan
+   `/edit` (biasanya 40+ karakter campuran huruf-angka).
+4. Paste ke field **ID Spreadsheet** di tab Sinkronisasi.
+
+#### Cara dapat API Key
+
+API key dipakai supaya aplikasi Perpustakaan Nusantara bisa membaca
+spreadsheet Anda lewat **Google Sheets API**. Pembuatan key gratis dan
+tidak butuh kartu kredit.
+
+1. Buka **Google Cloud Console**:
+   <https://console.cloud.google.com/>. Login dengan akun Google yang
+   sama.
+2. Dari **dropdown project** di kiri atas, **buat project baru**
+   (mis. "Perpustakaan Nusantara") atau pilih project yang sudah ada.
+3. **Aktifkan Google Sheets API**: buka
+   <https://console.cloud.google.com/apis/library/sheets.googleapis.com>
+   lalu klik tombol **Enable**.
+4. Buka menu **APIs & Services → Credentials** (atau
+   <https://console.cloud.google.com/apis/credentials>).
+5. Klik **Create Credentials → API key**. Sebuah key baru akan muncul,
+   panjang dan dimulai dengan `AIza...`.
+6. **Copy nilai API key** itu dan **paste ke field API Key** di tab
+   Sinkronisasi.
+7. **Disarankan untuk keamanan**: klik nama API key tadi → di bagian
+   **API restrictions** pilih **Restrict key** dan centang hanya
+   **Google Sheets API**. Ini mencegah key dipakai untuk service Google
+   lain kalau bocor.
+
+#### Sharing Spreadsheet
+
+Karena sinkronisasi memakai **API key** (bukan OAuth user), spreadsheet
+tujuan harus dibuat **bisa-dibaca-publik** supaya API key bisa
+mengaksesnya:
+
+1. Buka spreadsheet → klik tombol **Share** di kanan atas.
+2. Di bagian **General access**, pilih **Anyone with the link**.
+3. Set role ke **Viewer** (cukup baca) — atau **Editor** kalau aplikasi
+   nantinya perlu menulis ke sheet.
+4. Klik **Done**.
+
+Spreadsheet sekarang bisa diakses dengan API key Anda. Anda bisa
+balik ke aplikasi, klik **Aktifkan Sinkronisasi**, lalu **Simpan**.
 
 ### Tab "Audit Log"
 

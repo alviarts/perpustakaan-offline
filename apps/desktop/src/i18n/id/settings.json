@@ -173,7 +173,39 @@
       },
       "syncNow": "Sinkron sekarang",
       "syncSuccess": "Sinkronisasi berhasil.",
-      "syncError": "Sinkronisasi gagal."
+      "syncError": "Sinkronisasi gagal.",
+      "guide": {
+        "title": "Cara dapat ID Spreadsheet & API Key",
+        "intro": "Sinkronisasi memerlukan dua nilai: ID dari spreadsheet Google Sheets yang akan dipakai sebagai tujuan sinkron, dan API key dari Google Cloud Console yang punya izin akses Google Sheets API. Ikuti langkah berikut.",
+        "spreadsheetId": {
+          "title": "1. ID Spreadsheet",
+          "step1": "Buka spreadsheet Google Sheets yang akan dipakai (atau buat baru di https://sheets.google.com).",
+          "step2": "Lihat URL di bilah alamat browser. Formatnya seperti ini:",
+          "exampleUrl": "https://docs.google.com/spreadsheets/d/1aBcDeFgHIjkLMNopQRstUvWxYz0123456789AbcDe/edit#gid=0",
+          "step3": "Copy bagian ID — yaitu teks panjang antara /d/ dan /edit. Pada contoh di atas: 1aBcDeFgHIjkLMNopQRstUvWxYz0123456789AbcDe.",
+          "step4": "Paste ke field ID Spreadsheet di atas."
+        },
+        "apiKey": {
+          "title": "2. API Key (Google Cloud Console)",
+          "step1": "Buka Google Cloud Console: https://console.cloud.google.com/. Login dengan akun Google yang sama (gratis, tidak perlu kartu kredit).",
+          "step2": "Buat project baru (atau pilih project yang ada) dari dropdown project di kiri atas.",
+          "step3": "Aktifkan Google Sheets API: buka https://console.cloud.google.com/apis/library/sheets.googleapis.com lalu klik Enable.",
+          "step4": "Buka menu APIs & Services → Credentials, lalu klik Create Credentials → API key. Sebuah key baru akan muncul.",
+          "step5": "Copy nilai API key tersebut (formatnya panjang, dimulai dengan AIza...) dan paste ke field API Key di atas.",
+          "step6": "Disarankan: klik nama API key tadi, lalu di bagian API restrictions pilih Restrict key dan centang hanya Google Sheets API supaya key tidak disalahgunakan."
+        },
+        "sharing": {
+          "title": "3. Setting Sharing Spreadsheet",
+          "intro": "Karena sinkronisasi memakai API key (bukan OAuth), spreadsheet harus dibuat bisa-dibaca-publik supaya API key bisa mengaksesnya:",
+          "step1": "Buka spreadsheet → klik tombol Share (kanan atas).",
+          "step2": "Di bagian General access, pilih Anyone with the link.",
+          "step3": "Set role ke Viewer (cukup baca) — atau Editor kalau aplikasi nantinya perlu menulis ke sheet.",
+          "step4": "Klik Done. Spreadsheet sekarang bisa diakses dengan API key Anda."
+        },
+        "openCloudConsole": "Buka Google Cloud Console",
+        "openSheetsApi": "Buka halaman Google Sheets API",
+        "devNote": "Catatan: backend sinkronisasi masih dalam tahap pengembangan. Nilai ID Spreadsheet dan API Key yang Anda simpan saat ini akan disimpan secara lokal dan otomatis dipakai begitu sinkronisasi penuh dirilis di versi berikutnya."
+      }
     },
     "auditLog": {
       "label": "Audit Log",
