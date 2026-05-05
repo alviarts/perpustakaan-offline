@@ -18,6 +18,13 @@ interface Props {
   selectedFieldId?: string | null;
   onSelectField?: (id: string | null) => void;
   scale?: number;
+  /**
+   * When true, the card stretches to fill the parent container's width and
+   * keeps its aspect ratio via `aspect-ratio`. `scale` is ignored. Use for
+   * narrow side panels (e.g. Cetak KTA preview column) where the natural
+   * pixel size of an ID-1 card would overflow.
+   */
+  fitToWidth?: boolean;
   className?: string;
 }
 
@@ -28,10 +35,20 @@ export function KtaPreview({
   selectedFieldId,
   onSelectField,
   scale = 2,
+  fitToWidth = false,
   className,
 }: Props) {
   const widthPx = Math.round(layout.widthMm * MM_TO_PX * scale);
   const heightPx = Math.round(layout.heightMm * MM_TO_PX * scale);
+  const sizeStyle: React.CSSProperties = fitToWidth
+    ? {
+        width: '100%',
+        aspectRatio: `${layout.widthMm} / ${layout.heightMm}`,
+      }
+    : {
+        width: widthPx,
+        height: heightPx,
+      };
 
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
@@ -57,8 +74,7 @@ export function KtaPreview({
       data-testid="kta-preview"
       className={className}
       style={{
-        width: widthPx,
-        height: heightPx,
+        ...sizeStyle,
         position: 'relative',
         background: layout.background ?? '#ffffff',
         border: '1px solid #cbd5e1',

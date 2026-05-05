@@ -338,7 +338,7 @@ export function CetakKtaPage() {
         <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <h3 className="text-sm font-semibold">Preview</h3>
           {previewAnggota ? (
-            <KtaPreview layout={layout} anggota={previewAnggota} identity={identity} scale={2.4} />
+            <KtaPreview layout={layout} anggota={previewAnggota} identity={identity} fitToWidth />
           ) : (
             <p className="text-sm text-muted-foreground">Pilih anggota untuk lihat preview.</p>
           )}
