@@ -13,6 +13,72 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-05-04
+
+### Added
+
+- **KTA export PDF + open output folder** — "Cetak KTA" page now ships a
+  "Simpan PDF" button that writes the selected member cards to a vector
+  PDF under `<APPDATA>/exports/kta-YYYYMMDD-HHMMSS.pdf` via `jsPDF`. A
+  toast surfaces the filename, an emerald ribbon under the header pins
+  it for the session, and a "Buka Folder Hasil" button opens the
+  containing directory in the OS file manager. Vector text + JPEG
+  raster portraits keep file sizes small. (#96)
+- **Auto-compress uploaded photos** — every image uploaded via
+  `assets_save` is decoded with the `image` crate, downscaled with
+  Lanczos3 if its long edge exceeds the per-category cap, and re-encoded
+  as quality-85 JPEG (or original PNG if it has alpha). Caps: 800 px
+  for member portraits, 1200 px for book covers, 512 px for the school
+  logo. Typical phone snaps drop from 4 MiB to <200 KiB. SVG and GIF
+  bypass compression. (#97)
+- **Editable Laporan Kas + manual entries + audit log** — the cashbook
+  now supports inline edit, delete, and ad-hoc manual entries (income
+  or expense) via three new Tauri commands (`kas_create`, `kas_update`,
+  `kas_delete`) wrapped in transactions. Every mutation writes a
+  before/after JSON detail to `audit_log` so admins can see who
+  changed what. (#99)
+- **Dashboard: live OS clock + deterministic quote-of-the-day** —
+  header now shows a `LiveClock` ticking every second in `id-ID` with
+  a full-locale date below it. The dashboard card surfaces a daily
+  quote selected via `(year * 367 + dayOfYear) % QUOTES.length` so
+  every operator on the same calendar day sees the same quote, and
+  the quote rotates deterministically across years. 121 hand-curated
+  Indonesian + English entries about reading and learning. (#100)
+- **User profile dialog** — header dropdown's "Profil" item now opens
+  a dialog where the signed-in operator can edit display name, foto,
+  date / place of birth, contact info, address, gender, and religion.
+  Backed by a new `user_profiles` table (FK to `users.id` with
+  cascade delete) and `user_profile_get` / `user_profile_update`
+  Tauri commands. Header avatar + greeting update live via the
+  `users:profile-changed` event; saves emit an `audit_log` row with
+  the full before/after JSON. Username, role, and password remain
+  managed by `Settings → Akun`. (#103)
+
+### Changed
+
+- **Hak Akses permission matrix readability** — settings page now
+  shows a two-row role header (role label + count of granted
+  permissions), a sticky "Area" column, zebra rows, and vertical
+  dividers between roles so wide matrices stay scannable. (#98)
+- **Modern custom title bar** — replaced the OS-native window
+  decorations with a 36 px React title bar that hosts the app icon,
+  product name, drag region, and minimize / maximize / close buttons.
+  Drag region supports double-click-to-maximize and the maximize icon
+  syncs with `window.onResized`. Browser-mode dev still works because
+  the Tauri window API is lazy-loaded and falls back gracefully when
+  unavailable. (#101)
+- **Brand rename Perpustakaan Offline → Perpustakaan Nusantara** —
+  every operator-visible reference (window title, productName,
+  Windows installer + Start Menu entry + Add/Remove Programs name,
+  manual H1, README, system tray tooltip, login brand label) now
+  reads "Perpustakaan Nusantara". The bundle identifier
+  (`id.alviarts.perpustakaan`), Cargo package name, and GitHub repo
+  slug are intentionally unchanged so existing v1.0.x users keep
+  their SQLite database under `<APPDATA>/<bundle-id>/` with no
+  manual migration. Windows users will see two entries in
+  Apps & features after upgrading until they uninstall the old
+  one — that's the documented migration cost. (#102)
+
 ## [1.0.3] - 2026-05-04
 
 ### Fixed
