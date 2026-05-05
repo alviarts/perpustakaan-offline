@@ -26,6 +26,16 @@ const DEFAULT_MAKS_PINJAM: i64 = 3;
 /// Minggu (`0`) is the default hari libur, matching frontend.
 const DEFAULT_HARI_LIBUR: &[u32] = &[0];
 
+// FEAT-17: perpanjangan peminjaman defaults. `MAX_PERPANJANGAN` keeps a
+// 0..=3 envelope: 0 disables the feature entirely, 3 caps the upper end so
+// "perpanjang sampai semester depan" doesn't accidentally happen via a typo
+// in Aturan Peminjaman. `BLOCK_DENDA` defaults to OFF so libraries that
+// don't track denda strictly still get the perpanjang button working out
+// of the box.
+const DEFAULT_MAX_PERPANJANGAN: i64 = 1;
+const MAX_PERPANJANGAN_HARD_CAP: i64 = 3;
+const DEFAULT_BLOCK_PERPANJANGAN_JIKA_DENDA: bool = false;
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PeminjamanRow {
@@ -44,6 +54,12 @@ pub struct PeminjamanRow {
     pub item_dipinjam: i64,
     pub catatan: Option<String>,
     pub created_at: String,
+    /// FEAT-17: how many times this peminjaman has been extended.
+    /// Always present (default 0 on legacy rows).
+    pub kali_perpanjangan: i64,
+    /// FEAT-17: ISO date of the most recent perpanjang call, or `None`
+    /// if the peminjaman has never been extended.
+    pub tanggal_perpanjangan_terakhir: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -119,6 +135,27 @@ pub struct PeminjamanReturnInput {
     pub bayar: Option<i64>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PeminjamanPerpanjangInput {
+    pub peminjaman_id: i64,
+    /// Optional explicit duration in days. When `None`, the backend
+    /// reuses the active `transaksi.lama_pinjam_hari` setting so the
+    /// extension matches the current default loan window.
+    #[serde(default)]
+    pub days: Option<i64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PeminjamanPerpanjangResult {
+    pub header: PeminjamanRow,
+    pub kali_perpanjangan: i64,
+    pub max_perpanjangan: i64,
+    pub tanggal_jatuh_tempo_lama: String,
+    pub tanggal_jatuh_tempo_baru: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PeminjamanReturnResult {
@@ -126,6 +163,12 @@ pub struct PeminjamanReturnResult {
     pub total_denda: i64,
     pub total_bayar: i64,
     pub status_header: String,
+    /// FEAT-18: when the returned book(s) had a waiting reservasi, the
+    /// front-of-queue entry is auto-promoted to `siap_diambil` and
+    /// returned here so the UI can show "Buku ini di-reserve oleh ...,
+    /// simpan di rak ..." toast. May contain multiple entries when more
+    /// than one returned buku had a queue.
+    pub reservasi_promoted: Vec<crate::commands::reservasi::ReservasiPromotedNotif>,
 }
 
 #[derive(Debug, Serialize)]
@@ -274,6 +317,26 @@ fn setting_int(conn: &rusqlite::Connection, key: &str, default: i64) -> i64 {
         .unwrap_or(default)
 }
 
+/// Read a boolean-ish setting. Treats `"1"` / `"true"` / `"yes"` as true,
+/// `"0"` / `"false"` / `"no"` as false (case-insensitive). Falls back to
+/// `default` for missing or unparseable values so a partially-migrated
+/// settings row never crashes the perpanjang flow.
+fn setting_bool(conn: &rusqlite::Connection, key: &str, default: bool) -> bool {
+    let row: Option<String> = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = ?1",
+            params![key],
+            |r| r.get(0),
+        )
+        .optional()
+        .unwrap_or(None);
+    match row.as_deref().map(|s| s.trim().to_ascii_lowercase()) {
+        Some(s) if s == "1" || s == "true" || s == "yes" => true,
+        Some(s) if s == "0" || s == "false" || s == "no" => false,
+        _ => default,
+    }
+}
+
 /// Read `transaksi.hari_libur` from settings as a comma-separated list of
 /// 0..=6 weekday indices (`0=Minggu .. 6=Sabtu`, matching JS
 /// `Date.getDay()`). Falls back to `DEFAULT_HARI_LIBUR` when the setting
@@ -366,6 +429,8 @@ fn map_peminjaman_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<PeminjamanRow
         item_dipinjam: row.get("item_dipinjam")?,
         catatan: row.get("catatan")?,
         created_at: row.get("created_at")?,
+        kali_perpanjangan: row.get("kali_perpanjangan")?,
+        tanggal_perpanjangan_terakhir: row.get("tanggal_perpanjangan_terakhir")?,
     })
 }
 
@@ -398,6 +463,8 @@ fn peminjaman_select_sql(where_clause: &str) -> String {
                 a.kode_anggota AS anggota_kode, p.tanggal_pinjam, \
                 p.tanggal_jatuh_tempo, p.tanggal_kembali, p.status, \
                 p.total_denda, p.total_bayar, p.catatan, p.created_at, \
+                COALESCE(p.kali_perpanjangan, 0) AS kali_perpanjangan, \
+                p.tanggal_perpanjangan_terakhir, \
                 COALESCE((SELECT COUNT(*) FROM peminjaman_item pi \
                           WHERE pi.peminjaman_id = p.id), 0) AS total_item, \
                 COALESCE((SELECT COUNT(*) FROM peminjaman_item pi \
@@ -912,6 +979,7 @@ pub fn peminjaman_kembalikan(
 
     let tx = conn.transaction()?;
     let mut total_denda = 0_i64;
+    let mut returned_buku_ids: Vec<i64> = Vec::new();
 
     for item_id in &input.item_ids {
         let row: Option<(i64, String, String, Option<i64>, i64)> = tx
@@ -956,6 +1024,9 @@ pub fn peminjaman_kembalikan(
              updated_at = datetime('now') WHERE id = ?1",
             params![buku_id],
         )?;
+        if !returned_buku_ids.contains(&buku_id) {
+            returned_buku_ids.push(buku_id);
+        }
     }
 
     tx.execute(
@@ -976,6 +1047,27 @@ pub fn peminjaman_kembalikan(
     }
 
     let new_status = refresh_header_status(&tx, input.peminjaman_id)?;
+
+    // FEAT-18: for each unique buku just returned, promote the front of
+    // the reservasi queue (if any). Only promote when the book is no
+    // longer borrowed by anyone — multiple eksemplar with one still on
+    // loan should keep the queue waiting.
+    let mut reservasi_promoted = Vec::new();
+    for buku_id in &returned_buku_ids {
+        let still_borrowed: i64 = tx.query_row(
+            "SELECT COUNT(*) FROM peminjaman_item WHERE buku_id = ?1 AND status = 'dipinjam'",
+            params![buku_id],
+            |r| r.get(0),
+        )?;
+        if still_borrowed == 0 {
+            if let Some(notif) =
+                crate::commands::reservasi::promote_next_in_queue(&tx, *buku_id, today)?
+            {
+                reservasi_promoted.push(notif);
+            }
+        }
+    }
+
     tx.commit()?;
 
     let items = list_items_for(&conn, input.peminjaman_id)?;
@@ -986,7 +1078,174 @@ pub fn peminjaman_kembalikan(
         total_denda: header.total_denda,
         total_bayar: header.total_bayar,
         status_header: new_status,
+        reservasi_promoted,
     })
+}
+
+/// FEAT-17 inner: extend a single peminjaman by `days` (or by the
+/// configured default loan window when `days` is `None`). Pure-conn so
+/// the unit tests can exercise the blocking logic without a live
+/// `AppState`.
+pub fn peminjaman_perpanjang_inner(
+    conn: &mut rusqlite::Connection,
+    input: &PeminjamanPerpanjangInput,
+    user_id: Option<i64>,
+) -> AppResult<PeminjamanPerpanjangResult> {
+    let max_perpanjangan =
+        setting_int(conn, "peminjaman.max_perpanjangan", DEFAULT_MAX_PERPANJANGAN)
+            .clamp(0, MAX_PERPANJANGAN_HARD_CAP);
+    if max_perpanjangan == 0 {
+        return Err(AppError::Validation(
+            "Perpanjangan dinonaktifkan oleh admin".into(),
+        ));
+    }
+    let block_jika_denda = setting_bool(
+        conn,
+        "peminjaman.block_perpanjangan_jika_denda",
+        DEFAULT_BLOCK_PERPANJANGAN_JIKA_DENDA,
+    );
+    let lama_pinjam_hari =
+        setting_int(conn, "transaksi.lama_pinjam_hari", DEFAULT_LAMA_PINJAM_HARI).clamp(1, 365);
+    let days = input
+        .days
+        .map(|d| d.clamp(1, 365))
+        .unwrap_or(lama_pinjam_hari);
+
+    // Snapshot peminjaman header and its item buku_ids.
+    let header_row: Option<(i64, String, String, i64, i64, i64)> = conn
+        .query_row(
+            "SELECT id, status, tanggal_jatuh_tempo, total_denda, total_bayar, \
+                    COALESCE(kali_perpanjangan, 0) \
+             FROM peminjaman WHERE id = ?1",
+            params![input.peminjaman_id],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                ))
+            },
+        )
+        .optional()?;
+    let (id, status, tanggal_jatuh_tempo_lama, total_denda, total_bayar, kali_now) = header_row
+        .ok_or_else(|| AppError::NotFound(format!("peminjaman id={}", input.peminjaman_id)))?;
+
+    if status == "dikembalikan" || status == "hilang" {
+        return Err(AppError::Validation(format!(
+            "peminjaman sudah berstatus {status}, tidak bisa diperpanjang"
+        )));
+    }
+
+    // At least one item must still be on loan, otherwise there is nothing
+    // left to extend.
+    let item_dipinjam: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM peminjaman_item \
+         WHERE peminjaman_id = ?1 AND status = 'dipinjam'",
+        params![id],
+        |r| r.get(0),
+    )?;
+    if item_dipinjam == 0 {
+        return Err(AppError::Validation(
+            "Semua eksemplar sudah dikembalikan, tidak ada yang bisa diperpanjang".into(),
+        ));
+    }
+
+    if kali_now >= max_perpanjangan {
+        return Err(AppError::Validation(format!(
+            "Sudah tidak bisa diperpanjang (maksimum {max_perpanjangan}×)"
+        )));
+    }
+
+    if block_jika_denda {
+        let outstanding = total_denda - total_bayar;
+        if outstanding > 0 {
+            return Err(AppError::Validation(
+                "Lunasi denda terlebih dahulu sebelum memperpanjang".into(),
+            ));
+        }
+    }
+
+    // FEAT-17 ↔ FEAT-18: refuse when any of the borrowed buku has an
+    // active reservasi. Surfacing the next anggota's name makes the
+    // toast actionable ("Buku X sudah dipesan oleh Andi").
+    let buku_ids: Vec<i64> = {
+        let mut stmt = conn.prepare(
+            "SELECT DISTINCT buku_id FROM peminjaman_item \
+             WHERE peminjaman_id = ?1 AND status = 'dipinjam'",
+        )?;
+        let rows = stmt
+            .query_map(params![id], |r| r.get::<_, i64>(0))?
+            .collect::<Result<Vec<_>, _>>()?;
+        rows
+    };
+    let active = crate::commands::reservasi::reservasi_active_for_buku_ids(conn, &buku_ids)?;
+    if let Some(first) = active.first() {
+        return Err(AppError::Validation(format!(
+            "Buku \"{}\" sudah dipesan oleh {} — tidak bisa diperpanjang",
+            first.buku_judul, first.anggota_nama
+        )));
+    }
+
+    // All checks passed — perform the extension inside a transaction.
+    let old_jt = parse_date(&tanggal_jatuh_tempo_lama)?;
+    let new_jt = old_jt
+        .checked_add_days(chrono::Days::new(days as u64))
+        .ok_or_else(|| AppError::Validation("tanggal jatuh tempo overflow".into()))?;
+    let new_jt_str = new_jt.format("%Y-%m-%d").to_string();
+    let today_str = today_iso();
+    let kali_baru = kali_now + 1;
+
+    let tx = conn.transaction()?;
+    tx.execute(
+        "UPDATE peminjaman SET tanggal_jatuh_tempo = ?1, \
+         kali_perpanjangan = ?2, tanggal_perpanjangan_terakhir = ?3, \
+         updated_at = datetime('now') WHERE id = ?4",
+        params![new_jt_str, kali_baru, today_str, id],
+    )?;
+    // Re-evaluate header status — extending may flip 'terlambat' → 'dipinjam'.
+    refresh_header_status(&tx, id)?;
+
+    let detail = serde_json::json!({
+        "loan_id": id,
+        "tanggal_jatuh_tempo_lama": tanggal_jatuh_tempo_lama,
+        "tanggal_jatuh_tempo_baru": new_jt_str,
+        "kali_ke": kali_baru,
+        "max_perpanjangan": max_perpanjangan,
+        "days": days,
+    });
+    crate::commands::kas::insert_audit_log(
+        &tx,
+        user_id,
+        "perpanjang_peminjaman",
+        "peminjaman",
+        Some(id),
+        &detail,
+    )?;
+    tx.commit()?;
+
+    let header = select_peminjaman_row(conn, id)?;
+    Ok(PeminjamanPerpanjangResult {
+        kali_perpanjangan: kali_baru,
+        max_perpanjangan,
+        tanggal_jatuh_tempo_lama,
+        tanggal_jatuh_tempo_baru: new_jt_str,
+        header,
+    })
+}
+
+#[tauri::command]
+pub fn peminjaman_perpanjang(
+    state: State<'_, AppState>,
+    input: PeminjamanPerpanjangInput,
+) -> AppResult<PeminjamanPerpanjangResult> {
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    peminjaman_perpanjang_inner(&mut conn, &input, None)
 }
 
 #[tauri::command]
@@ -1917,5 +2176,246 @@ mod tests {
         let due = NaiveDate::from_ymd_opt(2025, 1, 13).unwrap();
         let today = NaiveDate::from_ymd_opt(2025, 1, 20).unwrap();
         assert_eq!(billable_late_days(due, today, &[0, 6]), 5);
+    }
+
+    // -----------------------------------------------------------------------
+    // FEAT-17: peminjaman_perpanjang_inner
+    // -----------------------------------------------------------------------
+
+    fn set_setting(conn: &Connection, key: &str, value: &str) {
+        conn.execute(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES (?1, ?2)",
+            params![key, value],
+        )
+        .expect("set setting");
+    }
+
+    #[test]
+    fn perpanjang_extends_jatuh_tempo_and_increments_counter() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _item_id) = seed_pinjaman(
+            &conn, "PJ-FEAT17-1", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        set_setting(&conn, "transaksi.lama_pinjam_hari", "7");
+
+        let result = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput {
+                peminjaman_id: pmj_id,
+                days: None,
+            },
+            None,
+        )
+        .expect("perpanjang");
+
+        assert_eq!(result.kali_perpanjangan, 1);
+        assert_eq!(result.tanggal_jatuh_tempo_lama, "2026-05-08");
+        assert_eq!(result.tanggal_jatuh_tempo_baru, "2026-05-15");
+        assert_eq!(result.header.kali_perpanjangan, 1);
+        assert_eq!(result.header.tanggal_jatuh_tempo, "2026-05-15");
+        assert!(result.header.tanggal_perpanjangan_terakhir.is_some());
+    }
+
+    #[test]
+    fn perpanjang_uses_explicit_days_when_provided() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-2", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+
+        let result = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput {
+                peminjaman_id: pmj_id,
+                days: Some(14),
+            },
+            None,
+        )
+        .expect("perpanjang");
+        assert_eq!(result.tanggal_jatuh_tempo_baru, "2026-05-22");
+    }
+
+    #[test]
+    fn perpanjang_blocks_when_max_reached() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-3", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        set_setting(&conn, "peminjaman.max_perpanjangan", "2");
+
+        peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect("first");
+        peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect("second");
+        let err = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect_err("third should fail");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("maksimum 2×")),
+            other => panic!("unexpected: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn perpanjang_blocks_when_setting_is_zero() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-4", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        set_setting(&conn, "peminjaman.max_perpanjangan", "0");
+        let err = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect_err("should reject");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("dinonaktifkan")),
+            other => panic!("unexpected: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn perpanjang_blocks_when_outstanding_denda_and_setting_on() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-5", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        // pretend the row already has total_denda = 5000 and total_bayar = 0.
+        conn.execute(
+            "UPDATE peminjaman SET total_denda = 5000 WHERE id = ?1",
+            params![pmj_id],
+        )
+        .unwrap();
+        set_setting(&conn, "peminjaman.block_perpanjangan_jika_denda", "true");
+
+        let err = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect_err("should reject");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("Lunasi denda")),
+            other => panic!("unexpected: {other:?}"),
+        }
+
+        // After paying off, perpanjang works.
+        conn.execute(
+            "UPDATE peminjaman SET total_bayar = 5000 WHERE id = ?1",
+            params![pmj_id],
+        )
+        .unwrap();
+        peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect("now succeeds");
+    }
+
+    #[test]
+    fn perpanjang_blocks_when_status_dikembalikan() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-6", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        conn.execute(
+            "UPDATE peminjaman SET status = 'dikembalikan' WHERE id = ?1",
+            params![pmj_id],
+        )
+        .unwrap();
+        let err = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect_err("should reject");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("dikembalikan")),
+            other => panic!("unexpected: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn perpanjang_blocks_when_buku_has_active_reservasi() {
+        let mut conn = setup_db();
+        let borrower = seed_anggota(&conn, "A001", "Andi", None);
+        let other = seed_anggota(&conn, "A002", "Budi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-7", borrower, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        // Create reservasi from another anggota.
+        crate::commands::reservasi::reservasi_create_inner(
+            &mut conn,
+            &crate::commands::reservasi::ReservasiCreateInput {
+                anggota_id: other,
+                buku_id: bid,
+                catatan: None,
+            },
+            None,
+        )
+        .expect("create reservasi");
+
+        let err = peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect_err("should reject");
+        match err {
+            AppError::Validation(msg) => assert!(msg.contains("dipesan oleh Budi")),
+            other => panic!("unexpected: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn perpanjang_writes_audit_log_with_metadata() {
+        let mut conn = setup_db();
+        let aid = seed_anggota(&conn, "A001", "Andi", None);
+        let bid = seed_buku(&conn, "B001", "Pemrograman");
+        let (pmj_id, _) = seed_pinjaman(
+            &conn, "PJ-FEAT17-8", aid, bid, "2026-05-01", "2026-05-08", "dipinjam",
+        );
+        peminjaman_perpanjang_inner(
+            &mut conn,
+            &PeminjamanPerpanjangInput { peminjaman_id: pmj_id, days: Some(7) },
+            None,
+        )
+        .expect("perpanjang");
+
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM audit_log \
+                 WHERE entitas = 'peminjaman' AND aksi = 'perpanjang_peminjaman'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 1);
     }
 }

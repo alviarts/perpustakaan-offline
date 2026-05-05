@@ -160,20 +160,25 @@ CREATE INDEX IF NOT EXISTS idx_eksemplar_status ON eksemplar(status);
 -- Peminjaman (header)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS peminjaman (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    nomor_pinjam        TEXT    NOT NULL UNIQUE,
-    anggota_id          INTEGER NOT NULL,
-    tanggal_pinjam      TEXT    NOT NULL DEFAULT (date('now')),
-    tanggal_jatuh_tempo TEXT    NOT NULL,
-    tanggal_kembali     TEXT,
+    id                            INTEGER PRIMARY KEY AUTOINCREMENT,
+    nomor_pinjam                  TEXT    NOT NULL UNIQUE,
+    anggota_id                    INTEGER NOT NULL,
+    tanggal_pinjam                TEXT    NOT NULL DEFAULT (date('now')),
+    tanggal_jatuh_tempo           TEXT    NOT NULL,
+    tanggal_kembali               TEXT,
     -- status: dipinjam | dikembalikan | sebagian | terlambat | hilang
-    status              TEXT    NOT NULL DEFAULT 'dipinjam',
-    total_denda         INTEGER NOT NULL DEFAULT 0,
-    total_bayar         INTEGER NOT NULL DEFAULT 0,
-    petugas_id          INTEGER,
-    catatan             TEXT,
-    created_at          TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at          TEXT NOT NULL DEFAULT (datetime('now')),
+    status                        TEXT    NOT NULL DEFAULT 'dipinjam',
+    total_denda                   INTEGER NOT NULL DEFAULT 0,
+    total_bayar                   INTEGER NOT NULL DEFAULT 0,
+    -- FEAT-17: berapa kali peminjaman ini sudah diperpanjang dan kapan
+    -- perpanjangan terakhir dilakukan. Dibatasi oleh setting
+    -- `peminjaman.max_perpanjangan` (default 1, range 0..=3).
+    kali_perpanjangan             INTEGER NOT NULL DEFAULT 0,
+    tanggal_perpanjangan_terakhir TEXT,
+    petugas_id                    INTEGER,
+    catatan                       TEXT,
+    created_at                    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at                    TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (anggota_id) REFERENCES anggota(id) ON DELETE RESTRICT,
     FOREIGN KEY (petugas_id) REFERENCES users(id)   ON DELETE SET NULL
 );
@@ -203,6 +208,38 @@ CREATE TABLE IF NOT EXISTS peminjaman_item (
 CREATE INDEX IF NOT EXISTS idx_peminjaman_item_pmj  ON peminjaman_item(peminjaman_id);
 CREATE INDEX IF NOT EXISTS idx_peminjaman_item_buku ON peminjaman_item(buku_id);
 CREATE INDEX IF NOT EXISTS idx_peminjaman_item_status ON peminjaman_item(status);
+
+-- ----------------------------------------------------------------------------
+-- Reservasi buku (FEAT-18) — antrian saat buku sedang dipinjam orang lain.
+--
+-- Status alur:
+--   menunggu      → urutan dalam antrian, buku belum tersedia
+--   siap_diambil  → buku sudah dikembalikan, petugas menyimpan di slot_rak
+--                   sampai expired_at; lewat itu otomatis menjadi `expired`
+--   diambil       → anggota mengambil buku (jadi peminjaman baru)
+--   expired       → tidak diambil sampai expired_at lewat
+--   dibatalkan    → anggota / admin batalkan secara manual
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reservasi_buku (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    anggota_id             INTEGER NOT NULL,
+    buku_id                INTEGER NOT NULL,
+    urutan                 INTEGER NOT NULL DEFAULT 1,
+    status                 TEXT    NOT NULL DEFAULT 'menunggu',
+    slot_rak               TEXT,
+    tanggal_request        TEXT    NOT NULL DEFAULT (date('now')),
+    tanggal_siap_diambil   TEXT,
+    expired_at             TEXT,
+    catatan                TEXT,
+    created_at             TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at             TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (anggota_id) REFERENCES anggota(id) ON DELETE RESTRICT,
+    FOREIGN KEY (buku_id)    REFERENCES buku(id)    ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_reservasi_buku_status   ON reservasi_buku(buku_id, status);
+CREATE INDEX IF NOT EXISTS idx_reservasi_anggota       ON reservasi_buku(anggota_id);
+CREATE INDEX IF NOT EXISTS idx_reservasi_status_global ON reservasi_buku(status);
 
 -- ----------------------------------------------------------------------------
 -- Kunjungan
