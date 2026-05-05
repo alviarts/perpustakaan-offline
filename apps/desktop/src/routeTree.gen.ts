@@ -16,6 +16,7 @@ import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedLaporanRouteImport } from './routes/_authed/laporan'
 import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedSirkulasiIndexRouteImport } from './routes/_authed/sirkulasi/index'
 import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
 import { Route as AuthedPengembalianIndexRouteImport } from './routes/_authed/pengembalian/index'
 import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/peminjaman/index'
@@ -82,6 +83,11 @@ const AuthedKunjunganRoute = AuthedKunjunganRouteImport.update({
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSirkulasiIndexRoute = AuthedSirkulasiIndexRouteImport.update({
+  id: '/sirkulasi/',
+  path: '/sirkulasi/',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/pengembalian/': typeof AuthedPengembalianIndexRoute
   '/settings/': typeof AuthedSettingsIndexRoute
+  '/sirkulasi/': typeof AuthedSirkulasiIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/peminjaman': typeof AuthedPeminjamanIndexRoute
   '/pengembalian': typeof AuthedPengembalianIndexRoute
   '/settings': typeof AuthedSettingsIndexRoute
+  '/sirkulasi': typeof AuthedSirkulasiIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/_authed/peminjaman/': typeof AuthedPeminjamanIndexRoute
   '/_authed/pengembalian/': typeof AuthedPengembalianIndexRoute
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
+  '/_authed/sirkulasi/': typeof AuthedSirkulasiIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -419,6 +428,7 @@ export interface FileRouteTypes {
     | '/peminjaman/'
     | '/pengembalian/'
     | '/settings/'
+    | '/sirkulasi/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/peminjaman'
     | '/pengembalian'
     | '/settings'
+    | '/sirkulasi'
   id:
     | '__root__'
     | '/'
@@ -500,6 +511,7 @@ export interface FileRouteTypes {
     | '/_authed/peminjaman/'
     | '/_authed/pengembalian/'
     | '/_authed/settings/'
+    | '/_authed/sirkulasi/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -557,6 +569,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthedDashboardRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/sirkulasi/': {
+      id: '/_authed/sirkulasi/'
+      path: '/sirkulasi'
+      fullPath: '/sirkulasi/'
+      preLoaderRoute: typeof AuthedSirkulasiIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/settings/': {
@@ -872,6 +891,7 @@ interface AuthedRouteChildren {
   AuthedBukuIndexRoute: typeof AuthedBukuIndexRoute
   AuthedPeminjamanIndexRoute: typeof AuthedPeminjamanIndexRoute
   AuthedPengembalianIndexRoute: typeof AuthedPengembalianIndexRoute
+  AuthedSirkulasiIndexRoute: typeof AuthedSirkulasiIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -891,6 +911,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBukuIndexRoute: AuthedBukuIndexRoute,
   AuthedPeminjamanIndexRoute: AuthedPeminjamanIndexRoute,
   AuthedPengembalianIndexRoute: AuthedPengembalianIndexRoute,
+  AuthedSirkulasiIndexRoute: AuthedSirkulasiIndexRoute,
 }
 
 const AuthedRouteWithChildren =

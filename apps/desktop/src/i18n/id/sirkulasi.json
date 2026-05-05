@@ -1,0 +1,58 @@
+{
+  "title": "Sirkulasi (Webcam)",
+  "subtitle": "Pindai barcode anggota dan eksemplar untuk peminjaman/pengembalian cepat. Pintasan: Ctrl+L.",
+  "mode": {
+    "pinjam": "Pinjam",
+    "kembalikan": "Kembalikan"
+  },
+  "scanner": {
+    "title": "Pemindai",
+    "start": "Aktifkan kamera",
+    "stop": "Matikan kamera",
+    "starting": "Membuka kamera…",
+    "off": "Kamera belum aktif",
+    "devicePlaceholder": "Pilih kamera"
+  },
+  "manual": {
+    "placeholder": "Atau ketik / scan pakai USB scanner (Enter untuk submit)",
+    "submit": "Kirim"
+  },
+  "basket": {
+    "titlePinjam": "Keranjang Peminjaman",
+    "titleKembali": "Eksemplar Akan Dikembalikan",
+    "clear": "Bersihkan",
+    "submitPinjam": "Simpan Peminjaman",
+    "submitKembali": "Proses Pengembalian"
+  },
+  "pinjam": {
+    "scanAnggota": "Scan kartu anggota dulu…",
+    "clearAnggota": "Ganti",
+    "basketHeader": "Eksemplar ({{ok}}/{{total}} siap)",
+    "basketEmpty": "Belum ada eksemplar yang di-scan.",
+    "unavailable": "Status: {{status}} — sedang dipinjam, tidak akan diikutkan."
+  },
+  "kembali": {
+    "empty": "Pindai barcode eksemplar yang sedang dipinjam untuk memulai."
+  },
+  "result": {
+    "pinjam": "Peminjaman {{nomor}} tersimpan untuk {{anggota}} ({{count}} eksemplar).",
+    "kembali": "{{count}} eksemplar berhasil dikembalikan.",
+    "openList": "Buka daftar peminjaman →"
+  },
+  "toast": {
+    "anggotaSet": "Anggota terpilih",
+    "unknownCode": "Kode tidak dikenali",
+    "alreadyInBasket": "Sudah ada di keranjang",
+    "alreadyInList": "Sudah masuk daftar",
+    "resolveError": "Gagal mengecek kode eksemplar",
+    "notLoaned": "Tidak ada peminjaman aktif untuk kode ini",
+    "lookupError": "Gagal mencari peminjaman aktif",
+    "noUsable": "Tidak ada eksemplar tersedia",
+    "noUsableDesc": "Semua kode yang di-scan sedang dipinjam.",
+    "borrowOk": "Peminjaman berhasil",
+    "borrowFail": "Peminjaman gagal",
+    "returnOk": "Pengembalian berhasil",
+    "returnOkDesc": "{{count}} eksemplar dikembalikan",
+    "returnFail": "Pengembalian gagal"
+  }
+}

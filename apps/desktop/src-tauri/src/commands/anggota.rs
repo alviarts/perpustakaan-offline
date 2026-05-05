@@ -223,6 +223,22 @@ pub fn anggota_get(state: State<'_, AppState>, id: i64) -> AppResult<Anggota> {
 }
 
 #[tauri::command]
+pub fn anggota_get_by_kode(
+    state: State<'_, AppState>,
+    kode: String,
+) -> AppResult<Option<Anggota>> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    let sql = format!("SELECT {SELECT_COLUMNS} FROM anggota WHERE kode_anggota = ?1");
+    let result: Option<Anggota> = conn
+        .query_row(&sql, params![kode.trim()], map_row)
+        .optional()?;
+    Ok(result)
+}
+
+#[tauri::command]
 pub fn anggota_create(state: State<'_, AppState>, payload: AnggotaInput) -> AppResult<Anggota> {
     validate_input(&payload)?;
     let conn = state

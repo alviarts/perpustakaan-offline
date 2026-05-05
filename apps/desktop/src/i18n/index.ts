@@ -14,6 +14,7 @@ import idSettings from './id/settings.json';
 import idMasterData from './id/master-data.json';
 import idKta from './id/kta.json';
 import idLabelBuku from './id/label-buku.json';
+import idSirkulasi from './id/sirkulasi.json';
 import idErrors from './id/errors.json';
 
 import enCommon from './en/common.json';
@@ -29,6 +30,7 @@ import enSettings from './en/settings.json';
 import enMasterData from './en/master-data.json';
 import enKta from './en/kta.json';
 import enLabelBuku from './en/label-buku.json';
+import enSirkulasi from './en/sirkulasi.json';
 import enErrors from './en/errors.json';
 
 export const NAMESPACES = [
@@ -45,6 +47,7 @@ export const NAMESPACES = [
   'masterData',
   'kta',
   'label-buku',
+  'sirkulasi',
   'errors',
 ] as const;
 
@@ -66,6 +69,7 @@ const resources = {
     masterData: idMasterData,
     kta: idKta,
     'label-buku': idLabelBuku,
+    sirkulasi: idSirkulasi,
     errors: idErrors,
   },
   en: {
@@ -82,6 +86,7 @@ const resources = {
     masterData: enMasterData,
     kta: enKta,
     'label-buku': enLabelBuku,
+    sirkulasi: enSirkulasi,
     errors: enErrors,
   },
 } as const;

@@ -485,6 +485,133 @@ pub fn peminjaman_list(
     Ok(PeminjamanListResult { items: rows, total })
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EksemplarResolved {
+    pub eksemplar_id: i64,
+    pub kode_eksemplar: String,
+    pub status: String,
+    pub buku_id: i64,
+    pub kode_buku: String,
+    pub judul: String,
+    pub pengarang: Option<String>,
+}
+
+pub fn eksemplar_resolve_inner(
+    conn: &rusqlite::Connection,
+    kode: &str,
+) -> AppResult<Option<EksemplarResolved>> {
+    let row: Option<EksemplarResolved> = conn
+        .query_row(
+            "SELECT e.id, e.kode_eksemplar, e.status, b.id, b.kode_buku, b.judul, b.pengarang \
+             FROM eksemplar e JOIN buku b ON b.id = e.buku_id \
+             WHERE e.kode_eksemplar = ?1",
+            params![kode.trim()],
+            |r| {
+                Ok(EksemplarResolved {
+                    eksemplar_id: r.get(0)?,
+                    kode_eksemplar: r.get(1)?,
+                    status: r.get(2)?,
+                    buku_id: r.get(3)?,
+                    kode_buku: r.get(4)?,
+                    judul: r.get(5)?,
+                    pengarang: r.get(6)?,
+                })
+            },
+        )
+        .optional()?;
+    Ok(row)
+}
+
+/// Look up an eksemplar by its physical barcode (kode_eksemplar).
+/// Returns None if no eksemplar matches. Used by the webcam circulation
+/// mode when the operator scans a book copy's spine label.
+#[tauri::command]
+pub fn eksemplar_resolve(
+    state: State<'_, AppState>,
+    kode: String,
+) -> AppResult<Option<EksemplarResolved>> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    eksemplar_resolve_inner(&conn, &kode)
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActiveLoanForEksemplar {
+    pub peminjaman_id: i64,
+    pub peminjaman_item_id: i64,
+    pub nomor_pinjam: String,
+    pub anggota_id: i64,
+    pub anggota_kode: String,
+    pub anggota_nama: String,
+    pub buku_id: i64,
+    pub kode_buku: String,
+    pub judul: String,
+    pub eksemplar_id: i64,
+    pub kode_eksemplar: String,
+    pub tanggal_pinjam: String,
+    pub tanggal_jatuh_tempo: String,
+}
+
+pub fn peminjaman_aktif_by_eksemplar_inner(
+    conn: &rusqlite::Connection,
+    kode: &str,
+) -> AppResult<Option<ActiveLoanForEksemplar>> {
+    let row: Option<ActiveLoanForEksemplar> = conn
+        .query_row(
+            "SELECT pi.peminjaman_id, pi.id, p.nomor_pinjam, \
+                    a.id, a.kode_anggota, a.nama, \
+                    b.id, b.kode_buku, b.judul, \
+                    e.id, e.kode_eksemplar, \
+                    p.tanggal_pinjam, p.tanggal_jatuh_tempo \
+             FROM peminjaman_item pi \
+             JOIN peminjaman p ON p.id = pi.peminjaman_id \
+             JOIN anggota a ON a.id = p.anggota_id \
+             JOIN eksemplar e ON e.id = pi.eksemplar_id \
+             JOIN buku b ON b.id = pi.buku_id \
+             WHERE e.kode_eksemplar = ?1 AND pi.status = 'dipinjam' \
+             ORDER BY pi.id DESC LIMIT 1",
+            params![kode.trim()],
+            |r| {
+                Ok(ActiveLoanForEksemplar {
+                    peminjaman_id: r.get(0)?,
+                    peminjaman_item_id: r.get(1)?,
+                    nomor_pinjam: r.get(2)?,
+                    anggota_id: r.get(3)?,
+                    anggota_kode: r.get(4)?,
+                    anggota_nama: r.get(5)?,
+                    buku_id: r.get(6)?,
+                    kode_buku: r.get(7)?,
+                    judul: r.get(8)?,
+                    eksemplar_id: r.get(9)?,
+                    kode_eksemplar: r.get(10)?,
+                    tanggal_pinjam: r.get(11)?,
+                    tanggal_jatuh_tempo: r.get(12)?,
+                })
+            },
+        )
+        .optional()?;
+    Ok(row)
+}
+
+/// Find the active (status='dipinjam') loan item for the given eksemplar
+/// barcode. Returns None when the copy is not currently borrowed. Used
+/// during the webcam-driven return flow.
+#[tauri::command]
+pub fn peminjaman_aktif_by_eksemplar(
+    state: State<'_, AppState>,
+    kode: String,
+) -> AppResult<Option<ActiveLoanForEksemplar>> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    peminjaman_aktif_by_eksemplar_inner(&conn, &kode)
+}
+
 #[tauri::command]
 pub fn peminjaman_get(state: State<'_, AppState>, id: i64) -> AppResult<PeminjamanDetail> {
     let conn = state
@@ -1344,5 +1471,114 @@ mod tests {
         // None → default 100, returns all 5
         let h = anggota_loan_history_inner(&conn, aid, None).expect("query");
         assert_eq!(h.history.len(), 5);
+    }
+
+    /// Helper to seed a buku + named eksemplar with explicit status. Returns
+    /// the (buku_id, eksemplar_id) tuple.
+    fn seed_buku_with_eksemplar(
+        conn: &Connection,
+        kode_buku: &str,
+        judul: &str,
+        kode_eksemplar: &str,
+        status: &str,
+    ) -> (i64, i64) {
+        let bid = seed_buku(conn, kode_buku, judul);
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, ?2, ?3)",
+            params![bid, kode_eksemplar, status],
+        )
+        .expect("seed eksemplar");
+        let eid = conn.last_insert_rowid();
+        (bid, eid)
+    }
+
+    #[test]
+    fn eksemplar_resolve_returns_none_for_unknown_kode() {
+        let conn = setup_db();
+        seed_buku_with_eksemplar(&conn, "B-001", "Sample", "B-001-01", "tersedia");
+        let resolved = eksemplar_resolve_inner(&conn, "DOES-NOT-EXIST").expect("query");
+        assert!(resolved.is_none());
+    }
+
+    #[test]
+    fn eksemplar_resolve_trims_input_and_returns_metadata() {
+        let conn = setup_db();
+        let (bid, eid) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Bumi Manusia", "B-001-01", "tersedia");
+        let resolved = eksemplar_resolve_inner(&conn, "  B-001-01  ")
+            .expect("query")
+            .expect("found");
+        assert_eq!(resolved.eksemplar_id, eid);
+        assert_eq!(resolved.buku_id, bid);
+        assert_eq!(resolved.kode_buku, "B-001");
+        assert_eq!(resolved.judul, "Bumi Manusia");
+        assert_eq!(resolved.kode_eksemplar, "B-001-01");
+        assert_eq!(resolved.status, "tersedia");
+    }
+
+    #[test]
+    fn aktif_by_eksemplar_returns_none_when_kode_not_loaned() {
+        let conn = setup_db();
+        seed_buku_with_eksemplar(&conn, "B-001", "Sample", "B-001-01", "tersedia");
+        let active = peminjaman_aktif_by_eksemplar_inner(&conn, "B-001-01").expect("query");
+        assert!(active.is_none());
+    }
+
+    #[test]
+    fn aktif_by_eksemplar_finds_active_dipinjam_item() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "M-001", "Sari", Some("X-A"));
+        let (bid, eid) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Bumi Manusia", "B-001-01", "dipinjam");
+        // create peminjaman
+        conn.execute(
+            "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, \
+             tanggal_jatuh_tempo, status) VALUES (?1, ?2, ?3, ?4, 'dipinjam')",
+            params!["PJ-001", aid, "2024-01-01", "2024-01-08"],
+        )
+        .expect("seed peminjaman");
+        let pmj_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO peminjaman_item (peminjaman_id, buku_id, eksemplar_id, status) \
+             VALUES (?1, ?2, ?3, 'dipinjam')",
+            params![pmj_id, bid, eid],
+        )
+        .expect("seed item");
+        let item_id = conn.last_insert_rowid();
+
+        let active = peminjaman_aktif_by_eksemplar_inner(&conn, "B-001-01")
+            .expect("query")
+            .expect("found");
+        assert_eq!(active.peminjaman_id, pmj_id);
+        assert_eq!(active.peminjaman_item_id, item_id);
+        assert_eq!(active.anggota_kode, "M-001");
+        assert_eq!(active.anggota_nama, "Sari");
+        assert_eq!(active.kode_eksemplar, "B-001-01");
+        assert_eq!(active.judul, "Bumi Manusia");
+    }
+
+    #[test]
+    fn aktif_by_eksemplar_excludes_returned_items() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "M-001", "Sari", None);
+        let (bid, eid) =
+            seed_buku_with_eksemplar(&conn, "B-001", "Sample", "B-001-01", "tersedia");
+        // returned item: status = 'dikembalikan'
+        conn.execute(
+            "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, \
+             tanggal_jatuh_tempo, tanggal_kembali, status) \
+             VALUES (?1, ?2, ?3, ?4, ?5, 'dikembalikan')",
+            params!["PJ-001", aid, "2024-01-01", "2024-01-08", "2024-01-05"],
+        )
+        .expect("seed peminjaman");
+        let pmj_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO peminjaman_item (peminjaman_id, buku_id, eksemplar_id, status, \
+             tanggal_kembali) VALUES (?1, ?2, ?3, 'dikembalikan', '2024-01-05')",
+            params![pmj_id, bid, eid],
+        )
+        .expect("seed item");
+        let active = peminjaman_aktif_by_eksemplar_inner(&conn, "B-001-01").expect("query");
+        assert!(active.is_none(), "returned items must not be reported as active");
     }
 }

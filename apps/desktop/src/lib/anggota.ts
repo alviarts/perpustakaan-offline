@@ -138,6 +138,7 @@ export interface KelasItem {
 interface AnggotaRpc {
   list(args: AnggotaListArgs): Promise<AnggotaListResult>;
   get(id: number): Promise<Anggota>;
+  getByKode(kode: string): Promise<Anggota | null>;
   create(payload: AnggotaInput): Promise<Anggota>;
   update(id: number, payload: AnggotaInput): Promise<Anggota>;
   remove(id: number): Promise<void>;
@@ -246,6 +247,10 @@ const tauriRpc: AnggotaRpc = {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<Anggota>('anggota_get', { id });
   },
+  async getByKode(kode) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<Anggota | null>('anggota_get_by_kode', { kode });
+  },
   async create(payload) {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<Anggota>('anggota_create', { payload });
@@ -305,6 +310,9 @@ const mockRpc: AnggotaRpc = {
     const found = readMock().find((it) => it.id === id);
     if (!found) throw new Error('not_found');
     return found;
+  },
+  async getByKode(kode) {
+    return readMock().find((it) => it.kodeAnggota === kode.trim()) ?? null;
   },
   async create(payload) {
     const all = readMock();
@@ -448,6 +456,7 @@ function rpc(): AnggotaRpc {
 export const anggotaApi = {
   list: (args: AnggotaListArgs) => rpc().list(args),
   get: (id: number) => rpc().get(id),
+  getByKode: (kode: string) => rpc().getByKode(kode),
   create: (payload: AnggotaInput) => rpc().create(payload),
   update: (id: number, payload: AnggotaInput) => rpc().update(id, payload),
   remove: (id: number) => rpc().remove(id),

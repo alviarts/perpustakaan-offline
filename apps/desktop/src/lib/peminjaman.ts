@@ -155,6 +155,32 @@ export interface BukuSummary {
   jumlahEksemplar: number;
 }
 
+export interface EksemplarResolved {
+  eksemplarId: number;
+  kodeEksemplar: string;
+  status: string;
+  bukuId: number;
+  kodeBuku: string;
+  judul: string;
+  pengarang?: string | null;
+}
+
+export interface ActiveLoanForEksemplar {
+  peminjamanId: number;
+  peminjamanItemId: number;
+  nomorPinjam: string;
+  anggotaId: number;
+  anggotaKode: string;
+  anggotaNama: string;
+  bukuId: number;
+  kodeBuku: string;
+  judul: string;
+  eksemplarId: number;
+  kodeEksemplar: string;
+  tanggalPinjam: string;
+  tanggalJatuhTempo: string;
+}
+
 interface PeminjamanRpc {
   list(args: PeminjamanListArgs): Promise<PeminjamanListResult>;
   get(id: number): Promise<PeminjamanDetail>;
@@ -166,6 +192,8 @@ interface PeminjamanRpc {
   search(query: string): Promise<PeminjamanRow[]>;
   anggotaSummary(id: number): Promise<AnggotaSummary>;
   bukuSummary(id: number): Promise<BukuSummary>;
+  resolveEksemplar(kode: string): Promise<EksemplarResolved | null>;
+  aktifByEksemplar(kode: string): Promise<ActiveLoanForEksemplar | null>;
 }
 
 // ----------------------------------------------------------------------------
@@ -255,6 +283,14 @@ const tauriRpc: PeminjamanRpc = {
   async bukuSummary(id) {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<BukuSummary>('buku_summary', { id });
+  },
+  async resolveEksemplar(kode) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<EksemplarResolved | null>('eksemplar_resolve', { kode });
+  },
+  async aktifByEksemplar(kode) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<ActiveLoanForEksemplar | null>('peminjaman_aktif_by_eksemplar', { kode });
   },
 };
 
@@ -505,6 +541,13 @@ const mockRpc: PeminjamanRpc = {
       jumlahTersedia: 3,
       jumlahEksemplar: 3,
     };
+  },
+  async resolveEksemplar() {
+    // Mock store doesn't track eksemplar — circulation flow is Tauri-only.
+    return null;
+  },
+  async aktifByEksemplar() {
+    return null;
   },
 };
 
