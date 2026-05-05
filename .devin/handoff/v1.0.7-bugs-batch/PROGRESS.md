@@ -17,9 +17,9 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | BUG-17  | A        | Sirkulasi (Kembalikan): scan eksemplar barcode → "tidak ada peminjaman aktif" walau ada loan aktif | HIGH     | IN_PR  | #120 | —            | —          |
 | BUG-18  | A        | Barcode/QR scanner susah baca walau barcode terlihat jelas (tuning camera + decoder)               | MEDIUM   | IN_PR  | #120 | —            | —          |
 | FEAT-07 | A        | Rename tombol Sirkulasi: Pinjam → "Scan Anggota Pinjam", Kembalikan → "Scan Kembalikan Pinjaman"   | LOW      | IN_PR  | #120 | —            | —          |
-| BUG-09  | B        | Aturan Peminjaman "Maksimum buku" = 3 tapi sistem block di 2; audit semua setting peminjaman       | HIGH     | OPEN   | —   | —            | —          |
-| BUG-10  | B        | Toast error peminjaman menampilkan raw JSON `{"code":"validation",...}`                            | MEDIUM   | OPEN   | —   | —            | —          |
-| FEAT-08 | B        | Pengembalian: quick-input buttons (1×/2×/3× denda per hari) di field Bayar Denda                   | MEDIUM   | OPEN   | —   | —            | BUG-09     |
+| BUG-09  | B        | Aturan Peminjaman "Maksimum buku" = 3 tapi sistem block di 2; audit semua setting peminjaman       | HIGH     | IN_PR  | #121 | —            | —          |
+| BUG-10  | B        | Toast error peminjaman menampilkan raw JSON `{"code":"validation",...}`                            | MEDIUM   | IN_PR  | #121 | —            | —          |
+| FEAT-08 | B        | Pengembalian: quick-input buttons (1×/2×/3× denda per hari) di field Bayar Denda                   | MEDIUM   | IN_PR  | #121 | —            | BUG-09     |
 | BUG-02  | C        | Template KTA: QR code gepeng (aspect ratio rusak) di semua template                                | HIGH     | OPEN   | —   | —            | —          |
 | BUG-06  | C        | KTA preview: foto anggota tampil sebagai broken-image (verify saat eksekusi)                       | MEDIUM   | OPEN   | —   | —            | —          |
 | FEAT-03 | C        | KTA depan: tambah field biodata lengkap + TTD kepala sekolah                                       | MEDIUM   | OPEN   | —   | —            | —          |
