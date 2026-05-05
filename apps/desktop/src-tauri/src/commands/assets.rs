@@ -15,10 +15,14 @@
 //! v1 data, or anything the user typed before this feature shipped) are
 //! passed through unchanged so existing pictures keep rendering.
 
+use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64::Engine;
+use image::codecs::jpeg::JpegEncoder;
+use image::imageops::FilterType;
+use image::{DynamicImage, ImageFormat, ImageReader};
 use serde::Serialize;
 use tauri::{AppHandle, Manager};
 
@@ -39,6 +43,132 @@ const MAX_BYTES: u64 = 10 * 1024 * 1024;
 /// Maximum length of the slugified filename stem. Keeps filenames short
 /// enough to survive Windows MAX_PATH on deeply-nested AppData layouts.
 const MAX_STEM_LEN: usize = 40;
+
+/// Per-category compression knobs. `max_dim` is the long-edge cap in pixels
+/// after Lanczos3 downscale; `jpeg_quality` is the libjpeg-style 1..=100
+/// quality applied when re-encoding an opaque source as JPEG. Originals
+/// already smaller than `max_dim` are written verbatim so we never up-sample.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CompressOpts {
+    pub(crate) max_dim: u32,
+    pub(crate) jpeg_quality: u8,
+}
+
+/// Look up the compression budget for a given upload category. Returns
+/// `None` for categories that should keep the source bytes untouched.
+fn compress_opts_for(category: &str) -> Option<CompressOpts> {
+    match category {
+        // Member portraits — KTA preview tops out at ~96 px, KTA print at
+        // ~250 px, so 800 px on the long edge gives plenty of headroom for
+        // future zoom while keeping a typical phone snap under 200 KiB.
+        "anggota" => Some(CompressOpts {
+            max_dim: 800,
+            jpeg_quality: 85,
+        }),
+        // Book covers can be larger because they show in full-bleed detail
+        // pages. 1200 px on the long edge keeps a portrait cover under
+        // ~400 KiB at quality 85.
+        "buku" => Some(CompressOpts {
+            max_dim: 1200,
+            jpeg_quality: 85,
+        }),
+        // School logos render at ~80 px in the sidebar / login. 512 px is
+        // plenty; quality bumped to 92 because logos have hard edges where
+        // JPEG ringing is more obvious.
+        "identitas" => Some(CompressOpts {
+            max_dim: 512,
+            jpeg_quality: 92,
+        }),
+        _ => None,
+    }
+}
+
+/// File extensions that should bypass the resize/recompress step entirely.
+/// SVG is vector text, GIF can be animated and we don't want to drop frames.
+fn is_passthrough_ext(ext: &str) -> bool {
+    matches!(ext, "svg" | "gif")
+}
+
+/// Pure helper for unit tests: try to decode the bytes at `src` and, if the
+/// result is larger than `opts.max_dim` on the long edge, return a resized +
+/// re-encoded byte buffer. Returns `Ok(None)` when no rewrite is needed —
+/// either because the format is passthrough, the decode failed (corrupt or
+/// not-actually-an-image fixture), or the original is already small enough.
+///
+/// The caller is responsible for the final on-disk write so this stays easy
+/// to unit-test without touching the filesystem.
+pub(crate) fn maybe_compress_bytes(
+    bytes: &[u8],
+    ext: &str,
+    opts: CompressOpts,
+) -> AppResult<Option<(Vec<u8>, &'static str)>> {
+    if is_passthrough_ext(ext) {
+        return Ok(None);
+    }
+
+    // `with_guessed_format` re-sniffs the magic bytes so a mis-named .jpg
+    // that's actually PNG still decodes correctly.
+    let reader = match ImageReader::new(Cursor::new(bytes)).with_guessed_format() {
+        Ok(r) => r,
+        Err(_) => return Ok(None),
+    };
+    let format = reader.format();
+    let img = match reader.decode() {
+        Ok(img) => img,
+        Err(_) => return Ok(None),
+    };
+
+    let (w, h) = (img.width(), img.height());
+    let long_edge = w.max(h);
+    let needs_resize = long_edge > opts.max_dim;
+
+    let resized: DynamicImage = if needs_resize {
+        // Lanczos3 is the standard choice for photographic downscale —
+        // matches what Pillow / Sharp / GIMP "Best" does.
+        img.resize(opts.max_dim, opts.max_dim, FilterType::Lanczos3)
+    } else {
+        img
+    };
+
+    let has_alpha = resized.color().has_alpha();
+    // Keep alpha channels intact (logos, transparent stamps) by re-encoding
+    // as PNG. Everything else collapses to JPEG for the size win — except
+    // when the source was already a JPEG and didn't need a resize, in which
+    // case there's nothing to gain and we leave the bytes alone.
+    if !needs_resize && matches!(format, Some(ImageFormat::Jpeg)) && !has_alpha {
+        return Ok(None);
+    }
+    if !needs_resize && matches!(format, Some(ImageFormat::Png)) && has_alpha {
+        return Ok(None);
+    }
+
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len() / 2);
+    if has_alpha {
+        let rgba = resized.to_rgba8();
+        image::write_buffer_with_format(
+            &mut Cursor::new(&mut out),
+            rgba.as_raw(),
+            rgba.width(),
+            rgba.height(),
+            image::ExtendedColorType::Rgba8,
+            ImageFormat::Png,
+        )
+        .map_err(|e| AppError::Internal(format!("png encode: {e}")))?;
+        Ok(Some((out, "png")))
+    } else {
+        let rgb = resized.to_rgb8();
+        let mut encoder = JpegEncoder::new_with_quality(&mut out, opts.jpeg_quality);
+        encoder
+            .encode(
+                rgb.as_raw(),
+                rgb.width(),
+                rgb.height(),
+                image::ExtendedColorType::Rgb8,
+            )
+            .map_err(|e| AppError::Internal(format!("jpeg encode: {e}")))?;
+        Ok(Some((out, "jpg")))
+    }
+}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -171,12 +301,34 @@ pub(crate) fn save_inner(
     let ext = normalised_extension(src)?;
     let stem = src.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
     let slug = slugify_stem(stem);
-    let filename = format!("{slug}-{timestamp_ms}.{ext}");
 
     let target_dir = app_data.join(UPLOADS_DIR).join(category);
     std::fs::create_dir_all(&target_dir)?;
+
+    // Try to resize+recompress for known categories so phone-sized originals
+    // don't blow up the SQLite-adjacent uploads/ folder. Anything outside
+    // [`compress_opts_for`] (unknown category) or that fails to decode
+    // (corrupt / not-really-an-image fixture) falls back to a verbatim copy
+    // so we never refuse an upload just because the codec can't handle it.
+    let (final_ext, written_bytes): (String, Option<Vec<u8>>) = if let Some(opts) =
+        compress_opts_for(category)
+    {
+        let bytes = std::fs::read(src)?;
+        match maybe_compress_bytes(&bytes, &ext, opts) {
+            Ok(Some((compressed, new_ext))) => (new_ext.to_string(), Some(compressed)),
+            Ok(None) | Err(_) => (ext.clone(), None),
+        }
+    } else {
+        (ext.clone(), None)
+    };
+
+    let filename = format!("{slug}-{timestamp_ms}.{final_ext}");
     let target = target_dir.join(&filename);
-    std::fs::copy(src, &target)?;
+    if let Some(bytes) = written_bytes {
+        std::fs::write(&target, bytes)?;
+    } else {
+        std::fs::copy(src, &target)?;
+    }
 
     let rel_path = format!("{UPLOADS_DIR}/{category}/{filename}");
     Ok(SaveResult {
@@ -557,5 +709,137 @@ mod tests {
         let url = read_data_url_inner(app_data.path(), "uploads/buku/note.txt")
             .expect("ok");
         assert!(url.starts_with("data:application/octet-stream;base64,"));
+    }
+
+    /// Build a fake JPEG of `width x height` filled with a single colour.
+    /// `image::ImageFormat::Jpeg` is selected via `save_buffer_with_format`.
+    fn fake_rgb_jpeg(width: u32, height: u32, colour: [u8; 3]) -> Vec<u8> {
+        let pixels: Vec<u8> = (0..width * height)
+            .flat_map(|_| colour.iter().copied())
+            .collect();
+        let mut out = Vec::new();
+        let mut encoder = JpegEncoder::new_with_quality(&mut out, 90);
+        encoder
+            .encode(&pixels, width, height, image::ExtendedColorType::Rgb8)
+            .expect("encode jpeg fixture");
+        out
+    }
+
+    /// Build a PNG of `width x height` with an alpha channel. Useful for the
+    /// "must keep alpha" test path.
+    fn fake_rgba_png(width: u32, height: u32) -> Vec<u8> {
+        let pixels: Vec<u8> = (0..width * height)
+            .flat_map(|i| {
+                let alpha = if i % 2 == 0 { 0 } else { 255 };
+                [255, 0, 0, alpha]
+            })
+            .collect();
+        let mut out = Vec::new();
+        image::write_buffer_with_format(
+            &mut Cursor::new(&mut out),
+            &pixels,
+            width,
+            height,
+            image::ExtendedColorType::Rgba8,
+            ImageFormat::Png,
+        )
+        .expect("encode png fixture");
+        out
+    }
+
+    fn anggota_opts() -> CompressOpts {
+        compress_opts_for("anggota").expect("anggota opts")
+    }
+
+    #[test]
+    fn maybe_compress_resizes_oversized_jpeg_to_long_edge_cap() {
+        let bytes = fake_rgb_jpeg(2000, 1500, [120, 60, 30]);
+        let (out, ext) =
+            maybe_compress_bytes(&bytes, "jpg", anggota_opts())
+                .expect("ok")
+                .expect("rewrites oversize");
+        assert_eq!(ext, "jpg", "opaque source stays JPEG");
+        let decoded = image::load_from_memory(&out).expect("decoded output");
+        assert_eq!(decoded.width().max(decoded.height()), 800);
+        assert!(out.len() < bytes.len(), "compressed output is smaller");
+    }
+
+    #[test]
+    fn maybe_compress_skips_jpeg_within_threshold() {
+        let bytes = fake_rgb_jpeg(400, 400, [120, 60, 30]);
+        let res = maybe_compress_bytes(&bytes, "jpg", anggota_opts()).expect("ok");
+        assert!(res.is_none(), "small JPEG passes through verbatim");
+    }
+
+    #[test]
+    fn maybe_compress_keeps_alpha_channel_as_png() {
+        let bytes = fake_rgba_png(1024, 1024);
+        let (out, ext) =
+            maybe_compress_bytes(&bytes, "png", anggota_opts())
+                .expect("ok")
+                .expect("rewrites oversize png");
+        assert_eq!(ext, "png", "alpha-bearing source stays PNG");
+        let decoded = image::load_from_memory(&out).expect("decoded output");
+        assert!(decoded.color().has_alpha(), "alpha preserved");
+        assert_eq!(decoded.width().max(decoded.height()), 800);
+    }
+
+    #[test]
+    fn maybe_compress_passes_through_svg_and_gif_verbatim() {
+        let svg = b"<svg xmlns=\"http://www.w3.org/2000/svg\"/>";
+        assert!(
+            maybe_compress_bytes(svg, "svg", anggota_opts())
+                .expect("ok")
+                .is_none()
+        );
+        let gif = b"GIF89a";
+        assert!(
+            maybe_compress_bytes(gif, "gif", anggota_opts())
+                .expect("ok")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn maybe_compress_returns_none_on_undecodable_bytes() {
+        let bytes = b"fake-jpeg-bytes";
+        let res = maybe_compress_bytes(bytes, "jpg", anggota_opts()).expect("ok");
+        assert!(res.is_none(), "garbage falls through to verbatim copy");
+    }
+
+    #[test]
+    fn save_inner_compresses_oversized_anggota_photo() {
+        let app_data = TempDir::new().expect("tempdir");
+        let staging = TempDir::new().expect("staging");
+        let bytes = fake_rgb_jpeg(2000, 2000, [200, 80, 60]);
+        let src = staging.path().join("phone-shot.jpg");
+        fs::write(&src, &bytes).expect("write src");
+
+        let result =
+            save_inner(app_data.path(), "anggota", &src, 1_777_894_097_000).expect("save ok");
+        assert!(result.rel_path.ends_with(".jpg"));
+        let saved = fs::read(&result.abs_path).expect("read saved");
+        assert!(saved.len() < bytes.len(), "saved file is smaller than source");
+        let decoded = image::load_from_memory(&saved).expect("saved is decodable");
+        assert_eq!(decoded.width().max(decoded.height()), 800);
+    }
+
+    #[test]
+    fn save_inner_keeps_alpha_for_identitas_logo() {
+        let app_data = TempDir::new().expect("tempdir");
+        let staging = TempDir::new().expect("staging");
+        let bytes = fake_rgba_png(1024, 1024);
+        let src = staging.path().join("logo.png");
+        fs::write(&src, &bytes).expect("write src");
+
+        let result = save_inner(app_data.path(), "identitas", &src, 0).expect("save ok");
+        assert!(
+            result.rel_path.ends_with(".png"),
+            "alpha-bearing logo stored as PNG: {}",
+            result.rel_path,
+        );
+        let saved = fs::read(&result.abs_path).expect("read saved");
+        let decoded = image::load_from_memory(&saved).expect("saved is decodable");
+        assert!(decoded.color().has_alpha());
     }
 }
