@@ -16,6 +16,12 @@
     "export": "Export",
     "import": "Import"
   },
+  "titleBar": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
   "placeholders": {
     "search": "Search…"
   },
