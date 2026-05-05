@@ -74,6 +74,45 @@
     "pick": "Pilih file…",
     "clear": "Hapus file"
   },
+  "importWizard": {
+    "step": {
+      "upload": "Unggah",
+      "map": "Mapping",
+      "preview": "Preview",
+      "result": "Hasil"
+    },
+    "upload": {
+      "help": "Pilih file .xlsx, .xls, atau .csv. Header wajib di baris pertama.",
+      "pick": "Pilih file",
+      "template": "Unduh template"
+    },
+    "map": {
+      "help": "Cocokkan kolom file dengan field aplikasi. Kolom yang tidak dipakai bisa dibiarkan kosong.",
+      "colSource": "Kolom file",
+      "colSample": "Contoh nilai",
+      "colTarget": "Field aplikasi",
+      "skip": "Lewati",
+      "missingTitle": "Field wajib belum terpetakan"
+    },
+    "preview": {
+      "valid": "{{count}} baris siap",
+      "invalid": "{{count}} baris dilewati (error)",
+      "limit": "Menampilkan {{shown}} / {{total}} baris pertama",
+      "colError": "Error"
+    },
+    "result": {
+      "inserted": "Ditambahkan",
+      "skipped": "Dilewati",
+      "errors": "Error",
+      "errorListTitle": "Daftar error",
+      "downloadErrors": "Unduh CSV error",
+      "message": "Pesan"
+    },
+    "submit": "Impor {{count}} baris",
+    "toastDone": "Selesai impor",
+    "toastSummary": "{{inserted}} ditambahkan, {{skipped}} dilewati",
+    "toastFailed": "Gagal impor"
+  },
   "notifications": {
     "title": "Notifikasi",
     "overdueTitle": "Peminjaman Terlambat",
