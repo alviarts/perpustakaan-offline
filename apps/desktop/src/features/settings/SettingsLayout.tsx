@@ -24,7 +24,7 @@ export function SettingsLayout(): JSX.Element {
 
   return (
     <div
-      className="flex h-full min-h-0 flex-col gap-6 p-6"
+      className="flex h-full min-h-0 flex-col gap-6 px-6 pb-10 pt-6"
       data-testid="settings-layout"
     >
       <header className="flex flex-col gap-2">
@@ -39,7 +39,10 @@ export function SettingsLayout(): JSX.Element {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-        <aside className="flex flex-col gap-3">
+        <aside
+          className="flex flex-col gap-3 lg:sticky lg:top-6 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto"
+          data-testid="settings-sidebar"
+        >
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input

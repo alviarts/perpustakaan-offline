@@ -171,16 +171,16 @@ export function Header() {
           type="button"
           onClick={() => setSearchOpen(true)}
           aria-label={t('common:globalSearch.title', { defaultValue: 'Pencarian Global' })}
-          className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground hidden h-9 w-64 items-center gap-2 rounded-md border px-3 text-sm transition-colors md:flex"
+          className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground hidden h-9 w-64 min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap rounded-md border px-3 text-sm transition-colors md:flex lg:w-72 xl:w-80"
           data-testid="header-search"
         >
           <Search className="h-4 w-4 shrink-0" />
-          <span className="flex-1 text-left">
+          <span className="min-w-0 flex-1 truncate text-left">
             {t('common:globalSearch.placeholder', {
               defaultValue: 'Cari anggota, buku, peminjaman…',
             })}
           </span>
-          <kbd className="border-border bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
+          <kbd className="border-border bg-muted shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px]">
             ⌃K
           </kbd>
         </button>
