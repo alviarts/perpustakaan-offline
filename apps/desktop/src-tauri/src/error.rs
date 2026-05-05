@@ -32,15 +32,24 @@ impl From<tauri::Error> for AppError {
 
 impl Serialize for AppError {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let code = match self {
-            AppError::InvalidCredentials => "invalid_credentials",
-            AppError::InactiveAccount => "inactive",
-            AppError::NotAuthenticated => "not_authenticated",
-            AppError::NotFound(_) => "not_found",
-            AppError::Validation(_) => "validation",
-            _ => "internal",
+        // Pair each variant with the user-facing message *without* the
+        // `validation: ` / `not found: ` prefix that the `Display` impl
+        // injects. The frontend's `formatTauriError` shows `message`
+        // verbatim, so leaking that prefix duplicates information already
+        // expressed by `code` and produced toasts like
+        // "validation: melebihi maksimal 2 buku per anggota" (BUG-10 in
+        // the v1.0.7 batch).
+        let (code, msg): (&str, String) = match self {
+            AppError::InvalidCredentials => ("invalid_credentials", "Kredensial tidak valid".into()),
+            AppError::InactiveAccount => ("inactive", "Akun tidak aktif".into()),
+            AppError::NotAuthenticated => ("not_authenticated", "Belum login".into()),
+            AppError::NotFound(m) => ("not_found", m.clone()),
+            AppError::Validation(m) => ("validation", m.clone()),
+            AppError::Internal(m) => ("internal", m.clone()),
+            AppError::Db(e) => ("internal", e.to_string()),
+            AppError::Io(e) => ("internal", e.to_string()),
+            AppError::Bcrypt(e) => ("internal", e.to_string()),
         };
-        let msg = self.to_string();
         let mut state = serializer.serialize_struct("AppError", 2)?;
         use serde::ser::SerializeStruct;
         state.serialize_field("code", code)?;

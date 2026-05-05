@@ -56,4 +56,38 @@ describe('formatTauriError', () => {
     const v = formatTauriError({ Validation: 'expected', Internal: 'leak' });
     expect(v).toBe('expected');
   });
+
+  // BUG-10 in the v1.0.7 batch: the Rust backend serialises `AppError` via
+  // `error.rs` as `{ code, message }` (NOT the externally-tagged enum shape),
+  // so the formatter must accept the modern shape too — otherwise toasts
+  // surfaced the raw JSON to the user.
+
+  it('extracts message from the {code,message} struct shape', () => {
+    expect(
+      formatTauriError({
+        code: 'validation',
+        message: 'melebihi maksimal 3 buku per anggota (saat ini 2)',
+      }),
+    ).toBe('melebihi maksimal 3 buku per anggota (saat ini 2)');
+  });
+
+  it('strips a legacy "validation: " Display prefix from the message', () => {
+    // Older builds serialised via Display, leaking the `validation: ` prefix
+    // into the message. Be tolerant of that mid-flight upgrade.
+    expect(
+      formatTauriError({
+        code: 'validation',
+        message: 'validation: kode_buku required',
+      }),
+    ).toBe('kode_buku required');
+  });
+
+  it('strips the legacy prefix from externally-tagged variants too', () => {
+    expect(formatTauriError({ Validation: 'validation: x' })).toBe('x');
+  });
+
+  it('does not mistake an arbitrary {message} object for an AppError', () => {
+    // Without `code`, the new branch must not fire.
+    expect(formatTauriError({ message: 'boom' })).toBe('{"message":"boom"}');
+  });
 });

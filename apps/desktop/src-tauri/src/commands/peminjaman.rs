@@ -13,9 +13,18 @@ use tauri::State;
 use crate::error::{AppError, AppResult};
 use crate::AppState;
 
+// Defaults must match `apps/desktop/src/lib/settings.ts::DEFAULT_LOAN_RULES`.
+// When they drift, the frontend Aturan Peminjaman page shows one number
+// while the backend enforces another, which is exactly how
+// "maksimum 3" became "block at 2" in v1.0.6 (BUG-09 in the v1.0.7
+// batch). The Settings page seeds these into the `settings` table on
+// first save, but until then the backend falls back to these constants —
+// so they MUST agree with the frontend.
 const DEFAULT_LAMA_PINJAM_HARI: i64 = 7;
 const DEFAULT_DENDA_PER_HARI: i64 = 500;
-const DEFAULT_MAKS_PINJAM: i64 = 2;
+const DEFAULT_MAKS_PINJAM: i64 = 3;
+/// Minggu (`0`) is the default hari libur, matching frontend.
+const DEFAULT_HARI_LIBUR: &[u32] = &[0];
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -263,6 +272,62 @@ fn setting_int(conn: &rusqlite::Connection, key: &str, default: i64) -> i64 {
         .unwrap_or(None);
     row.and_then(|v| v.trim().parse::<i64>().ok())
         .unwrap_or(default)
+}
+
+/// Read `transaksi.hari_libur` from settings as a comma-separated list of
+/// 0..=6 weekday indices (`0=Minggu .. 6=Sabtu`, matching JS
+/// `Date.getDay()`). Falls back to `DEFAULT_HARI_LIBUR` when the setting
+/// is missing or unparseable.
+fn setting_hari_libur(conn: &rusqlite::Connection) -> Vec<u32> {
+    let raw: Option<String> = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'transaksi.hari_libur'",
+            [],
+            |r| r.get(0),
+        )
+        .optional()
+        .unwrap_or(None);
+    let Some(raw) = raw else {
+        return DEFAULT_HARI_LIBUR.to_vec();
+    };
+    let parsed: Vec<u32> = raw
+        .split(',')
+        .filter_map(|s| s.trim().parse::<u32>().ok())
+        .filter(|d| *d <= 6)
+        .collect();
+    if parsed.is_empty() {
+        DEFAULT_HARI_LIBUR.to_vec()
+    } else {
+        parsed
+    }
+}
+
+/// Count days strictly *after* `jatuh_tempo` up to and including `today`,
+/// skipping any weekday whose `Datelike::weekday().num_days_from_sunday()`
+/// matches a value in `hari_libur` (0=Minggu..6=Sabtu).
+///
+/// Returns 0 when `today <= jatuh_tempo`. The Aturan Peminjaman tab
+/// (`apps/desktop/src/lib/settings.ts`) describes this skip behaviour;
+/// the previous backend code multiplied raw calendar days by
+/// `denda_per_hari` and ignored hari_libur entirely (BUG-09 audit
+/// finding in the v1.0.7 batch).
+fn billable_late_days(jatuh_tempo: NaiveDate, today: NaiveDate, hari_libur: &[u32]) -> i64 {
+    use chrono::Datelike;
+    if today <= jatuh_tempo {
+        return 0;
+    }
+    let mut day = jatuh_tempo;
+    let mut count = 0_i64;
+    while day < today {
+        // Each iteration advances to the *next* day, then counts it if
+        // not a holiday weekday.
+        day = day.succ_opt().expect("date overflow");
+        let dow = day.weekday().num_days_from_sunday();
+        if !hari_libur.contains(&dow) {
+            count += 1;
+        }
+    }
+    count
 }
 
 fn next_nomor_pinjam(conn: &rusqlite::Connection) -> AppResult<String> {
@@ -841,6 +906,7 @@ pub fn peminjaman_kembalikan(
         .ok_or_else(|| AppError::NotFound(format!("peminjaman id={}", input.peminjaman_id)))?;
 
     let denda_per_hari = setting_int(&conn, "transaksi.denda_per_hari", DEFAULT_DENDA_PER_HARI);
+    let hari_libur = setting_hari_libur(&conn);
     let today = chrono::Local::now().date_naive();
     let bayar = input.bayar.unwrap_or(0).max(0);
 
@@ -870,7 +936,7 @@ pub fn peminjaman_kembalikan(
             )));
         }
         let jt = parse_date(&tgl_jt)?;
-        let hari_telat = (today - jt).num_days().max(0);
+        let hari_telat = billable_late_days(jt, today, &hari_libur);
         let denda = hari_telat * denda_per_hari;
         total_denda += denda;
 
@@ -1785,5 +1851,71 @@ mod tests {
         .expect("seed item");
         let active = peminjaman_aktif_by_eksemplar_inner(&conn, "B-001-01").expect("query");
         assert!(active.is_none(), "returned items must not be reported as active");
+    }
+
+    // -----------------------------------------------------------------
+    // Aturan Peminjaman audit (BUG-09 in v1.0.7 batch).
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn default_maks_pinjam_matches_frontend_default() {
+        // The frontend `DEFAULT_LOAN_RULES.maksBukuPinjam` is 3 (see
+        // apps/desktop/src/lib/settings.ts). When this constant drifts,
+        // a fresh install where the user never opens Aturan Peminjaman
+        // shows "max 3 buku" in the UI but blocks the 3rd loan in the
+        // backend — exactly the BUG-09 report.
+        assert_eq!(DEFAULT_MAKS_PINJAM, 3);
+    }
+
+    #[test]
+    fn setting_hari_libur_falls_back_to_default_when_missing() {
+        let conn = setup_db();
+        assert_eq!(setting_hari_libur(&conn), DEFAULT_HARI_LIBUR.to_vec());
+    }
+
+    #[test]
+    fn setting_hari_libur_parses_csv_and_clamps_invalid_entries() {
+        let conn = setup_db();
+        conn.execute(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES ('transaksi.hari_libur', '0,6,99,abc')",
+            [],
+        ).expect("seed setting");
+        // 99 and "abc" must be ignored; 0 (Sun) and 6 (Sat) kept.
+        assert_eq!(setting_hari_libur(&conn), vec![0, 6]);
+    }
+
+    #[test]
+    fn billable_late_days_returns_zero_when_returned_on_or_before_due() {
+        let due = NaiveDate::from_ymd_opt(2025, 1, 10).unwrap();
+        assert_eq!(billable_late_days(due, due, &[0]), 0);
+        let early = NaiveDate::from_ymd_opt(2025, 1, 9).unwrap();
+        assert_eq!(billable_late_days(due, early, &[0]), 0);
+    }
+
+    #[test]
+    fn billable_late_days_skips_sunday_when_configured() {
+        // Due 2025-01-10 (Friday). Today 2025-01-13 (Monday).
+        // Calendar diff = 3 days (Sat, Sun, Mon). With hari_libur=[0]
+        // (Sunday), billable late days = 2.
+        let due = NaiveDate::from_ymd_opt(2025, 1, 10).unwrap();
+        let today = NaiveDate::from_ymd_opt(2025, 1, 13).unwrap();
+        assert_eq!(billable_late_days(due, today, &[0]), 2);
+    }
+
+    #[test]
+    fn billable_late_days_counts_every_day_when_no_holidays_configured() {
+        let due = NaiveDate::from_ymd_opt(2025, 1, 10).unwrap();
+        let today = NaiveDate::from_ymd_opt(2025, 1, 20).unwrap();
+        assert_eq!(billable_late_days(due, today, &[]), 10);
+    }
+
+    #[test]
+    fn billable_late_days_skips_full_weekends_when_both_days_configured() {
+        // Span Mon 2025-01-13 (due) → Mon 2025-01-20 (today). Calendar
+        // diff = 7. Hari libur = [0, 6] (Sun + Sat). The span includes
+        // exactly one Sat (1-18) and one Sun (1-19), so billable = 5.
+        let due = NaiveDate::from_ymd_opt(2025, 1, 13).unwrap();
+        let today = NaiveDate::from_ymd_opt(2025, 1, 20).unwrap();
+        assert_eq!(billable_late_days(due, today, &[0, 6]), 5);
     }
 }
