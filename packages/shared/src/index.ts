@@ -12,4 +12,4 @@ export interface AppErrorPayload {
   message: string;
 }
 
-export const APP_NAME = 'Perpustakaan Offline' as const;
+export const APP_NAME = 'Perpustakaan Nusantara' as const;

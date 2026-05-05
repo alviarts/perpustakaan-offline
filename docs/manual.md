@@ -1,4 +1,4 @@
-# Manual Pengguna — Perpustakaan Offline
+# Manual Pengguna — Perpustakaan Nusantara
 
 > **English version below** — scroll ke bawah untuk versi Bahasa Inggris.
 
@@ -42,15 +42,15 @@ Tersedia **dua format installer**, pilih salah satu:
 
 | Format | File                                              | Catatan                                                  |
 |--------|---------------------------------------------------|----------------------------------------------------------|
-| MSI    | `PerpustakaanOffline_<versi>_x64_en-US.msi`       | Standar Windows Installer; cocok untuk deployment massal |
-| NSIS   | `PerpustakaanOffline_<versi>_x64-setup.exe`       | Wizard interaktif; cocok untuk install di 1 PC           |
+| MSI    | `PerpustakaanNusantara_<versi>_x64_en-US.msi`       | Standar Windows Installer; cocok untuk deployment massal |
+| NSIS   | `PerpustakaanNusantara_<versi>_x64-setup.exe`       | Wizard interaktif; cocok untuk install di 1 PC           |
 
 1. Download salah satu file di atas dari halaman Releases
 2. Klik 2x → ikuti wizard (Next → Next → Install)
-3. Aplikasi terinstall ke `C:\Program Files\PerpustakaanOffline\` (atau lokasi lain yang dipilih)
+3. Aplikasi terinstall ke `C:\Program Files\PerpustakaanNusantara\` (atau lokasi lain yang dipilih)
 4. Shortcut otomatis dibuat di **Start Menu**
-5. Klik shortcut **"PerpustakaanOffline"** untuk menjalankan — saat pertama kali dibuka, database SQLite + seed data otomatis dibuat
-6. Untuk uninstall: Control Panel → Programs → PerpustakaanOffline → Uninstall
+5. Klik shortcut **"PerpustakaanNusantara"** untuk menjalankan — saat pertama kali dibuka, database SQLite + seed data otomatis dibuat
+6. Untuk uninstall: Control Panel → Programs → PerpustakaanNusantara → Uninstall
 
 ### Linux (Ubuntu/Debian)
 
@@ -60,9 +60,9 @@ Tersedia **dua format installer**, pilih salah satu:
 
 ### macOS
 
-1. Download `PerpustakaanOffline_<versi>_x64.dmg` (Intel) atau `_aarch64.dmg` (Apple Silicon)
+1. Download `PerpustakaanNusantara_<versi>_x64.dmg` (Intel) atau `_aarch64.dmg` (Apple Silicon)
 2. Buka `.dmg` → drag aplikasi ke folder Applications
-3. Buka via Launchpad atau Spotlight ("PerpustakaanOffline")
+3. Buka via Launchpad atau Spotlight ("PerpustakaanNusantara")
 
 ### Catatan Windows Defender / SmartScreen
 
@@ -74,7 +74,7 @@ Klik **"More info"** → **"Run anyway"**. Ini normal untuk software open-source
 
 ### macOS Gatekeeper
 
-Kalau muncul *"PerpustakaanOffline can't be opened because Apple cannot check it for malicious software"*, klik kanan icon aplikasi → **Open** → konfirmasi **Open** sekali lagi. Setelah itu bisa dibuka normal.
+Kalau muncul *"PerpustakaanNusantara can't be opened because Apple cannot check it for malicious software"*, klik kanan icon aplikasi → **Open** → konfirmasi **Open** sekali lagi. Setelah itu bisa dibuka normal.
 
 ---
 
@@ -753,9 +753,9 @@ This is a translated short version of the manual. Indonesian version above is mo
 ## Quick Start
 
 1. Download the latest installer for your OS from [Releases](https://github.com/alviarts/perpustakaan-offline/releases):
-   - **Windows:** `PerpustakaanOffline_<version>_x64-setup.exe` (NSIS) or `..._x64_en-US.msi` (MSI)
+   - **Windows:** `PerpustakaanNusantara_<version>_x64-setup.exe` (NSIS) or `..._x64_en-US.msi` (MSI)
    - **Linux:** `perpustakaan-offline_<version>_amd64.deb`
-   - **macOS:** `PerpustakaanOffline_<version>_x64.dmg` or `_aarch64.dmg`
+   - **macOS:** `PerpustakaanNusantara_<version>_x64.dmg` or `_aarch64.dmg`
 2. Install → launch → login with `admin` / `admin123` → **change password immediately** (Setting → Akun)
 3. Switch UI language: **Setting → Bahasa → `en — English`**
 

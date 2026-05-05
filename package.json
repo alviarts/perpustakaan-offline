@@ -2,7 +2,7 @@
   "name": "perpustakaan-offline",
   "private": true,
   "version": "1.0.3",
-  "description": "Perpustakaan Offline v2 — Tauri 2 + React 18 + TypeScript",
+  "description": "Perpustakaan Nusantara v2 — Tauri 2 + React 18 + TypeScript",
   "license": "Proprietary",
   "packageManager": "pnpm@9.15.1",
   "engines": {

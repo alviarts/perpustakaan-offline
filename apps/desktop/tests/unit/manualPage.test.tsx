@@ -35,7 +35,7 @@ describe('ManualPage', () => {
   it('renders the manual title from docs/manual.md as an h1', () => {
     renderManual();
     expect(
-      screen.getByRole('heading', { name: /Manual Pengguna — Perpustakaan Offline/i, level: 1 }),
+      screen.getByRole('heading', { name: /Manual Pengguna — Perpustakaan Nusantara/i, level: 1 }),
     ).toBeInTheDocument();
   });
 

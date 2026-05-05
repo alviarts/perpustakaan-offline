@@ -1,4 +1,4 @@
-# Perpustakaan Offline (SIM-Perpus Reborn) — v2
+# Perpustakaan Nusantara (SIM-Perpus Reborn) — v2
 
 > Aplikasi **Sistem Informasi Manajemen Perpustakaan** (SIM-Perpus) berbasis **Tauri 2 + React 18 + TypeScript + SQLite** yang berjalan **100% offline** dan dapat dikemas menjadi **MSI / NSIS installer** Windows, `.deb` Linux, atau `.app` macOS. Cocok untuk perpustakaan **sekolah / madrasah**.
 
@@ -91,9 +91,9 @@ pnpm tauri:build
 
 Output ada di `apps/desktop/src-tauri/target/release/bundle/`:
 
-- **Windows:** `msi/PerpustakaanOffline_<version>_x64_en-US.msi` + `nsis/PerpustakaanOffline_<version>_x64-setup.exe`
+- **Windows:** `msi/PerpustakaanNusantara_<version>_x64_en-US.msi` + `nsis/PerpustakaanNusantara_<version>_x64-setup.exe`
 - **Linux:** `deb/perpustakaan-offline_<version>_amd64.deb` + `appimage/perpustakaan-offline_<version>_amd64.AppImage`
-- **macOS:** `dmg/PerpustakaanOffline_<version>_aarch64.dmg`
+- **macOS:** `dmg/PerpustakaanNusantara_<version>_aarch64.dmg`
 
 Cross-build tidak didukung Tauri — build di OS target masing-masing (atau pakai CI matrix).
 

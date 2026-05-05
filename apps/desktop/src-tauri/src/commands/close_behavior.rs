@@ -5,7 +5,7 @@
 //!
 //! 1. Closing the *main window* did not always tear down the WebView2
 //!    subprocess + the Tauri event loop on its own — Windows kept the
-//!    `PerpustakaanOffline.exe` process alive in some configurations,
+//!    `PerpustakaanNusantara.exe` process alive in some configurations,
 //!    blocking subsequent launches and risking SQLite lock contention if a
 //!    user opened a second instance.
 //! 2. There was no way to keep the app running in the background as a

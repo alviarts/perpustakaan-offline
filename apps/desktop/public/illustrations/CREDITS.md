@@ -1,6 +1,6 @@
 # Illustration credits
 
-Illustrations bundled with Perpustakaan Offline v2 are sourced from the
+Illustrations bundled with Perpustakaan Nusantara v2 are sourced from the
 following CC0 / royalty-free libraries. Replace any of these files with
 final hand-picked artwork from unDraw / Storyset / DrawKit before the
 public release.
