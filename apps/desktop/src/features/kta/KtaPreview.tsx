@@ -126,6 +126,19 @@ function FieldNode({
     e.stopPropagation();
     onSelect?.(field.id);
   };
+  if (field.kind === 'rect') {
+    return (
+      <div
+        style={{
+          ...wrapperStyle,
+          background: field.fill ?? '#0f172a',
+          borderRadius: field.radius ? `${Math.max(0, field.radius)}mm` : undefined,
+          padding: 0,
+        }}
+        onClick={onClick}
+      />
+    );
+  }
   if (field.kind === 'foto') {
     return (
       <div style={wrapperStyle} onClick={onClick}>

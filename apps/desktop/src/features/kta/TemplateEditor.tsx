@@ -32,6 +32,7 @@ const FIELD_KINDS: { value: KtaFieldKind; label: string }[] = [
   { value: 'agama', label: 'Agama' },
   { value: 'foto', label: 'Foto' },
   { value: 'qr', label: 'QR Code' },
+  { value: 'rect', label: 'Dekorasi (Kotak)' },
 ];
 
 export function TemplateEditor({ layout, onChange, preview }: Props) {

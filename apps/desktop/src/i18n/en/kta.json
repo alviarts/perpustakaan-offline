@@ -16,7 +16,16 @@
     "jurusan": "Major",
     "agama": "Religion",
     "foto": "Photo",
-    "qr": "QR Code"
+    "qr": "QR Code",
+    "rect": "Decoration (Rectangle)"
+  },
+  "gallery": {
+    "open": "Template Gallery",
+    "title": "KTA Template Gallery",
+    "description": "Pick one of the bundled designs as a starting point. You can still tweak colours, positions, and text through the template editor afterwards.",
+    "use": "Use this template",
+    "applied": "Template loaded",
+    "appliedHint": "Click 'Save' to persist, or tweak colours / positions first."
   },
   "action": {
     "newTemplate": "New Template",

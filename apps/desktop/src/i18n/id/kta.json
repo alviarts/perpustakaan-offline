@@ -16,7 +16,16 @@
     "jurusan": "Jurusan",
     "agama": "Agama",
     "foto": "Foto",
-    "qr": "QR Code"
+    "qr": "QR Code",
+    "rect": "Dekorasi (Kotak)"
+  },
+  "gallery": {
+    "open": "Galeri Template",
+    "title": "Galeri Template KTA",
+    "description": "Pilih salah satu desain bawaan untuk dijadikan titik awal. Setelah dipilih, Anda tetap bisa mengubah warna, posisi, dan teks lewat editor template.",
+    "use": "Gunakan template ini",
+    "applied": "Template dimuat",
+    "appliedHint": "Klik 'Simpan' untuk menyimpan, atau ubah dulu warna / posisi sesuai kebutuhan."
   },
   "action": {
     "newTemplate": "Template Baru",

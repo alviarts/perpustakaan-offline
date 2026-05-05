@@ -1,4 +1,4 @@
-import { Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { LayoutGrid, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import {
   type KtaTemplate,
 } from '@/lib/kta';
 import { useIdentityStore } from '@/stores/identityStore';
+import { PresetGallery } from './PresetGallery';
+import type { KtaPreset } from './presets';
 import { TemplateEditor } from './TemplateEditor';
 
 export function KtaSettingsPage() {
@@ -27,6 +29,7 @@ export function KtaSettingsPage() {
   const [layout, setLayout] = useState<KtaLayout>(defaultLayout());
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -55,6 +58,20 @@ export function KtaSettingsPage() {
     setName('Template Baru');
     setDescription('');
     setLayout(defaultLayout());
+  };
+
+  const handlePickPreset = (preset: KtaPreset) => {
+    setActive(null);
+    setName(preset.nama);
+    setDescription(preset.deskripsi);
+    setLayout(preset.layout);
+    showToast({
+      title: t('kta:gallery.applied', 'Template dimuat'),
+      description: t(
+        'kta:gallery.appliedHint',
+        'Klik "Simpan" untuk menyimpan, atau ubah dulu warna / posisi sesuai kebutuhan.',
+      ),
+    });
   };
 
   const handleSave = async () => {
@@ -140,9 +157,19 @@ export function KtaSettingsPage() {
             {t('kta:subtitle', 'Atur layout kartu tanda anggota: foto, identitas, QR.')}
           </p>
         </div>
-        <Button onClick={handleNew} data-testid="kta-new-template">
-          <Plus className="size-4 mr-1" /> Template Baru
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setGalleryOpen(true)}
+            data-testid="kta-open-gallery"
+          >
+            <LayoutGrid className="size-4 mr-1" />
+            {t('kta:gallery.open', 'Galeri Template')}
+          </Button>
+          <Button onClick={handleNew} data-testid="kta-new-template">
+            <Plus className="size-4 mr-1" /> Template Baru
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -197,6 +224,13 @@ export function KtaSettingsPage() {
           </div>
         </div>
       </div>
+      <PresetGallery
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        identity={identity}
+        previewAnggota={previewAnggota}
+        onPick={handlePickPreset}
+      />
     </div>
   );
 }

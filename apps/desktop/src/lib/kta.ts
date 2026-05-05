@@ -10,7 +10,11 @@ export type KtaFieldKind =
   | 'foto'
   | 'qr'
   | 'static'
-  | 'identitas';
+  | 'identitas'
+  // Decorative filled rectangle. Rendered behind every other field by
+  // ordering the layout array (presets put rects first). Supports the
+  // optional `fill` (hex) and `radius` (mm-fraction, 0..1) fields.
+  | 'rect';
 
 export interface KtaField {
   id: string;
@@ -25,6 +29,10 @@ export interface KtaField {
   fontWeight?: 'normal' | 'bold';
   color?: string;
   align?: 'left' | 'center' | 'right';
+  /** Hex fill colour. Used by `rect` kind only. */
+  fill?: string;
+  /** Corner radius in millimetres. Used by `rect` kind only. */
+  radius?: number;
 }
 
 export interface KtaLayout {
