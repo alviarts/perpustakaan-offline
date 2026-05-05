@@ -33,5 +33,11 @@
     "subtitle": "Tambah data anggota & buku supaya dashboard berisi statistik real-time",
     "ctaAnggota": "Tambah Anggota",
     "ctaBuku": "Tambah Buku"
+  },
+  "overdue": {
+    "title": "Peminjaman Terlambat",
+    "subtitle": "{{count}} buku belum dikembalikan",
+    "unitDays": "hari",
+    "viewAll": "Lihat semua di Peminjaman →"
   }
 }

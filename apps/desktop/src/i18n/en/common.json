@@ -74,6 +74,15 @@
     "pick": "Pick file…",
     "clear": "Remove file"
   },
+  "notifications": {
+    "title": "Notifications",
+    "overdueTitle": "Overdue Loans",
+    "overdueSubtitle": "{{count}} book(s) not yet returned",
+    "overdueEmpty": "No overdue loans",
+    "overdueEmptyHint": "All loans are on time.",
+    "daysLate": "{{days}} days",
+    "viewAll": "View all in Loans"
+  },
   "profile": {
     "title": "User Profile",
     "description": "Edit your account biodata. Username, role, and password are managed in Settings → Accounts.",

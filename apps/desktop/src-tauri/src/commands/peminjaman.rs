@@ -119,6 +119,24 @@ pub struct PeminjamanQuickStats {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct OverdueRow {
+    pub peminjaman_id: i64,
+    pub item_id: i64,
+    pub nomor_pinjam: String,
+    pub anggota_id: i64,
+    pub anggota_nama: String,
+    pub anggota_kode: String,
+    pub anggota_kelas: Option<String>,
+    pub buku_id: i64,
+    pub buku_judul: String,
+    pub buku_kode: String,
+    pub tanggal_pinjam: String,
+    pub tanggal_jatuh_tempo: String,
+    pub hari_terlambat: i64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AnggotaSummary {
     pub id: i64,
     pub kode_anggota: String,
@@ -704,6 +722,58 @@ pub fn peminjaman_quick_stats(state: State<'_, AppState>) -> AppResult<Peminjama
     })
 }
 
+pub fn peminjaman_overdue_list_inner(
+    conn: &rusqlite::Connection,
+    limit: Option<i64>,
+) -> AppResult<Vec<OverdueRow>> {
+    let cap = limit.unwrap_or(50).clamp(1, 500);
+    let mut stmt = conn.prepare(
+        "SELECT p.id, pi.id, p.nomor_pinjam, a.id, a.nama, a.kode_anggota, a.kelas, \
+                b.id, b.judul, b.kode_buku, p.tanggal_pinjam, p.tanggal_jatuh_tempo, \
+                CAST(julianday(date('now')) - julianday(p.tanggal_jatuh_tempo) AS INTEGER) AS hari_terlambat \
+         FROM peminjaman_item pi \
+         JOIN peminjaman p ON p.id = pi.peminjaman_id \
+         JOIN anggota a ON a.id = p.anggota_id \
+         JOIN buku b ON b.id = pi.buku_id \
+         WHERE pi.status = 'dipinjam' \
+           AND p.tanggal_jatuh_tempo < date('now') \
+         ORDER BY hari_terlambat DESC, p.tanggal_jatuh_tempo ASC \
+         LIMIT ?1",
+    )?;
+    let rows = stmt
+        .query_map(params![cap], |r| {
+            Ok(OverdueRow {
+                peminjaman_id: r.get(0)?,
+                item_id: r.get(1)?,
+                nomor_pinjam: r.get(2)?,
+                anggota_id: r.get(3)?,
+                anggota_nama: r.get(4)?,
+                anggota_kode: r.get(5)?,
+                anggota_kelas: r.get(6)?,
+                buku_id: r.get(7)?,
+                buku_judul: r.get(8)?,
+                buku_kode: r.get(9)?,
+                tanggal_pinjam: r.get(10)?,
+                tanggal_jatuh_tempo: r.get(11)?,
+                hari_terlambat: r.get(12)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok(rows)
+}
+
+#[tauri::command]
+pub fn peminjaman_overdue_list(
+    state: State<'_, AppState>,
+    limit: Option<i64>,
+) -> AppResult<Vec<OverdueRow>> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    peminjaman_overdue_list_inner(&conn, limit)
+}
+
 #[tauri::command]
 pub fn anggota_summary(state: State<'_, AppState>, id: i64) -> AppResult<AnggotaSummary> {
     let conn = state
@@ -804,4 +874,179 @@ pub fn pengembalian_search(
         .query_map(params![pat], map_peminjaman_row)?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(rows)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    fn setup_db() -> Connection {
+        let conn = Connection::open_in_memory().expect("open in-memory db");
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .expect("enable foreign_keys");
+        crate::db::run_migrations(&conn).expect("run migrations");
+        conn
+    }
+
+    /// Seed an anggota row directly. Returns the assigned id.
+    fn seed_anggota(conn: &Connection, kode: &str, nama: &str, kelas: Option<&str>) -> i64 {
+        conn.execute(
+            "INSERT INTO anggota (kode_anggota, nama, kelas, aktif) VALUES (?1, ?2, ?3, 1)",
+            params![kode, nama, kelas],
+        )
+        .expect("seed anggota");
+        conn.last_insert_rowid()
+    }
+
+    /// Seed a buku row directly. Returns the assigned id.
+    fn seed_buku(conn: &Connection, kode: &str, judul: &str) -> i64 {
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia) \
+             VALUES (?1, ?2, 1, 1)",
+            params![kode, judul],
+        )
+        .expect("seed buku");
+        conn.last_insert_rowid()
+    }
+
+    /// Seed a peminjaman_item with the specified jatuh_tempo. Returns
+    /// (peminjaman_id, item_id).
+    fn seed_pinjaman(
+        conn: &Connection,
+        nomor: &str,
+        anggota_id: i64,
+        buku_id: i64,
+        tanggal_pinjam: &str,
+        tanggal_jatuh_tempo: &str,
+        item_status: &str,
+    ) -> (i64, i64) {
+        conn.execute(
+            "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, \
+             tanggal_jatuh_tempo, status) VALUES (?1, ?2, ?3, ?4, 'dipinjam')",
+            params![nomor, anggota_id, tanggal_pinjam, tanggal_jatuh_tempo],
+        )
+        .expect("seed peminjaman");
+        let pmj_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO peminjaman_item (peminjaman_id, buku_id, status) \
+             VALUES (?1, ?2, ?3)",
+            params![pmj_id, buku_id, item_status],
+        )
+        .expect("seed peminjaman_item");
+        let item_id = conn.last_insert_rowid();
+        (pmj_id, item_id)
+    }
+
+    #[test]
+    fn overdue_list_returns_empty_when_no_data() {
+        let conn = setup_db();
+        let rows = peminjaman_overdue_list_inner(&conn, None).expect("query");
+        assert!(rows.is_empty());
+    }
+
+    #[test]
+    fn overdue_list_includes_only_due_dates_in_the_past_with_status_dipinjam() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Budi", Some("X-A"));
+        let bid = seed_buku(&conn, "B0001", "Matematika 1");
+
+        // overdue (15 days late)
+        seed_pinjaman(&conn, "PJ-001", aid, bid, "2020-01-01", "2020-01-08", "dipinjam");
+        // due-tomorrow (not overdue)
+        let future = chrono::Local::now()
+            .date_naive()
+            .checked_add_days(chrono::Days::new(7))
+            .unwrap()
+            .to_string();
+        seed_pinjaman(&conn, "PJ-002", aid, bid, "2026-05-01", &future, "dipinjam");
+        // overdue but already returned (item status = dikembalikan)
+        seed_pinjaman(
+            &conn, "PJ-003", aid, bid, "2020-01-01", "2020-01-08", "dikembalikan",
+        );
+
+        let rows = peminjaman_overdue_list_inner(&conn, None).expect("query");
+        assert_eq!(rows.len(), 1);
+        let r = &rows[0];
+        assert_eq!(r.nomor_pinjam, "PJ-001");
+        assert_eq!(r.anggota_kode, "A0001");
+        assert_eq!(r.anggota_kelas.as_deref(), Some("X-A"));
+        assert_eq!(r.buku_kode, "B0001");
+        assert!(r.hari_terlambat > 0);
+    }
+
+    #[test]
+    fn overdue_list_orders_by_days_late_descending() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Budi", None);
+        let b1 = seed_buku(&conn, "B0001", "A");
+        let b2 = seed_buku(&conn, "B0002", "B");
+        // 5 days late
+        seed_pinjaman(
+            &conn,
+            "PJ-A",
+            aid,
+            b1,
+            "2020-01-01",
+            &chrono::Local::now()
+                .date_naive()
+                .checked_sub_days(chrono::Days::new(5))
+                .unwrap()
+                .to_string(),
+            "dipinjam",
+        );
+        // 30 days late
+        seed_pinjaman(
+            &conn,
+            "PJ-B",
+            aid,
+            b2,
+            "2020-01-01",
+            &chrono::Local::now()
+                .date_naive()
+                .checked_sub_days(chrono::Days::new(30))
+                .unwrap()
+                .to_string(),
+            "dipinjam",
+        );
+
+        let rows = peminjaman_overdue_list_inner(&conn, None).expect("query");
+        assert_eq!(rows.len(), 2);
+        // Most-late first.
+        assert_eq!(rows[0].nomor_pinjam, "PJ-B");
+        assert_eq!(rows[1].nomor_pinjam, "PJ-A");
+        assert!(rows[0].hari_terlambat >= 30);
+        assert!(rows[1].hari_terlambat >= 5 && rows[1].hari_terlambat < 30);
+    }
+
+    #[test]
+    fn overdue_list_clamps_limit_to_valid_range() {
+        let conn = setup_db();
+        let aid = seed_anggota(&conn, "A0001", "Budi", None);
+        let bid = seed_buku(&conn, "B0001", "X");
+        for i in 0..5 {
+            seed_pinjaman(
+                &conn,
+                &format!("PJ-{i}"),
+                aid,
+                bid,
+                "2020-01-01",
+                "2020-02-01",
+                "dipinjam",
+            );
+        }
+
+        // limit=2 returns first 2 rows
+        let rows = peminjaman_overdue_list_inner(&conn, Some(2)).expect("query");
+        assert_eq!(rows.len(), 2);
+        // limit=0 → clamped up to 1
+        let rows = peminjaman_overdue_list_inner(&conn, Some(0)).expect("query");
+        assert_eq!(rows.len(), 1);
+        // negative → clamped up to 1
+        let rows = peminjaman_overdue_list_inner(&conn, Some(-1)).expect("query");
+        assert_eq!(rows.len(), 1);
+        // None → default 50, returns all 5
+        let rows = peminjaman_overdue_list_inner(&conn, None).expect("query");
+        assert_eq!(rows.len(), 5);
+    }
 }

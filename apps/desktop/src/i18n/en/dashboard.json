@@ -33,5 +33,11 @@
     "subtitle": "Add members & books so the dashboard can show live statistics",
     "ctaAnggota": "Add Member",
     "ctaBuku": "Add Book"
+  },
+  "overdue": {
+    "title": "Overdue Loans",
+    "subtitle": "{{count}} book(s) not yet returned",
+    "unitDays": "days",
+    "viewAll": "View all in Loans →"
   }
 }

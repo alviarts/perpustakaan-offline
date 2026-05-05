@@ -20,6 +20,7 @@ import { logoutRequest } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { ProfilDialog } from '@/features/profile/ProfilDialog';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
+import { OverdueBell } from '@/components/layout/OverdueBell';
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'common:menu.dashboard',
@@ -198,6 +199,8 @@ export function Header() {
           </TooltipTrigger>
           <TooltipContent>{t('common:menu.manualBook')}</TooltipContent>
         </Tooltip>
+
+        <OverdueBell />
 
         <LanguageSwitcher />
         <ThemeSwitcher />

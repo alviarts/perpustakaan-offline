@@ -82,6 +82,22 @@ export interface PeminjamanQuickStats {
   totalAktif: number;
 }
 
+export interface OverdueRow {
+  peminjamanId: number;
+  itemId: number;
+  nomorPinjam: string;
+  anggotaId: number;
+  anggotaNama: string;
+  anggotaKode: string;
+  anggotaKelas?: string | null;
+  bukuId: number;
+  bukuJudul: string;
+  bukuKode: string;
+  tanggalPinjam: string;
+  tanggalJatuhTempo: string;
+  hariTerlambat: number;
+}
+
 export interface AnggotaSummary {
   id: number;
   kodeAnggota: string;
@@ -110,6 +126,7 @@ interface PeminjamanRpc {
   create(input: PeminjamanCreateInput): Promise<PeminjamanDetail>;
   kembalikan(input: PeminjamanReturnInput): Promise<PeminjamanReturnResult>;
   quickStats(): Promise<PeminjamanQuickStats>;
+  overdueList(limit?: number): Promise<OverdueRow[]>;
   search(query: string): Promise<PeminjamanRow[]>;
   anggotaSummary(id: number): Promise<AnggotaSummary>;
   bukuSummary(id: number): Promise<BukuSummary>;
@@ -182,6 +199,10 @@ const tauriRpc: PeminjamanRpc = {
   async quickStats() {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<PeminjamanQuickStats>('peminjaman_quick_stats');
+  },
+  async overdueList(limit) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<OverdueRow[]>('peminjaman_overdue_list', { limit });
   },
   async search(query) {
     const { invoke } = await import('@tauri-apps/api/core');
@@ -321,6 +342,36 @@ const mockRpc: PeminjamanRpc = {
       ).length,
       totalAktif: state.items.filter((i) => i.status === 'dipinjam').length,
     };
+  },
+  async overdueList(limit) {
+    const state = readMock();
+    const today = todayIso();
+    const cap = Math.max(1, Math.min(limit ?? 50, 500));
+    const rows: OverdueRow[] = [];
+    for (const i of state.items) {
+      if (i.status !== 'dipinjam') continue;
+      const header = state.rows.find((r) => r.id === i.peminjamanId);
+      if (!header) continue;
+      const late = dayDiff(today, header.tanggalJatuhTempo);
+      if (late <= 0) continue;
+      rows.push({
+        peminjamanId: header.id,
+        itemId: i.id,
+        nomorPinjam: header.nomorPinjam,
+        anggotaId: header.anggotaId,
+        anggotaNama: header.anggotaNama,
+        anggotaKode: header.anggotaKode,
+        anggotaKelas: null,
+        bukuId: i.bukuId,
+        bukuJudul: i.bukuJudul,
+        bukuKode: i.bukuKode,
+        tanggalPinjam: header.tanggalPinjam,
+        tanggalJatuhTempo: header.tanggalJatuhTempo,
+        hariTerlambat: late,
+      });
+    }
+    rows.sort((a, b) => b.hariTerlambat - a.hariTerlambat);
+    return rows.slice(0, cap);
   },
   async search(query) {
     const state = readMock();

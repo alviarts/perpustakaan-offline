@@ -136,6 +136,7 @@ pub fn run() {
             commands::peminjaman::peminjaman_create,
             commands::peminjaman::peminjaman_kembalikan,
             commands::peminjaman::peminjaman_quick_stats,
+            commands::peminjaman::peminjaman_overdue_list,
             commands::peminjaman::pengembalian_search,
             commands::peminjaman::anggota_summary,
             commands::peminjaman::buku_summary,
