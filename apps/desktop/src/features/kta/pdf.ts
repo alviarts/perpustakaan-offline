@@ -4,6 +4,7 @@ import { assetsApi } from '@/lib/assets';
 import type { Anggota } from '@/lib/anggota';
 import { buildQrPayload, type KtaField, type KtaLayout } from '@/lib/kta';
 import type { LibraryIdentity } from '@/stores/identityStore';
+import { resolveKtaFieldText } from './resolveField';
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
@@ -38,24 +39,7 @@ function parseHexRgb(hex: string | null | undefined): readonly [number, number, 
 }
 
 function resolveText(field: KtaField, anggota: Anggota, identity: LibraryIdentity): string {
-  switch (field.kind) {
-    case 'static':
-      return field.text ?? '';
-    case 'identitas':
-      return identity.nama;
-    case 'nama':
-      return anggota.nama;
-    case 'kodeAnggota':
-      return anggota.kodeAnggota;
-    case 'kelas':
-      return anggota.kelas ?? '-';
-    case 'jurusan':
-      return anggota.jurusan ?? '-';
-    case 'agama':
-      return anggota.agama ?? '-';
-    default:
-      return '';
-  }
+  return resolveKtaFieldText(field, anggota, identity, 'print');
 }
 
 async function loadFotoDataUrl(fotoPath: string | null | undefined): Promise<string | null> {
@@ -193,13 +177,52 @@ function drawQrField(doc: jsPDF, field: KtaField, rect: CardRect, qrUrl: string)
   const fy = rect.y + (field.y / 100) * rect.height;
   const fw = (field.width / 100) * rect.width;
   const fh = (field.height / 100) * rect.height;
+  // BUG-02 — the QR field height/width are stored as percentages of the
+  // card. Because the card is 85.6×53.98mm, the same percentage produces
+  // very different mm values along each axis, which made the previous
+  // `addImage(…, fw, fh)` call render a stretched ("gepeng") QR that some
+  // scanners refused to decode. Render it as a square sized to the smaller
+  // edge and centre it inside the field box.
+  const size = Math.min(fw, fh);
+  const sx = fx + (fw - size) / 2;
+  const sy = fy + (fh - size) / 2;
   try {
-    doc.addImage(qrUrl, 'PNG', fx, fy, fw, fh, undefined, 'FAST');
+    doc.addImage(qrUrl, 'PNG', sx, sy, size, size, undefined, 'FAST');
   } catch {
     // QR rendering should never fail; if jsPDF rejects the data URL the
     // caller still gets a usable PDF without the QR rather than an
     // exception that aborts the whole batch.
   }
+}
+
+/**
+ * FEAT-03 — render the principal's signature image. Mirrors
+ * `drawFotoField` (graceful placeholder + transparent rectangle when
+ * jsPDF rejects the source) but uses `objectFit: contain` semantics by
+ * preserving aspect-ratio: jsPDF lets us pass `'AUTO'` as the format
+ * which auto-detects + preserves the ratio relative to the bounding
+ * rectangle we provide.
+ */
+function drawTtdField(
+  doc: jsPDF,
+  field: KtaField,
+  rect: CardRect,
+  ttdUrl: string | null,
+): void {
+  const fx = rect.x + (field.x / 100) * rect.width;
+  const fy = rect.y + (field.y / 100) * rect.height;
+  const fw = (field.width / 100) * rect.width;
+  const fh = (field.height / 100) * rect.height;
+  if (ttdUrl) {
+    try {
+      doc.addImage(ttdUrl, 'AUTO', fx, fy, fw, fh, undefined, 'FAST');
+      return;
+    } catch {
+      // Fall through to placeholder.
+    }
+  }
+  doc.setFillColor(...FOTO_PLACEHOLDER_RGB);
+  doc.rect(fx, fy, fw, fh, 'F');
 }
 
 function drawCardBackground(doc: jsPDF, rect: CardRect, layoutBg: string | undefined): void {
@@ -217,19 +240,30 @@ function drawCardBackground(doc: jsPDF, rect: CardRect, layoutBg: string | undef
  * printed output and the PDF stay visually identical (modulo the
  * dashed border which is purely decorative).
  */
-export async function buildKtaPdfBytes(input: KtaPdfInput): Promise<Uint8Array> {
-  const { layout, anggota, identity } = input;
+interface PreparedAnggota {
+  anggota: Anggota;
+  qrUrl: string;
+  fotoUrl: string | null;
+}
 
+function renderLayoutPages(
+  doc: jsPDF,
+  layout: KtaLayout,
+  prepared: PreparedAnggota[],
+  identity: LibraryIdentity,
+  ttdUrl: string | null,
+  isFirstSection: boolean,
+): void {
   const cardW = layout.widthMm;
   const cardH = layout.heightMm;
   const { cols, rows, perPage } = computeGrid(cardW, cardH);
 
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-  for (let idx = 0; idx < anggota.length; idx += 1) {
-    const a = anggota[idx];
-    if (!a) continue;
-    if (idx > 0 && idx % perPage === 0) {
+  for (let idx = 0; idx < prepared.length; idx += 1) {
+    const item = prepared[idx];
+    if (!item) continue;
+    if (!isFirstSection && idx === 0) {
+      doc.addPage();
+    } else if (idx > 0 && idx % perPage === 0) {
       doc.addPage();
     }
     const rect = placeCard(idx, cols, rows, cardW, cardH);
@@ -237,22 +271,45 @@ export async function buildKtaPdfBytes(input: KtaPdfInput): Promise<Uint8Array> 
     drawCardBackground(doc, rect, layout.background);
     drawCardBorder(doc, rect);
 
-    const [qrUrl, fotoUrl] = await Promise.all([
-      buildQrDataUrl(a.id),
-      loadFotoDataUrl(a.fotoPath),
-    ]);
-
     for (const f of layout.fields) {
       if (f.kind === 'rect') {
         drawRectField(doc, f, rect);
       } else if (f.kind === 'foto') {
-        drawFotoField(doc, f, rect, fotoUrl);
+        drawFotoField(doc, f, rect, item.fotoUrl);
+      } else if (f.kind === 'ttdKepsek') {
+        drawTtdField(doc, f, rect, ttdUrl);
       } else if (f.kind === 'qr') {
-        drawQrField(doc, f, rect, qrUrl);
+        drawQrField(doc, f, rect, item.qrUrl);
       } else {
-        drawTextField(doc, f, rect, resolveText(f, a, identity));
+        drawTextField(doc, f, rect, resolveText(f, item.anggota, identity));
       }
     }
+  }
+}
+
+export async function buildKtaPdfBytes(input: KtaPdfInput): Promise<Uint8Array> {
+  const { layout, anggota, identity } = input;
+
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+  const prepared: PreparedAnggota[] = await Promise.all(
+    anggota.map(async (a) => ({
+      anggota: a,
+      qrUrl: await buildQrDataUrl(a.id),
+      fotoUrl: await loadFotoDataUrl(a.fotoPath),
+    })),
+  );
+  const ttdUrl = await loadFotoDataUrl(identity.ttdKepsekPath);
+
+  renderLayoutPages(doc, layout, prepared, identity, ttdUrl, true);
+
+  // FEAT-04 — render the back-side on a fresh page (or grid of pages
+  // when the batch spans more than one page). The same prepared QR /
+  // foto URLs are reused so we don't pay the data-URL conversion cost
+  // twice. Templates without a back-side keep producing identical
+  // bytes byte-for-byte (no extra `addPage`).
+  if (layout.back) {
+    renderLayoutPages(doc, layout.back, prepared, identity, ttdUrl, false);
   }
 
   const buf = doc.output('arraybuffer') as ArrayBuffer;

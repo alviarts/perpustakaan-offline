@@ -76,6 +76,22 @@ export function IdentitasPage(): JSX.Element {
           <Input id="identitas-kepala" value={draft.kepala} onChange={onChange('kepala')} />
         </FieldRow>
         <FieldRow
+          label={t('sections.identitas.fields.kepalaSekolah', {
+            defaultValue: 'Kepala Sekolah',
+          })}
+          htmlFor="identitas-kepala-sekolah"
+          help={t('sections.identitas.fields.kepalaSekolahHint', {
+            defaultValue:
+              'Nama kepala sekolah, dipakai oleh KTA pada blok tanda tangan (terpisah dari kepala perpustakaan).',
+          })}
+        >
+          <Input
+            id="identitas-kepala-sekolah"
+            value={draft.kepalaSekolah}
+            onChange={onChange('kepalaSekolah')}
+          />
+        </FieldRow>
+        <FieldRow
           label={t('sections.identitas.fields.npsn', { defaultValue: 'NPSN' })}
           htmlFor="identitas-npsn"
         >
@@ -110,6 +126,30 @@ export function IdentitasPage(): JSX.Element {
             clearLabel={t('sections.identitas.fields.logoClear')}
             previewSize={96}
             testId="identitas-logo"
+          />
+        </FieldRow>
+        <FieldRow
+          label={t('sections.identitas.fields.ttdKepsek', {
+            defaultValue: 'TTD Kepala Sekolah',
+          })}
+          htmlFor="identitas-ttd-kepsek"
+          help={t('sections.identitas.fields.ttdKepsekHint', {
+            defaultValue:
+              'Gambar tanda tangan (PNG transparan ideal). Digunakan otomatis oleh template KTA bila memiliki field TTD Kepsek.',
+          })}
+        >
+          <FilePickerInput
+            value={draft.ttdKepsekPath || null}
+            onChange={(rel) => setDraft((prev) => ({ ...prev, ttdKepsekPath: rel ?? '' }))}
+            category="identitas"
+            pickLabel={t('sections.identitas.fields.ttdKepsekPick', {
+              defaultValue: 'Pilih file TTD',
+            })}
+            clearLabel={t('sections.identitas.fields.ttdKepsekClear', {
+              defaultValue: 'Hapus TTD',
+            })}
+            previewSize={96}
+            testId="identitas-ttd-kepsek"
           />
         </FieldRow>
       </div>

@@ -11,6 +11,15 @@ export type KtaFieldKind =
   | 'qr'
   | 'static'
   | 'identitas'
+  // FEAT-03 field kinds — biodata + TTD kepala sekolah.
+  | 'tempatTanggalLahir'
+  | 'jenisKelamin'
+  | 'alamat'
+  | 'noTelp'
+  | 'tahunMasuk'
+  | 'berlakuSd'
+  | 'namaKepsek'
+  | 'ttdKepsek'
   // Decorative filled rectangle. Rendered behind every other field by
   // ordering the layout array (presets put rects first). Supports the
   // optional `fill` (hex) and `radius` (mm-fraction, 0..1) fields.
@@ -42,6 +51,13 @@ export interface KtaLayout {
   heightMm: number;
   background?: string;
   fields: KtaField[];
+  /**
+   * Optional back-side layout (FEAT-04). When present, both `print.ts`
+   * dan `pdf.ts` akan menghasilkan halaman tambahan untuk back-side.
+   * Bersifat opsional supaya template lama (single-page) tetap kompatibel.
+   * Nested `back` di dalam back-side itu sendiri di-ignore oleh renderer.
+   */
+  back?: KtaLayout | null;
 }
 
 export interface KtaTemplate {
@@ -304,19 +320,115 @@ export function defaultLayout(): KtaLayout {
   };
 }
 
+function normaliseLayout(raw: Partial<KtaLayout> | null | undefined): KtaLayout | null {
+  if (!raw || !Array.isArray(raw.fields)) return null;
+  return {
+    widthMm: raw.widthMm ?? 85.6,
+    heightMm: raw.heightMm ?? 53.98,
+    background: raw.background ?? '#ffffff',
+    fields: raw.fields,
+  };
+}
+
 export function parseLayout(json: string): KtaLayout {
   try {
     const parsed = JSON.parse(json) as Partial<KtaLayout>;
-    if (!parsed || !Array.isArray(parsed.fields)) return defaultLayout();
-    return {
-      widthMm: parsed.widthMm ?? 85.6,
-      heightMm: parsed.heightMm ?? 53.98,
-      background: parsed.background ?? '#ffffff',
-      fields: parsed.fields,
-    };
+    const front = normaliseLayout(parsed);
+    if (!front) return defaultLayout();
+    const backRaw = parsed.back as Partial<KtaLayout> | null | undefined;
+    const back = normaliseLayout(backRaw);
+    return back ? { ...front, back } : front;
   } catch {
     return defaultLayout();
   }
+}
+
+/**
+ * Default back-side layout (FEAT-04). Pre-fills with the Tata Tertib teks
+ * supaya admin tinggal tweak kalau perlu. The same card dimensions sebagai
+ * front-side dipakai supaya cetak halaman 1 + halaman 2 punya size identik.
+ */
+export function defaultBackLayout(): KtaLayout {
+  return {
+    widthMm: 85.6,
+    heightMm: 53.98,
+    background: '#ffffff',
+    fields: [
+      {
+        id: 'back-header',
+        kind: 'static',
+        text: 'TATA TERTIB PERPUSTAKAAN',
+        x: 4,
+        y: 5,
+        width: 92,
+        height: 7,
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: '#0f172a',
+        align: 'center',
+      },
+      {
+        id: 'back-rule-1',
+        kind: 'static',
+        text: '1. Jam operasional perpustakaan adalah pukul 07.00 hingga 15.00 WIB.',
+        x: 4,
+        y: 14,
+        width: 92,
+        height: 7,
+        fontSize: 6,
+        color: '#0f172a',
+        align: 'left',
+      },
+      {
+        id: 'back-rule-2',
+        kind: 'static',
+        text: '2. Pengunjung dilarang membawa tas, makanan, dan minuman ke dalam ruang perpustakaan.',
+        x: 4,
+        y: 22,
+        width: 92,
+        height: 7,
+        fontSize: 6,
+        color: '#0f172a',
+        align: 'left',
+      },
+      {
+        id: 'back-rule-3',
+        kind: 'static',
+        text: '3. Kartu perpustakaan wajib ditunjukkan saat meminjam atau memperpanjang masa pinjaman buku.',
+        x: 4,
+        y: 30,
+        width: 92,
+        height: 7,
+        fontSize: 6,
+        color: '#0f172a',
+        align: 'left',
+      },
+      {
+        id: 'back-rule-4',
+        kind: 'static',
+        text: '4. Pengguna diperbolehkan meminjam maksimal 3 buku.',
+        x: 4,
+        y: 38,
+        width: 92,
+        height: 7,
+        fontSize: 6,
+        color: '#0f172a',
+        align: 'left',
+      },
+      {
+        id: 'back-rule-5',
+        kind: 'static',
+        text: '5. (silakan tambahkan...)',
+        x: 4,
+        y: 46,
+        width: 92,
+        height: 7,
+        fontSize: 6,
+        color: '#64748b',
+        align: 'left',
+      },
+    ],
+  };
 }
 
 /** member:<id> → number, atau null kalau bukan format kita. */

@@ -17,7 +17,25 @@
     "agama": "Religion",
     "foto": "Photo",
     "qr": "QR Code",
-    "rect": "Decoration (Rectangle)"
+    "rect": "Decoration (Rectangle)",
+    "tempatTanggalLahir": "Place / Date of Birth",
+    "jenisKelamin": "Gender",
+    "alamat": "Address",
+    "noTelp": "Phone Number",
+    "tahunMasuk": "Year Joined",
+    "berlakuSd": "Valid Until",
+    "namaKepsek": "Principal Name",
+    "ttdKepsek": "Principal Signature"
+  },
+  "side": {
+    "label": "Side",
+    "front": "Front",
+    "back": "Back",
+    "addBack": "Add Back Side",
+    "removeBack": "Remove Back Side",
+    "removeBackConfirm": "Remove the entire back-side layout?",
+    "frontHint": "Edit fields on the front of the card.",
+    "backHint": "The back side prints as page 2 (or a separate page in the PDF). Defaults to a Library Code of Conduct."
   },
   "gallery": {
     "open": "Template Gallery",

@@ -17,7 +17,25 @@
     "agama": "Agama",
     "foto": "Foto",
     "qr": "QR Code",
-    "rect": "Dekorasi (Kotak)"
+    "rect": "Dekorasi (Kotak)",
+    "tempatTanggalLahir": "Tempat / Tanggal Lahir",
+    "jenisKelamin": "Jenis Kelamin",
+    "alamat": "Alamat",
+    "noTelp": "No. Telepon",
+    "tahunMasuk": "Tahun Masuk",
+    "berlakuSd": "Berlaku s/d",
+    "namaKepsek": "Nama Kepala Sekolah",
+    "ttdKepsek": "TTD Kepala Sekolah"
+  },
+  "side": {
+    "label": "Sisi",
+    "front": "Depan",
+    "back": "Belakang",
+    "addBack": "Tambah Sisi Belakang",
+    "removeBack": "Hapus Sisi Belakang",
+    "removeBackConfirm": "Hapus seluruh layout sisi belakang?",
+    "frontHint": "Edit field-field di sisi depan kartu.",
+    "backHint": "Sisi belakang dicetak di halaman 2 (atau halaman terpisah pada PDF). Berisi Tata Tertib secara default."
   },
   "gallery": {
     "open": "Galeri Template",

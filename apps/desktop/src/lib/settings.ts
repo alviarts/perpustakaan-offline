@@ -236,6 +236,8 @@ interface RustIdentity {
   tahun_ajaran: string;
   logo_path: string;
   kontak: string;
+  ttd_kepsek_path?: string | null;
+  kepala_sekolah?: string | null;
 }
 
 const fromRust = (r: RustIdentity): LibraryIdentity => ({
@@ -246,6 +248,8 @@ const fromRust = (r: RustIdentity): LibraryIdentity => ({
   tahunAjaran: r.tahun_ajaran,
   logoPath: r.logo_path,
   kontak: r.kontak,
+  ttdKepsekPath: r.ttd_kepsek_path ?? '',
+  kepalaSekolah: r.kepala_sekolah ?? '',
 });
 
 const toRust = (i: LibraryIdentity): RustIdentity => ({
@@ -256,6 +260,8 @@ const toRust = (i: LibraryIdentity): RustIdentity => ({
   tahun_ajaran: i.tahunAjaran,
   logo_path: i.logoPath,
   kontak: i.kontak,
+  ttd_kepsek_path: i.ttdKepsekPath ?? '',
+  kepala_sekolah: i.kepalaSekolah ?? '',
 });
 
 export const DEFAULT_IDENTITY: LibraryIdentity = {
@@ -266,6 +272,8 @@ export const DEFAULT_IDENTITY: LibraryIdentity = {
   tahunAjaran: '2024/2025',
   logoPath: '',
   kontak: '-',
+  ttdKepsekPath: '',
+  kepalaSekolah: '',
 };
 
 // ---------------------------------------------------------------------------

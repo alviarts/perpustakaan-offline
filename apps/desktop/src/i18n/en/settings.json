@@ -21,13 +21,19 @@
         "nama": "Library Name",
         "alamat": "Address",
         "kepala": "Head Librarian",
+        "kepalaSekolah": "Principal",
+        "kepalaSekolahHint": "Principal's name, used in the KTA signature block (separate from the head librarian).",
         "npsn": "NPSN",
         "tahunAjaran": "Academic Year",
         "logoPath": "Library Logo",
         "logoPathHint": "Click to pick a logo file (.png/.jpg/.webp/.svg). The file is copied into the app data folder automatically.",
         "logoPick": "Pick logo…",
         "logoClear": "Remove logo",
-        "kontak": "Contact"
+        "kontak": "Contact",
+        "ttdKepsek": "Principal Signature",
+        "ttdKepsekHint": "Signature image (transparent PNG ideal). Used automatically by KTA templates that include the Principal Signature field.",
+        "ttdKepsekPick": "Pick signature file",
+        "ttdKepsekClear": "Remove signature"
       },
       "saveSuccess": "Identity saved.",
       "saveError": "Failed to save identity."

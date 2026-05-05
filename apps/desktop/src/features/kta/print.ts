@@ -3,6 +3,7 @@ import { assetsApi } from '@/lib/assets';
 import type { Anggota } from '@/lib/anggota';
 import { buildQrPayload, type KtaField, type KtaLayout } from '@/lib/kta';
 import type { LibraryIdentity } from '@/stores/identityStore';
+import { resolveKtaFieldText } from './resolveField';
 
 const MM_TO_PX = 3.78;
 
@@ -11,31 +12,6 @@ function escape(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-}
-
-function resolveText(
-  field: KtaField,
-  anggota: Anggota,
-  identity: LibraryIdentity,
-): string {
-  switch (field.kind) {
-    case 'static':
-      return field.text ?? '';
-    case 'identitas':
-      return identity.nama;
-    case 'nama':
-      return anggota.nama;
-    case 'kodeAnggota':
-      return anggota.kodeAnggota;
-    case 'kelas':
-      return anggota.kelas ?? '-';
-    case 'jurusan':
-      return anggota.jurusan ?? '-';
-    case 'agama':
-      return anggota.agama ?? '-';
-    default:
-      return '';
-  }
 }
 
 async function buildQrDataUrl(memberId: number): Promise<string> {
@@ -84,12 +60,31 @@ function fontSizeCqiPrint(fontSizePx: number, layoutWidthMm: number): string {
   return `${cqi.toFixed(4)}cqi`;
 }
 
+/**
+ * Render an `<img>` for foto / TTD slots, falling back to an inline SVG
+ * placeholder when no source URL is available. Both BUG-06 (broken-image
+ * glyph for missing foto) and the new TTD field share the same logic
+ * because their failure mode is identical: a previously-valid path that
+ * the host machine no longer resolves should *not* show "Foto" or
+ * "TTD" alt text — it should show a clean labeled box instead.
+ */
+function imgWithFallback(src: string | null, label: string, extraStyle: string): string {
+  if (src) {
+    return `<img src="${src}" style="width:100%;height:100%;${extraStyle}" alt="${escape(label)}"/>`;
+  }
+  const svg = encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 80"><rect width="100%" height="100%" fill="#e2e8f0"/><text x="50%" y="55%" text-anchor="middle" fill="#64748b" font-size="10" font-family="sans-serif">${label}</text></svg>`,
+  );
+  return `<img src="data:image/svg+xml;utf8,${svg}" style="width:100%;height:100%;${extraStyle}" alt="${escape(label)}"/>`;
+}
+
 function fieldHtml(
   field: KtaField,
   anggota: Anggota,
   identity: LibraryIdentity,
   qrUrl: string,
   fotoUrl: string | null,
+  ttdUrl: string | null,
   layoutWidthMm: number,
 ): string {
   const baseStyle = [
@@ -112,20 +107,23 @@ function fieldHtml(
   }
 
   if (field.kind === 'foto') {
-    const src =
-      fotoUrl ??
-      'data:image/svg+xml;utf8,' +
-        encodeURIComponent(
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 80"><rect width="100%" height="100%" fill="#e2e8f0"/><text x="50%" y="55%" text-anchor="middle" fill="#64748b" font-size="10" font-family="sans-serif">FOTO</text></svg>`,
-        );
-    return `<div style="${baseStyle}"><img src="${src}" style="width:100%;height:100%;object-fit:cover" alt="Foto"/></div>`;
+    return `<div style="${baseStyle}">${imgWithFallback(fotoUrl, 'FOTO', 'object-fit:cover')}</div>`;
+  }
+
+  if (field.kind === 'ttdKepsek') {
+    return `<div style="${baseStyle}">${imgWithFallback(ttdUrl, 'TTD', 'object-fit:contain')}</div>`;
   }
 
   if (field.kind === 'qr') {
-    return `<div style="${baseStyle}"><img src="${qrUrl}" style="width:100%;height:100%" alt="QR"/></div>`;
+    // BUG-02 — keep the QR strictly square. We render the image inside a
+    // centered flex slot so `aspect-ratio:1/1` + `max-width/max-height:100%`
+    // bound the image to the smaller of the two field dimensions instead of
+    // stretching to whatever rectangular size the template author picked.
+    const qrStyle = 'aspect-ratio:1/1;max-width:100%;max-height:100%;object-fit:contain';
+    return `<div style="${baseStyle};justify-content:center"><img src="${qrUrl}" style="${qrStyle}" alt="QR"/></div>`;
   }
 
-  const text = resolveText(field, anggota, identity);
+  const text = resolveKtaFieldText(field, anggota, identity, 'print');
   const align = field.align ?? 'left';
   const justify = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start';
   const textStyle = [
@@ -147,11 +145,31 @@ export interface KtaPrintInput {
   identity: LibraryIdentity;
 }
 
+function renderCardsGrid(
+  layout: KtaLayout,
+  resources: { anggota: Anggota; qrUrl: string; fotoUrl: string | null }[],
+  identity: LibraryIdentity,
+  ttdUrl: string | null,
+): string {
+  const widthPx = Math.round(layout.widthMm * MM_TO_PX);
+  const heightPx = Math.round(layout.heightMm * MM_TO_PX);
+  const cards: string[] = [];
+  for (const r of resources) {
+    const fields = layout.fields
+      .map((f) =>
+        fieldHtml(f, r.anggota, identity, r.qrUrl, r.fotoUrl, ttdUrl, layout.widthMm),
+      )
+      .join('');
+    cards.push(
+      `<div class="kta-card" style="width:${widthPx}px;height:${heightPx}px;background:${layout.background ?? '#ffffff'};">${fields}</div>`,
+    );
+  }
+  return `<div class="grid">${cards.join('')}</div>`;
+}
+
 /** Build self-contained printable HTML untuk batch KTA. */
 export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
   const { layout, anggota, identity } = input;
-  const widthPx = Math.round(layout.widthMm * MM_TO_PX);
-  const heightPx = Math.round(layout.heightMm * MM_TO_PX);
 
   // Pre-load QR + foto data URLs for every member in parallel so the final
   // HTML is fully self-contained (no Tauri-specific path resolution needed
@@ -164,14 +182,18 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
     })),
   );
 
-  const cards: string[] = [];
-  for (const r of resources) {
-    const fields = layout.fields
-      .map((f) => fieldHtml(f, r.anggota, identity, r.qrUrl, r.fotoUrl, layout.widthMm))
-      .join('');
-    cards.push(
-      `<div class="kta-card" style="width:${widthPx}px;height:${heightPx}px;background:${layout.background ?? '#ffffff'};">${fields}</div>`,
-    );
+  const ttdUrl = await loadFotoDataUrl(identity.ttdKepsekPath);
+
+  const frontGrid = renderCardsGrid(layout, resources, identity, ttdUrl);
+
+  // FEAT-04 — when the template defines a back-side layout, render an
+  // additional grid on a forced new page. CSS `break-before:page` is the
+  // modern equivalent of the legacy `page-break-before` rule and is what
+  // the Chromium print engine in Tauri honours.
+  let backSection = '';
+  if (layout.back) {
+    const backGrid = renderCardsGrid(layout.back, resources, identity, ttdUrl);
+    backSection = `<div class="kta-back">${backGrid}</div>`;
   }
 
   return `<!doctype html>
@@ -183,6 +205,7 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
   @page { size: A4; margin: 12mm; }
   body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 16px; background: #f1f5f9; }
   .grid { display: flex; flex-wrap: wrap; gap: 8mm; justify-content: flex-start; }
+  .kta-back { break-before: page; page-break-before: always; margin-top: 16px; }
   .kta-card {
     position: relative;
     border: 1px dashed #94a3b8;
@@ -196,11 +219,13 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
   @media print {
     body { background: #ffffff; padding: 0; }
     .kta-card { border: none; box-shadow: none; }
+    .kta-back { margin-top: 0; }
   }
 </style>
 </head>
 <body>
-  <div class="grid">${cards.join('')}</div>
+  ${frontGrid}
+  ${backSection}
   <script>
     window.addEventListener('load', () => {
       setTimeout(() => window.print(), 200);
