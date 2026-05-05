@@ -131,6 +131,7 @@
     "hakAkses": {
       "label": "Permissions",
       "summary": "Permission matrix per role (admin, librarian).",
+      "headerArea": "Area",
       "roles": {
         "admin": "Admin",
         "pustakawan": "Librarian"
