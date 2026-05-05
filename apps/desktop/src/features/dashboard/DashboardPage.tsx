@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
-import { Users, BookOpen, ArrowLeftRight, BookPlus, UserPlus, Sparkles } from 'lucide-react';
+import { Users, BookOpen, ArrowLeftRight, BookPlus, UserPlus, Sparkles, Quote } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { KpiCard } from '@/components/shared/KpiCard';
 import { ChartPie } from '@/components/shared/ChartPie';
 import { ChartBar } from '@/components/shared/ChartBar';
+import { LiveClock } from '@/components/shared/LiveClock';
+import { getQuoteForDate } from '@/lib/dailyQuote';
 import { formatTauriError } from '@/lib/errors';
 import {
   dashboardApi,
@@ -75,20 +77,40 @@ export function DashboardPage() {
     data.kpi.totalBuku === 0 &&
     data.kpi.bukuDipinjam === 0;
 
+  const dailyQuote = useMemo(() => getQuoteForDate(new Date()), []);
+
   return (
     <div className="flex flex-col gap-6 p-6" data-testid="dashboard-page">
-      <header className="flex items-end justify-between gap-3">
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t('dashboard:title')}</h1>
           <p className="text-sm text-muted-foreground">
             {t('dashboard:greeting', { name: user?.fullName ?? 'Guest' })}
           </p>
         </div>
-        <span className="hidden items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs text-primary md:inline-flex">
-          <Sparkles className="h-3.5 w-3.5" />
-          {t('dashboard:refreshed', { defaultValue: 'Real-time' })}
-        </span>
+        <div className="flex items-start gap-2">
+          <span className="hidden items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs text-primary md:inline-flex">
+            <Sparkles className="h-3.5 w-3.5" />
+            {t('dashboard:refreshed', { defaultValue: 'Real-time' })}
+          </span>
+          <LiveClock />
+        </div>
       </header>
+
+      <Card
+        className="border-primary/20 bg-gradient-to-r from-primary/5 via-transparent to-transparent"
+        data-testid="daily-quote"
+      >
+        <CardContent className="flex items-start gap-3 p-4">
+          <Quote className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm italic leading-relaxed text-foreground">
+              {`"${dailyQuote.text}"`}
+            </p>
+            <p className="text-xs text-muted-foreground">— {dailyQuote.author}</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {error && (
         <Card className="border-destructive/40 bg-destructive/5">
