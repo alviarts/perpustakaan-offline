@@ -77,5 +77,15 @@ Each entry is a markdown section with frontmatter-like fields:
 - **branch**: `devin/1778013996-pr-a-kta-foto-fit-and-presets`
 - **pr**: #127 (draft)
 - **started_at**: 2026-05-05T20:46:00Z
-- **status**: STARTED → DRAFT_PR_OPEN
-- **notes**: Claimed PR A per master prompt. BUG-19 layer 2 (frontend cover-fit canvas pre-crop in `pdf.ts` via new `lib/imageFit.ts` helpers) DONE + 9 unit tests; total 281 tests pass. Draft PR #127 opened to make progress visible. Layer 1 (backend `smart_fit_to_portrait_bytes` + `assets_refit_anggota_photos` command + admin "Re-fit semua foto" UI) and FEAT-16 (10 new KTA presets) work continues on the same branch.
+- **status**: STARTED → DRAFT_PR_OPEN → PAUSED
+- **paused_at**: 2026-05-05T21:13:00Z
+- **paused_by_user_message**: "pause, push semua"
+- **notes**: Claimed PR A per master prompt. **BUG-19 fully implemented** across 3 commits:
+  - `5e95804` Layer 2 — frontend cover-fit canvas pre-crop in `pdf.ts` via new `lib/imageFit.ts` helpers (281 tests pass).
+  - `8df59fd` Layer 1 — backend `smart_fit_to_portrait_bytes` + `assets_refit_anggota_photos` Tauri command + 10 new backend tests (138 backend tests pass, up from 128).
+  - `326df6a` Layer 1c — admin "Re-fit semua foto" UI panel in `KtaSettingsPage.tsx` + `assetsApi.refitAnggotaPhotos()` binding + 8 i18n keys (parity ID/EN).
+  - All gates green at pause point: typecheck ✓ lint ✓ i18n:lint ✓ test 281✓ build N/A cargo check ✓ cargo clippy ✓ cargo test 138✓.
+- **pickup_instructions**:
+  - Branch: `devin/1778013996-pr-a-kta-foto-fit-and-presets` (HEAD = `326df6a`).
+  - Remaining work: **FEAT-16** — add 10 new KTA preset layouts to `apps/desktop/src/features/kta/presets.ts` and update `apps/desktop/tests/unit/ktaPresets.test.ts` from `toHaveLength(10)` → `toHaveLength(20)`. Spec for the 10 preset IDs/themes is in PR #127 body (TODO checklist) and `BUGS.md` PR A section.
+  - After FEAT-16: re-run all gates, update PR body (drop the PAUSED preamble + add test plan), `curl PATCH /pulls/127 {"draft": false}`, wait CI green via `git pr_checks`, then on this v108-handoff branch flip PROGRESS.md PR A rows from `PAUSED` → `IN_PR` and update SESSIONS.md.
