@@ -69,12 +69,28 @@ async function loadFotoDataUrl(fotoPath: string | null | undefined): Promise<str
   }
 }
 
+/**
+ * Map a stored layout `fontSize` (CSS px at the card's natural
+ * `widthMm * 3.78` size) to a `cqi`-relative CSS expression so the text
+ * scales with the card's actual rendered width. Mirrors the same helper
+ * in `KtaPreview.tsx` — keeping the math identical between the in-app
+ * preview and the print HTML is what makes "what you see is what you
+ * print" work for v1.0.6 onwards.
+ */
+function fontSizeCqiPrint(fontSizePx: number, layoutWidthMm: number): string {
+  const refWidthPx = layoutWidthMm * MM_TO_PX;
+  if (refWidthPx <= 0) return `${fontSizePx}px`;
+  const cqi = (fontSizePx / refWidthPx) * 100;
+  return `${cqi.toFixed(4)}cqi`;
+}
+
 function fieldHtml(
   field: KtaField,
   anggota: Anggota,
   identity: LibraryIdentity,
   qrUrl: string,
   fotoUrl: string | null,
+  layoutWidthMm: number,
 ): string {
   const baseStyle = [
     'position:absolute',
@@ -113,7 +129,7 @@ function fieldHtml(
   const align = field.align ?? 'left';
   const justify = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start';
   const textStyle = [
-    `font-size:${field.fontSize ?? 10}px`,
+    `font-size:${fontSizeCqiPrint(field.fontSize ?? 10, layoutWidthMm)}`,
     `font-weight:${field.fontWeight ?? 'normal'}`,
     `color:${field.color ?? '#0f172a'}`,
     `text-align:${align}`,
@@ -151,7 +167,7 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
   const cards: string[] = [];
   for (const r of resources) {
     const fields = layout.fields
-      .map((f) => fieldHtml(f, r.anggota, identity, r.qrUrl, r.fotoUrl))
+      .map((f) => fieldHtml(f, r.anggota, identity, r.qrUrl, r.fotoUrl, layout.widthMm))
       .join('');
     cards.push(
       `<div class="kta-card" style="width:${widthPx}px;height:${heightPx}px;background:${layout.background ?? '#ffffff'};">${fields}</div>`,
@@ -174,6 +190,8 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
     overflow: hidden;
     box-sizing: border-box;
     page-break-inside: avoid;
+    /* Required so child text fields can use cqi units for font-size. */
+    container-type: inline-size;
   }
   @media print {
     body { background: #ffffff; padding: 0; }

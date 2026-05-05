@@ -112,4 +112,29 @@ describe('buildKtaPrintHtml', () => {
     // 85.6 * 3.78 = 323.568 → 324 (rounded), 53.98 * 3.78 = 204.0444 → 204
     expect(html).toContain('width:324px;height:204px');
   });
+
+  it('renders text fields with cqi-based font-size, not raw px', async () => {
+    const { buildKtaPrintHtml } = await import('@/features/kta/print');
+    const html = await buildKtaPrintHtml({
+      layout: defaultLayout(),
+      anggota: [makeAnggota()],
+      identity,
+    });
+    // Text field font-size must be relative (cqi) so the printed card
+    // matches the in-app preview proportionally. We do **not** want
+    // raw `font-size:24px` (or any other absolute pixel value) on text
+    // fields anymore.
+    expect(html).toMatch(/font-size:\d+(\.\d+)?cqi/);
+    expect(html).not.toMatch(/font-size:\d+px;font-weight/);
+  });
+
+  it('declares container-type: inline-size on the card so cqi resolves', async () => {
+    const { buildKtaPrintHtml } = await import('@/features/kta/print');
+    const html = await buildKtaPrintHtml({
+      layout: defaultLayout(),
+      anggota: [makeAnggota()],
+      identity,
+    });
+    expect(html).toContain('container-type: inline-size');
+  });
 });
