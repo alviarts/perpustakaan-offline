@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from '@tanstack/react-router';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useSidebarStore } from '@/stores/sidebarStore';
@@ -21,6 +21,7 @@ export function AppShell() {
   const setCollapsed = useSidebarStore((s) => s.setCollapsed);
   const toggle = useSidebarStore((s) => s.toggle);
   const isNarrow = useMediaQuery(COLLAPSE_BREAKPOINT);
+  const navigate = useNavigate();
 
   // Auto-collapse on narrow viewports.
   useEffect(() => {
@@ -32,17 +33,23 @@ export function AppShell() {
     }
   }, [isNarrow, collapsed, setCollapsed]);
 
-  // Global Ctrl+B / Cmd+B shortcut.
+  // Global shortcuts: Ctrl/Cmd+B toggles sidebar, Ctrl/Cmd+L opens
+  // the webcam circulation page (#19, v1.0.6).
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const key = e.key.toLowerCase();
+      if (key === 'b') {
         e.preventDefault();
         toggle();
+      } else if (key === 'l') {
+        e.preventDefault();
+        void navigate({ to: '/sirkulasi' });
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [toggle]);
+  }, [toggle, navigate]);
 
   return (
     <div className="flex h-full min-h-0 min-w-[800px] overflow-hidden bg-background text-foreground">

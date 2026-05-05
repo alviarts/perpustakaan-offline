@@ -1,0 +1,58 @@
+{
+  "title": "Circulation (Webcam)",
+  "subtitle": "Scan member and copy barcodes for fast loan/return processing. Shortcut: Ctrl+L.",
+  "mode": {
+    "pinjam": "Loan",
+    "kembalikan": "Return"
+  },
+  "scanner": {
+    "title": "Scanner",
+    "start": "Enable camera",
+    "stop": "Disable camera",
+    "starting": "Opening camera…",
+    "off": "Camera not active",
+    "devicePlaceholder": "Select camera"
+  },
+  "manual": {
+    "placeholder": "Or type / scan via USB scanner (Enter to submit)",
+    "submit": "Send"
+  },
+  "basket": {
+    "titlePinjam": "Loan Basket",
+    "titleKembali": "Copies to Return",
+    "clear": "Clear",
+    "submitPinjam": "Save Loan",
+    "submitKembali": "Process Return"
+  },
+  "pinjam": {
+    "scanAnggota": "Scan a member card first…",
+    "clearAnggota": "Change",
+    "basketHeader": "Copies ({{ok}}/{{total}} ready)",
+    "basketEmpty": "No copies scanned yet.",
+    "unavailable": "Status: {{status}} — already on loan, will be skipped."
+  },
+  "kembali": {
+    "empty": "Scan a barcode for a copy that is currently on loan to begin."
+  },
+  "result": {
+    "pinjam": "Loan {{nomor}} saved for {{anggota}} ({{count}} copies).",
+    "kembali": "{{count}} copies returned successfully.",
+    "openList": "Open loan list →"
+  },
+  "toast": {
+    "anggotaSet": "Member selected",
+    "unknownCode": "Unknown code",
+    "alreadyInBasket": "Already in basket",
+    "alreadyInList": "Already in list",
+    "resolveError": "Failed to look up copy code",
+    "notLoaned": "No active loan for this code",
+    "lookupError": "Failed to look up active loan",
+    "noUsable": "No copies available",
+    "noUsableDesc": "All scanned copies are currently on loan.",
+    "borrowOk": "Loan saved",
+    "borrowFail": "Loan failed",
+    "returnOk": "Return saved",
+    "returnOkDesc": "{{count}} copies returned",
+    "returnFail": "Return failed"
+  }
+}
