@@ -199,6 +199,7 @@ pub fn run() {
             commands::assets::assets_resolve,
             commands::assets::assets_delete,
             commands::assets::assets_read_data_url,
+            commands::assets::assets_refit_anggota_photos,
             commands::user_profile::user_profile_get,
             commands::user_profile::user_profile_update,
         ])

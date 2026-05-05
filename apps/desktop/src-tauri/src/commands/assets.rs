@@ -24,8 +24,9 @@ use image::codecs::jpeg::JpegEncoder;
 use image::imageops::FilterType;
 use image::{DynamicImage, ImageFormat, ImageReader};
 use serde::Serialize;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 
+use crate::AppState;
 use crate::error::{AppError, AppResult};
 
 /// Subdirectory under `app_data_dir` that holds every uploaded asset.
@@ -94,6 +95,123 @@ fn compress_opts_for(category: &str) -> Option<CompressOpts> {
 /// SVG is vector text, GIF can be animated and we don't want to drop frames.
 fn is_passthrough_ext(ext: &str) -> bool {
     matches!(ext, "svg" | "gif")
+}
+
+/// Categories whose source images are member portraits. New uploads in
+/// these categories run through [`smart_fit_to_portrait_bytes`] so the
+/// stored file is centre-cropped to portrait 3:4, matching the KTA foto
+/// slot. Existing files on disk are never touched implicitly — the
+/// admin triggers a re-fit batch via [`assets_refit_anggota_photos`]
+/// when they want to migrate.
+fn is_portrait_category(category: &str) -> bool {
+    matches!(category, "anggota" | "user")
+}
+
+/// Target aspect ratio for the [`smart_fit_to_portrait_bytes`] crop,
+/// expressed as `width / height`. KTA foto slots in every shipped preset
+/// use a 3:4 portrait box (e.g. 22mm × 28mm ≈ 0.79, 24mm × 30mm = 0.8,
+/// 18mm × 24mm = 0.75) so 0.75 is the lowest common denominator that
+/// produces a centre-cropped result usable by every layout.
+pub(crate) const PORTRAIT_TARGET_W_OVER_H: f32 = 3.0 / 4.0;
+
+/// How close to the target aspect ratio is "good enough" — within this
+/// tolerance we skip the crop entirely so a portrait shot that's
+/// already 3:4 isn't decoded → re-encoded for no reason. 0.5% is well
+/// inside the human-eye threshold for KTA-sized prints.
+const PORTRAIT_ASPECT_TOLERANCE: f32 = 0.005;
+
+/// Pure helper for unit tests: try to decode `bytes`, centre-crop the
+/// resulting image to portrait `target_w_over_h`, and re-encode. Returns
+/// `Ok(None)` when no rewrite is needed (passthrough format, undecodable
+/// fixture, or source already within tolerance of the target ratio).
+///
+/// The crop is **always centred** — mirrors the CSS `object-position:
+/// center` semantics the live preview / Cetak HTML use — and never
+/// up-samples (the output dimensions are <= the source dimensions).
+/// Alpha-bearing sources (PNG with transparency) re-encode as PNG to
+/// preserve transparency; everything else collapses to JPEG for the
+/// size win.
+pub(crate) fn smart_fit_to_portrait_bytes(
+    bytes: &[u8],
+    ext: &str,
+    target_w_over_h: f32,
+    jpeg_quality: u8,
+) -> AppResult<Option<(Vec<u8>, &'static str)>> {
+    if is_passthrough_ext(ext) {
+        return Ok(None);
+    }
+    if !target_w_over_h.is_finite() || target_w_over_h <= 0.0 {
+        return Ok(None);
+    }
+
+    let reader = match ImageReader::new(Cursor::new(bytes)).with_guessed_format() {
+        Ok(r) => r,
+        Err(_) => return Ok(None),
+    };
+    let format = reader.format();
+    let img = match reader.decode() {
+        Ok(img) => img,
+        Err(_) => return Ok(None),
+    };
+
+    let (w, h) = (img.width(), img.height());
+    if w == 0 || h == 0 {
+        return Ok(None);
+    }
+
+    let src_ratio = w as f32 / h as f32;
+    let ratio_delta = (src_ratio - target_w_over_h).abs();
+    if ratio_delta <= target_w_over_h * PORTRAIT_ASPECT_TOLERANCE {
+        return Ok(None);
+    }
+
+    // Compute the centre-crop rectangle. Round half-pixel splits towards
+    // the top-left so the same input always produces the same crop.
+    let (crop_w, crop_h) = if src_ratio > target_w_over_h {
+        // Source is wider than target — crop horizontal sides.
+        let new_w = (h as f32 * target_w_over_h).round() as u32;
+        (new_w.max(1).min(w), h)
+    } else {
+        // Source is taller than target — crop top/bottom.
+        let new_h = (w as f32 / target_w_over_h).round() as u32;
+        (w, new_h.max(1).min(h))
+    };
+    let crop_x = (w - crop_w) / 2;
+    let crop_y = (h - crop_h) / 2;
+
+    let cropped: DynamicImage = img.crop_imm(crop_x, crop_y, crop_w, crop_h);
+
+    let has_alpha = cropped.color().has_alpha();
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len() / 2);
+    if has_alpha {
+        let rgba = cropped.to_rgba8();
+        image::write_buffer_with_format(
+            &mut Cursor::new(&mut out),
+            rgba.as_raw(),
+            rgba.width(),
+            rgba.height(),
+            image::ExtendedColorType::Rgba8,
+            ImageFormat::Png,
+        )
+        .map_err(|e| AppError::Internal(format!("png encode (smart-fit): {e}")))?;
+        Ok(Some((out, "png")))
+    } else {
+        let rgb = cropped.to_rgb8();
+        let mut encoder = JpegEncoder::new_with_quality(&mut out, jpeg_quality);
+        encoder
+            .encode(
+                rgb.as_raw(),
+                rgb.width(),
+                rgb.height(),
+                image::ExtendedColorType::Rgb8,
+            )
+            .map_err(|e| AppError::Internal(format!("jpeg encode (smart-fit): {e}")))?;
+        // Touch `format` so the unused-binding lint stays clean even
+        // when the source format is already JPEG — callers may want to
+        // log it via the returned ext.
+        let _ = format;
+        Ok(Some((out, "jpg")))
+    }
 }
 
 /// Pure helper for unit tests: try to decode the bytes at `src` and, if the
@@ -317,13 +435,43 @@ pub(crate) fn save_inner(
     // [`compress_opts_for`] (unknown category) or that fails to decode
     // (corrupt / not-really-an-image fixture) falls back to a verbatim copy
     // so we never refuse an upload just because the codec can't handle it.
+    //
+    // BUG-19 — portrait-bearing categories (member portraits) ALSO run
+    // through `smart_fit_to_portrait_bytes` so the saved file matches the
+    // KTA foto slot's 3:4 aspect from day one. Smart-fit runs FIRST so
+    // the subsequent compression stage sees the cropped pixels and
+    // doesn't waste budget on the soon-to-be-discarded margins.
     let (final_ext, written_bytes): (String, Option<Vec<u8>>) = if let Some(opts) =
         compress_opts_for(category)
     {
-        let bytes = std::fs::read(src)?;
-        match maybe_compress_bytes(&bytes, &ext, opts) {
+        let mut working_bytes = std::fs::read(src)?;
+        let mut working_ext: String = ext.clone();
+        let mut smart_fit_applied = false;
+        if is_portrait_category(category) {
+            if let Ok(Some((cropped, new_ext))) = smart_fit_to_portrait_bytes(
+                &working_bytes,
+                &working_ext,
+                PORTRAIT_TARGET_W_OVER_H,
+                opts.jpeg_quality,
+            ) {
+                working_bytes = cropped;
+                working_ext = new_ext.to_string();
+                smart_fit_applied = true;
+            }
+        }
+        match maybe_compress_bytes(&working_bytes, &working_ext, opts) {
             Ok(Some((compressed, new_ext))) => (new_ext.to_string(), Some(compressed)),
-            Ok(None) | Err(_) => (ext.clone(), None),
+            Ok(None) => {
+                // Even when compression has nothing more to do, the
+                // smart-fit step may have already produced a fresh byte
+                // buffer that must be persisted.
+                if smart_fit_applied {
+                    (working_ext, Some(working_bytes))
+                } else {
+                    (ext.clone(), None)
+                }
+            }
+            Err(_) => (ext.clone(), None),
         }
     } else {
         (ext.clone(), None)
@@ -472,6 +620,125 @@ pub fn assets_delete(app: AppHandle, rel_path: String) -> AppResult<()> {
 pub fn assets_read_data_url(app: AppHandle, rel_path: String) -> AppResult<String> {
     let app_data = app_data_dir(&app)?;
     read_data_url_inner(&app_data, &rel_path)
+}
+
+/// Result payload for [`assets_refit_anggota_photos`].
+#[derive(Debug, Default, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RefitResult {
+    /// Total number of foto rows considered.
+    pub total: u32,
+    /// Number of foto rows that were re-fit and written back to disk.
+    pub refit: u32,
+    /// Number of foto rows that were already within tolerance and skipped.
+    pub skipped: u32,
+    /// Number of foto rows whose file could not be read or decoded.
+    pub failed: u32,
+}
+
+/// Pure helper for unit tests: walk a list of `(relative-path, bytes)`
+/// portrait fixtures and return how many would be re-fit / skipped /
+/// failed by [`smart_fit_to_portrait_bytes`]. The on-disk write is
+/// performed by the Tauri command wrapper which feeds the result back
+/// through `std::fs::write`. Keeping the decision logic here means the
+/// re-fit batch can be unit-tested without touching the database or
+/// the filesystem.
+pub(crate) fn classify_refit_outcome(
+    bytes: &[u8],
+    ext: &str,
+    target_w_over_h: f32,
+    jpeg_quality: u8,
+) -> Option<(Vec<u8>, &'static str)> {
+    match smart_fit_to_portrait_bytes(bytes, ext, target_w_over_h, jpeg_quality) {
+        Ok(Some(out)) => Some(out),
+        Ok(None) | Err(_) => None,
+    }
+}
+
+/// BUG-19 — admin-triggered batch that re-fits every existing anggota
+/// foto to portrait 3:4. Existing files are mutated in place when the
+/// crop produces a different byte buffer; legacy absolute paths are
+/// skipped so we never touch files outside `<app_data>/uploads/...`.
+///
+/// The DB is untouched: file extensions stay the same on disk because
+/// the rewrite reuses the original target file (we'd rather over-write
+/// `*.jpg` with JPEG bytes than break every `foto_path` row that
+/// references it). Photos that still produce a `Some` rewrite from
+/// [`smart_fit_to_portrait_bytes`] but were already re-encoded by a
+/// previous run are still safe — the smart-fit returns `None` for
+/// already-3:4 sources, so a second run is a no-op.
+#[tauri::command]
+pub fn assets_refit_anggota_photos(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> AppResult<RefitResult> {
+    let app_data = app_data_dir(&app)?;
+    let mut result = RefitResult::default();
+
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    let mut stmt = conn.prepare(
+        "SELECT foto_path FROM anggota \
+         WHERE foto_path IS NOT NULL AND foto_path != ''",
+    )?;
+    let foto_paths: Vec<String> = stmt
+        .query_map([], |r| r.get::<_, String>(0))?
+        .filter_map(|res| res.ok())
+        .collect();
+    drop(stmt);
+    drop(conn);
+
+    let opts = compress_opts_for("anggota").unwrap_or(CompressOpts {
+        max_dim: 800,
+        jpeg_quality: 85,
+    });
+
+    for rel_path in foto_paths {
+        result.total = result.total.saturating_add(1);
+
+        // Legacy absolute paths from v1 are out of our jurisdiction —
+        // skip rather than risk overwriting something the user might
+        // still share with another tool.
+        if Path::new(&rel_path).is_absolute() {
+            result.skipped = result.skipped.saturating_add(1);
+            continue;
+        }
+        if validate_rel_path(&rel_path).is_err() {
+            result.failed = result.failed.saturating_add(1);
+            continue;
+        }
+
+        let abs = app_data.join(&rel_path);
+        let bytes = match std::fs::read(&abs) {
+            Ok(b) => b,
+            Err(_) => {
+                result.failed = result.failed.saturating_add(1);
+                continue;
+            }
+        };
+        let ext = abs
+            .extension()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_ascii_lowercase())
+            .unwrap_or_default();
+
+        match classify_refit_outcome(&bytes, &ext, PORTRAIT_TARGET_W_OVER_H, opts.jpeg_quality) {
+            Some((cropped, _new_ext)) => {
+                if std::fs::write(&abs, &cropped).is_ok() {
+                    result.refit = result.refit.saturating_add(1);
+                } else {
+                    result.failed = result.failed.saturating_add(1);
+                }
+            }
+            None => {
+                result.skipped = result.skipped.saturating_add(1);
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -848,5 +1115,156 @@ mod tests {
         let saved = fs::read(&result.abs_path).expect("read saved");
         let decoded = image::load_from_memory(&saved).expect("saved is decodable");
         assert!(decoded.color().has_alpha());
+    }
+
+    // -- BUG-19 — smart_fit_to_portrait_bytes -----------------------
+
+    #[test]
+    fn smart_fit_crops_landscape_to_3x4_portrait() {
+        let bytes = fake_rgb_jpeg(1280, 720, [200, 80, 60]);
+        let (out, ext) = smart_fit_to_portrait_bytes(
+            &bytes,
+            "jpg",
+            PORTRAIT_TARGET_W_OVER_H,
+            85,
+        )
+        .expect("ok")
+        .expect("must crop a 16:9 source");
+        assert_eq!(ext, "jpg", "opaque source stays JPEG");
+        let decoded = image::load_from_memory(&out).expect("decoded output");
+        // 720h * (3/4) = 540w. Centred crop trims 740px of width.
+        assert_eq!(decoded.height(), 720);
+        assert_eq!(decoded.width(), 540);
+    }
+
+    #[test]
+    fn smart_fit_crops_tall_portrait_to_3x4() {
+        // 600x1200 (1:2) → centred crop down to 600x800 (3:4).
+        let bytes = fake_rgb_jpeg(600, 1200, [50, 120, 200]);
+        let (out, ext) = smart_fit_to_portrait_bytes(
+            &bytes,
+            "jpg",
+            PORTRAIT_TARGET_W_OVER_H,
+            85,
+        )
+        .expect("ok")
+        .expect("must crop a 1:2 source");
+        assert_eq!(ext, "jpg");
+        let decoded = image::load_from_memory(&out).expect("decoded");
+        assert_eq!(decoded.width(), 600);
+        assert_eq!(decoded.height(), 800);
+    }
+
+    #[test]
+    fn smart_fit_skips_when_source_already_within_tolerance() {
+        // 600x800 is exactly 3:4 → smart-fit should be a no-op.
+        let bytes = fake_rgb_jpeg(600, 800, [120, 60, 30]);
+        let res = smart_fit_to_portrait_bytes(&bytes, "jpg", PORTRAIT_TARGET_W_OVER_H, 85)
+            .expect("ok");
+        assert!(res.is_none(), "already-3:4 source must pass through verbatim");
+    }
+
+    #[test]
+    fn smart_fit_keeps_alpha_channel_as_png() {
+        // Alpha-bearing 1280x720 → must stay PNG after the crop.
+        let bytes = fake_rgba_png(1280, 720);
+        let (out, ext) = smart_fit_to_portrait_bytes(
+            &bytes,
+            "png",
+            PORTRAIT_TARGET_W_OVER_H,
+            85,
+        )
+        .expect("ok")
+        .expect("must crop landscape");
+        assert_eq!(ext, "png");
+        let decoded = image::load_from_memory(&out).expect("decoded");
+        assert!(decoded.color().has_alpha(), "alpha preserved");
+        assert_eq!(decoded.width(), 540);
+        assert_eq!(decoded.height(), 720);
+    }
+
+    #[test]
+    fn smart_fit_passes_through_svg_and_gif_verbatim() {
+        let svg = b"<svg xmlns=\"http://www.w3.org/2000/svg\"/>";
+        assert!(
+            smart_fit_to_portrait_bytes(svg, "svg", PORTRAIT_TARGET_W_OVER_H, 85)
+                .expect("ok")
+                .is_none()
+        );
+        let gif = b"GIF89a";
+        assert!(
+            smart_fit_to_portrait_bytes(gif, "gif", PORTRAIT_TARGET_W_OVER_H, 85)
+                .expect("ok")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn smart_fit_returns_none_on_undecodable_bytes() {
+        let bytes = b"definitely-not-a-real-jpeg";
+        let res = smart_fit_to_portrait_bytes(bytes, "jpg", PORTRAIT_TARGET_W_OVER_H, 85)
+            .expect("ok");
+        assert!(res.is_none(), "garbage must fall through to verbatim copy");
+    }
+
+    #[test]
+    fn smart_fit_rejects_invalid_target_aspect() {
+        let bytes = fake_rgb_jpeg(1280, 720, [200, 80, 60]);
+        assert!(
+            smart_fit_to_portrait_bytes(&bytes, "jpg", 0.0, 85)
+                .expect("ok")
+                .is_none(),
+            "zero aspect must be rejected gracefully",
+        );
+        assert!(
+            smart_fit_to_portrait_bytes(&bytes, "jpg", f32::NAN, 85)
+                .expect("ok")
+                .is_none(),
+            "NaN aspect must be rejected gracefully",
+        );
+    }
+
+    #[test]
+    fn save_inner_smart_fits_anggota_landscape_to_3x4() {
+        let app_data = TempDir::new().expect("tempdir");
+        let staging = TempDir::new().expect("staging");
+        // 1280x720 landscape phone shot.
+        let bytes = fake_rgb_jpeg(1280, 720, [200, 80, 60]);
+        let src = staging.path().join("phone-landscape.jpg");
+        fs::write(&src, &bytes).expect("write src");
+
+        let result =
+            save_inner(app_data.path(), "anggota", &src, 1_777_894_097_000).expect("save ok");
+        let saved = fs::read(&result.abs_path).expect("read saved");
+        let decoded = image::load_from_memory(&saved).expect("saved decodable");
+        // After smart-fit (540x720), then `maybe_compress` long-edge cap
+        // 800 (already ≤ 800) → final dims should match the smart-fit
+        // crop dims exactly.
+        assert_eq!(decoded.height(), 720);
+        assert_eq!(decoded.width(), 540);
+        let ratio = decoded.width() as f32 / decoded.height() as f32;
+        assert!(
+            (ratio - PORTRAIT_TARGET_W_OVER_H).abs() < 0.005,
+            "ratio {ratio} should be ~3:4",
+        );
+    }
+
+    #[test]
+    fn classify_refit_outcome_skips_already_3x4_sources() {
+        let bytes = fake_rgb_jpeg(600, 800, [120, 60, 30]);
+        let res = classify_refit_outcome(&bytes, "jpg", PORTRAIT_TARGET_W_OVER_H, 85);
+        assert!(res.is_none(), "already-3:4 must be skipped");
+    }
+
+    #[test]
+    fn classify_refit_outcome_returns_cropped_for_landscape() {
+        let bytes = fake_rgb_jpeg(1280, 720, [200, 80, 60]);
+        let (cropped, ext) =
+            classify_refit_outcome(&bytes, "jpg", PORTRAIT_TARGET_W_OVER_H, 85)
+                .expect("must rewrite");
+        assert_eq!(ext, "jpg");
+        let decoded = image::load_from_memory(&cropped).expect("decoded");
+        assert_eq!(decoded.width(), 540);
+        assert_eq!(decoded.height(), 720);
     }
 }
