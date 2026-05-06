@@ -136,3 +136,46 @@ Serves as the "who did what when" for cross-session debugging.
              asserts QUOTE_COUNT >= 60 so no test update needed; ran
              10/10. Local gates clean. CI green. Squash-merged via
              PAT (commit b20be2d).
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    COMPLETED
+  item:      FEAT-Sirkulasi-Search
+  pr:        '#150'
+  started_at:   2026-05-06T21:55Z
+  completed_at: 2026-05-06T22:05Z
+  notes:     Promoted the previously-WIP ScanSearchInput component to
+             a first-class control and wired it into SirkulasiPage,
+             replacing the old <Input>+<form> manual-scan block. USB
+             hand-scanner burst guard (<= 35 ms inter-key) keeps the
+             dropdown closed when a barcode arrives; slow human typing
+             (>= 180 ms debounce) opens a two-section dropdown
+             (Anggota / Buku) backed by anggotaApi.list + bukuApi.list.
+             enableBukuSearch is bound to (mode==pinjam && anggota!=null)
+             so kembalikan mode + the no-anggota-yet state both hide
+             the buku section. Picks route through handleScan: anggota
+             goes through anggotaSet toast (or legacy kode path in
+             kembalikan), buku resolves the first available eksemplar
+             via bukuApi.get + handleScan. focusManual / clearManual
+             now operate via the imperative handle. Six new tests in
+             scanSearchInput.test.tsx cover slow query, USB burst,
+             keyboard nav, Escape, enableBukuSearch=false, and manual
+             kode fallthrough. Local gates clean (535 tests, +6 new).
+             CI green. Squash-merged via PAT (commit b82aa7b).
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    PAUSED
+  item:      FEAT-OPAC-PostScanProfile
+  pr:        null
+  paused_at: 2026-05-06T22:06Z
+  notes:     User said "pause di 7" \u2014 the v1.1.0 batch is paused
+             before starting item 7 (FEAT-OPAC-PostScanProfile).
+             No code work has begun on this item. To resume, paste
+             the v1.1.0 master prompt into a fresh Devin session and
+             it will pick up from this PROGRESS.md row (PAUSED \u2192 claim
+             \u2192 implement). Items 1-6 are all DONE. Items 8-13 (top-6
+             new features added mid-batch) and item 14 (release) are
+             still OPEN.
+             Pickup hint: read .devin/handoff/v1.1.0/BUGS.md section
+             "FEAT-OPAC-PostScanProfile" for the spec. Files affected:
+             apps/desktop/src/features/opac/* and the post-KTA-scan
+             flow inside OpacKtaScanFlow.tsx.
