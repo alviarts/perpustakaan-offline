@@ -299,3 +299,21 @@ Each entry is a markdown section with frontmatter-like fields:
   - Tests: vitest unit tests for `overlay.ts` (ROI rect math), `preprocess.ts` (Canvas filter pure transforms with mock ImageData), `decoder.ts` (mock @zxing reader → assert hint formats + retry order).
   - No backend/Tauri changes needed.
 - pickup: if pause: branch `devin/1778062819-pr-j-sirkulasi-scanner-v2`, draft PR (TBD). Master prompt + this entry sufficient.
+
+## Session devin-f10a64e2bf1643febf5c99f96b707373 — FEAT-28 PR_OPEN
+
+- session_id: devin-f10a64e2bf1643febf5c99f96b707373
+- item_id: FEAT-28 (PR J)
+- pr: #135 (https://github.com/alviarts/perpustakaan-offline/pull/135)
+- branch: devin/1778062819-pr-j-sirkulasi-scanner-v2
+- status: PR_OPEN (draft)
+- pr_opened_at: 2026-05-06T10:35:00Z
+- notes: Implementation complete per FEAT-28 spec. Frontend gates green
+  locally (typecheck, lint, i18n:lint, test, build) — 305 vitest tests
+  total (+33 new across overlay/preprocess/decoder). Cargo gates blocked
+  locally by missing libwebkit2gtk-4.1-dev (Ubuntu 22.04 archive 404);
+  no Rust files touched in this PR, CI will verify. Awaiting CI then
+  ready-for-review flip.
+- summary:
+  - New: `lib/scanner/overlay.ts` (ROI math + corner brackets), `lib/scanner/preprocess.ts` (grayscale, contrast, applyPreprocess + MANUAL_RETRY_VARIANTS), `lib/scanner/decoder.ts` (multi-format hints + decodeWithRetry + imageDataToBitmap), `features/sirkulasi/ScannerOverlay.tsx` (visual aiming guide).
+  - Modified: `useBarcodeScanner.ts` (adds decodeOnce, torchSupported, torchOn, toggleTorch; widens hint set including DATA_MATRIX), `SirkulasiPage.tsx` (renders overlay + Scan Sekarang + torch buttons), `i18n/{id,en}/sirkulasi.json` (9 new keys), `tailwind.config.ts` (scanner-line keyframe).
