@@ -56,6 +56,8 @@ import { formatTauriError } from '@/lib/errors';
 import { useBarcodeScanner } from './useBarcodeScanner';
 import { ScannerOverlay } from './ScannerOverlay';
 import { ScannerTrackingOverlay } from './ScannerTrackingOverlay';
+import { HandScannerBadge } from './HandScannerBadge';
+import { useHandScannerDetector } from '@/lib/scanner/useHandScannerDetector';
 
 type Mode = 'pinjam' | 'kembalikan';
 
@@ -336,6 +338,18 @@ export function SirkulasiPage() {
     void handleScan(v);
   };
 
+  // v1.0.12 — surface a "Hand-scanner USB terdeteksi" badge whenever
+  // a USB scanner has been used recently, and re-route any payloads
+  // that arrived while the user was clicked into the video preview
+  // (i.e. anywhere outside an editable input) straight into
+  // `handleScan`. Without this fallback the keystrokes are silently
+  // swallowed by the body element.
+  const handScanner = useHandScannerDetector({
+    onScan: (payload) => {
+      void handleScan(payload);
+    },
+  });
+
   const removeFromBasket = (eksemplarId: number): void => {
     setBasket((prev) => prev.filter((b) => b.eksemplar.eksemplarId !== eksemplarId));
   };
@@ -476,9 +490,10 @@ export function SirkulasiPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
             <ScanLine className="h-6 w-6" />
             {t('sirkulasi:title', { defaultValue: 'Sirkulasi (Webcam)' })}
+            <HandScannerBadge isDetected={handScanner.isDetected} className="ml-1 text-xs font-normal" />
           </h1>
           <p className="text-sm text-muted-foreground">
             {t('sirkulasi:subtitle', {

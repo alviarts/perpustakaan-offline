@@ -13,6 +13,73 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.12] - 2026-05-06
+
+### Fixed
+
+- **Barcode buku Code-128 tidak terbaca walau sudah jelas (#142 follow-up)** —
+  setelah investigasi mendalam ditemukan **bug fundamental** di
+  `imageDataToBitmap`: buffer RGBA (4 byte per pixel) di-pass langsung
+  ke `RGBLuminanceSource` yang menafsirkannya sebagai 1 byte per pixel
+  luminance. Akibatnya zxing membaca bitmap yang scrambled / shifted
+  per baris dan miss hampir semua barcode Code-128 + sebagian besar
+  QR non-trivial. v1.0.12 menambahkan tahap konversi RGBA → grayscale
+  Rec.601 (sama seperti `HTMLCanvasElementLuminanceSource` di
+  `@zxing/browser`) sebelum membangun `BinaryBitmap`. Ini menjelaskan
+  kenapa scanner sering gagal di v1.0.10 / v1.0.11 walaupun barcode
+  terlihat jelas — bug-nya bukan di kamera, tapi di decoder pipeline.
+  Catatan: live continuous decode di production sebagian masih jalan
+  karena `BrowserMultiFormatReader.decodeFromCanvas` punya path
+  konversi sendiri; manual "Scan Sekarang" + ROI crop yang paling
+  parah terdampak.
+
+### Added
+
+- **Preprocess variant `blur` (3×3 box blur)** — meredam moiré
+  pattern (raster layar HP × raster webcam) yang bikin Code-128
+  barcode buku miss di phone screen. Box blur radius 1 cukup
+  smooth raster jadi mid-grey datar tanpa menghancurkan bar
+  pattern. Variant ini di-include di **MANUAL_RETRY_VARIANTS dan
+  CONTINUOUS_VARIANTS** supaya catch otomatis di live decode tanpa
+  perlu klik tombol manual.
+- **Preprocess variant `unsharp` (unsharp mask)** — `out = src +
+  amount × (src − blurred)`, default amount 1.0. Recover edge
+  contrast pada frame yang sedikit out-of-focus (autofocus webcam
+  meleset). Digunakan setelah `blur` di retry chain.
+- **Preprocess variant `upsample` (2× nearest-neighbor)** — rescue
+  barcode kecil / jauh dari kamera (~3-4 px per modul). Nearest
+  neighbor dipilih daripada bilinear karena harus mempertahankan
+  edge tajam yang dibutuhkan zxing.
+- **Rotation retry pipeline (`decodeAnyWithRotations`)** — manual
+  "Scan Sekarang" sekarang otomatis retry 0° → 180° → 90° → 270°
+  jika full variant chain gagal. Menangani buku yang dipegang
+  miring / terbalik tanpa user perlu memutar buku. Continuous decode
+  tidak ikut rotasi (akan desync overlay tracking).
+- **USB hand-scanner auto-detection (`useHandScannerDetector`)** —
+  hook React yang spy global `keydown` events. Burst keystrokes
+  dengan inter-key delay ≤ 35 ms diakhiri Enter dikenali sebagai
+  output USB barcode/QR scanner (Symbol DS2208, Honeywell, generic
+  ESky, dll). Saat terdeteksi:
+  - Badge **"Hand-scanner USB terdeteksi"** muncul di header
+    halaman Sirkulasi / Stocktake / OPAC sebagai konfirmasi visual.
+  - Jika fokus saat ini bukan di text input (mis. user klik ke
+    video preview), payload otomatis di-route ke handler scan
+    halaman terkait — keystrokes tidak hilang ke `body`.
+  - Badge auto-clear 30 detik setelah burst terakhir.
+- **Test coverage Code-128 buku** — file baru
+  `scannerCode128Scenarios.test.ts` (16 skenario end-to-end) yang
+  render real Code-128 via `bwip-js` lalu decode kembali untuk
+  memvalidasi:
+  - Baseline cetakan jelas (zxing first-pass).
+  - Phone-screen + moiré pattern (rescued by `blur`).
+  - Phone-screen + dim (moiré + 40% brightness).
+  - Sideways 90° / upside-down 180° / sideways 270° (rotation retry).
+  - Out-of-focus (rescued by `unsharp`).
+  - Low-contrast 90/200 inks.
+  - Underexposed 35% (rescued by `brighten`).
+  - Overexposed glare (rescued by `darken`).
+  - Pitch-black frame robustness (no throw, no false positive).
+
 ## [1.0.11] - 2026-05-06
 
 ### Added

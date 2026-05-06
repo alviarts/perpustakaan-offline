@@ -20,6 +20,8 @@ import {
 import { useToast } from '@/components/ui/toast-manager';
 import { useBarcodeScanner } from '@/features/sirkulasi/useBarcodeScanner';
 import { ScannerTrackingOverlay } from '@/features/sirkulasi/ScannerTrackingOverlay';
+import { HandScannerBadge } from '@/features/sirkulasi/HandScannerBadge';
+import { useHandScannerDetector } from '@/lib/scanner/useHandScannerDetector';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { parseQrPayload } from '@/lib/kta';
 
@@ -90,6 +92,16 @@ export function OpacKtaScanFlow({
     },
   });
 
+  // v1.0.12 — surface a "Hand-scanner USB terdeteksi" indicator in
+  // the dialog header and re-route any scanner burst that arrived
+  // while the dialog (which has no editable input of its own) was the
+  // focused surface.
+  const handScanner = useHandScannerDetector({
+    onScan: (payload) => {
+      if (open) void handleDecode(payload);
+    },
+  });
+
   // Stop the camera whenever the dialog closes so the MediaStream is
   // released even if the user dismisses the modal mid-scan.
   useEffect(() => {
@@ -113,9 +125,10 @@ export function OpacKtaScanFlow({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
             <ScanLine className="h-5 w-5" />
             {t('home.scanKta')}
+            <HandScannerBadge isDetected={handScanner.isDetected} className="ml-1 text-xs font-normal" />
           </DialogTitle>
           <DialogDescription>{t('session.scanInstruction')}</DialogDescription>
         </DialogHeader>

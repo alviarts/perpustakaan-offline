@@ -48,6 +48,7 @@ import {
 import jsQR from 'jsqr';
 import {
   applyPreprocess,
+  applyRotation,
   MANUAL_RETRY_VARIANTS,
   type PreprocessVariant,
 } from './preprocess';
@@ -114,17 +115,59 @@ export function createImageDataReader(): MultiFormatReader {
 }
 
 /**
+ * Convert an RGBA `ImageData.data` buffer (4 bytes per pixel) to a
+ * grayscale luminance buffer (1 byte per pixel) using YIQ/Rec.601
+ * weights — the same conversion `@zxing/browser`'s
+ * `HTMLCanvasElementLuminanceSource` performs.
+ *
+ * This step is **mandatory** for zxing decoding: `RGBLuminanceSource`
+ * with a `Uint8ClampedArray` input treats each byte as a luminance
+ * pixel directly. Feeding it raw RGBA produces a scrambled bitmap
+ * that misses essentially every barcode.
+ *
+ * Fully-transparent pixels (alpha === 0) are forced to white (0xFF)
+ * because they're typically used as the "paper" background of a
+ * rendered barcode.
+ */
+function rgbaToLuminance(image: ImageData): Uint8ClampedArray {
+  const { data, width, height } = image;
+  const out = new Uint8ClampedArray(width * height);
+  for (let i = 0, j = 0; j < out.length; i += 4, j++) {
+    const alpha = data[i + 3] ?? 0;
+    if (alpha === 0) {
+      out[j] = 0xff;
+      continue;
+    }
+    const r = data[i] ?? 0;
+    const g = data[i + 1] ?? 0;
+    const b = data[i + 2] ?? 0;
+    // 0.299·R + 0.587·G + 0.114·B (Rec.601). Bit-shifted form
+    // (306·R + 601·G + 117·B + 0x200) >> 10 matches zxing's reference
+    // browser source byte-for-byte.
+    out[j] = (306 * r + 601 * g + 117 * b + 0x200) >> 10;
+  }
+  return out;
+}
+
+/**
  * Convert an RGBA {@link ImageData} to a zxing {@link BinaryBitmap}.
  *
  * Steps:
- *   1. Build an `RGBLuminanceSource` directly from the RGBA bytes.
- *      zxing provides a constructor for this exact shape.
- *   2. Wrap it in a `HybridBinarizer` (best general-purpose
+ *   1. Reduce RGBA → 1-byte-per-pixel luminance.
+ *   2. Build an `RGBLuminanceSource` over that buffer.
+ *   3. Wrap it in a `HybridBinarizer` (best general-purpose
  *      binarizer for the 1-D + 2-D format mix we support).
- *   3. Wrap that in a `BinaryBitmap` for the reader.
+ *   4. Wrap that in a `BinaryBitmap` for the reader.
+ *
+ * Step 1 was missing prior to v1.0.12: the RGBA buffer was passed
+ * straight in, which made `RGBLuminanceSource` interpret every fourth
+ * byte (the alpha channel) as a real pixel and shifted every row.
+ * That single bug explained why Code-128 book labels — and most
+ * non-trivial QR codes — failed to decode in v1.0.10 / v1.0.11.
  */
 export function imageDataToBitmap(image: ImageData): BinaryBitmap {
-  const luminance = new RGBLuminanceSource(image.data, image.width, image.height);
+  const lum = rgbaToLuminance(image);
+  const luminance = new RGBLuminanceSource(lum, image.width, image.height);
   return new BinaryBitmap(new HybridBinarizer(luminance));
 }
 
@@ -308,4 +351,54 @@ export function decodeAny(
   const zxingHit = decodeWithRetry(reader, image, variants);
   if (zxingHit) return zxingHit;
   return decodeWithJsQR(image);
+}
+
+/**
+ * Rotation angles tried by {@link decodeAnyWithRotations} after the
+ * unrotated frame fails. 0 first (matches the manual-scan happy
+ * path), then 180° (most common case for upside-down books on a
+ * desk), then 90/270° (sideways labels — less common but does happen
+ * when stocktake operators tilt a book on its spine).
+ */
+const ROTATION_RETRY_ANGLES: ReadonlyArray<0 | 90 | 180 | 270> = [0, 180, 90, 270];
+
+/**
+ * Manual-scan retry pipeline with **angle rotation** fallback.
+ *
+ * Used by the "Scan Sekarang" button after every preprocess variant
+ * misses. We rotate the ROI 180°/90°/270° and re-run a small subset
+ * of the variants on each rotated copy. This rescues:
+ *
+ * - Books / phones held upside-down at the camera (180°).
+ * - Barcodes oriented vertically because the operator turned a
+ *   book on its spine (90° / 270°).
+ * - Code-128 labels printed in the "wrong" direction on a card
+ *   (rare but happens with imported textbooks).
+ *
+ * Per-rotation variant subset is intentionally small (`['normal',
+ * 'contrast', 'blur']`) because (a) rotation already costs O(N)
+ * pixels of allocation and (b) most lighting/exposure variants are
+ * orientation-independent so we don't need to re-try them.
+ *
+ * Returns the first decoded hit. The returned `location` is in the
+ * ROTATED image's coordinate space — the caller is responsible for
+ * un-rotating it back to ROI space if it wants the live tracking
+ * overlay to follow the result. Continuous decode does not invoke
+ * this function for that exact reason.
+ */
+export function decodeAnyWithRotations(
+  reader: MultiFormatReader,
+  image: ImageData,
+  variants: PreprocessVariant[] = MANUAL_RETRY_VARIANTS,
+  rotationVariants: PreprocessVariant[] = ['normal', 'contrast', 'blur'],
+): DecodedResult | null {
+  for (const angle of ROTATION_RETRY_ANGLES) {
+    const rotated = angle === 0 ? image : applyRotation(image, angle);
+    const hitVariants = angle === 0 ? variants : rotationVariants;
+    const hit = decodeAny(reader, rotated, hitVariants);
+    if (hit) {
+      return hit;
+    }
+  }
+  return null;
 }

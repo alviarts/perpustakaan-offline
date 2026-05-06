@@ -23,7 +23,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { computeRoi } from '@/lib/scanner/overlay';
 import {
   createImageDataReader,
-  decodeAny,
+  decodeAnyWithRotations,
   decodeWithJsQR,
   decodeWithRetry,
   type DecodedResult,
@@ -568,7 +568,12 @@ export function useBarcodeScanner(
     const imageData = ctx.getImageData(0, 0, roi.width, roi.height);
     const reader = createImageDataReader();
 
-    const roiHit = decodeAny(reader, imageData, MANUAL_RETRY_VARIANTS);
+    // Manual scan budget is generous (~500 ms), so we run the full
+    // ROI variant chain *and* the rotation retry pipeline. The
+    // rotation pipeline only kicks in if every variant on the
+    // un-rotated ROI misses, which is exactly the v1.0.11 "phone-
+    // screen Code-128 still wouldn't decode" failure mode.
+    const roiHit = decodeAnyWithRotations(reader, imageData, MANUAL_RETRY_VARIANTS);
     if (roiHit) {
       if (roiHit.location) {
         pushDetection({
@@ -593,7 +598,11 @@ export function useBarcodeScanner(
     if (!ctxFull) return null;
     ctxFull.drawImage(video, 0, 0, w, h);
     const fullImage = ctxFull.getImageData(0, 0, w, h);
-    const fullHit = decodeAny(reader, fullImage, MANUAL_RETRY_VARIANTS);
+    const fullHit = decodeAnyWithRotations(
+      reader,
+      fullImage,
+      MANUAL_RETRY_VARIANTS,
+    );
     if (fullHit) {
       if (fullHit.location) {
         // Convert from full-frame coords back into ROI coords so the

@@ -1,6 +1,6 @@
 [package]
 name = "perpustakaan-desktop"
-version = "1.0.11"
+version = "1.0.12"
 description = "Perpustakaan Nusantara v2 desktop (Tauri 2)"
 authors = ["alvi arts"]
 edition = "2021"
