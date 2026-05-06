@@ -1,4 +1,4 @@
-use rusqlite::{params, params_from_iter, OptionalExtension, ToSql};
+use rusqlite::{params, params_from_iter, Connection, OptionalExtension, ToSql};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
@@ -390,6 +390,10 @@ pub struct AnggotaImportItem {
 #[serde(rename_all = "camelCase")]
 pub struct AnggotaImportResult {
     pub inserted: i64,
+    /// FEAT-19 — count of rows that updated an existing anggota when
+    /// `update_existing=true` was passed. Always 0 when overwrite mode is off
+    /// so older clients that ignore the field see no surprises.
+    pub updated: i64,
     pub skipped: i64,
     pub errors: Vec<AnggotaImportError>,
 }
@@ -406,11 +410,23 @@ pub struct AnggotaImportError {
 pub fn anggota_import(
     state: State<'_, AppState>,
     items: Vec<AnggotaImportItem>,
+    update_existing: Option<bool>,
 ) -> AppResult<AnggotaImportResult> {
     let mut conn = state
         .db
         .lock()
         .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    anggota_import_into_conn(&mut conn, items, update_existing.unwrap_or(false))
+}
+
+/// FEAT-19 — extracted import logic that operates directly on a `Connection`
+/// so unit tests can hit it without spinning up a full Tauri `State`. Mirrors
+/// `anggota_import` exactly.
+pub fn anggota_import_into_conn(
+    conn: &mut Connection,
+    items: Vec<AnggotaImportItem>,
+    overwrite: bool,
+) -> AppResult<AnggotaImportResult> {
     let tx = conn.transaction()?;
     let mut result = AnggotaImportResult::default();
 
@@ -426,23 +442,6 @@ pub fn anggota_import(
             continue;
         }
 
-        let exists: Option<i64> = tx
-            .query_row(
-                "SELECT id FROM anggota WHERE kode_anggota = ?1",
-                params![item.kode_anggota.trim()],
-                |row| row.get(0),
-            )
-            .optional()?;
-        if exists.is_some() {
-            result.errors.push(AnggotaImportError {
-                row: row_no,
-                kode_anggota: item.kode_anggota.clone(),
-                message: "kode_anggota sudah ada".into(),
-            });
-            result.skipped += 1;
-            continue;
-        }
-
         let jk = item
             .jenis_kelamin
             .as_deref()
@@ -450,6 +449,54 @@ pub fn anggota_import(
             .filter(|s| !s.is_empty())
             .map(str::to_uppercase)
             .filter(|s| s == "L" || s == "P");
+
+        let existing_id: Option<i64> = tx
+            .query_row(
+                "SELECT id FROM anggota WHERE kode_anggota = ?1",
+                params![item.kode_anggota.trim()],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if let Some(id) = existing_id {
+            if !overwrite {
+                result.errors.push(AnggotaImportError {
+                    row: row_no,
+                    kode_anggota: item.kode_anggota.clone(),
+                    message: "kode_anggota sudah ada".into(),
+                });
+                result.skipped += 1;
+                continue;
+            }
+            // FEAT-19 overwrite mode: update the row in place. Use COALESCE
+            // so empty/None columns in the spreadsheet don't blow away an
+            // existing value (the admin's clear-intent path is editing the
+            // anggota row directly, not bulk-blanking via a re-imported file).
+            tx.execute(
+                "UPDATE anggota SET
+                    nama = ?2,
+                    jenis_kelamin = COALESCE(?3, jenis_kelamin),
+                    kelas         = COALESCE(?4, kelas),
+                    jurusan       = COALESCE(?5, jurusan),
+                    agama         = COALESCE(?6, agama),
+                    no_telp       = COALESCE(?7, no_telp),
+                    email         = COALESCE(?8, email),
+                    updated_at    = datetime('now')
+                 WHERE id = ?1",
+                params![
+                    id,
+                    item.nama.trim(),
+                    jk,
+                    item.kelas,
+                    item.jurusan,
+                    item.agama,
+                    item.no_telp,
+                    item.email,
+                ],
+            )?;
+            result.updated += 1;
+            continue;
+        }
 
         tx.execute(
             "INSERT INTO anggota (kode_anggota, nama, jenis_kelamin, kelas, jurusan, agama, no_telp, email, aktif)
@@ -525,4 +572,176 @@ pub fn kelas_list(state: State<'_, AppState>) -> AppResult<Vec<KelasItem>> {
         })?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(items)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::run_migrations;
+
+    fn fresh_conn() -> Connection {
+        let conn = Connection::open_in_memory().expect("open in-memory db");
+        conn.pragma_update(None, "foreign_keys", "ON").expect("fk on");
+        run_migrations(&conn).expect("migrations");
+        conn
+    }
+
+    fn item(kode: &str, nama: &str) -> AnggotaImportItem {
+        AnggotaImportItem {
+            kode_anggota: kode.into(),
+            nama: nama.into(),
+            kelas: None,
+            jurusan: None,
+            agama: None,
+            jenis_kelamin: None,
+            no_telp: None,
+            email: None,
+        }
+    }
+
+    fn count_rows(conn: &Connection) -> i64 {
+        conn.query_row("SELECT COUNT(*) FROM anggota", [], |r| r.get(0))
+            .unwrap()
+    }
+
+    #[test]
+    fn import_inserts_new_rows() {
+        let mut conn = fresh_conn();
+        let before = count_rows(&conn);
+        let result = anggota_import_into_conn(
+            &mut conn,
+            vec![item("IMP1", "Imported 1"), item("IMP2", "Imported 2")],
+            false,
+        )
+        .expect("import ok");
+        assert_eq!(result.inserted, 2);
+        assert_eq!(result.updated, 0);
+        assert_eq!(result.skipped, 0);
+        assert_eq!(result.errors.len(), 0);
+        assert_eq!(count_rows(&conn) - before, 2);
+    }
+
+    #[test]
+    fn feat19_skips_existing_when_overwrite_disabled() {
+        let mut conn = fresh_conn();
+        anggota_import_into_conn(&mut conn, vec![item("OW1", "Original")], false).unwrap();
+
+        let mut row = item("OW1", "Replacement");
+        row.kelas = Some("12 IPA 1".into());
+        let result =
+            anggota_import_into_conn(&mut conn, vec![row], false).expect("import ok");
+        assert_eq!(result.inserted, 0);
+        assert_eq!(result.updated, 0);
+        assert_eq!(result.skipped, 1);
+        assert_eq!(result.errors.len(), 1);
+        let nama: String = conn
+            .query_row(
+                "SELECT nama FROM anggota WHERE kode_anggota = ?1",
+                params!["OW1"],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(nama, "Original");
+    }
+
+    #[test]
+    fn feat19_overwrites_existing_when_overwrite_enabled() {
+        let mut conn = fresh_conn();
+        let mut original = item("OW2", "Original");
+        original.kelas = Some("11 IPS 2".into());
+        original.jurusan = Some("IPS".into());
+        anggota_import_into_conn(&mut conn, vec![original], false).unwrap();
+
+        let mut replacement = item("OW2", "Replacement");
+        replacement.kelas = Some("12 IPA 1".into());
+        // jurusan intentionally None — must NOT clear the existing value.
+        let result = anggota_import_into_conn(&mut conn, vec![replacement], true)
+            .expect("import ok");
+        assert_eq!(result.inserted, 0);
+        assert_eq!(result.updated, 1);
+        assert_eq!(result.skipped, 0);
+        assert_eq!(result.errors.len(), 0);
+
+        let (nama, kelas, jurusan): (String, String, String) = conn
+            .query_row(
+                "SELECT nama, kelas, jurusan FROM anggota WHERE kode_anggota = ?1",
+                params!["OW2"],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
+            .unwrap();
+        assert_eq!(nama, "Replacement");
+        assert_eq!(kelas, "12 IPA 1");
+        assert_eq!(jurusan, "IPS");
+    }
+
+    #[test]
+    fn feat19_overwrite_mixes_inserts_and_updates() {
+        let mut conn = fresh_conn();
+        anggota_import_into_conn(&mut conn, vec![item("MIX1", "Existing")], false).unwrap();
+
+        let result = anggota_import_into_conn(
+            &mut conn,
+            vec![
+                item("MIX1", "Updated"),
+                item("MIX2", "Brand New"),
+            ],
+            true,
+        )
+        .expect("import ok");
+        assert_eq!(result.inserted, 1);
+        assert_eq!(result.updated, 1);
+        assert_eq!(result.skipped, 0);
+
+        let nama1: String = conn
+            .query_row(
+                "SELECT nama FROM anggota WHERE kode_anggota = ?1",
+                params!["MIX1"],
+                |r| r.get(0),
+            )
+            .unwrap();
+        let nama2: String = conn
+            .query_row(
+                "SELECT nama FROM anggota WHERE kode_anggota = ?1",
+                params!["MIX2"],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(nama1, "Updated");
+        assert_eq!(nama2, "Brand New");
+    }
+
+    #[test]
+    fn import_validates_required_fields() {
+        let mut conn = fresh_conn();
+        let result = anggota_import_into_conn(
+            &mut conn,
+            vec![
+                AnggotaImportItem {
+                    kode_anggota: "".into(),
+                    nama: "No kode".into(),
+                    kelas: None,
+                    jurusan: None,
+                    agama: None,
+                    jenis_kelamin: None,
+                    no_telp: None,
+                    email: None,
+                },
+                AnggotaImportItem {
+                    kode_anggota: "OK1".into(),
+                    nama: "".into(),
+                    kelas: None,
+                    jurusan: None,
+                    agama: None,
+                    jenis_kelamin: None,
+                    no_telp: None,
+                    email: None,
+                },
+            ],
+            false,
+        )
+        .expect("import ok");
+        assert_eq!(result.inserted, 0);
+        assert_eq!(result.skipped, 2);
+        assert_eq!(result.errors.len(), 2);
+    }
 }

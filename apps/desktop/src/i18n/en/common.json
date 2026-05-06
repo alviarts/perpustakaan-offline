@@ -106,6 +106,7 @@
     },
     "result": {
       "inserted": "Inserted",
+      "updated": "Updated",
       "skipped": "Skipped",
       "errors": "Errors",
       "errorListTitle": "Error list",

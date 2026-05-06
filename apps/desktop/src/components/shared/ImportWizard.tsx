@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, AlertTriangle, Download, FileSpreadsheet, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,12 @@ export interface ImportWizardImportError {
 
 export interface ImportWizardResult {
   inserted: number;
+  /**
+   * Optional count of rows that updated an existing record (e.g. anggota
+   * import overwrite mode). Backends that don't support overwrite simply
+   * omit this field.
+   */
+  updated?: number;
   skipped: number;
   errors: ImportWizardImportError[];
 }
@@ -72,6 +78,11 @@ export interface ImportWizardProps<TItem> {
   onImport: (items: TItem[]) => Promise<ImportWizardResult>;
   /** Called once submission completes successfully. */
   onImported: (result: ImportWizardResult) => void;
+  /**
+   * Optional extra controls rendered above the preview submit row, e.g.
+   * an "update existing rows" toggle for the anggota import.
+   */
+  extras?: ReactNode;
 }
 
 type Step = 'upload' | 'map' | 'preview' | 'result';
@@ -90,6 +101,7 @@ export function ImportWizard<TItem>(
     rowParser,
     onImport,
     onImported,
+    extras,
   } = props;
 
   const { t } = useTranslation(['common']);
@@ -159,6 +171,7 @@ export function ImportWizard<TItem>(
       // original spreadsheet row (header is row 1, first data is row 2).
       const rebased: ImportWizardResult = {
         inserted: r.inserted,
+        updated: r.updated,
         skipped: r.skipped + invalidRows.length,
         errors: [
           ...invalidRows.map((row) => ({
@@ -240,6 +253,7 @@ export function ImportWizard<TItem>(
             mapping={mapping}
             invalidCount={invalidRows.length}
             validCount={validRows.length}
+            extras={extras}
           />
         )}
 
@@ -492,6 +506,7 @@ interface PreviewStepProps<TItem> {
   mapping: Mapping;
   validCount: number;
   invalidCount: number;
+  extras?: ReactNode;
 }
 
 function PreviewStep<TItem>({
@@ -499,6 +514,7 @@ function PreviewStep<TItem>({
   fields,
   validCount,
   invalidCount,
+  extras,
 }: PreviewStepProps<TItem>) {
   const { t } = useTranslation(['common']);
   const visibleFields = fields.slice(0, 5);
@@ -531,6 +547,7 @@ function PreviewStep<TItem>({
           })}
         </span>
       </div>
+      {extras && <div className="rounded-md border bg-muted/30 p-3">{extras}</div>}
       <div className="rounded-md border">
         <div className="max-h-[40vh] overflow-y-auto">
           <Table>
@@ -583,13 +600,21 @@ function ResultStep({ result, onDownloadErrors }: ResultStepProps) {
   const { t } = useTranslation(['common']);
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-md border bg-emerald-50 p-3 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">
           <p className="text-xs uppercase tracking-wide">
             {t('common:importWizard.result.inserted', 'Ditambahkan')}
           </p>
           <p className="text-2xl font-semibold">{result.inserted}</p>
         </div>
+        {result.updated != null && (
+          <div className="rounded-md border bg-sky-50 p-3 text-sky-800 dark:bg-sky-500/10 dark:text-sky-200">
+            <p className="text-xs uppercase tracking-wide">
+              {t('common:importWizard.result.updated', 'Diperbarui')}
+            </p>
+            <p className="text-2xl font-semibold">{result.updated}</p>
+          </div>
+        )}
         <div className="rounded-md border p-3">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             {t('common:importWizard.result.skipped', 'Dilewati')}

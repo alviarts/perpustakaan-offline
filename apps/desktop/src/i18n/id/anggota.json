@@ -85,7 +85,9 @@
     "summary": "Berhasil: {{inserted}} • Dilewati: {{skipped}}",
     "errorRow": "Baris {{row}}: {{message}}",
     "noFile": "Belum ada file yang dipilih.",
-    "parseError": "Gagal membaca file: {{message}}"
+    "parseError": "Gagal membaca file: {{message}}",
+    "overwriteLabel": "Perbarui anggota yang sudah ada",
+    "overwriteHelp": "Jika kode anggota sudah ada di database, baris akan menimpa data lama (mode update). Default: dilewati."
   },
   "feedback": {
     "createSuccess": "Anggota berhasil ditambahkan.",

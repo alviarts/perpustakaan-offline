@@ -62,7 +62,58 @@ describe('anggotaApi (browser mock)', () => {
       { kodeAnggota: 'IMP1', nama: 'Duplicate within batch' },
     ]);
     expect(result.inserted).toBe(1);
+    expect(result.updated).toBe(0);
     expect(result.errors.length + result.skipped).toBeGreaterThanOrEqual(2);
+  });
+
+  it('FEAT-19: skips existing kode_anggota by default and reports them as errors', async () => {
+    await anggotaApi.create({ kodeAnggota: 'OW1', nama: 'Original Name' });
+    const result = await anggotaApi.importBatch([
+      { kodeAnggota: 'OW1', nama: 'Replacement Name', kelas: '12 IPA 1' },
+    ]);
+    expect(result.inserted).toBe(0);
+    expect(result.updated).toBe(0);
+    expect(result.skipped).toBe(1);
+    expect(result.errors[0]?.message).toMatch(/sudah ada/);
+    const list = await anggotaApi.list({ query: 'OW1' });
+    expect(list.items[0]?.nama).toBe('Original Name');
+  });
+
+  it('FEAT-19: updateExisting=true overwrites existing rows in place', async () => {
+    await anggotaApi.create({
+      kodeAnggota: 'OW2',
+      nama: 'Original Name',
+      kelas: '11 IPS 2',
+      jurusan: 'IPS',
+    });
+    const result = await anggotaApi.importBatch(
+      [{ kodeAnggota: 'OW2', nama: 'Replacement Name', kelas: '12 IPA 1' }],
+      { updateExisting: true },
+    );
+    expect(result.inserted).toBe(0);
+    expect(result.updated).toBe(1);
+    expect(result.skipped).toBe(0);
+    expect(result.errors).toHaveLength(0);
+    const list = await anggotaApi.list({ query: 'OW2' });
+    const row = list.items.find((it) => it.kodeAnggota === 'OW2');
+    expect(row?.nama).toBe('Replacement Name');
+    expect(row?.kelas).toBe('12 IPA 1');
+    // Empty fields shouldn't blow away pre-existing values.
+    expect(row?.jurusan).toBe('IPS');
+  });
+
+  it('FEAT-19: updateExisting still inserts new rows alongside updates', async () => {
+    await anggotaApi.create({ kodeAnggota: 'OW3', nama: 'Existing' });
+    const result = await anggotaApi.importBatch(
+      [
+        { kodeAnggota: 'OW3', nama: 'Updated' },
+        { kodeAnggota: 'OW4', nama: 'Brand New' },
+      ],
+      { updateExisting: true },
+    );
+    expect(result.inserted).toBe(1);
+    expect(result.updated).toBe(1);
+    expect(result.skipped).toBe(0);
   });
 });
 

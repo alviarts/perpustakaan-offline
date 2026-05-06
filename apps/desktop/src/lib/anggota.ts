@@ -124,8 +124,22 @@ export interface AnggotaImportError {
 
 export interface AnggotaImportResult {
   inserted: number;
+  /**
+   * FEAT-19 — number of rows that updated an existing anggota when
+   * `updateExisting=true` was passed to `importBatch`.
+   */
+  updated: number;
   skipped: number;
   errors: AnggotaImportError[];
+}
+
+export interface AnggotaImportOptions {
+  /**
+   * When true, importing a row whose `kode_anggota` already exists in the
+   * database overwrites the existing record instead of skipping it. Defaults
+   * to false (legacy behaviour).
+   */
+  updateExisting?: boolean;
 }
 
 export interface KelasItem {
@@ -142,7 +156,10 @@ interface AnggotaRpc {
   create(payload: AnggotaInput): Promise<Anggota>;
   update(id: number, payload: AnggotaInput): Promise<Anggota>;
   remove(id: number): Promise<void>;
-  importBatch(items: AnggotaImportItem[]): Promise<AnggotaImportResult>;
+  importBatch(
+    items: AnggotaImportItem[],
+    options?: AnggotaImportOptions,
+  ): Promise<AnggotaImportResult>;
   distinct(field: 'kelas' | 'jurusan' | 'agama'): Promise<string[]>;
   kelasList(): Promise<KelasItem[]>;
 }
@@ -263,9 +280,12 @@ const tauriRpc: AnggotaRpc = {
     const { invoke } = await import('@tauri-apps/api/core');
     await invoke('anggota_delete', { id });
   },
-  async importBatch(items) {
+  async importBatch(items, options) {
     const { invoke } = await import('@tauri-apps/api/core');
-    return invoke<AnggotaImportResult>('anggota_import', { items });
+    return invoke<AnggotaImportResult>('anggota_import', {
+      items,
+      updateExisting: options?.updateExisting ?? false,
+    });
   },
   async distinct(field) {
     const { invoke } = await import('@tauri-apps/api/core');
@@ -383,9 +403,15 @@ const mockRpc: AnggotaRpc = {
     if (!all.some((it) => it.id === id)) throw new Error('not_found');
     writeMock(all.filter((it) => it.id !== id));
   },
-  async importBatch(items) {
+  async importBatch(items, options) {
     const all = readMock();
-    const result: AnggotaImportResult = { inserted: 0, skipped: 0, errors: [] };
+    const overwrite = options?.updateExisting === true;
+    const result: AnggotaImportResult = {
+      inserted: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [],
+    };
     let nextId = (all.reduce((max, it) => Math.max(max, it.id), 0) ?? 0) + 1;
     items.forEach((raw, idx) => {
       const row = idx + 1;
@@ -396,9 +422,22 @@ const mockRpc: AnggotaRpc = {
         result.skipped += 1;
         return;
       }
-      if (all.some((it) => it.kodeAnggota === kode)) {
-        result.errors.push({ row, kodeAnggota: kode, message: 'kode_anggota sudah ada' });
-        result.skipped += 1;
+      const existing = all.find((it) => it.kodeAnggota === kode);
+      if (existing) {
+        if (!overwrite) {
+          result.errors.push({ row, kodeAnggota: kode, message: 'kode_anggota sudah ada' });
+          result.skipped += 1;
+          return;
+        }
+        existing.nama = nama;
+        existing.jenisKelamin = raw.jenisKelamin ?? existing.jenisKelamin;
+        existing.kelas = raw.kelas ?? existing.kelas;
+        existing.jurusan = raw.jurusan ?? existing.jurusan;
+        existing.agama = raw.agama ?? existing.agama;
+        existing.noTelp = raw.noTelp ?? existing.noTelp;
+        existing.email = raw.email ?? existing.email;
+        existing.updatedAt = nowIso();
+        result.updated += 1;
         return;
       }
       const now = nowIso();
@@ -460,7 +499,8 @@ export const anggotaApi = {
   create: (payload: AnggotaInput) => rpc().create(payload),
   update: (id: number, payload: AnggotaInput) => rpc().update(id, payload),
   remove: (id: number) => rpc().remove(id),
-  importBatch: (items: AnggotaImportItem[]) => rpc().importBatch(items),
+  importBatch: (items: AnggotaImportItem[], options?: AnggotaImportOptions) =>
+    rpc().importBatch(items, options),
   distinct: (field: 'kelas' | 'jurusan' | 'agama') => rpc().distinct(field),
   kelasList: () => rpc().kelasList(),
   /**

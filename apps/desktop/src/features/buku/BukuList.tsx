@@ -10,6 +10,7 @@ import {
   Pencil,
   Plus,
   Printer,
+  ScanLine,
   Search,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import { bukuApi, type Buku, type BukuDetail } from '@/lib/buku';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { useToast } from '@/components/ui/toast-manager';
 import { ImportBukuDialog } from './ImportBukuDialog';
+import { IsbnImportDialog } from './IsbnImportDialog';
 
 const PAGE_SIZE = 20;
 
@@ -70,6 +72,7 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
   const [kategoriOptions, setKategoriOptions] = useState<MasterItem[]>([]);
   const [bahasaOptions, setBahasaOptions] = useState<MasterItem[]>([]);
   const [importOpen, setImportOpen] = useState(false);
+  const [isbnImportOpen, setIsbnImportOpen] = useState(false);
   const [detail, setDetail] = useState<BukuDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -207,6 +210,14 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('buku:list.import')}
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsbnImportOpen(true)}
+            data-testid="buku-import-isbn"
+          >
+            <ScanLine className="mr-2 h-4 w-4" />
+            {t('buku:list.importIsbn', { defaultValue: 'Impor via ISBN' })}
+          </Button>
           <Button variant="outline" asChild data-testid="buku-cetak-label">
             <Link to="/buku/cetak-label">
               <Printer className="mr-2 h-4 w-4" />
@@ -330,6 +341,13 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
       <ImportBukuDialog
         open={importOpen}
         onOpenChange={setImportOpen}
+        onImported={() => {
+          void reload();
+        }}
+      />
+      <IsbnImportDialog
+        open={isbnImportOpen}
+        onOpenChange={setIsbnImportOpen}
         onImported={() => {
           void reload();
         }}

@@ -106,6 +106,7 @@
     },
     "result": {
       "inserted": "Ditambahkan",
+      "updated": "Diperbarui",
       "skipped": "Dilewati",
       "errors": "Error",
       "errorListTitle": "Daftar error",

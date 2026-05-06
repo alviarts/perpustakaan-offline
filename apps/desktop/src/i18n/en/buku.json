@@ -11,7 +11,8 @@
     "empty": "No books yet. Add the first one or import from Excel.",
     "emptyFiltered": "No books match the current filters.",
     "showing": "Showing {{from}}–{{to}} of {{total}}",
-    "loadingDetail": "Loading detail…"
+    "loadingDetail": "Loading detail…",
+    "importIsbn": "Import via ISBN"
   },
   "columns": {
     "kode": "Code",
@@ -102,5 +103,22 @@
   "breadcrumb": {
     "new": "Add",
     "edit": "Edit"
+  },
+  "isbnImport": {
+    "title": "Import Books via ISBN",
+    "description": "Paste a list of ISBNs (one per line or comma-separated). The app will look up metadata from Open Library then Google Books.",
+    "parsedHint": "{{count}} ISBNs ready to look up",
+    "lookup": "Look up metadata",
+    "lookupFailedTitle": "Failed to fetch ISBN metadata",
+    "previewFound": "{{count}} metadata found",
+    "previewMissing": "{{count}} not found",
+    "colKode": "Book Code",
+    "colSource": "Source",
+    "notFound": "No metadata",
+    "skipUnselected": "Not selected",
+    "missingJudul": "Title missing",
+    "nothingToImport": "Nothing to import",
+    "import": "Import {{count}} books",
+    "importFailedTitle": "Failed to save books"
   }
 }

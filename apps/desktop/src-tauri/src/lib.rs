@@ -126,6 +126,8 @@ pub fn run() {
             commands::buku::buku_update,
             commands::buku::buku_delete,
             commands::buku::buku_import,
+            commands::buku_isbn::buku_isbn_lookup_batch,
+            commands::buku_isbn::buku_isbn_fetch_cover,
             commands::buku::eksemplar_create,
             commands::buku::eksemplar_delete,
             commands::master_data::master_list,

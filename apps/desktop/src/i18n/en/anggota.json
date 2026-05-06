@@ -85,7 +85,9 @@
     "summary": "Imported: {{inserted}} • Skipped: {{skipped}}",
     "errorRow": "Row {{row}}: {{message}}",
     "noFile": "No file selected yet.",
-    "parseError": "Failed to read file: {{message}}"
+    "parseError": "Failed to read file: {{message}}",
+    "overwriteLabel": "Update existing members",
+    "overwriteHelp": "If a member code already exists in the database, the row will overwrite the existing record (update mode). Default: skip duplicates."
   },
   "feedback": {
     "createSuccess": "Member added successfully.",
