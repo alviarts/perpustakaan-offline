@@ -10,11 +10,7 @@ import { useToast } from '@/components/ui/toast-manager';
 import { calculateDenda, peminjamanApi, type PeminjamanDetail, type PeminjamanRow } from '@/lib/peminjaman';
 import { formatTauriError } from '@/lib/errors';
 import { DEFAULT_LOAN_RULES, settingsApi, type LoanRules } from '@/lib/settings';
-import { dendaQuickPresets } from '@/lib/dendaPresets';
-
-function formatRupiah(value: number): string {
-  return value.toLocaleString('id-ID');
-}
+import { DendaQuickPresetRow } from '@/components/shared/DendaQuickPresetRow';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -104,11 +100,6 @@ export function PengembalianPage() {
       loanRules.dendaPerHari,
     );
   }, [detail, loanRules.dendaPerHari]);
-
-  const dendaQuickButtons = useMemo(
-    () => dendaQuickPresets(loanRules.dendaPerHari),
-    [loanRules.dendaPerHari],
-  );
 
   function toggle(itemId: number): void {
     const next = new Set(selected);
@@ -303,33 +294,11 @@ export function PengembalianPage() {
                           min="0"
                           data-testid="pengembalian-bayar"
                         />
-                        <div
-                          className="mt-2 flex flex-wrap gap-1.5"
-                          data-testid="pengembalian-bayar-quick"
-                        >
-                          {dendaQuickButtons.map((preset) => {
-                            const testid =
-                              preset.kind === 'mult'
-                                ? `pengembalian-bayar-quick-${preset.mult}x`
-                                : `pengembalian-bayar-quick-fixed-${preset.value}`;
-                            return (
-                              <Button
-                                key={testid}
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="h-7 px-2 text-xs"
-                                onClick={() => setBayar(String(preset.value))}
-                                data-testid={testid}
-                              >
-                                {t('peminjaman:pengembalian.bayarQuick', {
-                                  defaultValue: 'Rp {{value}}',
-                                  value: formatRupiah(preset.value),
-                                })}
-                              </Button>
-                            );
-                          })}
-                        </div>
+                        <DendaQuickPresetRow
+                          dendaPerHari={loanRules.dendaPerHari}
+                          onSelect={(value) => setBayar(String(value))}
+                          testidPrefix="pengembalian-bayar"
+                        />
                       </div>
                       <div className="flex items-end">
                         <Button
