@@ -32,13 +32,15 @@ Serves as the "who did what when" for cross-session debugging.
              FEAT-Sirkulasi-Search.
 
 - session_id: devin-c6e882bf432b47a0bd0340b111941348
-  status:    PR_OPEN
+  status:    COMPLETED
   item:      BUG-Pengembalian-DendaDup
   pr:        #145
   started_at:   2026-05-06T20:48Z
+  completed_at: 2026-05-06T20:57Z
   notes:     Extracted apps/desktop/src/lib/dendaPresets.ts helper +
              refactored PengembalianPage + added 7-test unit file at
              apps/desktop/tests/unit/dendaPresets.test.ts. Local gates
-             clean (typecheck/lint/i18n:lint/test 512✓/build). PR #145
-             flipped from draft to ready; awaiting CI before
-             squash-merge.
+             green (typecheck/lint/i18n:lint/test 512✓/build), CI green
+             (Lint+Typecheck+Test + Rust check), squash-merged via PAT.
+             Helper is exported with default constants ready for
+             FEAT-Peminjaman-DendaInline to import.
