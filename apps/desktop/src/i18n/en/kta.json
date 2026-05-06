@@ -70,5 +70,15 @@
   },
   "lastExport": {
     "label": "Last saved PDF"
+  },
+  "foto": {
+    "toolsHeading": "Photo Tools — 3:4 aspect",
+    "toolsHelp": "New photos are automatically cropped to portrait 3:4 on upload. Use the button to rewrite legacy photos (uploaded before this feature) so they match the KTA slot.",
+    "refitButton": "Re-fit all photos",
+    "refitBusy": "Working…",
+    "refitConfirm": "Re-fit every member photo to portrait 3:4? Original files will be overwritten in place (no undo). Photos already at 3:4 are skipped.",
+    "refitDone": "Re-fit complete",
+    "refitSummary": "{{refit}} photos re-fit, {{skipped}} skipped, {{failed}} failed (out of {{total}} total).",
+    "refitFailed": "Re-fit failed"
   }
 }

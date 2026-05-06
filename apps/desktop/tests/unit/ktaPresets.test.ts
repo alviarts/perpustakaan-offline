@@ -16,9 +16,28 @@ const TEXT_KINDS = new Set<KtaField['kind']>([
   'static',
 ]);
 
-describe('KTA preset library (#10)', () => {
-  it('ships exactly 10 default designs', () => {
-    expect(KTA_PRESETS).toHaveLength(10);
+describe('KTA preset library (#10 + FEAT-16)', () => {
+  it('ships exactly 20 default designs (10 v1.0.5 + 10 v1.0.8/FEAT-16)', () => {
+    expect(KTA_PRESETS).toHaveLength(20);
+  });
+
+  it('contains every FEAT-16 preset id in KTA_PRESETS (not extras)', () => {
+    const ids = KTA_PRESETS.map((p) => p.id);
+    const feat16Ids = [
+      'ichasoft-klasik-blue',
+      'simple-flat-coral',
+      'corporate-grey-monochrome',
+      'gradient-sunset-purple',
+      'wave-bottom-aqua',
+      'kotak-grid-mustard',
+      'kartu-batik-merah',
+      'vertikal-strip-mint',
+      'polkadot-pastel-pink',
+      'monoline-line-art-black',
+    ];
+    for (const id of feat16Ids) {
+      expect(ids).toContain(id);
+    }
   });
 
   it('every preset has a unique kebab-case id', () => {

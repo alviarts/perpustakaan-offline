@@ -70,5 +70,15 @@
   },
   "lastExport": {
     "label": "PDF terakhir disimpan"
+  },
+  "foto": {
+    "toolsHeading": "Foto Tools — aspek 3:4",
+    "toolsHelp": "Foto baru akan otomatis di-crop ke portrait 3:4 saat upload. Tombol di samping me-rewrite foto lama (sebelum fitur ini) supaya konsisten dengan slot KTA.",
+    "refitButton": "Re-fit semua foto",
+    "refitBusy": "Memproses…",
+    "refitConfirm": "Re-fit semua foto anggota ke aspek 3:4 portrait? File asli akan ditimpa di tempat (tidak bisa di-undo). Foto yang sudah 3:4 akan dilewati.",
+    "refitDone": "Re-fit selesai",
+    "refitSummary": "{{refit}} foto di-fit, {{skipped}} dilewati, {{failed}} gagal (dari {{total}} total).",
+    "refitFailed": "Re-fit gagal"
   }
 }

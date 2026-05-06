@@ -3,6 +3,11 @@ import QRCode from 'qrcode';
 import { assetsApi } from '@/lib/assets';
 import type { Anggota } from '@/lib/anggota';
 import { buildQrPayload, type KtaField, type KtaLayout } from '@/lib/kta';
+import {
+  computeContainFit,
+  coverCropToDataUrl,
+  loadImageElement,
+} from '@/lib/imageFit';
 import type { LibraryIdentity } from '@/stores/identityStore';
 import { resolveKtaFieldText } from './resolveField';
 
@@ -149,12 +154,27 @@ function drawTextField(doc: jsPDF, field: KtaField, rect: CardRect, text: string
   });
 }
 
-function drawFotoField(
+/**
+ * BUG-19 — Render the member photo with `object-fit: cover` semantics.
+ *
+ * jsPDF's `addImage(data, 'AUTO', x, y, w, h)` always stretches the
+ * source to the exact `w × h` rectangle: the `'AUTO'` flag controls
+ * codec auto-detection, NOT aspect-ratio preservation. The Cetak HTML
+ * and the live Preview already render foto with `object-fit: cover`,
+ * so the visual divergence between Cetak / Preview and Export-PDF was
+ * the headline bug here.
+ *
+ * Fix: pre-crop the source on an offscreen canvas using the cover-fit
+ * math from `lib/imageFit`, then hand the cropped PNG bytes to jsPDF.
+ * Now the addImage stretch-to-rect is harmless because the cropped
+ * source already matches the slot's exact aspect ratio.
+ */
+async function drawFotoField(
   doc: jsPDF,
   field: KtaField,
   rect: CardRect,
   fotoUrl: string | null,
-): void {
+): Promise<void> {
   const fx = rect.x + (field.x / 100) * rect.width;
   const fy = rect.y + (field.y / 100) * rect.height;
   const fw = (field.width / 100) * rect.width;
@@ -162,10 +182,12 @@ function drawFotoField(
 
   if (fotoUrl) {
     try {
-      doc.addImage(fotoUrl, 'AUTO', fx, fy, fw, fh, undefined, 'FAST');
+      const cropped = await coverCropToDataUrl(fotoUrl, fw, fh);
+      doc.addImage(cropped, 'PNG', fx, fy, fw, fh, undefined, 'FAST');
       return;
     } catch {
-      // Fall through to placeholder.
+      // Fall through to placeholder when the image cannot be loaded
+      // or the canvas read fails (e.g. headless test environment).
     }
   }
   doc.setFillColor(...FOTO_PLACEHOLDER_RGB);
@@ -196,26 +218,32 @@ function drawQrField(doc: jsPDF, field: KtaField, rect: CardRect, qrUrl: string)
 }
 
 /**
- * FEAT-03 — render the principal's signature image. Mirrors
- * `drawFotoField` (graceful placeholder + transparent rectangle when
- * jsPDF rejects the source) but uses `objectFit: contain` semantics by
- * preserving aspect-ratio: jsPDF lets us pass `'AUTO'` as the format
- * which auto-detects + preserves the ratio relative to the bounding
- * rectangle we provide.
+ * FEAT-03 / BUG-19 — render the principal's signature image with
+ * `object-fit: contain` semantics.
+ *
+ * Earlier revisions called `addImage(…, 'AUTO', x, y, w, h)` with the
+ * comment that `'AUTO'` preserves aspect ratio; in practice jsPDF
+ * stretches to the rectangle and ignores the source ratio entirely
+ * (see `drawFotoField` for the same root cause). For TTD we want to
+ * fit fully inside the slot without cropping, so the math is
+ * `computeContainFit` and the destination rect shrinks to match the
+ * source ratio with letter-/pillar-box margins.
  */
-function drawTtdField(
+async function drawTtdField(
   doc: jsPDF,
   field: KtaField,
   rect: CardRect,
   ttdUrl: string | null,
-): void {
+): Promise<void> {
   const fx = rect.x + (field.x / 100) * rect.width;
   const fy = rect.y + (field.y / 100) * rect.height;
   const fw = (field.width / 100) * rect.width;
   const fh = (field.height / 100) * rect.height;
   if (ttdUrl) {
     try {
-      doc.addImage(ttdUrl, 'AUTO', fx, fy, fw, fh, undefined, 'FAST');
+      const img = await loadImageElement(ttdUrl);
+      const fit = computeContainFit(img.naturalWidth, img.naturalHeight, fw, fh);
+      doc.addImage(ttdUrl, 'AUTO', fx + fit.dx, fy + fit.dy, fit.dw, fit.dh, undefined, 'FAST');
       return;
     } catch {
       // Fall through to placeholder.
@@ -246,14 +274,14 @@ interface PreparedAnggota {
   fotoUrl: string | null;
 }
 
-function renderLayoutPages(
+async function renderLayoutPages(
   doc: jsPDF,
   layout: KtaLayout,
   prepared: PreparedAnggota[],
   identity: LibraryIdentity,
   ttdUrl: string | null,
   isFirstSection: boolean,
-): void {
+): Promise<void> {
   const cardW = layout.widthMm;
   const cardH = layout.heightMm;
   const { cols, rows, perPage } = computeGrid(cardW, cardH);
@@ -275,9 +303,9 @@ function renderLayoutPages(
       if (f.kind === 'rect') {
         drawRectField(doc, f, rect);
       } else if (f.kind === 'foto') {
-        drawFotoField(doc, f, rect, item.fotoUrl);
+        await drawFotoField(doc, f, rect, item.fotoUrl);
       } else if (f.kind === 'ttdKepsek') {
-        drawTtdField(doc, f, rect, ttdUrl);
+        await drawTtdField(doc, f, rect, ttdUrl);
       } else if (f.kind === 'qr') {
         drawQrField(doc, f, rect, item.qrUrl);
       } else {
@@ -301,7 +329,7 @@ export async function buildKtaPdfBytes(input: KtaPdfInput): Promise<Uint8Array> 
   );
   const ttdUrl = await loadFotoDataUrl(identity.ttdKepsekPath);
 
-  renderLayoutPages(doc, layout, prepared, identity, ttdUrl, true);
+  await renderLayoutPages(doc, layout, prepared, identity, ttdUrl, true);
 
   // FEAT-04 — render the back-side on a fresh page (or grid of pages
   // when the batch spans more than one page). The same prepared QR /
@@ -309,7 +337,7 @@ export async function buildKtaPdfBytes(input: KtaPdfInput): Promise<Uint8Array> 
   // twice. Templates without a back-side keep producing identical
   // bytes byte-for-byte (no extra `addPage`).
   if (layout.back) {
-    renderLayoutPages(doc, layout.back, prepared, identity, ttdUrl, false);
+    await renderLayoutPages(doc, layout.back, prepared, identity, ttdUrl, false);
   }
 
   const buf = doc.output('arraybuffer') as ArrayBuffer;
