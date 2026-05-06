@@ -301,3 +301,12 @@ Serves as the "who did what when" for cross-session debugging.
              gates green; PR #153 merged via PAT (sha 2da15989).
              9/14 items DONE — A2, C1, D1, D5, E1, RELEASE
              remaining. Continuing to A2-SkeletonScreens next.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    STARTED
+  item:      A2-SkeletonScreens
+  pr:        null
+  started_at: 2026-05-06T22:57Z
+  notes:     Add TableSkeleton + CardSkeleton; wire into Anggota/
+             Buku/Peminjaman/Pengembalian list pages and OPAC home/
+             search grids. Honor prefers-reduced-motion.
