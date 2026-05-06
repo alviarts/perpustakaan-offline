@@ -1,0 +1,99 @@
+{
+  "title": "Stocktake / Inventory",
+  "subtitle": "Annual inventory: scan barcodes in batch and the system lists missing books.",
+  "actions": {
+    "newSession": "Start Stocktake Session",
+    "resume": "Resume",
+    "view": "View",
+    "delete": "Delete",
+    "finish": "Finish",
+    "cancel": "Cancel",
+    "exportPdf": "Export PDF",
+    "scan": "Scan",
+    "back": "Back"
+  },
+  "list": {
+    "empty": "No stocktake sessions yet. Click \"Start Stocktake Session\" to begin.",
+    "header": {
+      "id": "ID",
+      "nama": "Session Name",
+      "tanggalMulai": "Started",
+      "tanggalSelesai": "Finished",
+      "status": "Status",
+      "progress": "Progress",
+      "petugas": "Officer",
+      "aksi": "Actions"
+    }
+  },
+  "status": {
+    "berlangsung": "In Progress",
+    "selesai": "Completed",
+    "dibatalkan": "Cancelled"
+  },
+  "itemStatus": {
+    "belum_scan": "Not Scanned",
+    "ditemukan": "Found",
+    "tidak_ditemukan": "Missing"
+  },
+  "newDialog": {
+    "title": "Start Stocktake Session",
+    "namaLabel": "Session Name (optional)",
+    "namaPlaceholder": "e.g. Annual Stocktake 2026",
+    "catatanLabel": "Notes (optional)",
+    "submit": "Start",
+    "cancel": "Cancel"
+  },
+  "session": {
+    "scanLabel": "Scan / Enter Eksemplar Code",
+    "scanPlaceholder": "Scan barcode or type code...",
+    "counter": "Total: {{total}} | Scanned: {{ditemukan}} ({{percent}}%)",
+    "missing": "Missing: {{missing}}",
+    "tabs": {
+      "all": "All",
+      "ditemukan": "Found",
+      "missing": "Missing / Unscanned"
+    },
+    "search": "Search code / title...",
+    "scannedToast": "{{kode}} marked as found",
+    "alreadyScannedToast": "{{kode}} already scanned",
+    "scanError": "Scan failed: {{message}}",
+    "table": {
+      "kode": "Eksemplar Code",
+      "judul": "Book Title",
+      "pengarang": "Author",
+      "status": "Status",
+      "tanggalScan": "Scan Time"
+    },
+    "finishConfirm": "Finish this stocktake session? Unscanned eksemplar will be marked as \"Missing\".",
+    "cancelConfirm": "Cancel this stocktake session? Already-scanned items will be preserved for audit.",
+    "deleteConfirm": "Delete this stocktake session? This action cannot be undone."
+  },
+  "report": {
+    "title": "Stocktake / Inventory Report",
+    "headerSubtitle": "List of Missing Eksemplar",
+    "fileName": "stocktake-{{id}}.pdf",
+    "summary": "Total: {{total}}  |  Found: {{ditemukan}}  |  Missing: {{missing}}",
+    "noMissing": "All eksemplar accounted for. Great work!",
+    "tableHeader": {
+      "no": "No.",
+      "kode": "Eksemplar Code",
+      "judul": "Title",
+      "pengarang": "Author",
+      "status": "Status"
+    },
+    "footer": {
+      "ttd": "Library Officer",
+      "kepsek": "Acknowledged by, Principal"
+    }
+  },
+  "feedback": {
+    "loadError": "Failed to load stocktake sessions",
+    "startError": "Failed to start stocktake session",
+    "finishError": "Failed to finish session",
+    "deleteError": "Failed to delete session",
+    "started": "Stocktake session started",
+    "finished": "Session completed",
+    "cancelled": "Session cancelled",
+    "deleted": "Session deleted"
+  }
+}

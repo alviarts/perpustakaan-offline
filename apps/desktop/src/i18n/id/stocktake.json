@@ -1,0 +1,99 @@
+{
+  "title": "Stocktake / Opname",
+  "subtitle": "Inventarisasi tahunan: scan barcode batch lalu sistem mendaftar buku yang hilang.",
+  "actions": {
+    "newSession": "Mulai Sesi Stocktake",
+    "resume": "Lanjutkan",
+    "view": "Lihat",
+    "delete": "Hapus",
+    "finish": "Selesaikan",
+    "cancel": "Batalkan",
+    "exportPdf": "Export PDF",
+    "scan": "Scan",
+    "back": "Kembali"
+  },
+  "list": {
+    "empty": "Belum ada sesi stocktake. Klik \"Mulai Sesi Stocktake\" untuk memulai.",
+    "header": {
+      "id": "ID",
+      "nama": "Nama Sesi",
+      "tanggalMulai": "Mulai",
+      "tanggalSelesai": "Selesai",
+      "status": "Status",
+      "progress": "Progres",
+      "petugas": "Petugas",
+      "aksi": "Aksi"
+    }
+  },
+  "status": {
+    "berlangsung": "Berlangsung",
+    "selesai": "Selesai",
+    "dibatalkan": "Dibatalkan"
+  },
+  "itemStatus": {
+    "belum_scan": "Belum Scan",
+    "ditemukan": "Ditemukan",
+    "tidak_ditemukan": "Tidak Ditemukan"
+  },
+  "newDialog": {
+    "title": "Mulai Sesi Stocktake",
+    "namaLabel": "Nama Sesi (opsional)",
+    "namaPlaceholder": "mis. Opname Semester Ganjil 2026",
+    "catatanLabel": "Catatan (opsional)",
+    "submit": "Mulai",
+    "cancel": "Batal"
+  },
+  "session": {
+    "scanLabel": "Scan / Ketik Kode Eksemplar",
+    "scanPlaceholder": "Pindai barcode atau ketik kode...",
+    "counter": "Total: {{total}} | Sudah scan: {{ditemukan}} ({{percent}}%)",
+    "missing": "Hilang: {{missing}}",
+    "tabs": {
+      "all": "Semua",
+      "ditemukan": "Ditemukan",
+      "missing": "Hilang / Belum Scan"
+    },
+    "search": "Cari kode / judul...",
+    "scannedToast": "{{kode}} ditandai ditemukan",
+    "alreadyScannedToast": "{{kode}} sudah pernah di-scan",
+    "scanError": "Gagal scan: {{message}}",
+    "table": {
+      "kode": "Kode Eksemplar",
+      "judul": "Judul Buku",
+      "pengarang": "Pengarang",
+      "status": "Status",
+      "tanggalScan": "Waktu Scan"
+    },
+    "finishConfirm": "Selesaikan sesi stocktake ini? Eksemplar yang belum di-scan akan ditandai \"Tidak Ditemukan\".",
+    "cancelConfirm": "Batalkan sesi stocktake ini? Status item yang sudah di-scan tetap dipertahankan untuk audit.",
+    "deleteConfirm": "Hapus sesi stocktake ini? Tindakan ini tidak bisa dibatalkan."
+  },
+  "report": {
+    "title": "Laporan Stocktake / Opname",
+    "headerSubtitle": "Daftar Eksemplar Tidak Ditemukan",
+    "fileName": "stocktake-{{id}}.pdf",
+    "summary": "Total Eksemplar: {{total}}  |  Ditemukan: {{ditemukan}}  |  Hilang: {{missing}}",
+    "noMissing": "Semua eksemplar ditemukan. Selamat!",
+    "tableHeader": {
+      "no": "No.",
+      "kode": "Kode Eksemplar",
+      "judul": "Judul",
+      "pengarang": "Pengarang",
+      "status": "Status"
+    },
+    "footer": {
+      "ttd": "Petugas Perpustakaan",
+      "kepsek": "Mengetahui, Kepala Sekolah"
+    }
+  },
+  "feedback": {
+    "loadError": "Gagal memuat sesi stocktake",
+    "startError": "Gagal memulai sesi stocktake",
+    "finishError": "Gagal menyelesaikan sesi",
+    "deleteError": "Gagal menghapus sesi",
+    "started": "Sesi stocktake dimulai",
+    "finished": "Sesi diselesaikan",
+    "cancelled": "Sesi dibatalkan",
+    "deleted": "Sesi dihapus"
+  }
+}
