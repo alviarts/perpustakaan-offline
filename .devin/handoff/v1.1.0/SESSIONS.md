@@ -354,3 +354,15 @@ Serves as the "who did what when" for cross-session debugging.
              9 new unit tests, all gates green; PR #155 merged
              via PAT (sha 1bea4560). 11/14 items DONE — D1, D5,
              E1, RELEASE remaining. Continuing to D1-SystemHealthWidget.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    STARTED
+  item:      D1-SystemHealthWidget
+  started_at:   2026-05-06T23:30Z
+  notes:     Adding dashboard_system_health Tauri RPC + new
+             SystemHealthCard component rendered between
+             KPI grid and OverduePanel. DB size from
+             fs::metadata, last backup from backup_history,
+             pending reservasi from menunggu count, version
+             from CARGO_PKG_VERSION env. Next backup left
+             null (front-end derives from schedule when needed).
