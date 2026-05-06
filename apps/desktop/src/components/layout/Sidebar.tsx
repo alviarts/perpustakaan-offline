@@ -12,6 +12,7 @@ import {
   ChevronsRight,
   Library,
   ScanLine,
+  BookMarked,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -33,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/buku', labelKey: 'common:menu.buku', Icon: BookOpen },
   { to: '/peminjaman', labelKey: 'common:menu.peminjaman', Icon: ArrowLeftRight },
   { to: '/pengembalian', labelKey: 'common:menu.pengembalian', Icon: Undo2 },
+  { to: '/reservasi', labelKey: 'common:menu.reservasi', Icon: BookMarked },
   { to: '/sirkulasi', labelKey: 'common:menu.sirkulasi', Icon: ScanLine },
   { to: '/kunjungan', labelKey: 'common:menu.kunjungan', Icon: CalendarCheck },
   { to: '/laporan', labelKey: 'common:menu.laporan', Icon: BarChart3 },

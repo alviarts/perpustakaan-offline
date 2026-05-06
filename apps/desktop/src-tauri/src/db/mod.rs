@@ -244,6 +244,15 @@ fn apply_additive_migrations(conn: &Connection) -> AppResult<()> {
     // admin fills it in via Settings → Akun.
     add_column_if_missing(conn, "users", "security_question", "TEXT")?;
     add_column_if_missing(conn, "users", "security_answer_hash", "TEXT")?;
+    // FEAT-17: peminjaman extension counter and last-extension date. Default
+    // 0 / NULL so v1.0.7-or-earlier rows behave as "never extended".
+    add_column_if_missing(
+        conn,
+        "peminjaman",
+        "kali_perpanjangan",
+        "INTEGER NOT NULL DEFAULT 0",
+    )?;
+    add_column_if_missing(conn, "peminjaman", "tanggal_perpanjangan_terakhir", "TEXT")?;
     Ok(())
 }
 

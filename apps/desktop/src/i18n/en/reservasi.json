@@ -1,0 +1,65 @@
+{
+  "title": "Book Reservations",
+  "subtitle": "Queue for books currently on loan — members can sign up to be paged when a book is returned",
+  "empty": "No active reservations",
+  "column": {
+    "urutan": "Queue #",
+    "anggota": "Member",
+    "buku": "Book",
+    "tanggalRequest": "Requested",
+    "status": "Status",
+    "slot": "Shelf Slot",
+    "expired": "Expires",
+    "aksi": "Actions"
+  },
+  "status": {
+    "menunggu": "Waiting",
+    "siap_diambil": "Ready for Pickup",
+    "diambil": "Picked Up",
+    "expired": "Expired",
+    "dibatalkan": "Cancelled"
+  },
+  "filter": {
+    "all": "All Active",
+    "menunggu": "Waiting",
+    "siap_diambil": "Ready for Pickup"
+  },
+  "action": {
+    "create": "Reserve (Queue)",
+    "createShort": "Queue",
+    "cancel": "Cancel",
+    "markDiambil": "Mark Picked Up",
+    "checkExpired": "Check Expired"
+  },
+  "confirm": {
+    "createTitle": "Create Reservation",
+    "createDesc": "Member {{nama}} will be queued for book \"{{judul}}\". Continue?",
+    "createButton": "Add to Queue",
+    "cancelTitle": "Cancel Reservation",
+    "cancelDesc": "This reservation will be marked cancelled and remaining members move up the queue. Continue?",
+    "cancelButton": "Cancel",
+    "markDiambilTitle": "Mark Picked Up",
+    "markDiambilDesc": "Confirm member {{nama}} has collected \"{{judul}}\" from shelf {{slot}}.",
+    "markDiambilButton": "Mark Picked Up"
+  },
+  "feedback": {
+    "loadError": "Failed to load reservations",
+    "createSuccess": "Reservation created — position #{{urutan}}",
+    "createError": "Failed to create reservation",
+    "cancelSuccess": "Reservation cancelled",
+    "cancelError": "Failed to cancel reservation",
+    "markDiambilSuccess": "Reservation marked picked up",
+    "markDiambilError": "Failed to mark picked up",
+    "checkExpiredDone": "{{count}} expired reservations processed"
+  },
+  "countdown": {
+    "today": "Today",
+    "days_one": "{{count}} day left",
+    "days_other": "{{count}} days left",
+    "overdue": "{{count}} days overdue"
+  },
+  "panel": {
+    "myReservasi": "My Reservations",
+    "myReservasiEmpty": "No active reservations"
+  }
+}

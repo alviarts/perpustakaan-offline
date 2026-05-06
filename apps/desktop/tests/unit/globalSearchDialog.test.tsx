@@ -65,6 +65,8 @@ const basePeminjaman: PeminjamanRow = {
   itemDipinjam: 1,
   catatan: null,
   createdAt: '2026-05-01T08:00:00Z',
+  kaliPerpanjangan: 0,
+  tanggalPerpanjanganTerakhir: null,
 };
 
 describe('anggotaToHit', () => {

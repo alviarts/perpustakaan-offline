@@ -41,7 +41,9 @@
     "printNota": "Print Receipt",
     "return": "Return",
     "returnSelected_one": "Return {{count}} item",
-    "returnSelected_other": "Return {{count}} items"
+    "returnSelected_other": "Return {{count}} items",
+    "perpanjang": "Extend",
+    "perpanjangShort": "+{{days}} days"
   },
   "form": {
     "title": "New Loan",
@@ -76,11 +78,16 @@
     "denda": "Fine & Payment",
     "totalDenda": "Total Fine",
     "totalBayar": "Total Paid",
-    "bayar": "Pay Fine"
+    "bayar": "Pay Fine",
+    "kaliPerpanjangan": "Extended {{count}}× (max {{max}}×)",
+    "perpanjanganTerakhir": "Last extended {{tanggal}}"
   },
   "confirm": {
     "returnTitle": "Confirm Return",
-    "returnDesc": "Selected items will be marked as returned. Continue?"
+    "returnDesc": "Selected items will be marked as returned. Continue?",
+    "perpanjangTitle": "Extend Loan",
+    "perpanjangDesc": "Due date will be extended from {{old}} to {{baru}} ({{days}} days). Continue?",
+    "perpanjangButton": "Extend"
   },
   "feedback": {
     "loadError": "Failed to load loans",
@@ -88,7 +95,10 @@
     "createError": "Failed to create loan",
     "returned": "Return successful",
     "returnError": "Failed to return",
-    "printError": "Failed to print receipt"
+    "printError": "Failed to print receipt",
+    "perpanjangSuccess": "Extended. New due date: {{baru}} ({{kali}}/{{max}}×)",
+    "perpanjangError": "Failed to extend",
+    "reservasiPromoted": "\"{{judul}}\" reserved by {{nama}} — keep on shelf {{slot}} (expires {{expired}})"
   },
   "error": {
     "anggotaRequired": "Please select a member",

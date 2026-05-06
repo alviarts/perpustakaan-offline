@@ -16,6 +16,35 @@ export interface PeminjamanRow {
   itemDipinjam: number;
   catatan?: string | null;
   createdAt: string;
+  /** FEAT-17: how many times this loan has been extended. */
+  kaliPerpanjangan: number;
+  /** FEAT-17: ISO date (yyyy-mm-dd) of the most recent extension, if any. */
+  tanggalPerpanjanganTerakhir?: string | null;
+}
+
+export interface PeminjamanPerpanjangInput {
+  peminjamanId: number;
+  /** Optional override; defaults to `transaksi.lama_pinjam_hari` setting. */
+  days?: number;
+}
+
+export interface PeminjamanPerpanjangResult {
+  kaliPerpanjangan: number;
+  maxPerpanjangan: number;
+  tanggalJatuhTempoLama: string;
+  tanggalJatuhTempoBaru: string;
+  header: PeminjamanRow;
+}
+
+export interface ReservasiPromotedNotif {
+  reservasiId: number;
+  bukuId: number;
+  bukuJudul: string;
+  anggotaId: number;
+  anggotaNama: string;
+  anggotaKode: string;
+  slotRak: string;
+  expiredAt: string;
 }
 
 export interface PeminjamanItemRow {
@@ -83,6 +112,13 @@ export interface PeminjamanReturnResult {
   totalDenda: number;
   totalBayar: number;
   statusHeader: string;
+  /**
+   * FEAT-18: any reservasi rows promoted from `menunggu` → `siap_diambil`
+   * by this return. Empty when no buku in this peminjaman had an active
+   * antrian. The UI uses this to render the "Buku ini di-reserve oleh
+   * X, simpan di rak Y" toast.
+   */
+  reservasiPromoted: ReservasiPromotedNotif[];
 }
 
 export interface PeminjamanQuickStats {
@@ -196,6 +232,8 @@ interface PeminjamanRpc {
   get(id: number): Promise<PeminjamanDetail>;
   create(input: PeminjamanCreateInput): Promise<PeminjamanDetail>;
   kembalikan(input: PeminjamanReturnInput): Promise<PeminjamanReturnResult>;
+  /** FEAT-17: extend a loan by N days (or by the configured default). */
+  perpanjang(input: PeminjamanPerpanjangInput): Promise<PeminjamanPerpanjangResult>;
   quickStats(): Promise<PeminjamanQuickStats>;
   overdueList(limit?: number): Promise<OverdueRow[]>;
   anggotaLoanHistory(id: number, limit?: number): Promise<AnggotaLoanHistory>;
@@ -269,6 +307,10 @@ const tauriRpc: PeminjamanRpc = {
   async kembalikan(input) {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<PeminjamanReturnResult>('peminjaman_kembalikan', { input });
+  },
+  async perpanjang(input) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<PeminjamanPerpanjangResult>('peminjaman_perpanjang', { input });
   },
   async quickStats() {
     const { invoke } = await import('@tauri-apps/api/core');
@@ -362,6 +404,8 @@ const mockRpc: PeminjamanRpc = {
       itemDipinjam: input.bukuIds.length,
       catatan: input.catatan ?? null,
       createdAt: nowIso(),
+      kaliPerpanjangan: 0,
+      tanggalPerpanjanganTerakhir: null,
     };
     state.rows.unshift(header);
     const items: PeminjamanItemRow[] = input.bukuIds.map((bid) => ({
@@ -413,6 +457,37 @@ const mockRpc: PeminjamanRpc = {
       totalDenda: header.totalDenda,
       totalBayar: header.totalBayar,
       statusHeader: header.status,
+      reservasiPromoted: [],
+    };
+  },
+  async perpanjang(input) {
+    const state = readMock();
+    const header = state.rows.find((r) => r.id === input.peminjamanId);
+    if (!header) throw new Error(`peminjaman id=${input.peminjamanId} not found`);
+    if (header.status === 'dikembalikan' || header.status === 'hilang') {
+      throw new Error(`peminjaman sudah berstatus ${header.status}`);
+    }
+    const days = input.days && input.days > 0 ? input.days : 7;
+    const max = 1;
+    if (header.kaliPerpanjangan >= max) {
+      throw new Error(`Sudah tidak bisa diperpanjang (maksimum ${max}×)`);
+    }
+    const old = header.tanggalJatuhTempo;
+    const baru = new Date(
+      new Date(old + 'T00:00:00Z').getTime() + days * 86_400_000,
+    )
+      .toISOString()
+      .slice(0, 10);
+    header.tanggalJatuhTempo = baru;
+    header.kaliPerpanjangan += 1;
+    header.tanggalPerpanjanganTerakhir = todayIso();
+    writeMock(state);
+    return {
+      kaliPerpanjangan: header.kaliPerpanjangan,
+      maxPerpanjangan: max,
+      tanggalJatuhTempoLama: old,
+      tanggalJatuhTempoBaru: baru,
+      header,
     };
   },
   async quickStats() {
