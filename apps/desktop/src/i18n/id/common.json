@@ -34,7 +34,9 @@
     "groupAnggota": "Anggota",
     "groupBuku": "Buku",
     "groupPeminjaman": "Peminjaman",
-    "footerHint": "Enter untuk buka • ↑↓ navigasi • Esc tutup"
+    "footerHint": "Enter untuk buka • ↑↓ navigasi • Esc tutup",
+    "groupRoutes": "Halaman",
+    "groupActions": "Aksi Cepat"
   },
   "states": {
     "loading": "Memuat…",
@@ -154,5 +156,119 @@
   "scanner": {
     "handScannerDetected": "Hand-scanner USB terdeteksi",
     "handScannerHint": "Hand-scanner USB siap digunakan — fokuskan ke kolom scan dan pindai barcode."
+  },
+  "commandPalette": {
+    "executeFail": "Tidak dapat menjalankan perintah",
+    "route": {
+      "dashboard": {
+        "label": "Dashboard",
+        "description": "Ringkasan KPI dan aktivitas terkini"
+      },
+      "anggota": {
+        "label": "Anggota",
+        "description": "Kelola data anggota"
+      },
+      "buku": {
+        "label": "Buku",
+        "description": "Kelola katalog buku"
+      },
+      "peminjaman": {
+        "label": "Peminjaman",
+        "description": "Daftar dan transaksi peminjaman"
+      },
+      "sirkulasi": {
+        "label": "Sirkulasi (Webcam)",
+        "description": "Pindai KTA/buku via kamera"
+      },
+      "laporan": {
+        "label": "Laporan",
+        "description": "Statistik, top peminjam, kas, grafik"
+      },
+      "pengembalian": {
+        "label": "Pengembalian",
+        "description": "Catat pengembalian dan denda"
+      },
+      "reservasi": {
+        "label": "Reservasi",
+        "description": "Antrean pemesanan buku"
+      },
+      "wishlist": {
+        "label": "Wishlist",
+        "description": "Usulan judul baru dari anggota"
+      },
+      "stocktake": {
+        "label": "Stocktake",
+        "description": "Inventaris fisik koleksi"
+      },
+      "kunjungan": {
+        "label": "Kunjungan",
+        "description": "Catat kunjungan harian"
+      },
+      "settings": {
+        "label": "Pengaturan",
+        "description": "Konfigurasi aplikasi"
+      },
+      "backup": {
+        "label": "Backup",
+        "description": "Backup dan restore database"
+      },
+      "auditLog": {
+        "label": "Audit Log",
+        "description": "Aktivitas sistem"
+      },
+      "kta": {
+        "label": "KTA",
+        "description": "Cetak kartu tanda anggota"
+      },
+      "manual": {
+        "label": "Manual",
+        "description": "Buku panduan pengguna"
+      },
+      "tentang": {
+        "label": "Tentang",
+        "description": "Versi aplikasi dan lisensi"
+      }
+    },
+    "action": {
+      "backupSekarang": {
+        "label": "Backup Sekarang",
+        "description": "Buka halaman backup",
+        "toast": "Membuka halaman backup…"
+      },
+      "cetakLaporanBulanan": {
+        "label": "Cetak Laporan Bulanan",
+        "description": "Buka pusat laporan"
+      },
+      "tambahAnggota": {
+        "label": "Tambah Anggota",
+        "description": "Buka formulir anggota baru"
+      },
+      "tambahBuku": {
+        "label": "Tambah Buku",
+        "description": "Buka formulir buku baru"
+      },
+      "tambahPeminjaman": {
+        "label": "Tambah Peminjaman",
+        "description": "Buka transaksi peminjaman baru"
+      },
+      "toggleTheme": {
+        "label": "Ganti Tema",
+        "description": "Beralih antara mode terang dan gelap",
+        "toast": {
+          "light": "Tema diubah ke terang",
+          "dark": "Tema diubah ke gelap"
+        }
+      },
+      "bukaOpac": {
+        "label": "Buka Mode OPAC",
+        "description": "Beralih ke katalog publik (memuat ulang)",
+        "fail": "Gagal membuka mode OPAC"
+      },
+      "logout": {
+        "label": "Keluar",
+        "description": "Akhiri sesi pustakawan",
+        "fail": "Gagal keluar"
+      }
+    }
   }
 }
