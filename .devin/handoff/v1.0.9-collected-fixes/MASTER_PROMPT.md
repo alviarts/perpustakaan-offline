@@ -122,9 +122,54 @@ Implementation:
 4. Test at multiple viewport sizes (1024px, 1440px, 1920px). You can
    resize via Chrome DevTools or the Tauri window.
 
-### §6 — Version bump + CHANGELOG + release
+### §7 — KTA template editor (preview accuracy + layers + background import)
 
-Only do this AFTER §2-§5 are complete and all gates pass.
+User-reported issues on Pengaturan → Kartu Tanda Anggota:
+
+1. **Bug: preview-vs-print mismatch** — the "Dekorasi (Kotak)" rendered in
+   the preview (X/Y/Lebar/Tinggi in % of card) does not match the printed
+   PDF output. The card dimensions (default 85.6 × 53.98 mm CR80) also
+   appear mis-sized in the preview vs print.
+
+   **Investigation:**
+   - The preview component is a React SVG/canvas using `%` coordinates of a
+     fixed-aspect viewbox.
+   - The print backend is `commands/kta_render.rs` (or wherever PDF is
+     generated) — translating `%` to mm at the configured DPI.
+   - Audit: same coordinate origin (top-left), same unit conversion, same
+     stroke/border treatment. Add an integration test that renders the same
+     layout JSON in both paths and diffs the bounding boxes (in mm).
+
+2. **Feature: layer reorder** — the "Daftar Field" right-panel list lets
+   users add fields but provides no way to change their z-order. Add either:
+   - Drag-and-drop reorder (preferred; use `dnd-kit` if already a dep).
+   - Or up/down arrow buttons next to each row.
+
+   Persist a `z_order: number` per field in the layout JSON. Render order =
+   ascending `z_order`. Bump migration to backfill existing layouts with
+   sequential z_order based on current array index.
+
+3. **Feature: JPG/PNG background import** — add an "Upload Background"
+   button (next to "Tambah Sisi Belakang"). Accepts .jpg / .png / .webp.
+   - Store the asset under `<app_data>/kta_assets/<uuid>.jpg` (or in DB as
+     base64 in a new `kta_template_backgrounds` table — pick whichever
+     matches existing asset patterns, e.g. how cover_path works).
+   - Render it as the lowest-z layer (covers full card, `object-fit: cover`).
+   - User can then place QR/nama/foto/dekorasi fields on top.
+   - Both Depan and Belakang sides should support independent backgrounds.
+   - Print backend (`kta_render.rs`) must also resolve and embed the
+     background asset in the PDF output.
+
+   **Acceptance:** user uploads a Google-templated card design as JPG,
+   places only the dynamic fields (foto, nama, kode, QR), saves template,
+   prints — output matches the uploaded background exactly with field
+   values overlaid.
+
+---
+
+### §8 — Version bump + CHANGELOG + release
+
+Only do this AFTER §2-§7 are complete and all gates pass.
 
 1. Bump `1.0.8` → `1.0.9` in:
    - `package.json`
@@ -133,9 +178,11 @@ Only do this AFTER §2-§5 are complete and all gates pass.
    - `apps/desktop/src-tauri/tauri.conf.json`
 2. Update `CHANGELOG.md` — add `## [1.0.9] - <YYYY-MM-DD>` above `[1.0.8]`:
    - **Fixed:** stocktake u.full_name (#139), buku_import eksemplar,
-     broken cover image fallback, OPAC empty default
+     broken cover image fallback, OPAC empty default, KTA preview-vs-print
+     dimension mismatch
    - **Added:** OPAC stats per card, Bayar Denda preset buttons, Sheets
-     sync for buku/eksemplar/peminjaman tables
+     sync for buku/eksemplar/peminjaman tables, KTA layer reorder, KTA
+     background image import (JPG/PNG)
    - **Changed:** Layout responsive full-width on list pages
 3. Run full gates one final time.
 4. Commit: `release: v1.0.9`
