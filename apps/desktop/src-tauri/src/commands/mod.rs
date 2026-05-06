@@ -20,6 +20,7 @@ pub mod master_data;
 pub mod peminjaman;
 pub mod reservasi;
 pub mod settings;
+pub mod stocktake;
 pub mod surat;
 pub mod user_profile;
 pub mod window_state;

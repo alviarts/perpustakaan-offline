@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedWishlistRouteImport } from './routes/_authed/wishlist'
+import { Route as AuthedStocktakeRouteImport } from './routes/_authed/stocktake'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedLaporanRouteImport } from './routes/_authed/laporan'
 import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
@@ -70,6 +71,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthedWishlistRoute = AuthedWishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedStocktakeRoute = AuthedStocktakeRouteImport.update({
+  id: '/stocktake',
+  path: '/stocktake',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/kunjungan': typeof AuthedKunjunganRoute
   '/laporan': typeof AuthedLaporanRouteWithChildren
   '/settings': typeof AuthedSettingsRouteWithChildren
+  '/stocktake': typeof AuthedStocktakeRoute
   '/wishlist': typeof AuthedWishlistRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
@@ -321,6 +328,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
+  '/stocktake': typeof AuthedStocktakeRoute
   '/wishlist': typeof AuthedWishlistRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/_authed/kunjungan': typeof AuthedKunjunganRoute
   '/_authed/laporan': typeof AuthedLaporanRouteWithChildren
   '/_authed/settings': typeof AuthedSettingsRouteWithChildren
+  '/_authed/stocktake': typeof AuthedStocktakeRoute
   '/_authed/wishlist': typeof AuthedWishlistRoute
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
   '/_authed/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
@@ -413,6 +422,7 @@ export interface FileRouteTypes {
     | '/kunjungan'
     | '/laporan'
     | '/settings'
+    | '/stocktake'
     | '/wishlist'
     | '/anggota/$id'
     | '/anggota/cetak-kta'
@@ -455,6 +465,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/kunjungan'
+    | '/stocktake'
     | '/wishlist'
     | '/anggota/$id'
     | '/anggota/cetak-kta'
@@ -500,6 +511,7 @@ export interface FileRouteTypes {
     | '/_authed/kunjungan'
     | '/_authed/laporan'
     | '/_authed/settings'
+    | '/_authed/stocktake'
     | '/_authed/wishlist'
     | '/_authed/anggota/$id'
     | '/_authed/anggota/cetak-kta'
@@ -572,6 +584,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof AuthedWishlistRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/stocktake': {
+      id: '/_authed/stocktake'
+      path: '/stocktake'
+      fullPath: '/stocktake'
+      preLoaderRoute: typeof AuthedStocktakeRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/settings': {
@@ -917,6 +936,7 @@ interface AuthedRouteChildren {
   AuthedKunjunganRoute: typeof AuthedKunjunganRoute
   AuthedLaporanRoute: typeof AuthedLaporanRouteWithChildren
   AuthedSettingsRoute: typeof AuthedSettingsRouteWithChildren
+  AuthedStocktakeRoute: typeof AuthedStocktakeRoute
   AuthedWishlistRoute: typeof AuthedWishlistRoute
   AuthedAnggotaIdRoute: typeof AuthedAnggotaIdRoute
   AuthedAnggotaCetakKtaRoute: typeof AuthedAnggotaCetakKtaRoute
@@ -939,6 +959,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedKunjunganRoute: AuthedKunjunganRoute,
   AuthedLaporanRoute: AuthedLaporanRouteWithChildren,
   AuthedSettingsRoute: AuthedSettingsRouteWithChildren,
+  AuthedStocktakeRoute: AuthedStocktakeRoute,
   AuthedWishlistRoute: AuthedWishlistRoute,
   AuthedAnggotaIdRoute: AuthedAnggotaIdRoute,
   AuthedAnggotaCetakKtaRoute: AuthedAnggotaCetakKtaRoute,
