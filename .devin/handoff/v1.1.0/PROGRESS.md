@@ -21,7 +21,7 @@ treats locks older than 24 h as stale and may take over.
 | FEAT-Peminjaman-DendaInline     | Inline Bayar Denda + presets at PeminjamanDetail         | —          | DONE   | #146 | 2026-05-06 | 2026-05-06   |
 | FEAT-Dashboard-Clickable-KPI    | KpiCard + InsightCard become clickable links             | —          | DONE   | #147 | 2026-05-06 | 2026-05-06   |
 | FEAT-Dashboard-Quotes-2min      | Quote rotate every 2 min + manual next button            | —          | DONE   | #148 | 2026-05-06 | 2026-05-06   |
-| FEAT-Quotes-Library             | +30 perpustakaan/literasi quotes appended                | —          | OPEN   |     |            |              |
+| FEAT-Quotes-Library             | +30 perpustakaan/literasi quotes appended                | —          | DONE   | #149 | 2026-05-06 | 2026-05-06   |
 | FEAT-Sirkulasi-Search           | Wire ScanSearchInput, anggota+buku search dropdown       | —          | OPEN   |     |            |              |
 | FEAT-OPAC-PostScanProfile       | Post-scan profile (loans, denda, kunjungan, reservasi)   | —          | OPEN   |     |            |              |
 | FEAT-OPAC-Scan-Locked           | Scan KTA blocks if member already logged in              | FEAT-OPAC-PostScanProfile | OPEN | | | |
