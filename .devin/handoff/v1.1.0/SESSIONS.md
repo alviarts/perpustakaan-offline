@@ -32,13 +32,13 @@ Serves as the "who did what when" for cross-session debugging.
              FEAT-Sirkulasi-Search.
 
 - session_id: devin-c6e882bf432b47a0bd0340b111941348
-  status:    STARTED
+  status:    PR_OPEN
   item:      BUG-Pengembalian-DendaDup
-  pr:        -
+  pr:        #145
   started_at:   2026-05-06T20:48Z
-  notes:     Claiming first OPEN item in v1.1.0 batch. Plan: extract
-             dedup helper apps/desktop/src/lib/dendaPresets.ts (will be
-             reused by FEAT-Peminjaman-DendaInline), refactor
-             PengembalianPage to use it, rename fixed-preset testids to
-             pengembalian-bayar-quick-fixed-{value} per BUGS.md spec,
-             add unit tests at apps/desktop/tests/unit/dendaPresets.test.ts.
+  notes:     Extracted apps/desktop/src/lib/dendaPresets.ts helper +
+             refactored PengembalianPage + added 7-test unit file at
+             apps/desktop/tests/unit/dendaPresets.test.ts. Local gates
+             clean (typecheck/lint/i18n:lint/test 512✓/build). PR #145
+             flipped from draft to ready; awaiting CI before
+             squash-merge.
