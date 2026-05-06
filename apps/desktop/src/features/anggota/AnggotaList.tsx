@@ -222,7 +222,7 @@ export function AnggotaList({ search, onSearchChange }: AnggotaListProps) {
   const showingTo = Math.min(offset + PAGE_SIZE, total);
 
   return (
-    <div className="container mx-auto max-w-7xl p-6 md:p-8">
+    <div className="flex flex-col gap-6 p-6 md:p-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t('anggota:title')}</h1>
