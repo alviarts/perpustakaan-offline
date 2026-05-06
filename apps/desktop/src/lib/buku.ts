@@ -435,3 +435,118 @@ const browserRpc: BukuRpc = {
 };
 
 export const bukuApi: BukuRpc = isTauri() ? tauriRpc : browserRpc;
+
+// ----------------------------------------------------------------------------
+// FEAT-20 — Bulk import buku via ISBN
+// ----------------------------------------------------------------------------
+
+/** Metadata returned by the backend ISBN lookup (Open Library + Google Books). */
+export interface IsbnMetadata {
+  isbn: string;
+  judul?: string | null;
+  pengarang?: string | null;
+  penerbit?: string | null;
+  tahunTerbit?: number | null;
+  kategori?: string | null;
+  bahasa?: string | null;
+  /** Optional cover URL — frontend can call `fetchIsbnCover(url)` to embed it. */
+  coverUrl?: string | null;
+  /** Which upstream produced the record. Empty string when not found. */
+  source: string;
+}
+
+/**
+ * One row of `bukuIsbnApi.lookupBatch`. `metadata` is null when neither
+ * upstream had a record. `error` is set when the lookup itself failed.
+ */
+export interface IsbnLookupResult {
+  isbn: string;
+  metadata: IsbnMetadata | null;
+  error: string | null;
+}
+
+interface BukuIsbnRpc {
+  /** Resolve a list of ISBNs to metadata. Backend throttles ~1 req/sec. */
+  lookupBatch(isbns: string[]): Promise<IsbnLookupResult[]>;
+  /**
+   * Download a cover URL into a `data:image/...;base64,...` string suitable
+   * for embedding in `<img src>` or persisting via the buku cover field.
+   */
+  fetchCover(url: string): Promise<string>;
+}
+
+const tauriIsbnRpc: BukuIsbnRpc = {
+  async lookupBatch(isbns) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<IsbnLookupResult[]>('buku_isbn_lookup_batch', { isbns });
+  },
+  async fetchCover(url) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<string>('buku_isbn_fetch_cover', { url });
+  },
+};
+
+/**
+ * Browser/test fallback. Fakes a deterministic record for any ISBN that
+ * normalizes to 13 digits so vitest specs and the in-browser preview can
+ * exercise the dialog without hitting the network.
+ */
+const browserIsbnRpc: BukuIsbnRpc = {
+  async lookupBatch(isbns) {
+    return isbns.map((isbn) => {
+      const cleaned = isbn.replace(/[^0-9Xx]/g, '').toUpperCase();
+      if (cleaned.length !== 10 && cleaned.length !== 13) {
+        return {
+          isbn,
+          metadata: null,
+          error: 'ISBN tidak valid (harus 10 atau 13 digit)',
+        };
+      }
+      return {
+        isbn,
+        metadata: {
+          isbn: cleaned,
+          judul: `Buku ${cleaned}`,
+          pengarang: 'Penulis Demo',
+          penerbit: 'Penerbit Demo',
+          tahunTerbit: 2024,
+          kategori: null,
+          bahasa: 'id',
+          coverUrl: null,
+          source: 'mock',
+        },
+        error: null,
+      } satisfies IsbnLookupResult;
+    });
+  },
+  async fetchCover() {
+    return '';
+  },
+};
+
+export const bukuIsbnApi: BukuIsbnRpc = isTauri() ? tauriIsbnRpc : browserIsbnRpc;
+
+/**
+ * Convert an `IsbnMetadata` row + auto-generated kodeBuku into a
+ * `BukuImportItem` that `bukuApi.importBatch` can consume. Returns null when
+ * `meta` lacks the minimum required field (`judul`).
+ */
+export function metadataToImportItem(
+  meta: IsbnMetadata,
+  kodeBuku: string,
+): BukuImportItem | null {
+  const judul = meta.judul?.trim();
+  if (!judul) return null;
+  return {
+    kodeBuku: kodeBuku.trim(),
+    judul,
+    pengarang: meta.pengarang ?? null,
+    penerbit: meta.penerbit ?? null,
+    tahunTerbit: meta.tahunTerbit ?? null,
+    kodeDdc: null,
+    kategori: meta.kategori ?? null,
+    isbn: meta.isbn,
+    jumlahEksemplar: 1,
+    bahasa: meta.bahasa ?? null,
+  };
+}

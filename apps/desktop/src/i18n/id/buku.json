@@ -11,7 +11,8 @@
     "empty": "Belum ada buku. Tambahkan buku pertama atau import dari Excel.",
     "emptyFiltered": "Tidak ada buku yang cocok dengan filter.",
     "showing": "Menampilkan {{from}}–{{to}} dari {{total}}",
-    "loadingDetail": "Memuat detail…"
+    "loadingDetail": "Memuat detail…",
+    "importIsbn": "Impor via ISBN"
   },
   "columns": {
     "kode": "Kode",
@@ -102,5 +103,22 @@
   "breadcrumb": {
     "new": "Tambah",
     "edit": "Edit"
+  },
+  "isbnImport": {
+    "title": "Impor Buku via ISBN",
+    "description": "Tempel daftar ISBN (satu per baris atau dipisah koma). Aplikasi akan mencari metadata di Open Library lalu Google Books.",
+    "parsedHint": "{{count}} ISBN siap dicari",
+    "lookup": "Cari Metadata",
+    "lookupFailedTitle": "Gagal mengambil metadata ISBN",
+    "previewFound": "{{count}} metadata ditemukan",
+    "previewMissing": "{{count}} tidak ditemukan",
+    "colKode": "Kode Buku",
+    "colSource": "Sumber",
+    "notFound": "Tidak ada metadata",
+    "skipUnselected": "Tidak dipilih",
+    "missingJudul": "Judul tidak tersedia",
+    "nothingToImport": "Tidak ada baris yang siap diimpor",
+    "import": "Impor {{count}} buku",
+    "importFailedTitle": "Gagal menyimpan buku"
   }
 }

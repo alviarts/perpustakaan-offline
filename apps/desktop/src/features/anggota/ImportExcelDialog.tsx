@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ImportWizard } from '@/components/shared/ImportWizard';
 import { anggotaApi, type AnggotaImportItem } from '@/lib/anggota';
 import type { ImportWizardResult } from '@/components/shared/ImportWizard';
@@ -12,6 +14,7 @@ interface ImportExcelDialogProps {
 
 export function ImportExcelDialog({ open, onOpenChange, onImported }: ImportExcelDialogProps) {
   const { t } = useTranslation(['anggota', 'common']);
+  const [updateExisting, setUpdateExisting] = useState(false);
 
   const fields: ImportFieldDef<AnggotaImportItem>[] = [
     {
@@ -101,6 +104,28 @@ export function ImportExcelDialog({ open, onOpenChange, onImported }: ImportExce
     return item;
   };
 
+  const overwriteToggle = (
+    <label className="flex items-start gap-3" data-testid="anggota-import-overwrite-toggle">
+      <Checkbox
+        checked={updateExisting}
+        onCheckedChange={(v) => setUpdateExisting(v === true)}
+      />
+      <span className="space-y-1 text-sm leading-tight">
+        <span className="block font-medium">
+          {t('anggota:import.overwriteLabel', {
+            defaultValue: 'Perbarui anggota yang sudah ada',
+          })}
+        </span>
+        <span className="block text-xs text-muted-foreground">
+          {t('anggota:import.overwriteHelp', {
+            defaultValue:
+              'Jika kode anggota sudah ada di database, baris akan menimpa data lama (mode update). Default: dilewati.',
+          })}
+        </span>
+      </span>
+    </label>
+  );
+
   return (
     <ImportWizard<AnggotaImportItem>
       open={open}
@@ -114,10 +139,12 @@ export function ImportExcelDialog({ open, onOpenChange, onImported }: ImportExce
       templateSheetName="Anggota"
       templateFilename="template-impor-anggota.xlsx"
       rowParser={rowParser}
+      extras={overwriteToggle}
       onImport={async (items) => {
-        const r = await anggotaApi.importBatch(items);
+        const r = await anggotaApi.importBatch(items, { updateExisting });
         return {
           inserted: r.inserted,
+          updated: r.updated,
           skipped: r.skipped,
           errors: r.errors.map((e) => ({
             row: e.row,
