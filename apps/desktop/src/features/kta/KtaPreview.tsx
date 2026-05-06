@@ -100,6 +100,8 @@ export function KtaPreview({
     };
   }, [anggota?.id]);
 
+  const bg = layout.background ?? '#ffffff';
+  const isImageBg = bg.startsWith('data:image/');
   return (
     <div
       data-testid="kta-preview"
@@ -107,7 +109,10 @@ export function KtaPreview({
       style={{
         ...sizeStyle,
         position: 'relative',
-        background: layout.background ?? '#ffffff',
+        background: isImageBg ? '#ffffff' : bg,
+        backgroundImage: isImageBg ? `url(${bg})` : undefined,
+        backgroundSize: isImageBg ? 'cover' : undefined,
+        backgroundPosition: isImageBg ? 'center' : undefined,
         border: '1px solid #cbd5e1',
         borderRadius: 8,
         overflow: 'hidden',
@@ -182,12 +187,19 @@ function FieldNode({
     onSelect?.(field.id);
   };
   if (field.kind === 'rect') {
+    // Render radius proportionally to card width (cqi = 1% of inline-size)
+    // so the preview at any scale matches the printed-mm radius. Without
+    // this, CSS `mm` is an absolute unit and looks much smaller than the
+    // PDF radius at large preview scales (and oversized on small previews).
+    const radiusCqi = field.radius && layoutWidthMm > 0
+      ? `${((field.radius / layoutWidthMm) * 100).toFixed(4)}cqi`
+      : undefined;
     return (
       <div
         style={{
           ...wrapperStyle,
           background: field.fill ?? '#0f172a',
-          borderRadius: field.radius ? `${Math.max(0, field.radius)}mm` : undefined,
+          borderRadius: radiusCqi,
           padding: 0,
         }}
         onClick={onClick}

@@ -49,6 +49,13 @@ export interface KtaLayout {
   widthMm: number;
   /** Tinggi mm. Default ID-1 = 53.98 */
   heightMm: number;
+  /**
+   * Optional card background. Either a hex colour (`#ffffff`) or a
+   * data URL `data:image/png;base64,…` / `data:image/jpeg;base64,…`
+   * uploaded via the "Upload Background" button. Renderers (preview +
+   * PDF) detect data URLs and draw them as a full-card image, with
+   * fields layered on top.
+   */
   background?: string;
   fields: KtaField[];
   /**
