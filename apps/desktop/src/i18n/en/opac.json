@@ -1,0 +1,98 @@
+{
+  "title": "Library Catalog",
+  "subtitle": "Search the collection and request reservations",
+  "home": {
+    "searchPlaceholder": "Search by title, author, or ISBN…",
+    "scanKta": "Scan My KTA",
+    "scanKtaSubtitle": "Sign in with your member card for a personalised view",
+    "browse": "Browse Collection",
+    "filters": "Filters",
+    "kategori": "Category",
+    "bahasa": "Language",
+    "semua": "All",
+    "ketersediaan": "Availability",
+    "available": "Available",
+    "borrowed": "Checked out"
+  },
+  "search": {
+    "results": "{{count}} results",
+    "empty": "No books match your search.",
+    "loading": "Loading results…",
+    "back": "Back"
+  },
+  "card": {
+    "available": "Available",
+    "borrowed": "Checked out",
+    "rak": "Shelf {{kode}}",
+    "noCover": "No cover"
+  },
+  "detail": {
+    "title": "Book Details",
+    "pengarang": "Author",
+    "penerbit": "Publisher",
+    "tahun": "Year published",
+    "kategori": "Category",
+    "isbn": "ISBN",
+    "ddc": "DDC",
+    "rak": "Shelf location",
+    "deskripsi": "Description",
+    "stockTersedia": "{{tersedia}} of {{total}} copies available",
+    "noDescription": "No description available.",
+    "reserve": "Reserve",
+    "reserveTooltip": "Reservation queue (only available after KTA login)",
+    "wishlist": "Add to Wishlist",
+    "wishlistTooltip": "Request the library to acquire this book",
+    "close": "Close"
+  },
+  "session": {
+    "loginPrompt": "Sign in with KTA",
+    "logout": "Sign out",
+    "welcome": "Welcome, {{nama}}",
+    "scanInstruction": "Point your KTA barcode at the camera",
+    "memberNotFound": "No member found for code {{kode}}",
+    "scanError": "Could not read the KTA",
+    "idleReset": "Session ended due to inactivity",
+    "startCamera": "Start camera",
+    "starting": "Starting camera…",
+    "stopCamera": "Stop camera",
+    "cameraOff": "Camera is off",
+    "cameraPermissionDenied": "Camera access blocked. Open browser/system settings to enable.",
+    "cameraNoDevice": "No camera detected.",
+    "cameraInUse": "Camera is being used by another app.",
+    "cameraUnsupported": "Browser does not support camera access.",
+    "cameraOtherError": "An error occurred while accessing the camera.",
+    "selectDevice": "Select camera"
+  },
+  "admin": {
+    "unlockButton": "Admin Mode",
+    "unlockTitle": "Exit OPAC Mode",
+    "unlockDescription": "Enter the admin username and password to return to admin mode.",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Verify",
+    "cancel": "Cancel",
+    "wrongPassword": "Wrong username or password",
+    "tooManyTries": "Too many attempts. Try again in {{seconds}} seconds.",
+    "lockedFor": "{{seconds}} seconds",
+    "switching": "Reloading to admin mode…"
+  },
+  "wishlist": {
+    "title": "Add to Wishlist",
+    "judul": "Book title",
+    "pengarang": "Author (optional)",
+    "alasan": "Reason / note (optional)",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "success": "Wishlist submitted to admin",
+    "error": "Failed to submit wishlist",
+    "stub": "Wishlist will be available once the procurement feature ships."
+  },
+  "kiosk": {
+    "fullscreenError": "Could not enter fullscreen automatically. Press F11 if not in fullscreen.",
+    "limitations": "Note: Ctrl+Alt+Del / Task Manager cannot be disabled from the app."
+  },
+  "footer": {
+    "poweredBy": "Perpustakaan Nusantara",
+    "version": "v{{version}}"
+  }
+}

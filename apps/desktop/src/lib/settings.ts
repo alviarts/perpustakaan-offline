@@ -66,6 +66,16 @@ export type CloseBehavior = 'exit' | 'tray';
 export const DEFAULT_CLOSE_BEHAVIOR: CloseBehavior = 'exit';
 
 // ---------------------------------------------------------------------------
+// App mode (admin vs public OPAC)
+// ---------------------------------------------------------------------------
+
+export type AppMode = 'admin' | 'public';
+
+export const DEFAULT_APP_MODE: AppMode = 'admin';
+
+export const APP_MODE_KEY = 'desktop.app_mode';
+
+// ---------------------------------------------------------------------------
 // Sync configuration
 // ---------------------------------------------------------------------------
 
@@ -266,6 +276,7 @@ const MOCK_KEYS = {
   audit: 'po:settings:audit-log',
   identity: 'po:settings:identity',
   closeBehavior: 'po:settings:close-behavior',
+  appMode: 'po:settings:app-mode',
 };
 
 const readMock = <T,>(key: string, fallback: T): T => {
@@ -356,6 +367,9 @@ export interface SettingsApi {
   getCloseBehavior(): Promise<CloseBehavior>;
   saveCloseBehavior(behavior: CloseBehavior): Promise<CloseBehavior>;
   forceQuit(): Promise<void>;
+
+  getAppMode(): Promise<AppMode>;
+  saveAppMode(mode: AppMode): Promise<AppMode>;
 
   getSyncConfig(): Promise<SyncConfig>;
   saveSyncConfig(cfg: SyncConfig): Promise<SyncConfig>;
@@ -484,6 +498,14 @@ const mockApi: SettingsApi = {
   },
   async forceQuit() {
     // No-op in browser/dev mock — there's no .exe to quit.
+  },
+
+  async getAppMode() {
+    return readMock<AppMode>(MOCK_KEYS.appMode, DEFAULT_APP_MODE);
+  },
+  async saveAppMode(mode) {
+    writeMock(MOCK_KEYS.appMode, mode);
+    return mode;
   },
 
   async getSyncConfig() {
@@ -745,6 +767,22 @@ const tauriApi: SettingsApi = {
     await invoke('force_quit');
   },
 
+  async getAppMode() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const rows = await invoke<Record<string, string>>('settings_get_many', {
+      keys: [APP_MODE_KEY],
+    });
+    const raw = rows[APP_MODE_KEY] ?? '';
+    return raw === 'public' ? 'public' : 'admin';
+  },
+  async saveAppMode(mode) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('settings_set_many', {
+      entries: { [APP_MODE_KEY]: mode },
+    });
+    return mode;
+  },
+
   async getSyncConfig() {
     const { invoke } = await import('@tauri-apps/api/core');
     const rows = await invoke<Record<string, string>>('settings_get_many', {
@@ -866,6 +904,8 @@ export const settingsApi: SettingsApi = {
   getCloseBehavior: () => rpc().getCloseBehavior(),
   saveCloseBehavior: (b) => rpc().saveCloseBehavior(b),
   forceQuit: () => rpc().forceQuit(),
+  getAppMode: () => rpc().getAppMode(),
+  saveAppMode: (mode) => rpc().saveAppMode(mode),
   getSyncConfig: () => rpc().getSyncConfig(),
   saveSyncConfig: (cfg) => rpc().saveSyncConfig(cfg),
   resetSyncConfig: () => rpc().resetSyncConfig(),

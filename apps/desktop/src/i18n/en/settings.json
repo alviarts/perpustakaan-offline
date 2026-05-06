@@ -293,6 +293,31 @@
       "creditsValue": "alvi arts / vwrks",
       "openRepo": "GitHub Repository",
       "license": "License"
+    },
+    "aksesMode": {
+      "label": "Access Mode",
+      "summary": "Switch between Admin (operator) and Public OPAC (fullscreen student kiosk).",
+      "admin": {
+        "label": "Admin",
+        "description": "Normal mode for librarians / staff."
+      },
+      "public": {
+        "label": "Public OPAC",
+        "description": "Fullscreen kiosk for students / visitors."
+      },
+      "warning": "After switching to Public OPAC, the app reloads into fullscreen kiosk mode. To return to admin, click the \"Admin Mode\" button in the bottom-right corner and enter the admin password.",
+      "confirm": "Continue",
+      "confirmPublic": {
+        "title": "Switch to Public OPAC?",
+        "description": "The app will reload into fullscreen kiosk mode. To exit, use the \"Admin Mode\" button."
+      },
+      "confirmAdmin": {
+        "title": "Switch to Admin mode?",
+        "description": "The app will reload into normal admin mode."
+      },
+      "feedback": {
+        "saved": "Access mode saved. Reloading…"
+      }
     }
   }
 }
