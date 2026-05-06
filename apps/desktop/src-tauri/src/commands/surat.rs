@@ -221,7 +221,7 @@ fn render_nomor(format_nomor: &str, tahun: i32, bulan: u32, nomor: i64) -> Strin
             .and_then(|n| n.parse::<usize>().ok())
             .unwrap_or(0);
         let formatted = if pad > 0 {
-            format!("{nomor:0width$}", width = pad)
+            format!("{nomor:0pad$}")
         } else {
             nomor.to_string()
         };

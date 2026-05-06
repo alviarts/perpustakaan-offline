@@ -40,7 +40,10 @@ use crate::AppState;
 use auth::{fetch_access_token, AccessToken, ServiceAccount, DEFAULT_SCOPE};
 use client::SheetsClient;
 use mapper::{
-    read_all_anggota, upsert_anggota, AnggotaRow, ANGGOTA_HEADER, ANGGOTA_TAB,
+    read_all_anggota, read_all_buku, read_all_eksemplar, read_all_peminjaman,
+    upsert_anggota, upsert_buku, upsert_eksemplar, upsert_peminjaman, AnggotaRow, BukuRow,
+    EksemplarRow, PeminjamanRow, ANGGOTA_HEADER, ANGGOTA_TAB, BUKU_HEADER, BUKU_TAB,
+    EKSEMPLAR_HEADER, EKSEMPLAR_TAB, PEMINJAMAN_HEADER, PEMINJAMAN_TAB,
 };
 use state::{append_log, list_log, list_states, rows_hash, upsert_state, SyncStateRow};
 
@@ -196,6 +199,9 @@ pub async fn sync_push_now(state: State<'_, AppState>) -> AppResult<Vec<SyncRunR
     let client = build_client(&sa).await?;
     let mut results: Vec<SyncRunResult> = Vec::new();
     push_anggota(&state, &client, &sheets_id, &mut results).await?;
+    push_buku(&state, &client, &sheets_id, &mut results).await?;
+    push_eksemplar(&state, &client, &sheets_id, &mut results).await?;
+    push_peminjaman(&state, &client, &sheets_id, &mut results).await?;
     Ok(results)
 }
 
@@ -280,13 +286,13 @@ async fn push_anggota(
                 ANGGOTA_TAB,
                 "ok",
                 rows_changed,
-                Some(&format!("pushed {} anggota", rows_changed)),
+                Some(&format!("pushed {rows_changed} anggota")),
             )?;
             results.push(SyncRunResult {
                 direction: "push".into(),
                 rows_changed,
                 status: "ok".into(),
-                message: format!("pushed {} anggota", rows_changed),
+                message: format!("pushed {rows_changed} anggota"),
             });
             Ok(())
         }
@@ -323,7 +329,14 @@ pub async fn sync_pull_now(state: State<'_, AppState>) -> AppResult<Vec<SyncRunR
     let (sa, sheets_id) = require_settings(&state)?;
     let client = build_client(&sa).await?;
     let mut results: Vec<SyncRunResult> = Vec::new();
+    // Topological order — anggota → buku → eksemplar → peminjaman.
+    // eksemplar refers to buku via kode_buku FK lookup; peminjaman
+    // refers to anggota via kode_anggota FK lookup. Pulling in this
+    // order ensures the FK targets exist before dependent rows arrive.
     pull_anggota(&state, &client, &sheets_id, &mut results).await?;
+    pull_buku(&state, &client, &sheets_id, &mut results).await?;
+    pull_eksemplar(&state, &client, &sheets_id, &mut results).await?;
+    pull_peminjaman(&state, &client, &sheets_id, &mut results).await?;
     Ok(results)
 }
 
@@ -433,6 +446,590 @@ async fn pull_anggota(
         "pulled {applied} anggota (skip-newer-local: {skipped})"
     );
     append_log(&conn, "pull", ANGGOTA_TAB, "ok", applied, Some(&msg))?;
+    results.push(SyncRunResult {
+        direction: "pull".into(),
+        rows_changed: applied,
+        status: "ok".into(),
+        message: msg,
+    });
+    Ok(())
+}
+
+// ============================================================================
+// Generic per-table push/pull helpers (v1.0.9 — extends past `anggota`).
+//
+// Each push fn:
+//   1. Read all rows from local DB.
+//   2. Hash content; short-circuit with `noop` if hash matches last_push_hash.
+//   3. Replace the entire tab in Sheets with header + rows.
+//   4. Update sync_state + append log row.
+//
+// Each pull fn:
+//   1. Read all rows from the configured tab (header + body).
+//   2. Validate header column 1 == primary-key name.
+//   3. For each body row, call upsert_<table> (last-write-wins).
+//   4. Update sync_state + append log row.
+// ============================================================================
+
+async fn push_table_replace(
+    client: &SheetsClient,
+    sheets_id: &str,
+    tab: &str,
+    sheet_rows: &[Vec<String>],
+    row_count: i64,
+) -> AppResult<i64> {
+    client.ensure_tab(sheets_id, tab).await?;
+    let range = format!("{tab}!A1:Z");
+    client.clear_values(sheets_id, &range).await?;
+    if !sheet_rows.is_empty() {
+        let write_range = format!("{tab}!A1");
+        client
+            .update_values(sheets_id, &write_range, sheet_rows)
+            .await?;
+    }
+    Ok(row_count)
+}
+
+async fn push_buku(
+    state: &State<'_, AppState>,
+    client: &SheetsClient,
+    sheets_id: &str,
+    results: &mut Vec<SyncRunResult>,
+) -> AppResult<()> {
+    let (rows, prev_hash) = {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        let rows = read_all_buku(&conn)?;
+        let prev_hash = state::get_state(&conn, BUKU_TAB)?.and_then(|s| s.last_push_hash);
+        (rows, prev_hash)
+    };
+
+    let mut sheet_rows: Vec<Vec<String>> = Vec::with_capacity(rows.len() + 1);
+    sheet_rows.push(BUKU_HEADER.iter().map(|s| s.to_string()).collect());
+    for r in &rows {
+        sheet_rows.push(r.to_cells());
+    }
+    let new_hash = rows_hash(&sheet_rows);
+
+    if prev_hash.as_deref() == Some(new_hash.as_str()) {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        append_log(&conn, "push", BUKU_TAB, "noop", 0, Some("local belum berubah sejak push terakhir"))?;
+        results.push(SyncRunResult {
+            direction: "push".into(),
+            rows_changed: 0,
+            status: "noop".into(),
+            message: "local belum berubah sejak push terakhir".into(),
+        });
+        return Ok(());
+    }
+
+    let push_result =
+        push_table_replace(client, sheets_id, BUKU_TAB, &sheet_rows, rows.len() as i64).await;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    match push_result {
+        Ok(rows_changed) => {
+            let now_iso = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            let prev = state::get_state(&conn, BUKU_TAB)?.unwrap_or(SyncStateRow {
+                table_name: BUKU_TAB.into(),
+                last_push_at: None,
+                last_pull_at: None,
+                last_push_hash: None,
+                last_pull_hash: None,
+                rows_pushed: 0,
+                rows_pulled: 0,
+                updated_at: String::new(),
+            });
+            upsert_state(
+                &conn,
+                &SyncStateRow {
+                    last_push_at: Some(now_iso.clone()),
+                    last_push_hash: Some(new_hash),
+                    rows_pushed: rows_changed,
+                    ..prev
+                },
+            )?;
+            let msg = format!("pushed {rows_changed} buku");
+            append_log(&conn, "push", BUKU_TAB, "ok", rows_changed, Some(&msg))?;
+            results.push(SyncRunResult {
+                direction: "push".into(),
+                rows_changed,
+                status: "ok".into(),
+                message: msg,
+            });
+            Ok(())
+        }
+        Err(e) => {
+            append_log(&conn, "push", BUKU_TAB, "error", 0, Some(&format!("{e:?}")))?;
+            Err(e)
+        }
+    }
+}
+
+async fn push_eksemplar(
+    state: &State<'_, AppState>,
+    client: &SheetsClient,
+    sheets_id: &str,
+    results: &mut Vec<SyncRunResult>,
+) -> AppResult<()> {
+    let (rows, prev_hash) = {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        let rows = read_all_eksemplar(&conn)?;
+        let prev_hash = state::get_state(&conn, EKSEMPLAR_TAB)?.and_then(|s| s.last_push_hash);
+        (rows, prev_hash)
+    };
+
+    let mut sheet_rows: Vec<Vec<String>> = Vec::with_capacity(rows.len() + 1);
+    sheet_rows.push(EKSEMPLAR_HEADER.iter().map(|s| s.to_string()).collect());
+    for r in &rows {
+        sheet_rows.push(r.to_cells());
+    }
+    let new_hash = rows_hash(&sheet_rows);
+
+    if prev_hash.as_deref() == Some(new_hash.as_str()) {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        append_log(&conn, "push", EKSEMPLAR_TAB, "noop", 0, Some("local belum berubah sejak push terakhir"))?;
+        results.push(SyncRunResult {
+            direction: "push".into(),
+            rows_changed: 0,
+            status: "noop".into(),
+            message: "local belum berubah sejak push terakhir".into(),
+        });
+        return Ok(());
+    }
+
+    let push_result =
+        push_table_replace(client, sheets_id, EKSEMPLAR_TAB, &sheet_rows, rows.len() as i64).await;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    match push_result {
+        Ok(rows_changed) => {
+            let now_iso = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            let prev = state::get_state(&conn, EKSEMPLAR_TAB)?.unwrap_or(SyncStateRow {
+                table_name: EKSEMPLAR_TAB.into(),
+                last_push_at: None,
+                last_pull_at: None,
+                last_push_hash: None,
+                last_pull_hash: None,
+                rows_pushed: 0,
+                rows_pulled: 0,
+                updated_at: String::new(),
+            });
+            upsert_state(
+                &conn,
+                &SyncStateRow {
+                    last_push_at: Some(now_iso.clone()),
+                    last_push_hash: Some(new_hash),
+                    rows_pushed: rows_changed,
+                    ..prev
+                },
+            )?;
+            let msg = format!("pushed {rows_changed} eksemplar");
+            append_log(&conn, "push", EKSEMPLAR_TAB, "ok", rows_changed, Some(&msg))?;
+            results.push(SyncRunResult {
+                direction: "push".into(),
+                rows_changed,
+                status: "ok".into(),
+                message: msg,
+            });
+            Ok(())
+        }
+        Err(e) => {
+            append_log(&conn, "push", EKSEMPLAR_TAB, "error", 0, Some(&format!("{e:?}")))?;
+            Err(e)
+        }
+    }
+}
+
+async fn push_peminjaman(
+    state: &State<'_, AppState>,
+    client: &SheetsClient,
+    sheets_id: &str,
+    results: &mut Vec<SyncRunResult>,
+) -> AppResult<()> {
+    let (rows, prev_hash) = {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        let rows = read_all_peminjaman(&conn)?;
+        let prev_hash = state::get_state(&conn, PEMINJAMAN_TAB)?.and_then(|s| s.last_push_hash);
+        (rows, prev_hash)
+    };
+
+    let mut sheet_rows: Vec<Vec<String>> = Vec::with_capacity(rows.len() + 1);
+    sheet_rows.push(PEMINJAMAN_HEADER.iter().map(|s| s.to_string()).collect());
+    for r in &rows {
+        sheet_rows.push(r.to_cells());
+    }
+    let new_hash = rows_hash(&sheet_rows);
+
+    if prev_hash.as_deref() == Some(new_hash.as_str()) {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        append_log(&conn, "push", PEMINJAMAN_TAB, "noop", 0, Some("local belum berubah sejak push terakhir"))?;
+        results.push(SyncRunResult {
+            direction: "push".into(),
+            rows_changed: 0,
+            status: "noop".into(),
+            message: "local belum berubah sejak push terakhir".into(),
+        });
+        return Ok(());
+    }
+
+    let push_result = push_table_replace(
+        client,
+        sheets_id,
+        PEMINJAMAN_TAB,
+        &sheet_rows,
+        rows.len() as i64,
+    )
+    .await;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    match push_result {
+        Ok(rows_changed) => {
+            let now_iso = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            let prev = state::get_state(&conn, PEMINJAMAN_TAB)?.unwrap_or(SyncStateRow {
+                table_name: PEMINJAMAN_TAB.into(),
+                last_push_at: None,
+                last_pull_at: None,
+                last_push_hash: None,
+                last_pull_hash: None,
+                rows_pushed: 0,
+                rows_pulled: 0,
+                updated_at: String::new(),
+            });
+            upsert_state(
+                &conn,
+                &SyncStateRow {
+                    last_push_at: Some(now_iso.clone()),
+                    last_push_hash: Some(new_hash),
+                    rows_pushed: rows_changed,
+                    ..prev
+                },
+            )?;
+            let msg = format!("pushed {rows_changed} peminjaman");
+            append_log(&conn, "push", PEMINJAMAN_TAB, "ok", rows_changed, Some(&msg))?;
+            results.push(SyncRunResult {
+                direction: "push".into(),
+                rows_changed,
+                status: "ok".into(),
+                message: msg,
+            });
+            Ok(())
+        }
+        Err(e) => {
+            append_log(&conn, "push", PEMINJAMAN_TAB, "error", 0, Some(&format!("{e:?}")))?;
+            Err(e)
+        }
+    }
+}
+
+async fn pull_buku(
+    state: &State<'_, AppState>,
+    client: &SheetsClient,
+    sheets_id: &str,
+    results: &mut Vec<SyncRunResult>,
+) -> AppResult<()> {
+    let range = format!("{BUKU_TAB}!A1:Z");
+    let raw = match client.get_values(sheets_id, &range).await {
+        Ok(rows) => rows,
+        Err(e) => {
+            let conn = state
+                .db
+                .lock()
+                .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+            append_log(&conn, "pull", BUKU_TAB, "error", 0, Some(&format!("{e:?}")))?;
+            return Err(e);
+        }
+    };
+
+    if raw.is_empty() {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        append_log(&conn, "pull", BUKU_TAB, "skipped", 0, Some("tab Buku di Sheets kosong / belum ada"))?;
+        results.push(SyncRunResult {
+            direction: "pull".into(),
+            rows_changed: 0,
+            status: "skipped".into(),
+            message: "tab Buku di Sheets kosong / belum ada".into(),
+        });
+        return Ok(());
+    }
+
+    let mut iter = raw.into_iter();
+    let header = iter.next().unwrap_or_default();
+    if header.first().map(|s| s.as_str()) != Some("kode_buku") {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        let msg = format!(
+            "header tab Buku tidak dikenal: kolom-1='{}' (harus 'kode_buku')",
+            header.first().cloned().unwrap_or_default()
+        );
+        append_log(&conn, "pull", BUKU_TAB, "error", 0, Some(&msg))?;
+        return Err(AppError::Validation(msg));
+    }
+
+    let mut applied: i64 = 0;
+    let mut skipped: i64 = 0;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    for cells in iter {
+        if cells.iter().all(|c| c.is_empty()) {
+            continue;
+        }
+        let row = BukuRow::from_cells(&cells);
+        match upsert_buku(&conn, &row) {
+            Ok(true) => applied += 1,
+            Ok(false) => skipped += 1,
+            Err(e) => {
+                append_log(&conn, "pull", BUKU_TAB, "error", applied, Some(&format!("row {}: {e:?}", row.kode_buku)))?;
+            }
+        }
+    }
+    let now_iso = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let prev = state::get_state(&conn, BUKU_TAB)?.unwrap_or(SyncStateRow {
+        table_name: BUKU_TAB.into(),
+        last_push_at: None,
+        last_pull_at: None,
+        last_push_hash: None,
+        last_pull_hash: None,
+        rows_pushed: 0,
+        rows_pulled: 0,
+        updated_at: String::new(),
+    });
+    upsert_state(
+        &conn,
+        &SyncStateRow {
+            last_pull_at: Some(now_iso.clone()),
+            rows_pulled: applied,
+            ..prev
+        },
+    )?;
+    let msg = format!("pulled {applied} buku (skip-newer-local: {skipped})");
+    append_log(&conn, "pull", BUKU_TAB, "ok", applied, Some(&msg))?;
+    results.push(SyncRunResult {
+        direction: "pull".into(),
+        rows_changed: applied,
+        status: "ok".into(),
+        message: msg,
+    });
+    Ok(())
+}
+
+async fn pull_eksemplar(
+    state: &State<'_, AppState>,
+    client: &SheetsClient,
+    sheets_id: &str,
+    results: &mut Vec<SyncRunResult>,
+) -> AppResult<()> {
+    let range = format!("{EKSEMPLAR_TAB}!A1:Z");
+    let raw = match client.get_values(sheets_id, &range).await {
+        Ok(rows) => rows,
+        Err(e) => {
+            let conn = state
+                .db
+                .lock()
+                .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+            append_log(&conn, "pull", EKSEMPLAR_TAB, "error", 0, Some(&format!("{e:?}")))?;
+            return Err(e);
+        }
+    };
+
+    if raw.is_empty() {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        append_log(&conn, "pull", EKSEMPLAR_TAB, "skipped", 0, Some("tab Eksemplar di Sheets kosong / belum ada"))?;
+        results.push(SyncRunResult {
+            direction: "pull".into(),
+            rows_changed: 0,
+            status: "skipped".into(),
+            message: "tab Eksemplar di Sheets kosong / belum ada".into(),
+        });
+        return Ok(());
+    }
+
+    let mut iter = raw.into_iter();
+    let header = iter.next().unwrap_or_default();
+    if header.first().map(|s| s.as_str()) != Some("kode_eksemplar") {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        let msg = format!(
+            "header tab Eksemplar tidak dikenal: kolom-1='{}' (harus 'kode_eksemplar')",
+            header.first().cloned().unwrap_or_default()
+        );
+        append_log(&conn, "pull", EKSEMPLAR_TAB, "error", 0, Some(&msg))?;
+        return Err(AppError::Validation(msg));
+    }
+
+    let mut applied: i64 = 0;
+    let mut skipped: i64 = 0;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    for cells in iter {
+        if cells.iter().all(|c| c.is_empty()) {
+            continue;
+        }
+        let row = EksemplarRow::from_cells(&cells);
+        match upsert_eksemplar(&conn, &row) {
+            Ok(true) => applied += 1,
+            Ok(false) => skipped += 1,
+            Err(e) => {
+                append_log(&conn, "pull", EKSEMPLAR_TAB, "error", applied, Some(&format!("row {}: {e:?}", row.kode_eksemplar)))?;
+            }
+        }
+    }
+    let now_iso = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let prev = state::get_state(&conn, EKSEMPLAR_TAB)?.unwrap_or(SyncStateRow {
+        table_name: EKSEMPLAR_TAB.into(),
+        last_push_at: None,
+        last_pull_at: None,
+        last_push_hash: None,
+        last_pull_hash: None,
+        rows_pushed: 0,
+        rows_pulled: 0,
+        updated_at: String::new(),
+    });
+    upsert_state(
+        &conn,
+        &SyncStateRow {
+            last_pull_at: Some(now_iso.clone()),
+            rows_pulled: applied,
+            ..prev
+        },
+    )?;
+    let msg = format!("pulled {applied} eksemplar (skip-newer-local: {skipped})");
+    append_log(&conn, "pull", EKSEMPLAR_TAB, "ok", applied, Some(&msg))?;
+    results.push(SyncRunResult {
+        direction: "pull".into(),
+        rows_changed: applied,
+        status: "ok".into(),
+        message: msg,
+    });
+    Ok(())
+}
+
+async fn pull_peminjaman(
+    state: &State<'_, AppState>,
+    client: &SheetsClient,
+    sheets_id: &str,
+    results: &mut Vec<SyncRunResult>,
+) -> AppResult<()> {
+    let range = format!("{PEMINJAMAN_TAB}!A1:Z");
+    let raw = match client.get_values(sheets_id, &range).await {
+        Ok(rows) => rows,
+        Err(e) => {
+            let conn = state
+                .db
+                .lock()
+                .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+            append_log(&conn, "pull", PEMINJAMAN_TAB, "error", 0, Some(&format!("{e:?}")))?;
+            return Err(e);
+        }
+    };
+
+    if raw.is_empty() {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        append_log(&conn, "pull", PEMINJAMAN_TAB, "skipped", 0, Some("tab Peminjaman di Sheets kosong / belum ada"))?;
+        results.push(SyncRunResult {
+            direction: "pull".into(),
+            rows_changed: 0,
+            status: "skipped".into(),
+            message: "tab Peminjaman di Sheets kosong / belum ada".into(),
+        });
+        return Ok(());
+    }
+
+    let mut iter = raw.into_iter();
+    let header = iter.next().unwrap_or_default();
+    if header.first().map(|s| s.as_str()) != Some("nomor_pinjam") {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+        let msg = format!(
+            "header tab Peminjaman tidak dikenal: kolom-1='{}' (harus 'nomor_pinjam')",
+            header.first().cloned().unwrap_or_default()
+        );
+        append_log(&conn, "pull", PEMINJAMAN_TAB, "error", 0, Some(&msg))?;
+        return Err(AppError::Validation(msg));
+    }
+
+    let mut applied: i64 = 0;
+    let mut skipped: i64 = 0;
+    let conn = state
+        .db
+        .lock()
+        .map_err(|_| AppError::Internal("db mutex poisoned".into()))?;
+    for cells in iter {
+        if cells.iter().all(|c| c.is_empty()) {
+            continue;
+        }
+        let row = PeminjamanRow::from_cells(&cells);
+        match upsert_peminjaman(&conn, &row) {
+            Ok(true) => applied += 1,
+            Ok(false) => skipped += 1,
+            Err(e) => {
+                append_log(&conn, "pull", PEMINJAMAN_TAB, "error", applied, Some(&format!("row {}: {e:?}", row.nomor_pinjam)))?;
+            }
+        }
+    }
+    let now_iso = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let prev = state::get_state(&conn, PEMINJAMAN_TAB)?.unwrap_or(SyncStateRow {
+        table_name: PEMINJAMAN_TAB.into(),
+        last_push_at: None,
+        last_pull_at: None,
+        last_push_hash: None,
+        last_pull_hash: None,
+        rows_pushed: 0,
+        rows_pulled: 0,
+        updated_at: String::new(),
+    });
+    upsert_state(
+        &conn,
+        &SyncStateRow {
+            last_pull_at: Some(now_iso.clone()),
+            rows_pulled: applied,
+            ..prev
+        },
+    )?;
+    let msg = format!("pulled {applied} peminjaman (skip-newer-local: {skipped})");
+    append_log(&conn, "pull", PEMINJAMAN_TAB, "ok", applied, Some(&msg))?;
     results.push(SyncRunResult {
         direction: "pull".into(),
         rows_changed: applied,
