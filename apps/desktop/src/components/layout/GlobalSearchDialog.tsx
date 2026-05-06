@@ -13,12 +13,23 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast-manager';
+import { fuzzyScore } from '@/lib/fuzzy';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { bukuApi, type Buku } from '@/lib/buku';
 import { peminjamanApi, type PeminjamanRow } from '@/lib/peminjaman';
+import {
+  COMMAND_PALETTE_DEFAULT_ROUTE_LIMIT,
+  COMMAND_PALETTE_ROUTES,
+  getCommandPaletteActions,
+  type CommandPaletteActionEntry,
+  type CommandPaletteRouteEntry,
+} from '@/components/layout/commandPaletteRegistry';
 
 const PER_GROUP_LIMIT = 5;
 const DEBOUNCE_MS = 200;
+const ROUTE_ACTION_THRESHOLD = 0.3;
+const PER_PALETTE_GROUP_LIMIT = 8;
 
 export interface GlobalSearchHit {
   /** Stable key — `anggota:42`, `buku:7`, `peminjaman:13`. */
@@ -91,9 +102,17 @@ export interface GlobalSearchDialogProps {
   onOpenChange: (next: boolean) => void;
 }
 
+/** Score a route/action against a query using its translated label + description. */
+function scoreEntry(label: string, description: string | undefined, query: string): number {
+  const labelScore = fuzzyScore(label, query);
+  const descScore = description ? fuzzyScore(description, query) * 0.6 : 0;
+  return Math.max(labelScore, descScore);
+}
+
 export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogProps): JSX.Element {
   const { t } = useTranslation(['common']);
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [raw, setRaw] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<SearchResults>(EMPTY_RESULTS);
@@ -143,15 +162,102 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
     });
   }, [debouncedQuery, open]);
 
-  const totalHits = useMemo(
+  const totalDataHits = useMemo(
     () => results.anggota.length + results.buku.length + results.peminjaman.length,
     [results],
   );
+
+  const trimmed = raw.trim();
+  const hasQuery = trimmed.length > 0;
+  const hasDataQuery = trimmed.length >= 2;
+
+  const visibleRoutes = useMemo<CommandPaletteRouteEntry[]>(() => {
+    if (!hasQuery) {
+      return COMMAND_PALETTE_ROUTES.slice(0, COMMAND_PALETTE_DEFAULT_ROUTE_LIMIT) as CommandPaletteRouteEntry[];
+    }
+    const scored = COMMAND_PALETTE_ROUTES.map((entry) => {
+      const label = t(`commandPalette.route.${entry.key}.label`, {
+        defaultValue: entry.key,
+      });
+      const description = t(`commandPalette.route.${entry.key}.description`, {
+        defaultValue: '',
+      });
+      const score = scoreEntry(label, description || undefined, trimmed);
+      return { entry, score };
+    })
+      .filter((s) => s.score >= ROUTE_ACTION_THRESHOLD)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, PER_PALETTE_GROUP_LIMIT)
+      .map((s) => s.entry);
+    return scored;
+  }, [hasQuery, trimmed, t]);
+
+  const allActions = useMemo(() => getCommandPaletteActions(), []);
+
+  const visibleActions = useMemo<CommandPaletteActionEntry[]>(() => {
+    if (!hasQuery) {
+      return [...allActions];
+    }
+    const scored = allActions
+      .map((entry) => {
+        const label = t(`commandPalette.action.${entry.key}.label`, {
+          defaultValue: entry.key,
+        });
+        const description = t(`commandPalette.action.${entry.key}.description`, {
+          defaultValue: '',
+        });
+        const score = scoreEntry(label, description || undefined, trimmed);
+        return { entry, score };
+      })
+      .filter((s) => s.score >= ROUTE_ACTION_THRESHOLD)
+      .sort((a, b) => b.score - a.score)
+      .map((s) => s.entry);
+    return scored;
+  }, [hasQuery, trimmed, allActions, t]);
 
   const handleActivate = (hit: GlobalSearchHit): void => {
     onOpenChange(false);
     void navigate({ to: hit.to });
   };
+
+  const handleRoute = (entry: CommandPaletteRouteEntry): void => {
+    onOpenChange(false);
+    void navigate({ to: entry.to });
+  };
+
+  const handleAction = (entry: CommandPaletteActionEntry): void => {
+    onOpenChange(false);
+    // Defer execution so the dialog finishes closing before the action runs.
+    // Otherwise toasts/confirms triggered by the action lose focus to the dialog.
+    setTimeout(() => {
+      void Promise.resolve(
+        entry.execute({
+          navigate: (path) => {
+            void navigate({ to: path });
+          },
+          showToast,
+          t,
+        }),
+      ).catch((err) => {
+        showToast({
+          variant: 'destructive',
+          title: t('commandPalette.executeFail', {
+            defaultValue: 'Tidak dapat menjalankan perintah',
+          }),
+          description: err instanceof Error ? err.message : String(err),
+        });
+      });
+    }, 0);
+  };
+
+  const showHint = !hasQuery && visibleActions.length === 0 && visibleRoutes.length === 0;
+  const showBusy = hasDataQuery && busy;
+  const showEmpty =
+    hasQuery &&
+    !showBusy &&
+    totalDataHits === 0 &&
+    visibleRoutes.length === 0 &&
+    visibleActions.length === 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -167,12 +273,12 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
             value={raw}
             onValueChange={setRaw}
             placeholder={t('common:globalSearch.placeholder', {
-              defaultValue: 'Cari anggota, buku, peminjaman…',
+              defaultValue: 'Cari anggota, buku, peminjaman, halaman, perintah…',
             })}
             data-testid="global-search-input"
           />
           <CommandList>
-            {raw.trim().length < 2 ? (
+            {showHint ? (
               <div
                 className="text-muted-foreground px-4 py-6 text-center text-sm"
                 data-testid="global-search-hint"
@@ -181,7 +287,8 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                   defaultValue: 'Ketik minimal 2 huruf untuk mencari…',
                 })}
               </div>
-            ) : busy ? (
+            ) : null}
+            {showBusy ? (
               <div
                 className="text-muted-foreground flex items-center justify-center gap-2 px-4 py-6 text-sm"
                 data-testid="global-search-busy"
@@ -189,100 +296,176 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t('common:globalSearch.busy', { defaultValue: 'Mencari…' })}
               </div>
-            ) : totalHits === 0 ? (
+            ) : null}
+            {showEmpty ? (
               <CommandEmpty data-testid="global-search-empty">
                 {t('common:globalSearch.empty', {
                   defaultValue: 'Tidak ada hasil yang cocok.',
                 })}
               </CommandEmpty>
-            ) : (
-              <>
-                {results.anggota.length > 0 && (
-                  <CommandGroup
-                    heading={t('common:globalSearch.groupAnggota', {
-                      defaultValue: 'Anggota',
-                    })}
+            ) : null}
+            {hasDataQuery && results.anggota.length > 0 && (
+              <CommandGroup
+                heading={t('common:globalSearch.groupAnggota', {
+                  defaultValue: 'Anggota',
+                })}
+              >
+                {results.anggota.map((hit) => (
+                  <CommandItem
+                    key={hit.key}
+                    value={hit.key}
+                    onSelect={() => handleActivate(hit)}
+                    data-testid={`global-search-item-${hit.key}`}
                   >
-                    {results.anggota.map((hit) => (
+                    <UserIcon className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate">{hit.primary}</span>
+                      {hit.secondary && (
+                        <span className="text-muted-foreground truncate text-xs">
+                          {hit.secondary}
+                        </span>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {hasDataQuery && results.buku.length > 0 && (
+              <>
+                {results.anggota.length > 0 && <CommandSeparator />}
+                <CommandGroup
+                  heading={t('common:globalSearch.groupBuku', {
+                    defaultValue: 'Buku',
+                  })}
+                >
+                  {results.buku.map((hit) => (
+                    <CommandItem
+                      key={hit.key}
+                      value={hit.key}
+                      onSelect={() => handleActivate(hit)}
+                      data-testid={`global-search-item-${hit.key}`}
+                    >
+                      <BookOpen className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate">{hit.primary}</span>
+                        {hit.secondary && (
+                          <span className="text-muted-foreground truncate text-xs">
+                            {hit.secondary}
+                          </span>
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+            {hasDataQuery && results.peminjaman.length > 0 && (
+              <>
+                {(results.anggota.length > 0 || results.buku.length > 0) && (
+                  <CommandSeparator />
+                )}
+                <CommandGroup
+                  heading={t('common:globalSearch.groupPeminjaman', {
+                    defaultValue: 'Peminjaman',
+                  })}
+                >
+                  {results.peminjaman.map((hit) => (
+                    <CommandItem
+                      key={hit.key}
+                      value={hit.key}
+                      onSelect={() => handleActivate(hit)}
+                      data-testid={`global-search-item-${hit.key}`}
+                    >
+                      <Calendar className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate">{hit.primary}</span>
+                        {hit.secondary && (
+                          <span className="text-muted-foreground truncate text-xs">
+                            {hit.secondary}
+                          </span>
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+            {visibleRoutes.length > 0 && (
+              <>
+                {hasDataQuery && totalDataHits > 0 && <CommandSeparator />}
+                <CommandGroup
+                  heading={t('common:globalSearch.groupRoutes', {
+                    defaultValue: 'Halaman',
+                  })}
+                >
+                  {visibleRoutes.map((entry) => {
+                    const Icon = entry.icon;
+                    const label = t(`commandPalette.route.${entry.key}.label`, {
+                      defaultValue: entry.key,
+                    });
+                    const description = t(`commandPalette.route.${entry.key}.description`, {
+                      defaultValue: '',
+                    });
+                    return (
                       <CommandItem
-                        key={hit.key}
-                        value={hit.key}
-                        onSelect={() => handleActivate(hit)}
-                        data-testid={`global-search-item-${hit.key}`}
+                        key={`route:${entry.key}`}
+                        value={`route:${entry.key}`}
+                        onSelect={() => handleRoute(entry)}
+                        data-testid={`global-search-route-${entry.key}`}
                       >
-                        <UserIcon className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+                        <Icon className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
                         <div className="flex min-w-0 flex-col">
-                          <span className="truncate">{hit.primary}</span>
-                          {hit.secondary && (
+                          <span className="truncate">{label}</span>
+                          {description && (
                             <span className="text-muted-foreground truncate text-xs">
-                              {hit.secondary}
+                              {description}
                             </span>
                           )}
                         </div>
                       </CommandItem>
-                    ))}
-                  </CommandGroup>
+                    );
+                  })}
+                </CommandGroup>
+              </>
+            )}
+            {visibleActions.length > 0 && (
+              <>
+                {(visibleRoutes.length > 0 || (hasDataQuery && totalDataHits > 0)) && (
+                  <CommandSeparator />
                 )}
-                {results.buku.length > 0 && (
-                  <>
-                    {results.anggota.length > 0 && <CommandSeparator />}
-                    <CommandGroup
-                      heading={t('common:globalSearch.groupBuku', {
-                        defaultValue: 'Buku',
-                      })}
-                    >
-                      {results.buku.map((hit) => (
-                        <CommandItem
-                          key={hit.key}
-                          value={hit.key}
-                          onSelect={() => handleActivate(hit)}
-                          data-testid={`global-search-item-${hit.key}`}
-                        >
-                          <BookOpen className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate">{hit.primary}</span>
-                            {hit.secondary && (
-                              <span className="text-muted-foreground truncate text-xs">
-                                {hit.secondary}
-                              </span>
-                            )}
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </>
-                )}
-                {results.peminjaman.length > 0 && (
-                  <>
-                    {(results.anggota.length > 0 || results.buku.length > 0) && (
-                      <CommandSeparator />
-                    )}
-                    <CommandGroup
-                      heading={t('common:globalSearch.groupPeminjaman', {
-                        defaultValue: 'Peminjaman',
-                      })}
-                    >
-                      {results.peminjaman.map((hit) => (
-                        <CommandItem
-                          key={hit.key}
-                          value={hit.key}
-                          onSelect={() => handleActivate(hit)}
-                          data-testid={`global-search-item-${hit.key}`}
-                        >
-                          <Calendar className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate">{hit.primary}</span>
-                            {hit.secondary && (
-                              <span className="text-muted-foreground truncate text-xs">
-                                {hit.secondary}
-                              </span>
-                            )}
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </>
-                )}
+                <CommandGroup
+                  heading={t('common:globalSearch.groupActions', {
+                    defaultValue: 'Aksi Cepat',
+                  })}
+                >
+                  {visibleActions.map((entry) => {
+                    const Icon = entry.icon;
+                    const label = t(`commandPalette.action.${entry.key}.label`, {
+                      defaultValue: entry.key,
+                    });
+                    const description = t(`commandPalette.action.${entry.key}.description`, {
+                      defaultValue: '',
+                    });
+                    return (
+                      <CommandItem
+                        key={`action:${entry.key}`}
+                        value={`action:${entry.key}`}
+                        onSelect={() => handleAction(entry)}
+                        data-testid={`global-search-action-${entry.key}`}
+                      >
+                        <Icon className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate">{label}</span>
+                          {description && (
+                            <span className="text-muted-foreground truncate text-xs">
+                              {description}
+                            </span>
+                          )}
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
               </>
             )}
           </CommandList>

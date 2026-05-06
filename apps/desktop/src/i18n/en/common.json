@@ -34,7 +34,9 @@
     "groupAnggota": "Members",
     "groupBuku": "Books",
     "groupPeminjaman": "Loans",
-    "footerHint": "Enter to open • ↑↓ to navigate • Esc to close"
+    "footerHint": "Enter to open • ↑↓ to navigate • Esc to close",
+    "groupRoutes": "Pages",
+    "groupActions": "Quick Actions"
   },
   "states": {
     "loading": "Loading…",
@@ -154,5 +156,119 @@
   "scanner": {
     "handScannerDetected": "USB hand-scanner detected",
     "handScannerHint": "USB hand-scanner is ready — focus the scan field and pull the trigger."
+  },
+  "commandPalette": {
+    "executeFail": "Failed to execute command",
+    "route": {
+      "dashboard": {
+        "label": "Dashboard",
+        "description": "KPI summary and recent activity"
+      },
+      "anggota": {
+        "label": "Members",
+        "description": "Manage member records"
+      },
+      "buku": {
+        "label": "Books",
+        "description": "Manage book catalog"
+      },
+      "peminjaman": {
+        "label": "Loans",
+        "description": "Active loans and history"
+      },
+      "sirkulasi": {
+        "label": "Circulation (Webcam)",
+        "description": "Scan KTA/books via camera"
+      },
+      "laporan": {
+        "label": "Reports",
+        "description": "Stats, top borrowers, cashbook, charts"
+      },
+      "pengembalian": {
+        "label": "Returns",
+        "description": "Record returns and overdue fines"
+      },
+      "reservasi": {
+        "label": "Reservations",
+        "description": "Book hold queue"
+      },
+      "wishlist": {
+        "label": "Wishlist",
+        "description": "Member title requests"
+      },
+      "stocktake": {
+        "label": "Stocktake",
+        "description": "Physical inventory check"
+      },
+      "kunjungan": {
+        "label": "Visits",
+        "description": "Record daily visits"
+      },
+      "settings": {
+        "label": "Settings",
+        "description": "Application configuration"
+      },
+      "backup": {
+        "label": "Backup",
+        "description": "Backup and restore database"
+      },
+      "auditLog": {
+        "label": "Audit Log",
+        "description": "System activity"
+      },
+      "kta": {
+        "label": "Member Card",
+        "description": "Print member ID cards"
+      },
+      "manual": {
+        "label": "Manual",
+        "description": "User guide"
+      },
+      "tentang": {
+        "label": "About",
+        "description": "Application version and license"
+      }
+    },
+    "action": {
+      "backupSekarang": {
+        "label": "Backup Now",
+        "description": "Open backup page",
+        "toast": "Opening backup page…"
+      },
+      "cetakLaporanBulanan": {
+        "label": "Print Monthly Report",
+        "description": "Open the reports hub"
+      },
+      "tambahAnggota": {
+        "label": "Add Member",
+        "description": "Open the new-member form"
+      },
+      "tambahBuku": {
+        "label": "Add Book",
+        "description": "Open the new-book form"
+      },
+      "tambahPeminjaman": {
+        "label": "Add Loan",
+        "description": "Start a new loan transaction"
+      },
+      "toggleTheme": {
+        "label": "Toggle Theme",
+        "description": "Switch between light and dark",
+        "toast": {
+          "light": "Theme switched to light",
+          "dark": "Theme switched to dark"
+        }
+      },
+      "bukaOpac": {
+        "label": "Open OPAC Mode",
+        "description": "Switch to public catalog (reload required)",
+        "fail": "Failed to open OPAC mode"
+      },
+      "logout": {
+        "label": "Sign Out",
+        "description": "End librarian session",
+        "fail": "Failed to sign out"
+      }
+    }
   }
 }
