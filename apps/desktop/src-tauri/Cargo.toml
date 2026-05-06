@@ -44,6 +44,10 @@ pbkdf2 = { version = "0.12", features = ["simple"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 jsonwebtoken = "9"
 tokio = { version = "1", features = ["sync"] }
+# FEAT-20 — Bulk import buku via ISBN. ureq provides a small synchronous HTTP
+# client used by the backend to call Open Library + Google Books from inside a
+# blocking Tauri command without dragging tokio into the request path.
+ureq = { version = "2.10", default-features = false, features = ["json", "tls"] }
 
 [dev-dependencies]
 tempfile = "3"
