@@ -40,6 +40,7 @@ import { Route as AuthedSettingsBackupRouteImport } from './routes/_authed/setti
 import { Route as AuthedSettingsAuditLogRouteImport } from './routes/_authed/settings/audit-log'
 import { Route as AuthedSettingsAturanPeminjamanRouteImport } from './routes/_authed/settings/aturan-peminjaman'
 import { Route as AuthedSettingsAkunRouteImport } from './routes/_authed/settings/akun'
+import { Route as AuthedSettingsAksesModeRouteImport } from './routes/_authed/settings/akses-mode'
 import { Route as AuthedPeminjamanNewRouteImport } from './routes/_authed/peminjaman/new'
 import { Route as AuthedPeminjamanIdRouteImport } from './routes/_authed/peminjaman/$id'
 import { Route as AuthedLaporanTopPeminjamRouteImport } from './routes/_authed/laporan/top-peminjam'
@@ -211,6 +212,11 @@ const AuthedSettingsAkunRoute = AuthedSettingsAkunRouteImport.update({
   path: '/akun',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsAksesModeRoute = AuthedSettingsAksesModeRouteImport.update({
+  id: '/akses-mode',
+  path: '/akses-mode',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
 const AuthedPeminjamanNewRoute = AuthedPeminjamanNewRouteImport.update({
   id: '/peminjaman/new',
   path: '/peminjaman/new',
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/akses-mode': typeof AuthedSettingsAksesModeRoute
   '/settings/akun': typeof AuthedSettingsAkunRoute
   '/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
   '/settings/audit-log': typeof AuthedSettingsAuditLogRoute
@@ -343,6 +350,7 @@ export interface FileRoutesByTo {
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/akses-mode': typeof AuthedSettingsAksesModeRoute
   '/settings/akun': typeof AuthedSettingsAkunRoute
   '/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
   '/settings/audit-log': typeof AuthedSettingsAuditLogRoute
@@ -390,6 +398,7 @@ export interface FileRoutesById {
   '/_authed/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/_authed/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/_authed/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/_authed/settings/akses-mode': typeof AuthedSettingsAksesModeRoute
   '/_authed/settings/akun': typeof AuthedSettingsAkunRoute
   '/_authed/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
   '/_authed/settings/audit-log': typeof AuthedSettingsAuditLogRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/akses-mode'
     | '/settings/akun'
     | '/settings/aturan-peminjaman'
     | '/settings/audit-log'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/akses-mode'
     | '/settings/akun'
     | '/settings/aturan-peminjaman'
     | '/settings/audit-log'
@@ -526,6 +537,7 @@ export interface FileRouteTypes {
     | '/_authed/laporan/top-peminjam'
     | '/_authed/peminjaman/$id'
     | '/_authed/peminjaman/new'
+    | '/_authed/settings/akses-mode'
     | '/_authed/settings/akun'
     | '/_authed/settings/aturan-peminjaman'
     | '/_authed/settings/audit-log'
@@ -775,6 +787,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsAkunRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
+    '/_authed/settings/akses-mode': {
+      id: '/_authed/settings/akses-mode'
+      path: '/akses-mode'
+      fullPath: '/settings/akses-mode'
+      preLoaderRoute: typeof AuthedSettingsAksesModeRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
     '/_authed/peminjaman/new': {
       id: '/_authed/peminjaman/new'
       path: '/peminjaman/new'
@@ -892,6 +911,7 @@ const AuthedLaporanRouteWithChildren = AuthedLaporanRoute._addFileChildren(
 )
 
 interface AuthedSettingsRouteChildren {
+  AuthedSettingsAksesModeRoute: typeof AuthedSettingsAksesModeRoute
   AuthedSettingsAkunRoute: typeof AuthedSettingsAkunRoute
   AuthedSettingsAturanPeminjamanRoute: typeof AuthedSettingsAturanPeminjamanRoute
   AuthedSettingsAuditLogRoute: typeof AuthedSettingsAuditLogRoute
@@ -910,6 +930,7 @@ interface AuthedSettingsRouteChildren {
 }
 
 const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
+  AuthedSettingsAksesModeRoute: AuthedSettingsAksesModeRoute,
   AuthedSettingsAkunRoute: AuthedSettingsAkunRoute,
   AuthedSettingsAturanPeminjamanRoute: AuthedSettingsAturanPeminjamanRoute,
   AuthedSettingsAuditLogRoute: AuthedSettingsAuditLogRoute,

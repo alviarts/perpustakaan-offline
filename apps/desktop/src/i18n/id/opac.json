@@ -1,0 +1,88 @@
+{
+  "title": "Katalog Perpustakaan",
+  "subtitle": "Cari koleksi buku dan reservasi mandiri",
+  "home": {
+    "searchPlaceholder": "Cari judul, pengarang, atau ISBN…",
+    "scanKta": "Scan KTA Saya",
+    "scanKtaSubtitle": "Login dengan kartu anggota untuk personalisasi",
+    "browse": "Telusuri Koleksi",
+    "filters": "Filter",
+    "kategori": "Kategori",
+    "bahasa": "Bahasa",
+    "semua": "Semua",
+    "ketersediaan": "Ketersediaan",
+    "available": "Tersedia",
+    "borrowed": "Dipinjam"
+  },
+  "search": {
+    "results": "{{count}} hasil",
+    "empty": "Tidak ada buku yang cocok dengan pencarian.",
+    "loading": "Memuat hasil…",
+    "back": "Kembali"
+  },
+  "card": {
+    "available": "Tersedia",
+    "borrowed": "Dipinjam",
+    "rak": "Rak {{kode}}",
+    "noCover": "Tidak ada cover"
+  },
+  "detail": {
+    "title": "Detail Buku",
+    "pengarang": "Pengarang",
+    "penerbit": "Penerbit",
+    "tahun": "Tahun terbit",
+    "kategori": "Kategori",
+    "isbn": "ISBN",
+    "ddc": "DDC",
+    "rak": "Lokasi rak",
+    "deskripsi": "Deskripsi",
+    "stockTersedia": "{{tersedia}} dari {{total}} eksemplar tersedia",
+    "noDescription": "Tidak ada deskripsi.",
+    "reserve": "Reservasi",
+    "reserveTooltip": "Antrean reservasi (hanya tersedia setelah login KTA)",
+    "wishlist": "Tambah ke Wishlist",
+    "wishlistTooltip": "Ajukan permintaan pengadaan buku ini",
+    "close": "Tutup"
+  },
+  "session": {
+    "loginPrompt": "Login KTA",
+    "logout": "Logout",
+    "welcome": "Selamat datang, {{nama}}",
+    "scanInstruction": "Arahkan barcode KTA Anda ke kamera",
+    "memberNotFound": "Anggota tidak ditemukan untuk kode {{kode}}",
+    "scanError": "Tidak dapat membaca KTA",
+    "idleReset": "Sesi otomatis berakhir karena tidak aktif"
+  },
+  "admin": {
+    "unlockButton": "Mode Admin",
+    "unlockTitle": "Keluar Mode OPAC",
+    "unlockDescription": "Masukkan username & password admin untuk kembali ke mode admin.",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Verifikasi",
+    "cancel": "Batal",
+    "wrongPassword": "Username atau password salah",
+    "tooManyTries": "Terlalu banyak percobaan. Coba lagi dalam {{seconds}} detik.",
+    "lockedFor": "{{seconds}} detik",
+    "switching": "Memuat ulang ke mode admin…"
+  },
+  "wishlist": {
+    "title": "Tambah ke Wishlist",
+    "judul": "Judul Buku",
+    "pengarang": "Pengarang (opsional)",
+    "alasan": "Alasan / catatan (opsional)",
+    "submit": "Kirim",
+    "cancel": "Batal",
+    "success": "Wishlist terkirim ke admin",
+    "error": "Gagal mengirim wishlist",
+    "stub": "Fitur wishlist akan tersedia setelah feature pengadaan diaktifkan."
+  },
+  "kiosk": {
+    "fullscreenError": "Tidak dapat masuk fullscreen otomatis. Tekan F11 jika belum fullscreen.",
+    "limitations": "Catatan: Ctrl+Alt+Del / Task Manager tidak dapat dinonaktifkan dari aplikasi."
+  },
+  "footer": {
+    "poweredBy": "Perpustakaan Nusantara",
+    "version": "v{{version}}"
+  }
+}

@@ -293,6 +293,31 @@
       "creditsValue": "alvi arts / vwrks",
       "openRepo": "Repositori GitHub",
       "license": "Lisensi"
+    },
+    "aksesMode": {
+      "label": "Mode Akses",
+      "summary": "Pilih antara mode Admin (operator) atau Public OPAC (kios siswa fullscreen).",
+      "admin": {
+        "label": "Admin",
+        "description": "Mode normal untuk pustakawan / petugas."
+      },
+      "public": {
+        "label": "Public OPAC",
+        "description": "Kios fullscreen untuk siswa / pengunjung."
+      },
+      "warning": "Setelah berpindah ke Public OPAC, aplikasi reload ke mode kios fullscreen. Untuk kembali ke admin, klik tombol \"Mode Admin\" di pojok bawah-kanan dan masukkan password admin.",
+      "confirm": "Lanjutkan",
+      "confirmPublic": {
+        "title": "Beralih ke Public OPAC?",
+        "description": "Aplikasi akan reload ke kios fullscreen. Untuk keluar, masuk lewat tombol \"Mode Admin\"."
+      },
+      "confirmAdmin": {
+        "title": "Beralih ke mode Admin?",
+        "description": "Aplikasi akan reload ke mode admin normal."
+      },
+      "feedback": {
+        "saved": "Mode akses tersimpan. Memuat ulang…"
+      }
     }
   }
 }

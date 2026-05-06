@@ -12,6 +12,7 @@ import {
   Info,
   BookText,
   BookOpen,
+  Monitor,
 } from 'lucide-react';
 
 /**
@@ -158,6 +159,13 @@ export const SECTIONS: SectionDef[] = [
     i18nKey: 'tentang',
     Icon: Info,
     keywords: ['tentang', 'about', 'version', 'versi', 'kredit', 'credits', 'github'],
+  },
+  {
+    id: 'akses-mode',
+    to: '/settings/akses-mode',
+    i18nKey: 'aksesMode',
+    Icon: Monitor,
+    keywords: ['akses mode', 'mode akses', 'opac', 'public', 'kios', 'kiosk', 'admin', 'fullscreen'],
   },
 ];
 
