@@ -24,7 +24,8 @@
     "available": "Tersedia",
     "borrowed": "Dipinjam",
     "rak": "Rak {{kode}}",
-    "noCover": "Tidak ada cover"
+    "noCover": "Tidak ada cover",
+    "stock": "{{tersedia}}/{{total}} eksemplar"
   },
   "detail": {
     "title": "Detail Buku",
