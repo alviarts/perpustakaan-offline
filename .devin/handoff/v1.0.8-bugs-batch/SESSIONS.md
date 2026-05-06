@@ -431,3 +431,23 @@ Each entry is a markdown section with frontmatter-like fields:
 - step4_planned: Open release PR (PR I) — bump 1.0.7 → 1.0.8 + CHANGELOG.
 - skipped: #129 (FEAT-19/20) still locked by devin-e87e91dd1b25420eb46e75b6d779fb27,
   lock claimed at 2026-05-06T00:41Z (~13h ago, lock <24h). Will check periodically.
+
+## Session devin-66f0e55e455f413894a4e3ba6da395b3 — FEAT-26 & FEAT-27 merged
+
+- session_id: devin-66f0e55e455f413894a4e3ba6da395b3
+- merged_at: 2026-05-06T14:00:00Z
+- status: COMPLETED for steps 2+3 of resume pickup
+- step2 #133 FEAT-26 Sheets sync:
+  - Rebased devin/1778056382-pr-g-sheets-sync onto origin/main (bc84d12).
+  - Conflicts in: Cargo.lock, Cargo.toml, src/commands/mod.rs, src/db/mod.rs, src/lib.rs.
+  - Resolution pattern (take-both): merged FEAT-21 surat + FEAT-22 wishlist + FEAT-24 backup history schema with FEAT-26 sync metadata schema; merged aes-gcm/pbkdf2 (FEAT-24) crates with reqwest/jsonwebtoken/tokio (FEAT-26); merged stocktake/surat/wishlist commands with sync commands in invoke_handler.
+  - Cargo.lock regenerated via `cargo generate-lockfile` (cargo upgraded to 1.95 to satisfy edition2024 from new transitive deps).
+  - Local gates green: pnpm typecheck/lint/i18n:lint/test (410/410)/build, cargo check/clippy --all-targets -D warnings/test --lib (234/234).
+  - Force-pushed and CI green (Rust + Node). Squash-merged 2026-05-06T14:00Z, sha fbcc7bf.
+- step3 #136 FEAT-27 OPAC:
+  - Rebased devin/1778075000-pr-h-opac-public-mode onto origin/main (fbcc7bf).
+  - Conflict in: src/i18n/index.ts (NAMESPACES list + import order) — resolved by taking-both for reservasi/stocktake/opac entries.
+  - Local gates green: typecheck/lint/i18n:lint/test (430/430)/build.
+  - Force-pushed, CI green, squash-merged 2026-05-06T14:08Z, sha 3c48af1.
+- skipped: #129 (FEAT-19/20) lock from 2026-05-06T00:41Z (~13.5h ago, lock <24h).
+  PR is draft, single backend commit (`ef33d86` ISBN lookup), frontend wiring + FEAT-19 overwrite mode never implemented. Locking session abandoned without further work. Will block on user for direction (A: take over and finish; B: defer FEAT-19/20 to v1.0.9 + ship v1.0.8 release without them).

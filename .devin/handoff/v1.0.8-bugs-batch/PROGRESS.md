@@ -26,8 +26,8 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | DONE   | #132 | 2026-05-06   | —          |
 | FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | DONE   | #134 | 2026-05-06   | —          |
 | FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | DONE   | #135 | 2026-05-06   | —          |
-| FEAT-26 | G        | Google Sheets bidirectional sync (push+pull delta + scheduler + conflict resolve) | HIGH     | PAUSED | #133 | —            | — (needs rebase onto main; conflicts with stocktake/surat in db/mod.rs + lib.rs) |
-| FEAT-27 | H        | OPAC public-mode: kiosk fullscreen, dual-UI, scan KTA optional, admin-pwd unlock  | HIGH     | PAUSED | #136 | —            | — (needs rebase onto main; conflicts likely in db/mod.rs + lib.rs + sidebar) |
+| FEAT-26 | G        | Google Sheets bidirectional sync (push+pull delta + scheduler + conflict resolve) | HIGH     | DONE   | #133 | 2026-05-06   | —          |
+| FEAT-27 | H        | OPAC public-mode: kiosk fullscreen, dual-UI, scan KTA optional, admin-pwd unlock  | HIGH     | DONE   | #136 | 2026-05-06   | —          |
 
 ## Phase legend
 
