@@ -238,3 +238,35 @@ Each entry is a markdown section with frontmatter-like fields:
     2026-05-06T00:41Z (~7.5h ago, lock <24h).
   Will revisit #129 take-over if lock expires (>24h) without progress.
 - branch: TBD (will create devin/<ts>-pr-e-stocktake-opname from main)
+
+## Session devin-6b5acc6f8e4a4e778d85e9e626fccb1a — FEAT-23 (PR E) ready
+
+- session_id: devin-6b5acc6f8e4a4e778d85e9e626fccb1a
+- item_id: FEAT-23 (PR E — Stocktake/Opname mode)
+- branch: devin/1778054856-pr-e-stocktake-opname
+- pr: #131 (ready-for-review)
+- pr_opened_at: 2026-05-06T08:30:00Z
+- status: PR_OPEN
+- notes: Stocktake / Opname mode lengkap — backend (7 commands, 6 unit
+  tests = 134 backend total) + frontend (RPC layer + StocktakePage + PDF
+  report + i18n + sidebar + route + 18 frontend tests = 291 frontend
+  total). Local gates clean (typecheck/lint/test/build/cargo check/clippy/
+  test). CI green (Rust + Node). Awaiting user merge.
+
+## Session devin-6b5acc6f8e4a4e778d85e9e626fccb1a — claim FEAT-24 (PR E continued)
+
+- session_id: devin-6b5acc6f8e4a4e778d85e9e626fccb1a
+- item_id: FEAT-24 (PR E — Backup enhancement: history + encryption + cloud)
+- started_at: 2026-05-06T08:35:00Z
+- status: STARTED
+- notes: Picked next OPEN row in order (bertahap per user instruction).
+  Skipped: #129 still locked <24h.
+  Scope plan: implement what's feasible without external OAuth credentials —
+    1) backup_history table + history list UI + restore-from-history.
+    2) Encrypted backup (.db.enc, AES-256 from user-set password).
+    3) Notification toast after scheduled backup.
+    4) Cloud target via local rclone CLI invocation (user installs rclone
+       separately, app just calls binary). Drive/Dropbox direct API
+       deferred to v1.0.9 because OAuth refresh-token flow needs UX
+       extensive testing + user-supplied credentials.
+- branch: TBD (will create devin/<ts>-pr-e-backup-enhancement from main)
