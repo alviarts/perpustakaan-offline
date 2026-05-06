@@ -4,10 +4,19 @@
   "empty": "Belum ada data pada rentang ini",
   "nav": {
     "grafik": "Grafik",
+    "eksekutif": "Eksekutif",
     "topPeminjam": "Top Peminjam",
     "topBuku": "Top Buku",
     "kas": "Kas",
     "backup": "Backup"
+  },
+  "eksekutif": {
+    "title": "Laporan Eksekutif",
+    "subtitle": "PDF satu-klik untuk rapat bulanan kepala sekolah: KPI, tren, dan action items.",
+    "cetak": "Cetak PDF",
+    "preparing": "Menyiapkan\u2026",
+    "toastTitle": "Laporan disiapkan",
+    "toastDesc": "Jendela cetak akan terbuka."
   },
   "error": {
     "load": "Gagal memuat data"

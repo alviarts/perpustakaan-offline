@@ -47,6 +47,7 @@ import { Route as AuthedLaporanTopPeminjamRouteImport } from './routes/_authed/l
 import { Route as AuthedLaporanTopBukuRouteImport } from './routes/_authed/laporan/top-buku'
 import { Route as AuthedLaporanKasRouteImport } from './routes/_authed/laporan/kas'
 import { Route as AuthedLaporanGrafikRouteImport } from './routes/_authed/laporan/grafik'
+import { Route as AuthedLaporanEksekutifRouteImport } from './routes/_authed/laporan/eksekutif'
 import { Route as AuthedLaporanBackupRouteImport } from './routes/_authed/laporan/backup'
 import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
 import { Route as AuthedBukuCetakLabelRouteImport } from './routes/_authed/buku/cetak-label'
@@ -248,6 +249,11 @@ const AuthedLaporanGrafikRoute = AuthedLaporanGrafikRouteImport.update({
   path: '/grafik',
   getParentRoute: () => AuthedLaporanRoute,
 } as any)
+const AuthedLaporanEksekutifRoute = AuthedLaporanEksekutifRouteImport.update({
+  id: '/eksekutif',
+  path: '/eksekutif',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
 const AuthedLaporanBackupRoute = AuthedLaporanBackupRouteImport.update({
   id: '/backup',
   path: '/backup',
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/buku/new': typeof AuthedBukuNewRoute
   '/laporan/backup': typeof AuthedLaporanBackupRoute
+  '/laporan/eksekutif': typeof AuthedLaporanEksekutifRoute
   '/laporan/grafik': typeof AuthedLaporanGrafikRoute
   '/laporan/kas': typeof AuthedLaporanKasRoute
   '/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/buku/new': typeof AuthedBukuNewRoute
   '/laporan/backup': typeof AuthedLaporanBackupRoute
+  '/laporan/eksekutif': typeof AuthedLaporanEksekutifRoute
   '/laporan/grafik': typeof AuthedLaporanGrafikRoute
   '/laporan/kas': typeof AuthedLaporanKasRoute
   '/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/_authed/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/_authed/buku/new': typeof AuthedBukuNewRoute
   '/_authed/laporan/backup': typeof AuthedLaporanBackupRoute
+  '/_authed/laporan/eksekutif': typeof AuthedLaporanEksekutifRoute
   '/_authed/laporan/grafik': typeof AuthedLaporanGrafikRoute
   '/_authed/laporan/kas': typeof AuthedLaporanKasRoute
   '/_authed/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
@@ -440,6 +449,7 @@ export interface FileRouteTypes {
     | '/buku/cetak-label'
     | '/buku/new'
     | '/laporan/backup'
+    | '/laporan/eksekutif'
     | '/laporan/grafik'
     | '/laporan/kas'
     | '/laporan/top-buku'
@@ -484,6 +494,7 @@ export interface FileRouteTypes {
     | '/buku/cetak-label'
     | '/buku/new'
     | '/laporan/backup'
+    | '/laporan/eksekutif'
     | '/laporan/grafik'
     | '/laporan/kas'
     | '/laporan/top-buku'
@@ -531,6 +542,7 @@ export interface FileRouteTypes {
     | '/_authed/buku/cetak-label'
     | '/_authed/buku/new'
     | '/_authed/laporan/backup'
+    | '/_authed/laporan/eksekutif'
     | '/_authed/laporan/grafik'
     | '/_authed/laporan/kas'
     | '/_authed/laporan/top-buku'
@@ -836,6 +848,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedLaporanGrafikRouteImport
       parentRoute: typeof AuthedLaporanRoute
     }
+    '/_authed/laporan/eksekutif': {
+      id: '/_authed/laporan/eksekutif'
+      path: '/eksekutif'
+      fullPath: '/laporan/eksekutif'
+      preLoaderRoute: typeof AuthedLaporanEksekutifRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
     '/_authed/laporan/backup': {
       id: '/_authed/laporan/backup'
       path: '/backup'
@@ -890,6 +909,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthedLaporanRouteChildren {
   AuthedLaporanBackupRoute: typeof AuthedLaporanBackupRoute
+  AuthedLaporanEksekutifRoute: typeof AuthedLaporanEksekutifRoute
   AuthedLaporanGrafikRoute: typeof AuthedLaporanGrafikRoute
   AuthedLaporanKasRoute: typeof AuthedLaporanKasRoute
   AuthedLaporanTopBukuRoute: typeof AuthedLaporanTopBukuRoute
@@ -899,6 +919,7 @@ interface AuthedLaporanRouteChildren {
 
 const AuthedLaporanRouteChildren: AuthedLaporanRouteChildren = {
   AuthedLaporanBackupRoute: AuthedLaporanBackupRoute,
+  AuthedLaporanEksekutifRoute: AuthedLaporanEksekutifRoute,
   AuthedLaporanGrafikRoute: AuthedLaporanGrafikRoute,
   AuthedLaporanKasRoute: AuthedLaporanKasRoute,
   AuthedLaporanTopBukuRoute: AuthedLaporanTopBukuRoute,
