@@ -12,7 +12,7 @@
  * Tetap dapat dipakai tanpa kamera lewat input teks manual (mis. scanner
  * USB yang berperilaku seperti keyboard, atau ketik kode langsung).
  */
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {
@@ -21,7 +21,6 @@ import {
   Flashlight,
   FlashlightOff,
   Focus,
-  Keyboard,
   Loader2,
   RefreshCw,
   RotateCcw,
@@ -35,7 +34,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -46,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-manager';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
+import { bukuApi, type Buku } from '@/lib/buku';
 import { parseQrPayload } from '@/lib/kta';
 import {
   peminjamanApi,
@@ -57,6 +56,7 @@ import { useBarcodeScanner } from './useBarcodeScanner';
 import { ScannerOverlay } from './ScannerOverlay';
 import { ScannerTrackingOverlay } from './ScannerTrackingOverlay';
 import { HandScannerBadge } from './HandScannerBadge';
+import { ScanSearchInput, type ScanSearchInputHandle } from './ScanSearchInput';
 import { useHandScannerDetector } from '@/lib/scanner/useHandScannerDetector';
 
 type Mode = 'pinjam' | 'kembalikan';
@@ -82,8 +82,7 @@ export function SirkulasiPage() {
   const { showToast } = useToast();
 
   const [mode, setMode] = useState<Mode>('pinjam');
-  const [manual, setManual] = useState('');
-  const manualRef = useRef<HTMLInputElement>(null);
+  const manualRef = useRef<ScanSearchInputHandle>(null);
 
   // Pinjam mode state
   const [anggota, setAnggota] = useState<Anggota | null>(null);
@@ -104,6 +103,10 @@ export function SirkulasiPage() {
 
   const focusManual = (): void => {
     setTimeout(() => manualRef.current?.focus(), 0);
+  };
+
+  const clearManual = (): void => {
+    manualRef.current?.clear();
   };
 
   const beep = (kind: 'ok' | 'err'): void => {
@@ -330,13 +333,69 @@ export function SirkulasiPage() {
     }
   };
 
-  const onSubmitManual = (e: React.FormEvent): void => {
-    e.preventDefault();
-    const v = manual.trim();
-    if (!v) return;
-    setManual('');
-    void handleScan(v);
-  };
+  const handleManualSubmit = useCallback(
+    (kode: string): void => {
+      void handleScan(kode);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleScan is stable per render
+    [],
+  );
+
+  const handlePickAnggota = useCallback(
+    (a: Anggota): void => {
+      if (mode === 'pinjam') {
+        setAnggota(a);
+        showToast({
+          title: t('sirkulasi:toast.anggotaSet', { defaultValue: 'Anggota terpilih' }),
+          description: `${a.kodeAnggota} \u00b7 ${a.nama}`,
+        });
+        beep('ok');
+      } else {
+        // Kembalikan mode \u2014 fall back to the legacy kode lookup
+        // so the existing loan-resolution flow runs against the picked
+        // member.
+        void handleScan(a.kodeAnggota);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mode, showToast, t],
+  );
+
+  const handlePickBuku = useCallback(
+    async (b: Buku): Promise<void> => {
+      // Buku search is only enabled in pinjam mode WITH an anggota,
+      // but the parent guards anyway so a stale dropdown can never
+      // accidentally enqueue a basket item.
+      if (mode !== 'pinjam' || !anggota) return;
+      try {
+        const detail = await bukuApi.get(b.id);
+        const tersedia = detail.eksemplar.find((e) => e.status === 'tersedia');
+        if (!tersedia) {
+          showToast({
+            variant: 'destructive',
+            title: t('sirkulasi:toast.noEksemplarAvailable', {
+              defaultValue: 'Tidak ada eksemplar tersedia',
+            }),
+            description: b.judul,
+          });
+          beep('err');
+          return;
+        }
+        void handleScan(tersedia.kodeEksemplar);
+      } catch (err) {
+        showToast({
+          variant: 'destructive',
+          title: t('sirkulasi:toast.bukuLookupError', {
+            defaultValue: 'Gagal memuat detail buku',
+          }),
+          description: formatTauriError(err),
+        });
+        beep('err');
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mode, anggota, showToast, t],
+  );
 
   // v1.0.12 — surface a "Hand-scanner USB terdeteksi" badge whenever
   // a USB scanner has been used recently, and re-route any payloads
@@ -472,7 +531,7 @@ export function SirkulasiPage() {
     setBasket([]);
     setReturnLoans({});
     setLastResult(null);
-    setManual('');
+    clearManual();
     focusManual();
   };
 
@@ -751,22 +810,16 @@ export function SirkulasiPage() {
               </div>
             )}
 
-            <form onSubmit={onSubmitManual} className="flex items-center gap-2 pt-2">
-              <Keyboard className="h-4 w-4 text-muted-foreground" />
-              <Input
+            <div className="pt-2">
+              <ScanSearchInput
                 ref={manualRef}
-                value={manual}
-                onChange={(e) => setManual(e.target.value)}
-                placeholder={t('sirkulasi:manual.placeholder', {
-                  defaultValue:
-                    'Atau ketik / scan pakai USB scanner (Enter untuk submit)',
-                })}
-                autoFocus
+                disabled={submitting}
+                enableBukuSearch={mode === 'pinjam' && anggota !== null}
+                onSubmitKode={handleManualSubmit}
+                onPickAnggota={handlePickAnggota}
+                onPickBuku={handlePickBuku}
               />
-              <Button type="submit" variant="secondary">
-                {t('sirkulasi:manual.submit', { defaultValue: 'Kirim' })}
-              </Button>
-            </form>
+            </div>
           </CardContent>
         </Card>
 
