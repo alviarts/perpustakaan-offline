@@ -777,7 +777,7 @@ mod tests {
     /// `no such column: u.nama_lengkap`.
     #[test]
     fn load_session_joins_users_full_name() {
-        let mut conn = fresh_conn();
+        let conn = fresh_conn();
         seed_buku(&conn, 2);
         // Seed a petugas in `users` so the LEFT JOIN actually has a row to
         // hit (pre-fix, even a NULL petugas_id triggered the column error
