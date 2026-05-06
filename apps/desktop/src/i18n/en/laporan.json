@@ -98,6 +98,52 @@
     "scheduleSave": "Save Schedule",
     "scheduleSaved": "Schedule saved",
     "scheduleFailed": "Failed to save schedule",
-    "lastRun": "Last run"
+    "lastRun": "Last run",
+    "history": {
+      "title": "Backup History",
+      "subtitle": "Audit log of all backups (local, cloud, encrypted). Newest first.",
+      "from": "From (ISO)",
+      "to": "To (ISO)",
+      "destType": "Destination Type",
+      "allTypes": "All",
+      "empty": "No backup history yet.",
+      "loadFailed": "Failed to load history",
+      "deleteOk": "History entry deleted.",
+      "deleteFailed": "Failed to delete entry.",
+      "refresh": "Refresh",
+      "col": {
+        "created": "Date",
+        "path": "Path",
+        "dest": "Destination",
+        "size": "Size",
+        "status": "Status"
+      }
+    },
+    "encrypted": {
+      "title": "Encrypted Backup",
+      "subtitle": "Backup the .db with AES-256-GCM. The password is converted to a key via PBKDF2 (200k iterations). Do not forget the password — the file cannot be recovered without it.",
+      "password": "Password (≥ 8 chars)",
+      "show": "Show",
+      "hide": "Hide",
+      "create": "Create Encrypted Backup",
+      "ok": "Encrypted backup created.",
+      "failed": "Encrypted backup failed.",
+      "shortPwd": "Password must be at least 8 characters."
+    },
+    "cloud": {
+      "title": "Cloud Backup (rclone)",
+      "subtitle": "Upload backups to Google Drive / Dropbox / S3 / etc. through your installed rclone binary. The app does not store cloud credentials — everything is managed via `rclone config`.",
+      "provider": "Provider",
+      "remote": "Remote Name (`rclone config` name)",
+      "folder": "Remote Folder",
+      "autoUpload": "Auto-upload after every scheduled backup",
+      "save": "Save Settings",
+      "savedTitle": "Cloud settings saved.",
+      "saveFailed": "Failed to save cloud settings.",
+      "uploadNow": "Upload File to Cloud",
+      "pickFile": "Pick a backup file to upload",
+      "uploadOk": "Upload finished.",
+      "uploadFailed": "Upload failed."
+    }
   }
 }

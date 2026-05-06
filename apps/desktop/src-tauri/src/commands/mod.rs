@@ -2,6 +2,7 @@ pub mod anggota;
 pub mod assets;
 pub mod auth;
 pub mod backup;
+pub mod backup_extra;
 pub mod backup_runner;
 pub mod buku;
 pub mod close_behavior;

@@ -30,6 +30,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(MASTER_DATA_SQL)?;
     conn.execute_batch(KTA_SQL)?;
     conn.execute_batch(LABEL_BUKU_SQL)?;
+    conn.execute_batch(BACKUP_HISTORY_SQL)?;
     apply_additive_migrations(conn)?;
     seed_master_data(conn)?;
     seed_kta_default_template(conn)?;
@@ -66,6 +67,30 @@ CREATE TABLE IF NOT EXISTS label_buku_templates (
     updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_label_buku_default ON label_buku_templates(is_default);
+"#;
+
+/// FEAT-24 — backup history table (v1.0.8). Records every successful
+/// backup (manual + scheduled, lokal + cloud + encrypted) so the operator
+/// can browse / verify / restore previous backups from a single list.
+///
+/// Additive migration: empty on existing v1.0.7 databases, populated as new
+/// backups are taken. Restoring an older backup that lacks this table is
+/// safe because the next migration run recreates it idempotently.
+const BACKUP_HISTORY_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS backup_history (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    path         TEXT    NOT NULL,
+    size_bytes   INTEGER NOT NULL DEFAULT 0,
+    checksum     TEXT,
+    dest_type    TEXT    NOT NULL DEFAULT 'lokal', -- lokal | gdrive | dropbox | rclone
+    dest_label   TEXT,
+    encrypted    INTEGER NOT NULL DEFAULT 0,
+    status       TEXT    NOT NULL DEFAULT 'sukses', -- sukses | gagal
+    error        TEXT,
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_backup_history_created ON backup_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_backup_history_dest    ON backup_history(dest_type);
 "#;
 
 const MASTER_DATA_SQL: &str = r#"
