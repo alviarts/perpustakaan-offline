@@ -298,6 +298,7 @@ export function DashboardPage() {
               Icon={Users}
               tone="primary"
               loading={loading}
+              href="/anggota"
             />
             <KpiCard
               label={t('dashboard:kpi.buku', { defaultValue: 'Total Buku' })}
@@ -315,6 +316,7 @@ export function DashboardPage() {
               Icon={BookOpen}
               tone="emerald"
               loading={loading}
+              href="/buku"
             />
             <KpiCard
               label={t('dashboard:kpi.dipinjam', { defaultValue: 'Buku Dipinjam' })}
@@ -323,6 +325,7 @@ export function DashboardPage() {
               Icon={ArrowLeftRight}
               tone="amber"
               loading={loading}
+              href="/peminjaman"
             />
           </section>
 
@@ -349,6 +352,11 @@ export function DashboardPage() {
                     })
                   : t('dashboard:insights.empty', { defaultValue: 'Belum ada data' })
               }
+              href={
+                data?.insights.topBukuThisMonth
+                  ? `/buku/${data.insights.topBukuThisMonth.bukuId}`
+                  : undefined
+              }
             />
             <InsightCard
               loading={loading}
@@ -366,6 +374,11 @@ export function DashboardPage() {
                         : ''
                     }`
                   : t('dashboard:insights.empty', { defaultValue: 'Belum ada data' })
+              }
+              href={
+                data?.insights.topPeminjamThisMonth
+                  ? `/anggota/${data.insights.topPeminjamThisMonth.anggotaId}`
+                  : undefined
               }
             />
             <InsightCard
@@ -641,17 +654,40 @@ interface InsightCardProps {
   label: string;
   primary: string;
   secondary?: string;
+  /**
+   * Optional TanStack Router target. When provided AND `loading` is false,
+   * the card becomes clickable (FEAT-Dashboard-Clickable-KPI). The skeleton
+   * state is intentionally non-navigable so callers can pass a derived href
+   * such as `/buku/${data?.insights.topBukuThisMonth?.id}` without guarding.
+   */
+  href?: string;
 }
 
-function InsightCard({ loading, Icon, tone, label, primary, secondary }: InsightCardProps) {
+function InsightCard({
+  loading,
+  Icon,
+  tone,
+  label,
+  primary,
+  secondary,
+  href,
+}: InsightCardProps) {
   const toneClass =
     tone === 'amber'
       ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
       : tone === 'emerald'
         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
         : 'bg-primary/10 text-primary';
-  return (
-    <Card data-testid="insight-card">
+  const interactive = typeof href === 'string' && !loading;
+  const inner = (
+    <Card
+      data-testid="insight-card"
+      data-interactive={interactive ? 'true' : undefined}
+      className={cn(
+        interactive &&
+          'cursor-pointer transition-shadow hover:ring-1 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary',
+      )}
+    >
       <CardContent className="flex items-start gap-3 p-4">
         <div className={cn('rounded-md p-2', toneClass)}>
           <Icon className="h-5 w-5" />
@@ -672,6 +708,19 @@ function InsightCard({ loading, Icon, tone, label, primary, secondary }: Insight
       </CardContent>
     </Card>
   );
+  if (interactive) {
+    return (
+      <Link
+        to={href}
+        aria-label={label}
+        className="block rounded-xl no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        data-testid="insight-card-link"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }
 
 interface FeaturedRowProps {

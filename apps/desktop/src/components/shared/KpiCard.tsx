@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from '@tanstack/react-router';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,14 @@ export interface KpiCardProps {
    * Total Buku card). Hidden while `loading=true`.
    */
   subline?: string;
+  /**
+   * Optional TanStack Router target. When provided AND `loading` is false,
+   * the entire card becomes a clickable link (FEAT-Dashboard-Clickable-KPI).
+   * The card retains its visual chrome and gains a hover ring + pointer
+   * cursor so it reads as interactive. While `loading` is true the link
+   * is suppressed so the skeleton state never navigates.
+   */
+  href?: string;
 }
 
 const TONE: Record<NonNullable<KpiCardProps['tone']>, string> = {
@@ -40,6 +49,7 @@ export function KpiCard({
   loading = false,
   hint,
   subline,
+  href,
 }: KpiCardProps): React.ReactElement {
   const showDelta = typeof delta === 'number' && Number.isFinite(delta);
   const trendUp = showDelta && delta > 0.5;
@@ -51,8 +61,18 @@ export function KpiCard({
       ? 'text-rose-600 dark:text-rose-400'
       : 'text-muted-foreground';
 
-  return (
-    <Card className="flex flex-col gap-3 p-4" data-testid="kpi-card">
+  const interactive = typeof href === 'string' && !loading;
+  const cardClassName = cn(
+    'flex flex-col gap-3 p-4',
+    interactive &&
+      'cursor-pointer transition-shadow hover:ring-1 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary',
+  );
+  const inner = (
+    <Card
+      className={cardClassName}
+      data-testid="kpi-card"
+      data-interactive={interactive ? 'true' : undefined}
+    >
       <div className="flex items-start justify-between">
         <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {label}
@@ -91,4 +111,18 @@ export function KpiCard({
       </div>
     </Card>
   );
+
+  if (interactive) {
+    return (
+      <Link
+        to={href}
+        aria-label={label}
+        className="block rounded-xl no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        data-testid="kpi-card-link"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }
