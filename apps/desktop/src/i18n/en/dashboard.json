@@ -66,6 +66,9 @@
     "subtitle": "Loans per hour (last 6 weeks)",
     "tooltip": "{{day}} · {{hour}}:00 — {{count}} loans"
   },
+  "quote": {
+    "next": "Next quote"
+  },
   "insights": {
     "topBuku": "Top book this month",
     "topBukuSubline": "{{count}}× borrowed",

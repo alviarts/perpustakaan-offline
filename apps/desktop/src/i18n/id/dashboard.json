@@ -66,6 +66,9 @@
     "subtitle": "Aktivitas pinjam per jam (6 minggu terakhir)",
     "tooltip": "{{day}} · {{hour}}:00 — {{count}} pinjam"
   },
+  "quote": {
+    "next": "Quote selanjutnya"
+  },
   "insights": {
     "topBuku": "Buku terlaris bulan ini",
     "topBukuSubline": "{{count}}× dipinjam",
