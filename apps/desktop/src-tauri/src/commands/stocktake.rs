@@ -117,7 +117,7 @@ fn load_session(
                       s.status,
                       s.catatan,
                       s.petugas_id,
-                      u.nama_lengkap,
+                      u.full_name,
                       (SELECT COUNT(*) FROM stocktake_item i WHERE i.session_id = s.id) AS total,
                       (SELECT COUNT(*) FROM stocktake_item i WHERE i.session_id = s.id
                           AND i.status = 'ditemukan') AS ditemukan,
@@ -202,7 +202,7 @@ pub fn stocktake_session_list(
                   s.status,
                   s.catatan,
                   s.petugas_id,
-                  u.nama_lengkap,
+                  u.full_name,
                   (SELECT COUNT(*) FROM stocktake_item i WHERE i.session_id = s.id) AS total,
                   (SELECT COUNT(*) FROM stocktake_item i WHERE i.session_id = s.id
                       AND i.status = 'ditemukan') AS ditemukan,
@@ -556,6 +556,7 @@ pub fn stocktake_session_delete(state: State<'_, AppState>, session_id: i64) -> 
 
 #[cfg(test)]
 mod tests {
+    use super::load_session;
     use crate::db::run_migrations;
     use rusqlite::{params, Connection};
 
@@ -768,6 +769,58 @@ mod tests {
             .unwrap();
         assert_eq!(s1_done, 1);
         assert_eq!(s2_done, 0);
+    }
+
+    /// Regression test for the v1.0.8 stocktake bug where `load_session` and
+    /// `stocktake_session_list` referenced `u.nama_lengkap` instead of
+    /// `u.full_name`, causing every Mulai-Sesi click to fail with
+    /// `no such column: u.nama_lengkap`.
+    #[test]
+    fn load_session_joins_users_full_name() {
+        let conn = fresh_conn();
+        seed_buku(&conn, 2);
+        // Seed a petugas in `users` so the LEFT JOIN actually has a row to
+        // hit (pre-fix, even a NULL petugas_id triggered the column error
+        // because SQLite parses the SELECT list before walking the join).
+        conn.execute(
+            "INSERT INTO users (username, password_hash, full_name, role, aktif)
+             VALUES ('petugas1', 'x', 'Pak Petugas', 'pustakawan', 1)",
+            [],
+        )
+        .unwrap();
+        let petugas_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO stocktake_session (nama, status, petugas_id)
+             VALUES ('Opname 2026', 'berlangsung', ?1)",
+            params![petugas_id],
+        )
+        .unwrap();
+        let session_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO stocktake_item (session_id, eksemplar_id, status)
+             SELECT ?1, e.id, 'belum_scan' FROM eksemplar e",
+            params![session_id],
+        )
+        .unwrap();
+
+        let row = load_session(&conn, session_id).expect("load_session must succeed");
+        assert_eq!(row.id, session_id);
+        assert_eq!(row.nama.as_deref(), Some("Opname 2026"));
+        assert_eq!(row.petugas_id, Some(petugas_id));
+        assert_eq!(row.petugas_nama.as_deref(), Some("Pak Petugas"));
+        assert_eq!(row.total, 2);
+        assert_eq!(row.ditemukan, 0);
+        assert_eq!(row.missing, 2);
+    }
+
+    #[test]
+    fn load_session_handles_null_petugas() {
+        let mut conn = fresh_conn();
+        seed_buku(&conn, 1);
+        let session_id = start_session(&mut conn);
+        let row = load_session(&conn, session_id).expect("load_session must succeed");
+        assert_eq!(row.petugas_id, None);
+        assert_eq!(row.petugas_nama, None);
     }
 
 }
