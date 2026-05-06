@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { DendaQuickPresetRow } from '@/components/shared/DendaQuickPresetRow';
 import { useToast } from '@/components/ui/toast-manager';
 import { peminjamanApi, type PeminjamanDetail as Detail } from '@/lib/peminjaman';
 import { generateNotaPdf } from '@/lib/pdf/nota';
 import { formatTauriError } from '@/lib/errors';
+import { DEFAULT_LOAN_RULES, settingsApi, type LoanRules } from '@/lib/settings';
 
 export function PeminjamanDetailView() {
   const { t } = useTranslation(['peminjaman', 'common']);
@@ -30,6 +32,23 @@ export function PeminjamanDetailView() {
     baru: string;
   } | null>(null);
   const [extending, setExtending] = useState(false);
+  const [loanRules, setLoanRules] = useState<LoanRules>(DEFAULT_LOAN_RULES);
+
+  useEffect(() => {
+    let cancel = false;
+    settingsApi
+      .getLoanRules()
+      .then((rules) => {
+        if (!cancel) setLoanRules(rules);
+      })
+      .catch(() => {
+        // Settings unavailable (mock/offline) — fall through with the
+        // baked-in defaults so the page is still usable.
+      });
+    return () => {
+      cancel = true;
+    };
+  }, []);
 
   async function load(): Promise<void> {
     try {
@@ -256,6 +275,11 @@ export function PeminjamanDetailView() {
                     onChange={(e) => setBayar(e.target.value)}
                     min="0"
                     data-testid="peminjaman-bayar"
+                  />
+                  <DendaQuickPresetRow
+                    dendaPerHari={loanRules.dendaPerHari}
+                    onSelect={(value) => setBayar(String(value))}
+                    testidPrefix="peminjaman-bayar"
                   />
                 </div>
                 <div className="flex items-end justify-end">
