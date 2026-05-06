@@ -227,3 +227,19 @@ Serves as the "who did what when" for cross-session debugging.
              intercept with a confirmation dialog
              "Anggota lain masih login: <nama>" with [Logout & Scan]
              [Batal] buttons. Touches OpacApp.tsx + OpacHomePage.tsx.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    STARTED
+  item:      FEAT-OPAC-Scan-Locked
+  pr:        null
+  started_at:   2026-05-06T22:30Z
+  notes:     Resumed after user said "selalu update master prompt di akhir
+             session devin agar devin berikutnya langsung lanjut pekerjaan
+             kamu biar ga misskom begini" + earlier pick "lanjut v1.1.0
+             paused di item 8". Claiming item 8 (FEAT-OPAC-Scan-Locked)
+             — depends_on FEAT-OPAC-PostScanProfile which is DONE (#151).
+             PAT ghp_c1xaCP... verified via 4-test (login=alviarts,
+             admin/push true, rate_limit 4971/5000). Will implement
+             OpacScanLockedDialog.tsx + wire into OpacApp.tsx +
+             unit tests, then continue continuous-autonomous loop
+             through items A1, A2, C1, D1, D5, E1, RELEASE.
