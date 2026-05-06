@@ -32,7 +32,10 @@ export type PreprocessVariant =
   | 'inverted'
   | 'brighten'
   | 'darken'
-  | 'adaptiveThreshold';
+  | 'adaptiveThreshold'
+  | 'blur'
+  | 'unsharp'
+  | 'upsample';
 
 /**
  * Build a fresh ImageData buffer the same size as the source. Used by
@@ -307,6 +310,239 @@ export function analyzeImageStats(src: ImageData): ImageStats {
 }
 
 /**
+ * Separable box blur (horizontal pass + vertical pass).
+ *
+ * v1.0.12: this is the killer rescue for **Code-128 barcodes shot
+ * off a phone screen**. The webcam picks up the phone's pixel raster
+ * as a high-frequency moiré pattern, which zxing's edge detector
+ * sees as extra spurious bars between the real bars and rejects the
+ * frame. A small box blur (radius 1, i.e. 3×3 kernel) smudges the
+ * raster into a flat mid-grey while leaving the much-larger barcode
+ * bars and gaps essentially untouched, after which zxing decodes the
+ * frame cleanly.
+ *
+ * Implemented as two 1-D passes for cache-friendliness; the 1-D box
+ * filter at radius `r` is just a moving average of `2r + 1` samples
+ * which we maintain incrementally so the cost is O(N) regardless of
+ * radius.
+ *
+ * Default radius 1 (3-pixel kernel) is the smallest that suppresses
+ * a typical 1080p phone-screen capture's moiré fringes. Larger radii
+ * smudge real barcode edges and *hurt* decode rate.
+ */
+export function applyBoxBlur(src: ImageData, radius: number = 1): ImageData {
+  const w = src.width;
+  const h = src.height;
+  const out = cloneShape(src);
+  if (w <= 0 || h <= 0 || radius <= 0) {
+    out.data.set(src.data);
+    return out;
+  }
+  const r = Math.max(1, Math.floor(radius));
+  const s = src.data;
+  // Intermediate buffer holds the result of the horizontal pass
+  // before the vertical pass reads it.
+  const tmp = new Uint8ClampedArray(s.length);
+  // Horizontal pass.
+  for (let y = 0; y < h; y++) {
+    const rowStart = y * w * 4;
+    for (let c = 0; c < 4; c++) {
+      let sum = 0;
+      let count = 0;
+      // Prime the moving-average window for x=0.
+      for (let k = -r; k <= r; k++) {
+        const sx = k < 0 ? 0 : k >= w ? w - 1 : k;
+        sum += s[rowStart + sx * 4 + c] ?? 0;
+        count++;
+      }
+      tmp[rowStart + 0 * 4 + c] = Math.round(sum / count);
+      // Slide the window across the row.
+      for (let x = 1; x < w; x++) {
+        const xOut = x - r - 1;
+        const xIn = x + r;
+        const sxOut = xOut < 0 ? 0 : xOut >= w ? w - 1 : xOut;
+        const sxIn = xIn < 0 ? 0 : xIn >= w ? w - 1 : xIn;
+        sum += (s[rowStart + sxIn * 4 + c] ?? 0) - (s[rowStart + sxOut * 4 + c] ?? 0);
+        tmp[rowStart + x * 4 + c] = Math.round(sum / count);
+      }
+    }
+  }
+  // Vertical pass over `tmp` into `out.data`.
+  const d = out.data;
+  for (let x = 0; x < w; x++) {
+    for (let c = 0; c < 4; c++) {
+      let sum = 0;
+      let count = 0;
+      for (let k = -r; k <= r; k++) {
+        const sy = k < 0 ? 0 : k >= h ? h - 1 : k;
+        sum += tmp[(sy * w + x) * 4 + c] ?? 0;
+        count++;
+      }
+      d[(0 * w + x) * 4 + c] = Math.round(sum / count);
+      for (let y = 1; y < h; y++) {
+        const yOut = y - r - 1;
+        const yIn = y + r;
+        const syOut = yOut < 0 ? 0 : yOut >= h ? h - 1 : yOut;
+        const syIn = yIn < 0 ? 0 : yIn >= h ? h - 1 : yIn;
+        sum +=
+          (tmp[(syIn * w + x) * 4 + c] ?? 0) - (tmp[(syOut * w + x) * 4 + c] ?? 0);
+        d[(y * w + x) * 4 + c] = Math.round(sum / count);
+      }
+    }
+  }
+  // Preserve alpha exactly — a blurred alpha channel makes the image
+  // appear to have soft edges when used downstream, but zxing only
+  // reads RGB.
+  for (let i = 3; i < s.length; i += 4) {
+    d[i] = s[i] ?? 255;
+  }
+  return out;
+}
+
+/**
+ * Unsharp mask: `out = clamp(src + amount * (src - blurred))`.
+ *
+ * The intuition is the inverse of {@link applyBoxBlur}: take what
+ * the blur removed (the high-frequency detail) and *add it back*.
+ * Useful when a frame is genuinely soft — webcam autofocus that
+ * landed slightly behind the barcode plane, motion blur from an
+ * unsteady hand, or compression artefacts on a screen-shared frame.
+ *
+ * `amount` controls strength; `0` is a no-op, `1.0` is mild, `2.0` is
+ * aggressive. Defaults to `1.0` which doubles the local edge
+ * contrast without going over the top — stronger settings start
+ * introducing ringing artefacts that bias zxing's edge detector
+ * the wrong way.
+ */
+export function applyUnsharp(
+  src: ImageData,
+  options: { amount?: number; radius?: number } = {},
+): ImageData {
+  const amount = options.amount ?? 1.0;
+  const radius = options.radius ?? 1;
+  const blurred = applyBoxBlur(src, radius);
+  const out = cloneShape(src);
+  const s = src.data;
+  const b = blurred.data;
+  const d = out.data;
+  for (let i = 0; i < s.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      const sv = s[i + c] ?? 0;
+      const bv = b[i + c] ?? 0;
+      const v = sv + amount * (sv - bv);
+      d[i + c] = v < 0 ? 0 : v > 255 ? 255 : v;
+    }
+    d[i + 3] = s[i + 3] ?? 255;
+  }
+  return out;
+}
+
+/**
+ * 2× nearest-neighbour upsample (returns a fresh `ImageData` with
+ * doubled width and height).
+ *
+ * Use case: very small / distant barcodes where the 1-D bars are
+ * only a few pixels wide. zxing's `RGBLuminanceSource` does no
+ * scaling internally and the binarizer needs at least ≈10× the bar
+ * width per sample to find a stable edge. A 2× upsample doubles the
+ * effective resolution at zero quality cost (nearest-neighbour
+ * preserves the binary edges that the decoder cares about).
+ *
+ * Does not interpolate — deliberately. Bilinear upsampling would
+ * round bar edges and make some Code-128 modules ambiguous; nearest
+ * keeps every pixel a faithful copy of its source.
+ */
+export function applyUpsample(src: ImageData, scale: number = 2): ImageData {
+  const w = src.width;
+  const h = src.height;
+  if (w <= 0 || h <= 0 || scale < 1) {
+    return cloneShape(src);
+  }
+  const k = Math.max(1, Math.floor(scale));
+  const w2 = w * k;
+  const h2 = h * k;
+  const data = new Uint8ClampedArray(w2 * h2 * 4);
+  const s = src.data;
+  for (let y = 0; y < h2; y++) {
+    const sy = Math.floor(y / k);
+    for (let x = 0; x < w2; x++) {
+      const sx = Math.floor(x / k);
+      const si = (sy * w + sx) * 4;
+      const di = (y * w2 + x) * 4;
+      data[di] = s[si] ?? 0;
+      data[di + 1] = s[si + 1] ?? 0;
+      data[di + 2] = s[si + 2] ?? 0;
+      data[di + 3] = s[si + 3] ?? 255;
+    }
+  }
+  if (typeof ImageData === 'function') {
+    try {
+      return new ImageData(data, w2, h2);
+    } catch {
+      // fall through
+    }
+  }
+  return { data, width: w2, height: h2 } as ImageData;
+}
+
+/**
+ * Rotate by 0 / 90 / 180 / 270 degrees clockwise. Returns a fresh
+ * `ImageData` (dimensions swap for 90 / 270). Used by the manual
+ * scan retry pipeline when every angle-0 variant misses — a barcode
+ * shot sideways or upside-down still decodes, just at the cost of an
+ * extra retry round.
+ *
+ * Continuous decode does not rotate, because the rotation would
+ * desync the live tracking overlay's coordinates relative to the
+ * unrotated camera preview.
+ */
+export function applyRotation(
+  src: ImageData,
+  degrees: 0 | 90 | 180 | 270,
+): ImageData {
+  const w = src.width;
+  const h = src.height;
+  if (degrees === 0 || w <= 0 || h <= 0) {
+    const out = cloneShape(src);
+    out.data.set(src.data);
+    return out;
+  }
+  const s = src.data;
+  const w2 = degrees === 180 ? w : h;
+  const h2 = degrees === 180 ? h : w;
+  const data = new Uint8ClampedArray(w2 * h2 * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let nx: number, ny: number;
+      if (degrees === 90) {
+        nx = h - 1 - y;
+        ny = x;
+      } else if (degrees === 180) {
+        nx = w - 1 - x;
+        ny = h - 1 - y;
+      } else {
+        nx = y;
+        ny = w - 1 - x;
+      }
+      const si = (y * w + x) * 4;
+      const di = (ny * w2 + nx) * 4;
+      data[di] = s[si] ?? 0;
+      data[di + 1] = s[si + 1] ?? 0;
+      data[di + 2] = s[si + 2] ?? 0;
+      data[di + 3] = s[si + 3] ?? 255;
+    }
+  }
+  if (typeof ImageData === 'function') {
+    try {
+      return new ImageData(data, w2, h2);
+    } catch {
+      // fall through
+    }
+  }
+  return { data, width: w2, height: h2 } as ImageData;
+}
+
+/**
  * Pick the preprocessing variant requested by the caller.
  *
  * The decoder tries variants in this order:
@@ -317,6 +553,9 @@ export function analyzeImageStats(src: ImageData): ImageStats {
  *   5. `'brighten'`            — gamma 0.5 (rescues under-exposed frames).
  *   6. `'darken'`              — gamma 1.6 (tames overexposed glare).
  *   7. `'adaptiveThreshold'`   — local mean binarisation (uneven lighting / shadow).
+ *   8. `'blur'`                — 3×3 box blur (suppresses moiré from phone screens).
+ *   9. `'unsharp'`             — unsharp mask (recovers soft / out-of-focus frames).
+ *  10. `'upsample'`            — 2× nearest-neighbour scale (small barcodes far away).
  *
  * We expose them as discrete variants rather than as a single
  * configurable pipeline because the manual scan button benefits from
@@ -338,6 +577,12 @@ export function applyPreprocess(src: ImageData, variant: PreprocessVariant): Ima
       return applyGamma(src, 1.6);
     case 'adaptiveThreshold':
       return applyAdaptiveThreshold(src);
+    case 'blur':
+      return applyBoxBlur(src, 1);
+    case 'unsharp':
+      return applyUnsharp(src, { amount: 1.0, radius: 1 });
+    case 'upsample':
+      return applyUpsample(src, 2);
     default: {
       // Exhaustiveness guard. Compile-time `never` ensures all cases
       // are handled; the runtime fallback returns the source unchanged.
@@ -362,10 +607,13 @@ export const MANUAL_RETRY_VARIANTS: PreprocessVariant[] = [
   'normal',
   'contrast',
   'grayscale',
+  'blur',
+  'unsharp',
   'inverted',
   'brighten',
   'darken',
   'adaptiveThreshold',
+  'upsample',
 ];
 
 /**
@@ -386,6 +634,7 @@ export const MANUAL_RETRY_VARIANTS: PreprocessVariant[] = [
 export const CONTINUOUS_VARIANTS: PreprocessVariant[] = [
   'normal',
   'contrast',
+  'blur',
   'inverted',
   'grayscale',
 ];

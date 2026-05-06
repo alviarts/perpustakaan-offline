@@ -150,5 +150,9 @@
     "saveFailed": "Gagal menyimpan profil",
     "loadFailed": "Gagal memuat profil",
     "validationName": "Nama lengkap wajib diisi"
+  },
+  "scanner": {
+    "handScannerDetected": "Hand-scanner USB terdeteksi",
+    "handScannerHint": "Hand-scanner USB siap digunakan — fokuskan ke kolom scan dan pindai barcode."
   }
 }

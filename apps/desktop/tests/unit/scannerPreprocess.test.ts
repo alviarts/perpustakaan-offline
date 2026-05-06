@@ -169,8 +169,24 @@ describe('MANUAL_RETRY_VARIANTS', () => {
     expect(idx('normal')).toBeLessThan(idx('inverted'));
     expect(idx('contrast')).toBeLessThan(idx('inverted'));
     expect(idx('grayscale')).toBeLessThan(idx('inverted'));
-    // Adaptive threshold is the heaviest preprocess and runs last.
-    expect(idx('adaptiveThreshold')).toBe(MANUAL_RETRY_VARIANTS.length - 1);
+    // The v1.0.12 phone-screen Code-128 variants (blur, unsharp,
+    // upsample) sit before the heavy adaptive-threshold pass and the
+    // 2× upsample (most expensive) is dead last.
+    expect(idx('upsample')).toBe(MANUAL_RETRY_VARIANTS.length - 1);
+    // adaptiveThreshold is still the second-heaviest tail variant.
+    expect(idx('adaptiveThreshold')).toBeLessThan(idx('upsample'));
+  });
+});
+
+describe('MANUAL_RETRY_VARIANTS — v1.0.12 additions', () => {
+  it('includes the phone-screen-friendly variants (blur / unsharp / upsample)', () => {
+    // These three rescue Code-128 book labels off a phone screen
+    // (moiré pattern), out-of-focus webcam capture, and small/distant
+    // barcodes respectively. Without them the decoder misses every
+    // book scan from the user complaint at v1.0.11.
+    expect(MANUAL_RETRY_VARIANTS).toContain('blur');
+    expect(MANUAL_RETRY_VARIANTS).toContain('unsharp');
+    expect(MANUAL_RETRY_VARIANTS).toContain('upsample');
   });
 });
 
@@ -185,8 +201,18 @@ describe('CONTINUOUS_VARIANTS', () => {
     expect(CONTINUOUS_VARIANTS).toContain('inverted');
   });
 
-  it('is short enough to cycle within the cooldown window (≤4 variants)', () => {
-    expect(CONTINUOUS_VARIANTS.length).toBeLessThanOrEqual(4);
+  it('includes blur so phone-screen barcodes (moiré) catch in continuous mode', () => {
+    // The v1.0.12 fix specifically targeted the live preview path —
+    // even without clicking "Scan Sekarang" the user must be able to
+    // hold a book label up to the webcam and have it picked up. The
+    // blur variant is what makes that work.
+    expect(CONTINUOUS_VARIANTS).toContain('blur');
+  });
+
+  it('is short enough to cycle within the cooldown window (≤6 variants)', () => {
+    // We keep the continuous tail short so each ROI tick can finish
+    // well within the 80 ms budget. Five variants fit comfortably.
+    expect(CONTINUOUS_VARIANTS.length).toBeLessThanOrEqual(6);
   });
 });
 

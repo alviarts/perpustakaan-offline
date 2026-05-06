@@ -18,6 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { useBarcodeScanner } from '@/features/sirkulasi/useBarcodeScanner';
 import { ScannerOverlay } from '@/features/sirkulasi/ScannerOverlay';
 import { ScannerTrackingOverlay } from '@/features/sirkulasi/ScannerTrackingOverlay';
+import { HandScannerBadge } from '@/features/sirkulasi/HandScannerBadge';
+import { useHandScannerDetector } from '@/lib/scanner/useHandScannerDetector';
 import {
   Dialog,
   DialogContent,
@@ -378,6 +380,15 @@ export function StocktakePage() {
       cooldownMs: 1500,
     });
 
+    // v1.0.12 — surface a "Hand-scanner USB terdeteksi" indicator and
+    // re-route any scanner burst that arrived while the user was
+    // clicked outside the scan field (e.g. inside the camera preview).
+    const handScanner = useHandScannerDetector({
+      onScan: (payload) => {
+        void submitKode(payload);
+      },
+    });
+
     async function handleScan(e: React.FormEvent) {
       e.preventDefault();
       await submitKode(scanInput);
@@ -550,7 +561,10 @@ export function StocktakePage() {
           <Card>
             <CardContent className="flex flex-col gap-2 py-4">
               <div className="flex items-center justify-between gap-2">
-                <Label>{t('stocktake:session.scanLabel')}</Label>
+                <div className="flex items-center gap-2">
+                  <Label>{t('stocktake:session.scanLabel')}</Label>
+                  <HandScannerBadge isDetected={handScanner.isDetected} />
+                </div>
                 <Button
                   type="button"
                   size="sm"

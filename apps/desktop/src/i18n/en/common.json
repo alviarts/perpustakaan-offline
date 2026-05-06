@@ -150,5 +150,9 @@
     "saveFailed": "Failed to save profile",
     "loadFailed": "Failed to load profile",
     "validationName": "Full name is required"
+  },
+  "scanner": {
+    "handScannerDetected": "USB hand-scanner detected",
+    "handScannerHint": "USB hand-scanner is ready — focus the scan field and pull the trigger."
   }
 }
