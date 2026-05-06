@@ -39,5 +39,42 @@
     "subtitle": "{{count}} buku belum dikembalikan",
     "unitDays": "hari",
     "viewAll": "Lihat semua di Peminjaman →"
+  },
+  "dow": {
+    "sun": "Min",
+    "mon": "Sen",
+    "tue": "Sel",
+    "wed": "Rab",
+    "thu": "Kam",
+    "fri": "Jum",
+    "sat": "Sab"
+  },
+  "trend": {
+    "title": "Trend Peminjaman",
+    "subtitle": "Aktivitas peminjaman per periode",
+    "windowLabel": "Pilih periode",
+    "drilldown": "Lihat laporan detail",
+    "windows": {
+      "days7": "7 hari",
+      "days30": "30 hari",
+      "months6": "6 bulan",
+      "year1": "1 tahun"
+    }
+  },
+  "heatmap": {
+    "title": "Waktu Populer",
+    "subtitle": "Aktivitas pinjam per jam (6 minggu terakhir)",
+    "tooltip": "{{day}} · {{hour}}:00 — {{count}} pinjam"
+  },
+  "insights": {
+    "topBuku": "Buku terlaris bulan ini",
+    "topBukuSubline": "{{count}}× dipinjam",
+    "topPeminjam": "Peminjam teraktif",
+    "avgLoans": "Rata-rata pinjam / anggota",
+    "avgLoansSubline": "Pinjaman per anggota aktif",
+    "avgDuration": "Rata-rata durasi pinjam",
+    "avgDurationSubline": "Berdasarkan buku yang sudah dikembalikan",
+    "daysValue": "{{value}} hari",
+    "empty": "Belum ada data"
   }
 }

@@ -79,4 +79,67 @@ describe('dashboardApi (browser mock)', () => {
       expect(tb[i - 1]!.jumlah).toBeGreaterThanOrEqual(tb[i]!.jumlah);
     }
   });
+
+  // FEAT-25 — extended analytics mock RPC.
+  it('trend(days7) returns 7 buckets with YYYY-MM-DD keys ending today', async () => {
+    const trend = await dashboardApi.trend('days7');
+    expect(trend).toHaveLength(7);
+    const today = new Date().toISOString().slice(0, 10);
+    expect(trend[trend.length - 1]!.bucket).toBe(today);
+    for (const b of trend) {
+      expect(b.bucket).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(b.count).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('trend(days30) returns 30 buckets', async () => {
+    const trend = await dashboardApi.trend('days30');
+    expect(trend).toHaveLength(30);
+  });
+
+  it('trend(months6) returns 6 buckets with YYYY-MM keys', async () => {
+    const trend = await dashboardApi.trend('months6');
+    expect(trend).toHaveLength(6);
+    for (const b of trend) {
+      expect(b.bucket).toMatch(/^\d{4}-\d{2}$/);
+    }
+  });
+
+  it('trend(year1) returns 12 buckets', async () => {
+    const trend = await dashboardApi.trend('year1');
+    expect(trend).toHaveLength(12);
+  });
+
+  it('heatmap returns 168 cells covering the full 7×24 grid', async () => {
+    const cells = await dashboardApi.heatmap();
+    expect(cells).toHaveLength(168);
+    // Every (dow, hour) pair must be present exactly once.
+    const seen = new Set<string>();
+    for (const c of cells) {
+      expect(c.dow).toBeGreaterThanOrEqual(0);
+      expect(c.dow).toBeLessThanOrEqual(6);
+      expect(c.hour).toBeGreaterThanOrEqual(0);
+      expect(c.hour).toBeLessThanOrEqual(23);
+      const k = `${c.dow}-${c.hour}`;
+      expect(seen.has(k)).toBe(false);
+      seen.add(k);
+    }
+    expect(seen.size).toBe(168);
+  });
+
+  it('insights returns finite numeric averages and structured top entries', async () => {
+    const ins = await dashboardApi.insights();
+    expect(Number.isFinite(ins.avgLoansPerMember)).toBe(true);
+    expect(Number.isFinite(ins.avgLoanDurationDays)).toBe(true);
+    expect(ins.avgLoansPerMember).toBeGreaterThanOrEqual(0);
+    expect(ins.avgLoanDurationDays).toBeGreaterThanOrEqual(0);
+    if (ins.topBukuThisMonth) {
+      expect(ins.topBukuThisMonth.judul).toBeTypeOf('string');
+      expect(ins.topBukuThisMonth.jumlah).toBeGreaterThan(0);
+    }
+    if (ins.topPeminjamThisMonth) {
+      expect(ins.topPeminjamThisMonth.nama).toBeTypeOf('string');
+      expect(ins.topPeminjamThisMonth.jumlah).toBeGreaterThan(0);
+    }
+  });
 });

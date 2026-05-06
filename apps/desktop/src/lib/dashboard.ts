@@ -40,12 +40,42 @@ export interface TopBuku {
   jumlah: number;
 }
 
+/**
+ * FEAT-25 — extended analytics. The trend chart toggles between four time
+ * windows; each window has a deterministic bucket count and key format so
+ * the front-end can pre-allocate axis ticks without an extra round trip.
+ */
+export type TrendWindow = 'days7' | 'days30' | 'months6' | 'year1';
+
+export interface TrendBucket {
+  /** YYYY-MM-DD for daily buckets, YYYY-MM for monthly buckets. */
+  bucket: string;
+  count: number;
+}
+
+export interface HeatCell {
+  /** Day of week, 0 = Sunday … 6 = Saturday (matches SQLite strftime('%w')). */
+  dow: number;
+  hour: number;
+  count: number;
+}
+
+export interface DashboardInsights {
+  topBukuThisMonth: TopBuku | null;
+  topPeminjamThisMonth: TopPeminjam | null;
+  avgLoansPerMember: number;
+  avgLoanDurationDays: number;
+}
+
 export interface DashboardRpc {
   kpi: () => Promise<DashboardKpi>;
   ddc: () => Promise<DdcSlice[]>;
   kunjungan7d: () => Promise<DayBucket[]>;
   topPeminjam: (limit?: number) => Promise<TopPeminjam[]>;
   topBuku: (limit?: number) => Promise<TopBuku[]>;
+  trend: (window: TrendWindow) => Promise<TrendBucket[]>;
+  heatmap: () => Promise<HeatCell[]>;
+  insights: () => Promise<DashboardInsights>;
 }
 
 const tauriRpc: DashboardRpc = {
@@ -54,6 +84,12 @@ const tauriRpc: DashboardRpc = {
   kunjungan7d: () => invoke<DayBucket[]>('dashboard_kunjungan_7d'),
   topPeminjam: (limit) => invoke<TopPeminjam[]>('dashboard_top_peminjam', { limit }),
   topBuku: (limit) => invoke<TopBuku[]>('dashboard_top_buku', { limit }),
+  // Tauri serializes the rust enum `TrendWindow::Days7` as the string "Days7",
+  // but `#[serde(alias = "days7")]` on the enum lets us send the lowercase
+  // camelCase form here for ergonomic TS-side typing. Same for the others.
+  trend: (window) => invoke<TrendBucket[]>('dashboard_trend', { window }),
+  heatmap: () => invoke<HeatCell[]>('dashboard_heatmap'),
+  insights: () => invoke<DashboardInsights>('dashboard_insights'),
 };
 
 const DDC_LABELS: Record<string, string> = {
@@ -133,6 +169,67 @@ const mockRpc: DashboardRpc = {
       { bukuId: 4, kode: 'B0123', judul: 'Atomic Habits', pengarang: 'James Clear', jumlah: 11 },
       { bukuId: 5, kode: 'B0211', judul: 'Sapiens', pengarang: 'Yuval Noah Harari', jumlah: 9 },
     ];
+  },
+  async trend(window) {
+    const today = new Date();
+    if (window === 'days7' || window === 'days30') {
+      const days = window === 'days7' ? 7 : 30;
+      return Array.from({ length: days }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() - (days - 1 - i));
+        const bucket = d.toISOString().slice(0, 10);
+        const count = Math.max(0, 6 + ((i * 13 + 7) % 12) - (i % 4));
+        return { bucket, count };
+      });
+    }
+    const months = window === 'months6' ? 6 : 12;
+    return Array.from({ length: months }, (_, i) => {
+      const d = new Date(today.getFullYear(), today.getMonth() - (months - 1 - i), 1);
+      const bucket = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const count = 40 + ((i * 23 + 11) % 60);
+      return { bucket, count };
+    });
+  },
+  async heatmap() {
+    // Synthesise a plausible "school-hours-heavy" pattern: weekday 8-15 is hot,
+    // weekday evening is warm, weekend low. Helps the UI look realistic in
+    // browser dev mode without a backing DB.
+    const cells: HeatCell[] = [];
+    for (let dow = 0; dow < 7; dow += 1) {
+      for (let hour = 0; hour < 24; hour += 1) {
+        const isWeekend = dow === 0 || dow === 6;
+        let count = 0;
+        if (!isWeekend && hour >= 8 && hour < 16) {
+          count = 4 + ((dow * 7 + hour * 3) % 9);
+        } else if (!isWeekend && hour >= 16 && hour < 20) {
+          count = 1 + ((dow + hour) % 3);
+        } else if (isWeekend && hour >= 9 && hour < 14) {
+          count = 1 + ((hour + dow) % 2);
+        }
+        cells.push({ dow, hour, count });
+      }
+    }
+    return cells;
+  },
+  async insights() {
+    return {
+      topBukuThisMonth: {
+        bukuId: 1,
+        kode: 'B0042',
+        judul: 'Bumi Manusia',
+        pengarang: 'Pramoedya A. Toer',
+        jumlah: 12,
+      },
+      topPeminjamThisMonth: {
+        anggotaId: 1,
+        nama: 'Adelia Putri',
+        kodeAnggota: 'A0007',
+        kelas: 'XI IPA 1',
+        jumlah: 8,
+      },
+      avgLoansPerMember: 3.2,
+      avgLoanDurationDays: 5.8,
+    };
   },
 };
 

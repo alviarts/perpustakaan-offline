@@ -1,13 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
-import { Users, BookOpen, ArrowLeftRight, BookPlus, UserPlus, Sparkles, Quote } from 'lucide-react';
+import {
+  Users,
+  BookOpen,
+  ArrowLeftRight,
+  BookPlus,
+  UserPlus,
+  Sparkles,
+  Quote,
+  TrendingUp,
+  Trophy,
+  Timer,
+  Calculator,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { KpiCard } from '@/components/shared/KpiCard';
 import { ChartPie } from '@/components/shared/ChartPie';
 import { ChartBar } from '@/components/shared/ChartBar';
+import { ChartLine } from '@/components/shared/ChartLine';
+import { Heatmap } from '@/components/shared/Heatmap';
 import { LiveClock } from '@/components/shared/LiveClock';
 import { OverduePanel } from '@/features/dashboard/OverduePanel';
 import { getQuoteByIndex, pickNextQuoteIndex, quoteIndexForDate } from '@/lib/dailyQuote';
@@ -15,11 +29,15 @@ import { formatTauriError } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import {
   dashboardApi,
+  type DashboardInsights,
   type DashboardKpi,
   type DdcSlice,
   type DayBucket,
+  type HeatCell,
   type TopBuku,
   type TopPeminjam,
+  type TrendBucket,
+  type TrendWindow,
 } from '@/lib/dashboard';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -36,6 +54,8 @@ interface DashboardData {
   kunjungan: DayBucket[];
   topPeminjam: TopPeminjam[];
   topBuku: TopBuku[];
+  heatmap: HeatCell[];
+  insights: DashboardInsights;
 }
 
 /**
@@ -58,6 +78,12 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // FEAT-25: trend window toggle (7d / 30d / 6m / 1y). Default 30d, the
+  // sweet spot for at-a-glance "how busy was the library this month?".
+  const [trendWindow, setTrendWindow] = useState<TrendWindow>('days30');
+  const [trendData, setTrendData] = useState<TrendBucket[]>([]);
+  const [trendLoading, setTrendLoading] = useState(true);
+
   useEffect(() => {
     let cancel = false;
     setLoading(true);
@@ -67,10 +93,12 @@ export function DashboardPage() {
       dashboardApi.kunjungan7d(),
       dashboardApi.topPeminjam(5),
       dashboardApi.topBuku(5),
+      dashboardApi.heatmap(),
+      dashboardApi.insights(),
     ])
-      .then(([kpi, ddc, kunjungan, topPeminjam, topBuku]) => {
+      .then(([kpi, ddc, kunjungan, topPeminjam, topBuku, heatmap, insights]) => {
         if (cancel) return;
-        setData({ kpi, ddc, kunjungan, topPeminjam, topBuku });
+        setData({ kpi, ddc, kunjungan, topPeminjam, topBuku, heatmap, insights });
       })
       .catch((err) => {
         if (cancel) return;
@@ -83,6 +111,30 @@ export function DashboardPage() {
       cancel = true;
     };
   }, []);
+
+  // Trend window has its own loader so toggling between 7d/30d/6m/1y doesn't
+  // re-fetch the rest of the dashboard. We intentionally allow stale display
+  // (no skeleton) while the next window resolves to keep the UI responsive.
+  useEffect(() => {
+    let cancel = false;
+    setTrendLoading(true);
+    dashboardApi
+      .trend(trendWindow)
+      .then((rows) => {
+        if (cancel) return;
+        setTrendData(rows);
+      })
+      .catch((err) => {
+        if (cancel) return;
+        setError(formatTauriError(err));
+      })
+      .finally(() => {
+        if (!cancel) setTrendLoading(false);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [trendWindow]);
 
   const kpi = data?.kpi;
   const isEmpty =
@@ -119,6 +171,59 @@ export function DashboardPage() {
   }, []);
 
   const dailyQuote = getQuoteByIndex(quoteIndex);
+
+  // Trend datapoints rendered into the line chart. Daily windows show "DD/MM"
+  // labels, monthly windows show "Mon" (short month name in current locale).
+  const trendChartData = useMemo(
+    () =>
+      trendData.map((b) => {
+        let label = b.bucket;
+        if (b.bucket.length === 10) {
+          // YYYY-MM-DD daily bucket → "DD/MM".
+          const d = new Date(`${b.bucket}T00:00:00`);
+          label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+        } else if (b.bucket.length === 7) {
+          // YYYY-MM monthly bucket → short month in current locale + 2-digit year.
+          const [year = '', month = '1'] = b.bucket.split('-');
+          const d = new Date(Number(year), Number(month) - 1, 1);
+          label = d.toLocaleDateString(undefined, { month: 'short' }) + ` '${year.slice(2)}`;
+        }
+        return { key: b.bucket, label, value: b.count };
+      }),
+    [trendData],
+  );
+
+  const heatmapDayLabels = useMemo(
+    () => [
+      t('dashboard:dow.sun', { defaultValue: 'Min' }),
+      t('dashboard:dow.mon', { defaultValue: 'Sen' }),
+      t('dashboard:dow.tue', { defaultValue: 'Sel' }),
+      t('dashboard:dow.wed', { defaultValue: 'Rab' }),
+      t('dashboard:dow.thu', { defaultValue: 'Kam' }),
+      t('dashboard:dow.fri', { defaultValue: 'Jum' }),
+      t('dashboard:dow.sat', { defaultValue: 'Sab' }),
+    ],
+    [t],
+  );
+
+  const trendWindowOptions: Array<{ key: TrendWindow; label: string }> = [
+    {
+      key: 'days7',
+      label: t('dashboard:trend.windows.days7', { defaultValue: '7 hari' }),
+    },
+    {
+      key: 'days30',
+      label: t('dashboard:trend.windows.days30', { defaultValue: '30 hari' }),
+    },
+    {
+      key: 'months6',
+      label: t('dashboard:trend.windows.months6', { defaultValue: '6 bulan' }),
+    },
+    {
+      key: 'year1',
+      label: t('dashboard:trend.windows.year1', { defaultValue: '1 tahun' }),
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6 p-6" data-testid="dashboard-page">
@@ -222,6 +327,182 @@ export function DashboardPage() {
           </section>
 
           <OverduePanel />
+
+          {/* FEAT-25 — Insights cards (top buku, top peminjam, avg loans, avg duration). */}
+          <section
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            data-testid="insights-row"
+          >
+            <InsightCard
+              loading={loading}
+              Icon={Trophy}
+              tone="amber"
+              label={t('dashboard:insights.topBuku', {
+                defaultValue: 'Buku terlaris bulan ini',
+              })}
+              primary={data?.insights.topBukuThisMonth?.judul ?? '—'}
+              secondary={
+                data?.insights.topBukuThisMonth
+                  ? t('dashboard:insights.topBukuSubline', {
+                      count: data.insights.topBukuThisMonth.jumlah,
+                      defaultValue: '{{count}}× dipinjam',
+                    })
+                  : t('dashboard:insights.empty', { defaultValue: 'Belum ada data' })
+              }
+            />
+            <InsightCard
+              loading={loading}
+              Icon={TrendingUp}
+              tone="primary"
+              label={t('dashboard:insights.topPeminjam', {
+                defaultValue: 'Peminjam teraktif',
+              })}
+              primary={data?.insights.topPeminjamThisMonth?.nama ?? '—'}
+              secondary={
+                data?.insights.topPeminjamThisMonth
+                  ? `${data.insights.topPeminjamThisMonth.kodeAnggota}${
+                      data.insights.topPeminjamThisMonth.kelas
+                        ? ` · ${data.insights.topPeminjamThisMonth.kelas}`
+                        : ''
+                    }`
+                  : t('dashboard:insights.empty', { defaultValue: 'Belum ada data' })
+              }
+            />
+            <InsightCard
+              loading={loading}
+              Icon={Calculator}
+              tone="emerald"
+              label={t('dashboard:insights.avgLoans', {
+                defaultValue: 'Rata-rata pinjam / anggota',
+              })}
+              primary={
+                data?.insights
+                  ? data.insights.avgLoansPerMember.toFixed(1)
+                  : '—'
+              }
+              secondary={t('dashboard:insights.avgLoansSubline', {
+                defaultValue: 'Pinjaman per anggota aktif',
+              })}
+            />
+            <InsightCard
+              loading={loading}
+              Icon={Timer}
+              tone="amber"
+              label={t('dashboard:insights.avgDuration', {
+                defaultValue: 'Rata-rata durasi pinjam',
+              })}
+              primary={
+                data?.insights
+                  ? t('dashboard:insights.daysValue', {
+                      count: Number(data.insights.avgLoanDurationDays.toFixed(1)),
+                      value: data.insights.avgLoanDurationDays.toFixed(1),
+                      defaultValue: '{{value}} hari',
+                    })
+                  : '—'
+              }
+              secondary={t('dashboard:insights.avgDurationSubline', {
+                defaultValue: 'Berdasarkan buku yang sudah dikembalikan',
+              })}
+            />
+          </section>
+
+          {/* FEAT-25 — Trend line + Heatmap waktu populer. */}
+          <section className="grid gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2" data-testid="trend-card">
+              <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
+                <div>
+                  <CardTitle className="text-base">
+                    {t('dashboard:trend.title', { defaultValue: 'Trend Peminjaman' })}
+                  </CardTitle>
+                  <CardDescription>
+                    {t('dashboard:trend.subtitle', {
+                      defaultValue: 'Aktivitas peminjaman per periode',
+                    })}
+                  </CardDescription>
+                </div>
+                <div
+                  className="inline-flex shrink-0 rounded-md border bg-muted/40 p-0.5"
+                  role="tablist"
+                  aria-label={t('dashboard:trend.windowLabel', {
+                    defaultValue: 'Pilih periode',
+                  })}
+                  data-testid="trend-window-toggle"
+                >
+                  {trendWindowOptions.map((opt) => {
+                    const active = opt.key === trendWindow;
+                    return (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setTrendWindow(opt.key)}
+                        className={cn(
+                          'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                          active
+                            ? 'bg-background text-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground',
+                        )}
+                        data-testid={`trend-window-${opt.key}`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                {loading || (trendLoading && trendChartData.length === 0) ? (
+                  <Skeleton className="h-[200px] w-full" />
+                ) : (
+                  <Link
+                    to="/laporan/grafik"
+                    className="block rounded-md ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label={t('dashboard:trend.drilldown', {
+                      defaultValue: 'Lihat laporan detail',
+                    })}
+                    data-testid="trend-drilldown-link"
+                  >
+                    <ChartLine
+                      data={trendChartData}
+                      maxXTicks={trendWindow === 'days7' ? 7 : trendWindow === 'months6' ? 6 : 6}
+                    />
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card data-testid="heatmap-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">
+                  {t('dashboard:heatmap.title', { defaultValue: 'Waktu Populer' })}
+                </CardTitle>
+                <CardDescription>
+                  {t('dashboard:heatmap.subtitle', {
+                    defaultValue: 'Aktivitas pinjam per jam (6 minggu terakhir)',
+                  })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-4">
+                {loading ? (
+                  <Skeleton className="h-[200px] w-full" />
+                ) : (
+                  <Heatmap
+                    data={data?.heatmap ?? []}
+                    dayLabels={heatmapDayLabels}
+                    formatTooltip={(c, dayLabel) =>
+                      t('dashboard:heatmap.tooltip', {
+                        day: dayLabel,
+                        hour: String(c.hour).padStart(2, '0'),
+                        count: c.count,
+                        defaultValue: '{{day}} · {{hour}}:00 — {{count}} pinjam',
+                      })
+                    }
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </section>
 
           <section className="grid gap-4 lg:grid-cols-2">
             <Card>
@@ -349,6 +630,47 @@ export function DashboardPage() {
         </>
       )}
     </div>
+  );
+}
+
+interface InsightCardProps {
+  loading: boolean;
+  Icon: React.ComponentType<{ className?: string }>;
+  /** Visual tone — maps to a tinted icon background. */
+  tone: 'primary' | 'amber' | 'emerald';
+  label: string;
+  primary: string;
+  secondary?: string;
+}
+
+function InsightCard({ loading, Icon, tone, label, primary, secondary }: InsightCardProps) {
+  const toneClass =
+    tone === 'amber'
+      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+      : tone === 'emerald'
+        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+        : 'bg-primary/10 text-primary';
+  return (
+    <Card data-testid="insight-card">
+      <CardContent className="flex items-start gap-3 p-4">
+        <div className={cn('rounded-md p-2', toneClass)}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">
+            {label}
+          </span>
+          {loading ? (
+            <Skeleton className="mt-1 h-5 w-2/3" />
+          ) : (
+            <span className="truncate text-base font-semibold tabular-nums">{primary}</span>
+          )}
+          {secondary && !loading && (
+            <span className="truncate text-xs text-muted-foreground">{secondary}</span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
