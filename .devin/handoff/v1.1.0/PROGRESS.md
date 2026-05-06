@@ -23,7 +23,7 @@ treats locks older than 24 h as stale and may take over.
 | FEAT-Dashboard-Quotes-2min      | Quote rotate every 2 min + manual next button            | —          | DONE   | #148 | 2026-05-06 | 2026-05-06   |
 | FEAT-Quotes-Library             | +30 perpustakaan/literasi quotes appended                | —          | DONE   | #149 | 2026-05-06 | 2026-05-06   |
 | FEAT-Sirkulasi-Search           | Wire ScanSearchInput, anggota+buku search dropdown       | —          | DONE   | #150 | 2026-05-06 | 2026-05-06   |
-| FEAT-OPAC-PostScanProfile       | Post-scan profile (loans, denda, kunjungan, reservasi)   | —          | PAUSED |     |            |              |
+| FEAT-OPAC-PostScanProfile       | Post-scan profile (loans, denda, kunjungan, reservasi)   | —          | IN_PROGRESS_BY_devin-c6e882bf432b47a0bd0340b111941348:2026-05-06T22:08Z |     |            |              |
 | FEAT-OPAC-Scan-Locked           | Scan KTA blocks if member already logged in              | FEAT-OPAC-PostScanProfile | OPEN | | | |
 | A1-CommandPalette               | Extend GlobalSearchDialog with route + action commands   | —          | OPEN   |     |            |              |
 | A2-SkeletonScreens              | Replace spinners with skeleton placeholders in tables    | —          | OPEN   |     |            |              |

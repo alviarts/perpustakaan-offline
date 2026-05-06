@@ -179,3 +179,12 @@ Serves as the "who did what when" for cross-session debugging.
              "FEAT-OPAC-PostScanProfile" for the spec. Files affected:
              apps/desktop/src/features/opac/* and the post-KTA-scan
              flow inside OpacKtaScanFlow.tsx.
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    STARTED
+  item:      FEAT-OPAC-PostScanProfile
+  pr:        null
+  started_at:   2026-05-06T22:08Z
+  notes:     Resumed after user said "lanjut pause di 8". Claiming
+             item 7 now; will implement and merge then pause before
+             item 8 (FEAT-OPAC-Scan-Locked).
