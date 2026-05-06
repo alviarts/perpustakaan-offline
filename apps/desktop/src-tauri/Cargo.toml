@@ -34,6 +34,9 @@ sha2 = "0.10"
 base64 = "0.22"
 opener = "0.7"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "webp"] }
+# FEAT-24 — encrypted backup
+aes-gcm = "0.10"
+pbkdf2 = { version = "0.12", features = ["simple"] }
 
 [dev-dependencies]
 tempfile = "3"
