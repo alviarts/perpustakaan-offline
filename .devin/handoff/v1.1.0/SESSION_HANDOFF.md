@@ -75,6 +75,21 @@
 Pick up the v1.1.0 batch on alviarts/perpustakaan-offline in continuous
 autonomous mode.
 
+>>> READ THIS FIRST — DO NOT SKIP <<<
+Before doing anything else, open
+.devin/handoff/v1.1.0/SESSION_HANDOFF.md and read the
+"CURRENT PICKUP STATE" block at the very top. The previous
+Devin paused mid-flight on D1-SystemHealthWidget — draft PR
+#156 is functionally complete with all local gates green.
+Your FIRST job is to finish D1 (CI green → flip ready →
+squash-merge → mark DONE on PROGRESS.md) before claiming
+any new item. Only AFTER D1 is merged + marked DONE do you
+proceed to D5-SandboxDemoMode → E1-OPACBukuPilihan → RELEASE 1.1.0.
+Ignoring this and re-claiming D1 from scratch will throw away
+~2 hours of green code already on the feature branch
+`devin/1778110600-feat-system-health`.
+>>> END READ-FIRST BLOCK <<<
+
 ## Setup
 
 1. The repo is already cloned to /home/ubuntu/repos/perpustakaan-offline
