@@ -22,6 +22,7 @@ pub mod reservasi;
 pub mod settings;
 pub mod stocktake;
 pub mod surat;
+pub mod sync;
 pub mod user_profile;
 pub mod window_state;
 pub mod wishlist;

@@ -33,6 +33,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(BACKUP_HISTORY_SQL)?;
     conn.execute_batch(SURAT_SQL)?;
     conn.execute_batch(WISHLIST_SQL)?;
+    conn.execute_batch(SYNC_SQL)?;
     apply_additive_migrations(conn)?;
     seed_master_data(conn)?;
     seed_kta_default_template(conn)?;
@@ -83,6 +84,36 @@ CREATE TABLE IF NOT EXISTS wishlist_buku (
 CREATE INDEX IF NOT EXISTS idx_wishlist_status ON wishlist_buku(status);
 CREATE INDEX IF NOT EXISTS idx_wishlist_anggota ON wishlist_buku(anggota_id);
 "#;
+
+/// Sync metadata tables for FEAT-26 Google Sheets bidirectional sync (PR G
+/// v1.0.8). `sync_state` keeps a per-table cursor (last successful push/pull
+/// timestamps + a content-hash sentinel that lets us short-circuit no-op
+/// pushes); `sync_log` is an append-only audit trail rendered in the
+/// Sinkronisasi page so the admin can see what happened on the last cycle.
+const SYNC_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS sync_state (
+    table_name      TEXT PRIMARY KEY,
+    last_push_at    TEXT,
+    last_pull_at    TEXT,
+    last_push_hash  TEXT,
+    last_pull_hash  TEXT,
+    rows_pushed     INTEGER NOT NULL DEFAULT 0,
+    rows_pulled     INTEGER NOT NULL DEFAULT 0,
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS sync_log (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts           TEXT NOT NULL DEFAULT (datetime('now')),
+    direction    TEXT NOT NULL CHECK (direction IN ('push','pull','test')),
+    table_name   TEXT NOT NULL,
+    status       TEXT NOT NULL CHECK (status IN ('ok','error','skipped','noop')),
+    rows_changed INTEGER NOT NULL DEFAULT 0,
+    message      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sync_log_ts ON sync_log(ts DESC);
+"#;
+
 
 const KTA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS kta_templates (

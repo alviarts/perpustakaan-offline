@@ -175,14 +175,55 @@
         "enabled": "Enable sync",
         "spreadsheetId": "Spreadsheet ID",
         "apiKey": "API Key",
+        "serviceAccount": "Service Account JSON",
         "lastSync": "Last sync"
       },
       "syncNow": "Sync now",
       "syncSuccess": "Sync succeeded.",
       "syncError": "Sync failed.",
+      "actions": {
+        "test": "Test Connection",
+        "push": "Push Now",
+        "pull": "Pull Now",
+        "refresh": "Refresh status"
+      },
+      "serviceAccount": {
+        "savedTitle": "Service Account active",
+        "notConfigured": "No Service Account JSON yet. Paste the JSON from Google Cloud Console below and click Save.",
+        "save": "Save Service Account",
+        "saving": "Saving…",
+        "clear": "Clear Service Account",
+        "show": "Show",
+        "hide": "Hide",
+        "placeholder": "{ \"type\": \"service_account\", \"project_id\": \"...\", ... }",
+        "privacy": "The JSON is stored only on this computer; it is never sent to any server other than Google Sheets."
+      },
+      "toast": {
+        "saSaved": "Service Account JSON saved.",
+        "saCleared": "Service Account JSON cleared.",
+        "saSaveError": "Service Account JSON is invalid.",
+        "testOk": "Connected to Sheets.",
+        "testOkDesc": "Spreadsheet \"{{title}}\" • {{count}} tabs",
+        "testError": "Connection test failed.",
+        "pushOk": "Push complete: {{count}} rows.",
+        "pushError": "Push failed.",
+        "pullOk": "Pull complete: {{count}} rows.",
+        "pullError": "Pull failed."
+      },
+      "status": {
+        "title": "Sync Status",
+        "configured": "Spreadsheet ID and Service Account are configured.",
+        "notConfigured": "Not ready — set Spreadsheet ID and Service Account first.",
+        "tablesTitle": "Per-table",
+        "tablesEmpty": "No push/pull yet.",
+        "logTitle": "Recent activity",
+        "logEmpty": "No log entries yet.",
+        "lastPush": "Last push",
+        "lastPull": "Last pull"
+      },
       "guide": {
-        "title": "How to get Spreadsheet ID & API Key",
-        "intro": "Synchronization needs two values: the Spreadsheet ID of the Google Sheet you want to sync to, and a Google Cloud API key that can call the Google Sheets API. Follow these steps.",
+        "title": "How to set up the spreadsheet & Service Account",
+        "intro": "Synchronization needs two things: the Spreadsheet ID of the Google Sheet you want to sync to, and a Service Account JSON from Google Cloud Console that has been shared on the spreadsheet as Editor. Follow these steps.",
         "spreadsheetId": {
           "title": "1. Spreadsheet ID",
           "step1": "Open the Google Sheet you want to use (or create a new one at https://sheets.google.com).",
@@ -191,26 +232,29 @@
           "step3": "Copy the ID portion — the long token between /d/ and /edit. In the example above it is: 1aBcDeFgHIjkLMNopQRstUvWxYz0123456789AbcDe.",
           "step4": "Paste it into the Spreadsheet ID field above."
         },
-        "apiKey": {
-          "title": "2. API Key (Google Cloud Console)",
+        "serviceAccount": {
+          "title": "2. Service Account (Google Cloud Console)",
           "step1": "Open the Google Cloud Console at https://console.cloud.google.com/. Sign in with the same Google account (free, no credit card required).",
           "step2": "Create a new project (or pick an existing one) from the project picker in the top-left.",
           "step3": "Enable the Google Sheets API: open https://console.cloud.google.com/apis/library/sheets.googleapis.com and click Enable.",
-          "step4": "Open APIs & Services → Credentials, then click Create Credentials → API key. A new key will appear.",
-          "step5": "Copy the API key value (it is a long string starting with AIza...) and paste it into the API Key field above.",
-          "step6": "Recommended: click the API key name, then under API restrictions choose Restrict key and check only Google Sheets API so the key cannot be misused."
+          "step4": "Open IAM & Admin → Service Accounts, click Create Service Account, give it a name (e.g. perpustakaan-sync), then Done.",
+          "step5": "After the Service Account is created, click it → Keys tab → Add Key → Create new key → JSON → Create. Your browser will download a JSON file.",
+          "step6": "Open the downloaded JSON in a text editor, copy the entire contents (from { to }), then paste into the Service Account JSON field above.",
+          "step7": "Click Save Service Account. The Service Account email will appear in the green box (its format is xxx@<project>.iam.gserviceaccount.com)."
         },
         "sharing": {
-          "title": "3. Spreadsheet sharing settings",
-          "intro": "Because synchronization uses an API key (not OAuth), the spreadsheet must be readable by anyone with the link so the API key can access it:",
+          "title": "3. Share the spreadsheet with the Service Account",
+          "intro": "Unlike API keys, Service Accounts need Editor access on the spreadsheet to be able to write (push). For pull-only use, Viewer is enough. Steps:",
           "step1": "Open the spreadsheet → click the Share button (top-right).",
-          "step2": "Under General access, pick Anyone with the link.",
-          "step3": "Set the role to Viewer (read only) — or Editor if the app needs to write back to the sheet.",
-          "step4": "Click Done. The spreadsheet is now reachable with your API key."
+          "step2": "Paste the Service Account email from the green box above (xxx@<project>.iam.gserviceaccount.com).",
+          "step3": "Pick the Editor role.",
+          "step4": "Uncheck \"Notify people\" — Service Accounts don't have an inbox.",
+          "step5": "Click Share, then Done. The spreadsheet is now writable by your Service Account."
         },
         "openCloudConsole": "Open Google Cloud Console",
+        "openServiceAccounts": "Open Service Accounts",
         "openSheetsApi": "Open Google Sheets API page",
-        "devNote": "Note: the synchronization backend is still under development. The Spreadsheet ID and API Key you save now will be stored locally and used automatically once full sync ships in a future release."
+        "devNote": "Note: this PR covers push & pull for the Anggota table. Other tables (buku, eksemplar, peminjaman, …) will follow in subsequent releases."
       }
     },
     "auditLog": {

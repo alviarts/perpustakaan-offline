@@ -72,8 +72,20 @@ export const DEFAULT_CLOSE_BEHAVIOR: CloseBehavior = 'exit';
 export interface SyncConfig {
   enabled: boolean;
   spreadsheetId: string;
+  /** Legacy v1.0.6 read-only API-key field. Kept for backwards compatibility
+   * but no longer used by the Tauri push/pull commands (which need a
+   * Service Account for write access). FEAT-26 v1.0.8 introduced
+   * `serviceAccountConfigured` instead — the JSON itself never round-trips
+   * through the renderer, only a boolean signalling whether one is saved. */
   apiKey: string;
   lastSync: string | null;
+  /** True when a Service Account JSON has been pasted+validated by the
+   * Tauri backend (`sync_save_service_account`). Used to gate Push/Pull
+   * buttons in Pengaturan → Sinkronisasi. */
+  serviceAccountConfigured: boolean;
+  /** Email of the configured Service Account (read-only display, derived
+   * from the saved JSON's `client_email` field). Empty when none saved. */
+  serviceAccountEmail: string;
 }
 
 export const DEFAULT_SYNC_CONFIG: SyncConfig = {
@@ -81,7 +93,55 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   spreadsheetId: '',
   apiKey: '',
   lastSync: null,
+  serviceAccountConfigured: false,
+  serviceAccountEmail: '',
 };
+
+// FEAT-26 v1.0.8 — Sheets sync runtime types (status panel + run results).
+
+export interface SyncStateRow {
+  table_name: string;
+  last_push_at: string | null;
+  last_pull_at: string | null;
+  last_push_hash: string | null;
+  last_pull_hash: string | null;
+  rows_pushed: number;
+  rows_pulled: number;
+  updated_at: string;
+}
+
+export interface SyncLogEntry {
+  id: number;
+  ts: string;
+  direction: 'push' | 'pull' | 'test';
+  table_name: string;
+  status: 'ok' | 'error' | 'skipped' | 'noop';
+  rows_changed: number;
+  message: string | null;
+}
+
+export interface SyncStatusSnapshot {
+  configured: boolean;
+  enabled: boolean;
+  spreadsheet_id: string;
+  service_account_email: string;
+  states: SyncStateRow[];
+  log: SyncLogEntry[];
+}
+
+export interface SyncRunResult {
+  direction: 'push' | 'pull' | 'test';
+  rows_changed: number;
+  status: 'ok' | 'error' | 'skipped' | 'noop';
+  message: string;
+}
+
+export interface SyncTestResult {
+  ok: boolean;
+  spreadsheet_title: string;
+  tabs: string[];
+  service_account_email: string;
+}
 
 // ---------------------------------------------------------------------------
 // Users
@@ -301,6 +361,12 @@ export interface SettingsApi {
   saveSyncConfig(cfg: SyncConfig): Promise<SyncConfig>;
   resetSyncConfig(): Promise<SyncConfig>;
   syncNow(): Promise<SyncConfig>;
+  // FEAT-26 v1.0.8 — Service-Account-based bidirectional sync
+  saveServiceAccountJson(json: string): Promise<void>;
+  testSyncConnection(): Promise<SyncTestResult>;
+  pushSyncNow(): Promise<SyncRunResult[]>;
+  pullSyncNow(): Promise<SyncRunResult[]>;
+  getSyncStatus(): Promise<SyncStatusSnapshot>;
 
   listUsers(): Promise<UserRecord[]>;
   createUser(payload: UserInput): Promise<UserRecord>;
@@ -436,6 +502,55 @@ const mockApi: SettingsApi = {
     const updated = { ...cfg, lastSync: new Date().toISOString() };
     writeMock(MOCK_KEYS.sync, updated);
     return updated;
+  },
+  async saveServiceAccountJson(json) {
+    const cfg = await this.getSyncConfig();
+    writeMock(MOCK_KEYS.sync, {
+      ...cfg,
+      serviceAccountConfigured: json.trim().length > 0,
+      serviceAccountEmail: json.trim().length > 0 ? 'mock@example.iam.gserviceaccount.com' : '',
+    });
+  },
+  async testSyncConnection() {
+    return {
+      ok: true,
+      spreadsheet_title: 'Mock Sheet (browser fallback)',
+      tabs: ['anggota'],
+      service_account_email: 'mock@example.iam.gserviceaccount.com',
+    };
+  },
+  async pushSyncNow() {
+    const cfg = await this.getSyncConfig();
+    writeMock(MOCK_KEYS.sync, { ...cfg, lastSync: new Date().toISOString() });
+    return [
+      {
+        direction: 'push',
+        rows_changed: 0,
+        status: 'noop',
+        message: 'mock browser fallback — no real sync performed',
+      },
+    ];
+  },
+  async pullSyncNow() {
+    return [
+      {
+        direction: 'pull',
+        rows_changed: 0,
+        status: 'noop',
+        message: 'mock browser fallback — no real sync performed',
+      },
+    ];
+  },
+  async getSyncStatus() {
+    const cfg = await this.getSyncConfig();
+    return {
+      configured: cfg.serviceAccountConfigured && cfg.spreadsheetId.trim().length > 0,
+      enabled: cfg.enabled,
+      spreadsheet_id: cfg.spreadsheetId,
+      service_account_email: cfg.serviceAccountEmail,
+      states: [],
+      log: [],
+    };
   },
 
   async listUsers() {
@@ -635,11 +750,16 @@ const tauriApi: SettingsApi = {
     const rows = await invoke<Record<string, string>>('settings_get_many', {
       keys: ['sync.enabled', 'sync.spreadsheet_id', 'sync.api_key', 'sync.last_sync'],
     });
+    // FEAT-26: derive serviceAccount* from sync_status (single Tauri call)
+    // so the renderer never needs to round-trip the JSON itself.
+    const status = await invoke<SyncStatusSnapshot>('sync_status');
     return {
       enabled: rows['sync.enabled'] === '1',
       spreadsheetId: rows['sync.spreadsheet_id'] ?? '',
       apiKey: rows['sync.api_key'] ?? '',
       lastSync: rows['sync.last_sync'] || null,
+      serviceAccountConfigured: !!status.service_account_email,
+      serviceAccountEmail: status.service_account_email,
     };
   },
   async saveSyncConfig(cfg) {
@@ -660,6 +780,26 @@ const tauriApi: SettingsApi = {
   async syncNow() {
     const cfg = await tauriApi.getSyncConfig();
     return tauriApi.saveSyncConfig({ ...cfg, lastSync: new Date().toISOString() });
+  },
+  async saveServiceAccountJson(json) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('sync_save_service_account', { json });
+  },
+  async testSyncConnection() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<SyncTestResult>('sync_test_connection');
+  },
+  async pushSyncNow() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<SyncRunResult[]>('sync_push_now');
+  },
+  async pullSyncNow() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<SyncRunResult[]>('sync_pull_now');
+  },
+  async getSyncStatus() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<SyncStatusSnapshot>('sync_status');
   },
 
   async listUsers() {
@@ -730,6 +870,11 @@ export const settingsApi: SettingsApi = {
   saveSyncConfig: (cfg) => rpc().saveSyncConfig(cfg),
   resetSyncConfig: () => rpc().resetSyncConfig(),
   syncNow: () => rpc().syncNow(),
+  saveServiceAccountJson: (json) => rpc().saveServiceAccountJson(json),
+  testSyncConnection: () => rpc().testSyncConnection(),
+  pushSyncNow: () => rpc().pushSyncNow(),
+  pullSyncNow: () => rpc().pullSyncNow(),
+  getSyncStatus: () => rpc().getSyncStatus(),
   listUsers: () => rpc().listUsers(),
   createUser: (payload) => rpc().createUser(payload),
   updateUser: (id, payload) => rpc().updateUser(id, payload),

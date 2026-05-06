@@ -175,14 +175,55 @@
         "enabled": "Aktifkan Sinkronisasi",
         "spreadsheetId": "ID Spreadsheet",
         "apiKey": "API Key",
+        "serviceAccount": "Service Account JSON",
         "lastSync": "Terakhir sinkron"
       },
       "syncNow": "Sinkron sekarang",
       "syncSuccess": "Sinkronisasi berhasil.",
       "syncError": "Sinkronisasi gagal.",
+      "actions": {
+        "test": "Tes Koneksi",
+        "push": "Push Sekarang",
+        "pull": "Pull Sekarang",
+        "refresh": "Refresh status"
+      },
+      "serviceAccount": {
+        "savedTitle": "Service Account aktif",
+        "notConfigured": "Belum ada Service Account JSON. Paste JSON dari Google Cloud Console di bawah lalu klik Simpan.",
+        "save": "Simpan Service Account",
+        "saving": "Menyimpan…",
+        "clear": "Hapus Service Account",
+        "show": "Tampilkan",
+        "hide": "Sembunyikan",
+        "placeholder": "{ \"type\": \"service_account\", \"project_id\": \"...\", ... }",
+        "privacy": "JSON hanya disimpan di komputer ini, tidak pernah dikirim ke server selain Google Sheets."
+      },
+      "toast": {
+        "saSaved": "Service Account JSON disimpan.",
+        "saCleared": "Service Account JSON dihapus.",
+        "saSaveError": "Service Account JSON tidak valid.",
+        "testOk": "Koneksi ke Sheets berhasil.",
+        "testOkDesc": "Spreadsheet \"{{title}}\" • {{count}} tab",
+        "testError": "Tes koneksi gagal.",
+        "pushOk": "Push selesai: {{count}} baris.",
+        "pushError": "Push gagal.",
+        "pullOk": "Pull selesai: {{count}} baris.",
+        "pullError": "Pull gagal."
+      },
+      "status": {
+        "title": "Status Sinkronisasi",
+        "configured": "Spreadsheet ID dan Service Account terkonfigurasi.",
+        "notConfigured": "Belum siap — lengkapi Spreadsheet ID dan Service Account.",
+        "tablesTitle": "Per-tabel",
+        "tablesEmpty": "Belum pernah push/pull.",
+        "logTitle": "Riwayat (terbaru)",
+        "logEmpty": "Belum ada log.",
+        "lastPush": "Last push",
+        "lastPull": "Last pull"
+      },
       "guide": {
-        "title": "Cara dapat ID Spreadsheet & API Key",
-        "intro": "Sinkronisasi memerlukan dua nilai: ID dari spreadsheet Google Sheets yang akan dipakai sebagai tujuan sinkron, dan API key dari Google Cloud Console yang punya izin akses Google Sheets API. Ikuti langkah berikut.",
+        "title": "Cara siapkan Spreadsheet & Service Account",
+        "intro": "Sinkronisasi memerlukan dua hal: ID dari spreadsheet Google Sheets yang akan dipakai sebagai tujuan sinkron, dan Service Account JSON dari Google Cloud Console yang sudah di-share ke spreadsheet tersebut sebagai Editor. Ikuti langkah berikut.",
         "spreadsheetId": {
           "title": "1. ID Spreadsheet",
           "step1": "Buka spreadsheet Google Sheets yang akan dipakai (atau buat baru di https://sheets.google.com).",
@@ -191,26 +232,29 @@
           "step3": "Copy bagian ID — yaitu teks panjang antara /d/ dan /edit. Pada contoh di atas: 1aBcDeFgHIjkLMNopQRstUvWxYz0123456789AbcDe.",
           "step4": "Paste ke field ID Spreadsheet di atas."
         },
-        "apiKey": {
-          "title": "2. API Key (Google Cloud Console)",
+        "serviceAccount": {
+          "title": "2. Service Account (Google Cloud Console)",
           "step1": "Buka Google Cloud Console: https://console.cloud.google.com/. Login dengan akun Google yang sama (gratis, tidak perlu kartu kredit).",
           "step2": "Buat project baru (atau pilih project yang ada) dari dropdown project di kiri atas.",
           "step3": "Aktifkan Google Sheets API: buka https://console.cloud.google.com/apis/library/sheets.googleapis.com lalu klik Enable.",
-          "step4": "Buka menu APIs & Services → Credentials, lalu klik Create Credentials → API key. Sebuah key baru akan muncul.",
-          "step5": "Copy nilai API key tersebut (formatnya panjang, dimulai dengan AIza...) dan paste ke field API Key di atas.",
-          "step6": "Disarankan: klik nama API key tadi, lalu di bagian API restrictions pilih Restrict key dan centang hanya Google Sheets API supaya key tidak disalahgunakan."
+          "step4": "Buka menu IAM & Admin → Service Accounts, klik Create Service Account, beri nama (mis. perpustakaan-sync), lalu Done.",
+          "step5": "Setelah Service Account terbuat, klik akun tersebut → tab Keys → Add Key → Create new key → JSON → Create. Browser akan men-download file JSON.",
+          "step6": "Buka file JSON yang ter-download dengan editor teks, copy seluruh isinya (mulai dari { sampai }), lalu paste ke field Service Account JSON di atas.",
+          "step7": "Klik tombol Simpan Service Account. Email Service Account akan muncul di kotak hijau (formatnya xxx@<project>.iam.gserviceaccount.com)."
         },
         "sharing": {
-          "title": "3. Setting Sharing Spreadsheet",
-          "intro": "Karena sinkronisasi memakai API key (bukan OAuth), spreadsheet harus dibuat bisa-dibaca-publik supaya API key bisa mengaksesnya:",
+          "title": "3. Share Spreadsheet ke Service Account",
+          "intro": "Berbeda dari API key, Service Account perlu akses Editor pada spreadsheet supaya bisa write (push). Kalau hanya pull, Viewer cukup. Ikuti langkah ini:",
           "step1": "Buka spreadsheet → klik tombol Share (kanan atas).",
-          "step2": "Di bagian General access, pilih Anyone with the link.",
-          "step3": "Set role ke Viewer (cukup baca) — atau Editor kalau aplikasi nantinya perlu menulis ke sheet.",
-          "step4": "Klik Done. Spreadsheet sekarang bisa diakses dengan API key Anda."
+          "step2": "Paste email Service Account dari kotak hijau di atas (xxx@<project>.iam.gserviceaccount.com).",
+          "step3": "Pilih role Editor.",
+          "step4": "Hilangkan centang \"Notify people\" — Service Account tidak punya inbox.",
+          "step5": "Klik Share lalu Done. Spreadsheet sekarang bisa di-write oleh Service Account Anda."
         },
         "openCloudConsole": "Buka Google Cloud Console",
+        "openServiceAccounts": "Buka Service Accounts",
         "openSheetsApi": "Buka halaman Google Sheets API",
-        "devNote": "Catatan: backend sinkronisasi masih dalam tahap pengembangan. Nilai ID Spreadsheet dan API Key yang Anda simpan saat ini akan disimpan secara lokal dan otomatis dipakai begitu sinkronisasi penuh dirilis di versi berikutnya."
+        "devNote": "Catatan: PR ini meng-cover push & pull untuk tabel Anggota. Tabel lain (buku, eksemplar, peminjaman, …) menyusul di rilis selanjutnya."
       }
     },
     "auditLog": {

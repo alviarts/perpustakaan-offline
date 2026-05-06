@@ -37,9 +37,17 @@ image = { version = "0.25", default-features = false, features = ["jpeg", "png",
 # FEAT-24 — encrypted backup
 aes-gcm = "0.10"
 pbkdf2 = { version = "0.12", features = ["simple"] }
+# FEAT-26 Google Sheets bidirectional sync (PR G v1.0.8). reqwest does the
+# HTTPS calls to https://sheets.googleapis.com (rustls-tls keeps us off the
+# system OpenSSL); jsonwebtoken signs the Service Account RS256 JWT used to
+# exchange for an OAuth2 access token.
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+jsonwebtoken = "9"
+tokio = { version = "1", features = ["sync"] }
 
 [dev-dependencies]
 tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt"] }
 
 [features]
 default = ["custom-protocol"]
