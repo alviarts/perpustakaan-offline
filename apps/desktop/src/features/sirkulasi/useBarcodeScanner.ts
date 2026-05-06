@@ -1,5 +1,5 @@
 /**
- * Webcam barcode scanner hook (v1.0.6 #19).
+ * Webcam barcode scanner hook (FEAT-28 PR J).
  *
  * Wraps `@zxing/browser` to drive a `<video>` element and emit decoded
  * results into a callback. The hook keeps the controls handle around so it
@@ -7,16 +7,28 @@
  * scanning off — leaking a MediaStream would prevent other apps (and Tauri
  * webview tabs) from accessing the webcam.
  *
- * Decoder format hints are intentionally narrow: the app only emits
- * Code-128 barcodes for `kode_eksemplar`/`kode_anggota` (see
- * `apps/desktop/src/features/label-buku/print.ts` and the KTA renderer)
- * and QR codes for some KTA presets, so we tell zxing to skip every other
- * format. Skipping unused formats noticeably reduces CPU usage on the
- * hot decode path that runs every frame.
+ * v1.0.8 additions on top of the v1.0.6/v1.0.7 baseline:
+ *
+ * - Multi-format hint set widened to include Data Matrix (in addition
+ *   to Code-128, Code-39, EAN-13, EAN-8, QR Code) — see
+ *   `lib/scanner/decoder.ts`.
+ * - Manual single-shot decode (`decodeOnce`) used by the
+ *   "Scan Sekarang" button on `SirkulasiPage`. Crops the current
+ *   video frame to the ROI overlay and runs up to 3 preprocess
+ *   variants (normal → contrast → grayscale) before giving up.
+ * - Torch toggle (`toggleTorch`, `torchSupported`, `torchOn`) for
+ *   browsers/cameras that expose a `torch` track capability.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser';
-import { BarcodeFormat, DecodeHintType, type Result } from '@zxing/library';
+import { type Result } from '@zxing/library';
+import { computeRoi } from '@/lib/scanner/overlay';
+import {
+  buildDecodeHints,
+  createImageDataReader,
+  decodeWithRetry,
+  type DecodedResult,
+} from '@/lib/scanner/decoder';
 
 export interface UseBarcodeScannerOptions {
   onDecode: (text: string) => void;
@@ -53,6 +65,23 @@ export interface UseBarcodeScannerResult {
   /** Currently selected `deviceId`. Falls back to the first device. */
   selectedDeviceId: string | null;
   selectDevice: (deviceId: string) => void;
+  /**
+   * One-shot manual decode — capture the current frame, crop to ROI,
+   * try up to 3 preprocess variants. Returns `null` if nothing decodes.
+   *
+   * Useful when continuous decode keeps missing under tricky lighting.
+   * Triggered by the "Scan Sekarang" button on the Sirkulasi page.
+   */
+  decodeOnce: () => Promise<DecodedResult | null>;
+  /** True if the current camera track exposes a `torch` capability. */
+  torchSupported: boolean;
+  /** True if the torch is currently on. */
+  torchOn: boolean;
+  /**
+   * Toggle the camera torch. Resolves once the constraint has been
+   * applied; rejects if the track no longer exists.
+   */
+  toggleTorch: () => Promise<void>;
 }
 
 /**
@@ -87,18 +116,22 @@ export function classifyScannerError(e: unknown): ScannerErrorKind {
   return 'other';
 }
 
-const HINTS = (() => {
-  const m = new Map<DecodeHintType, unknown>();
-  m.set(DecodeHintType.POSSIBLE_FORMATS, [
-    BarcodeFormat.CODE_128,
-    BarcodeFormat.CODE_39,
-    BarcodeFormat.EAN_13,
-    BarcodeFormat.EAN_8,
-    BarcodeFormat.QR_CODE,
-  ]);
-  m.set(DecodeHintType.TRY_HARDER, true);
-  return m;
-})();
+/**
+ * Detect the `torch` capability on a track. Spec-defined under
+ * MediaTrackCapabilities but TypeScript's lib doesn't include it
+ * (Chromium-only at time of writing), so we duck-type.
+ */
+function trackHasTorch(track: MediaStreamTrack): boolean {
+  // `getCapabilities` is not supported on every browser — Safari before
+  // 17 returns nothing, Firefox doesn't expose the torch hint at all.
+  type Cap = { torch?: boolean };
+  const caps =
+    typeof (track as unknown as { getCapabilities?: () => Cap }).getCapabilities ===
+    'function'
+      ? ((track as unknown as { getCapabilities: () => Cap }).getCapabilities() ?? {})
+      : {};
+  return caps.torch === true;
+}
 
 export function useBarcodeScanner(
   options: UseBarcodeScannerOptions,
@@ -107,6 +140,7 @@ export function useBarcodeScanner(
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const lastDecodedRef = useRef<{ text: string; at: number } | null>(null);
   // Always read the latest callback inside the decode handler so callers
   // don't have to memoise it on every render.
@@ -121,12 +155,20 @@ export function useBarcodeScanner(
   const [errorKind, setErrorKind] = useState<ScannerErrorKind | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
 
   /** Stop and release the active camera, if any. */
   const stop = useCallback(() => {
     controlsRef.current?.stop();
     controlsRef.current = null;
+    // controls.stop() releases the tracks zxing owns, but if we held a
+    // separate reference (for torch) clear it so React doesn't think
+    // torch is still controllable on a dead track.
+    streamRef.current = null;
     setActive(false);
+    setTorchSupported(false);
+    setTorchOn(false);
   }, []);
 
   const start = useCallback(async (): Promise<void> => {
@@ -152,7 +194,7 @@ export function useBarcodeScanner(
       setSelectedDeviceId(preferred);
 
       if (!readerRef.current) {
-        readerRef.current = new BrowserMultiFormatReader(HINTS);
+        readerRef.current = new BrowserMultiFormatReader(buildDecodeHints());
       }
       const reader = readerRef.current;
       const video = videoRef.current;
@@ -163,13 +205,9 @@ export function useBarcodeScanner(
       // Ask the browser for a higher-resolution stream than the zxing
       // default (which falls back to roughly 640×480 on most webcams).
       // Code-128 barcodes printed at A4-label scale are too small for
-      // 480p to decode reliably — the user reports having to hold the
-      // book very close to the lens before the scan registers (BUG-18).
-      // 1280×720 doubles the linear pixel budget, restores reliable
-      // decoding at a normal arm's-length distance, and is supported by
-      // virtually every laptop/USB webcam on the market. The browser
-      // is free to fall back to the next-best size if 720p is not
-      // available — `ideal` is a soft constraint, not `exact`.
+      // 480p to decode reliably (BUG-18). 1280×720 doubles the linear
+      // pixel budget. The browser is free to fall back to the next-best
+      // size if 720p is not available — `ideal` is a soft constraint.
       const videoConstraints: MediaTrackConstraints = preferred
         ? {
             deviceId: { exact: preferred },
@@ -213,6 +251,16 @@ export function useBarcodeScanner(
         // ignore secondary enumeration errors
       }
 
+      // After zxing has wired the stream into the video element, the
+      // `srcObject` is the live MediaStream — use it to detect torch
+      // capability and to apply the torch constraint when the user
+      // toggles it.
+      const stream = (video.srcObject as MediaStream | null) ?? null;
+      streamRef.current = stream;
+      const track = stream?.getVideoTracks()[0];
+      setTorchSupported(track ? trackHasTorch(track) : false);
+      setTorchOn(false);
+
       setActive(true);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -240,6 +288,45 @@ export function useBarcodeScanner(
     [active, stop, start],
   );
 
+  const decodeOnce = useCallback(async (): Promise<DecodedResult | null> => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) return null;
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (!w || !h) return null;
+
+    // Crop to the same ROI rectangle the overlay renders. Decoding
+    // only this region speeds the manual scan up (~4× fewer pixels)
+    // and removes the cluttered background that otherwise confuses
+    // zxing's binarizer.
+    const roi = computeRoi(w, h);
+    if (roi.width <= 0 || roi.height <= 0) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = roi.width;
+    canvas.height = roi.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(video, roi.x, roi.y, roi.width, roi.height, 0, 0, roi.width, roi.height);
+    const imageData = ctx.getImageData(0, 0, roi.width, roi.height);
+
+    const reader = createImageDataReader();
+    return decodeWithRetry(reader, imageData);
+  }, []);
+
+  const toggleTorch = useCallback(async (): Promise<void> => {
+    const stream = streamRef.current;
+    const track = stream?.getVideoTracks()[0];
+    if (!track) return;
+    const next = !torchOn;
+    // Type the constraints loosely — `torch` is non-standard and not
+    // present in the lib.dom MediaTrackConstraints definition.
+    await track.applyConstraints({
+      advanced: [{ torch: next } as MediaTrackConstraintSet],
+    } as MediaTrackConstraints);
+    setTorchOn(next);
+  }, [torchOn]);
+
   // Always release on unmount.
   useEffect(() => {
     return () => {
@@ -259,5 +346,9 @@ export function useBarcodeScanner(
     devices,
     selectedDeviceId,
     selectDevice,
+    decodeOnce,
+    torchSupported,
+    torchOn,
+    toggleTorch,
   };
 }

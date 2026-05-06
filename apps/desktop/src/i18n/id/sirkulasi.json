@@ -20,7 +20,16 @@
     "noDeviceTitle": "Kamera tidak ditemukan",
     "noDeviceHelp": "Pastikan kamera webcam tersambung dan tidak dinonaktifkan di Device Manager.",
     "inUseTitle": "Kamera sedang dipakai aplikasi lain",
-    "inUseHelp": "Tutup aplikasi lain yang sedang menggunakan kamera (Zoom, Meet, Camera, dll), lalu klik Coba lagi."
+    "inUseHelp": "Tutup aplikasi lain yang sedang menggunakan kamera (Zoom, Meet, Camera, dll), lalu klik Coba lagi.",
+    "overlayLabel": "Arahkan barcode ke dalam kotak",
+    "scanNow": "Scan Sekarang",
+    "scanning": "Memindai…",
+    "scanSuccess": "Berhasil: {{code}}",
+    "scanFail": "Tidak terdeteksi — coba ulangi atau ketik manual.",
+    "scanError": "Gagal melakukan scan",
+    "torchOn": "Senter aktif",
+    "torchOff": "Nyalakan senter",
+    "torchError": "Senter tidak dapat diaktifkan"
   },
   "manual": {
     "placeholder": "Atau ketik / scan pakai USB scanner (Enter untuk submit)",

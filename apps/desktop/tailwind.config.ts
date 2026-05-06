@@ -73,12 +73,18 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'scanner-line': {
+          '0%': { transform: 'translateY(-50%)', opacity: '0.4' },
+          '50%': { transform: 'translateY(50%)', opacity: '1' },
+          '100%': { transform: 'translateY(-50%)', opacity: '0.4' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.2s ease-out',
         'slide-up': 'slide-up 0.3s ease-out',
+        'scanner-line': 'scanner-line 1.6s ease-in-out infinite',
       },
     },
   },

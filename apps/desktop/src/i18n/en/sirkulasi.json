@@ -20,7 +20,16 @@
     "noDeviceTitle": "Camera not found",
     "noDeviceHelp": "Make sure a webcam is connected and not disabled in Device Manager.",
     "inUseTitle": "Camera in use by another app",
-    "inUseHelp": "Close any other app using the camera (Zoom, Meet, Camera, etc.), then click Try again."
+    "inUseHelp": "Close any other app using the camera (Zoom, Meet, Camera, etc.), then click Try again.",
+    "overlayLabel": "Aim the barcode inside the box",
+    "scanNow": "Scan Now",
+    "scanning": "Scanning…",
+    "scanSuccess": "Detected: {{code}}",
+    "scanFail": "No barcode detected — try again or type manually.",
+    "scanError": "Failed to perform scan",
+    "torchOn": "Torch on",
+    "torchOff": "Turn on torch",
+    "torchError": "Could not toggle the torch"
   },
   "manual": {
     "placeholder": "Or type / scan via USB scanner (Enter to submit)",
