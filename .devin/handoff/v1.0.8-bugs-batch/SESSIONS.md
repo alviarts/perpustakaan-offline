@@ -362,3 +362,48 @@ Each entry is a markdown section with frontmatter-like fields:
   273/273 tests, build). Cargo gates skipped — no Rust files touched. KTA scan
   flow shipped as a stub modal (TODO: decouple `useBarcodeScanner` from
   `SirkulasiPage` in a follow-up).
+
+## Session devin-f10a64e2bf1643febf5c99f96b707373 — v1.0.8 BATCH MERGE PAUSED
+
+- session_id: devin-f10a64e2bf1643febf5c99f96b707373
+- item_id: v1.0.8 batch merge (multiple PRs)
+- status: PAUSED
+- paused_at: 2026-05-06T13:25:00Z
+- summary:
+  User asked Devin to merge all v1.0.8 PRs via API (since admin merge access
+  was granted to the PAT). 6/9 squash-merged cleanly to `main`. 3 had merge
+  conflicts that needed rebase. 1 (#131 stocktake) is rebased + force-pushed
+  + CI re-running, ready to merge after CI green. 2 (#133 Sheets sync, #136
+  OPAC) still need rebase.
+- merged: #127, #128, #130, #132, #134, #135 (squash, all on main as of 2026-05-06)
+- rebased + pushed (waiting on CI re-run + merge): #131
+- needs rebase still: #133 (FEAT-26), #136 (FEAT-27)
+- still draft, not this session's work: #129 (FEAT-19, FEAT-20)
+- pickup instructions:
+  1. Verify `git pr_checks` on #131 — once green, `curl PUT .../pulls/131/merge`
+     with `merge_method=squash`. After merge, update PROGRESS.md FEAT-23 row to
+     DONE + `completed_at: 2026-05-06`.
+  2. Rebase #133 onto latest main:
+     - `git checkout devin/1778056382-pr-g-sheets-sync && git rebase origin/main`
+     - Likely conflicts in `apps/desktop/src-tauri/src/commands/mod.rs`,
+       `apps/desktop/src-tauri/src/lib.rs` (registered command list grew),
+       `apps/desktop/src/components/layout/Sidebar.tsx`,
+       `apps/desktop/src/i18n/{id,en}/common.json` (new menu rows),
+       `apps/desktop/src/i18n/index.ts` (new namespaces registered).
+     - Resolution pattern: take **both** sides — the new module/import/menu
+       entry AND the existing one. routeTree.gen.ts can be regenerated via
+       `pnpm exec tsr generate` after the .tsx route conflicts are resolved.
+     - Run gates after rebase: `pnpm --filter desktop run typecheck/lint/test`,
+       `pnpm i18n:lint`, `pnpm --filter desktop run build`.
+     - Force-push: `git push --force` (using extraheader/credential.helper="" +
+       PAT URL embed, see WORKFLOW.md).
+     - Wait for CI green via `git pr_checks`, then squash-merge via curl.
+  3. Repeat step 2 for #136 (devin/1778075000-pr-h-opac-public-mode).
+  4. After all 9 PRs merged: open release PR (PR I) following
+     WORKFLOW.md "Release PR" section. Use `RELEASE_PREP_DRAFT.md` (in this
+     same handoff folder) as the basis for the `[1.0.8]` CHANGELOG section.
+- notes:
+  - PAT can merge directly (squash-merge succeeded for 6 PRs cleanly).
+  - Rebase conflicts pattern is mostly mechanical: imports + register-list
+    files all grew in parallel across PRs. Take-both resolves them.
+- branch: (no new branch — work happened on existing PR feature branches)
