@@ -1,0 +1,67 @@
+{
+  "title": "Library Clearance Letter",
+  "subtitle": "Print a clearance letter for members who have returned all books and paid all fines.",
+  "button": {
+    "cetak": "Print Clearance Letter",
+    "preview": "Preview",
+    "download": "Download PDF",
+    "tutup": "Close"
+  },
+  "dialog": {
+    "title": "Library Clearance Letter",
+    "checkingEligibility": "Checking eligibility…",
+    "eligible": "Member is eligible. A letter will be issued with an auto-assigned number.",
+    "notEligible": "Member is not yet eligible:",
+    "summary": {
+      "activeLoans": "Books not yet returned: {{count}}",
+      "outstandingDenda": "Outstanding fines: Rp{{amount}}",
+      "inactive": "Member status is inactive"
+    },
+    "preview": {
+      "nomorSurat": "Letter Number",
+      "tanggal": "Date Issued",
+      "anggota": "Member",
+      "kelas": "Class"
+    }
+  },
+  "feedback": {
+    "generated": "Clearance letter created (Number: {{nomor}}).",
+    "generateError": "Failed to create letter: {{message}}",
+    "downloadStarted": "PDF download started."
+  },
+  "settings": {
+    "title": "Library Clearance Letter",
+    "subtitle": "Configure letter number format, template, and signatory identity.",
+    "section": {
+      "format": "Number Format",
+      "template": "Letter Body",
+      "ttd": "Signatory"
+    },
+    "field": {
+      "formatNomor": "Letter number format",
+      "formatNomorHint": "Placeholders: {tahun}, {bulan}, {nomor:04d}",
+      "nomorTerakhir": "Last assigned number",
+      "nomorTerakhirHint": "Filled automatically. The next letter number = last + 1.",
+      "previewNomor": "Preview of next number",
+      "templateHtml": "Letter body template",
+      "templateHint": "Placeholders: {nama}, {kode_anggota}, {kelas}, {tanggal}, {nomor_surat}, {nama_perpustakaan}, {kota}",
+      "kepalaSekolahNama": "Principal's name",
+      "kepalaSekolahNip": "Principal's NIP",
+      "kepalaSekolahTtd": "Signature (PNG)"
+    },
+    "feedback": {
+      "saved": "Letter settings saved.",
+      "saveError": "Save failed: {{message}}"
+    }
+  },
+  "log": {
+    "title": "Clearance Letter History",
+    "empty": "No letters have been printed yet.",
+    "column": {
+      "tanggal": "Date",
+      "nomor": "Number",
+      "anggota": "Member",
+      "petugas": "Officer"
+    }
+  }
+}

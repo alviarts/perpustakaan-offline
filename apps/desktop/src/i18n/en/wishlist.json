@@ -1,0 +1,92 @@
+{
+  "title": "Wishlist & Acquisitions",
+  "subtitle": "Member book requests. Staff can approve, reject, or mark as acquired.",
+  "filter": {
+    "all": "All",
+    "pending": "Pending",
+    "disetujui": "Approved",
+    "ditolak": "Rejected",
+    "sudahDiadakan": "Acquired",
+    "dibatalkan": "Cancelled"
+  },
+  "status": {
+    "pending": "Pending",
+    "disetujui": "Approved",
+    "ditolak": "Rejected",
+    "sudah_diadakan": "Acquired",
+    "dibatalkan": "Cancelled"
+  },
+  "column": {
+    "judul": "Title",
+    "pengarang": "Author",
+    "isbn": "ISBN",
+    "anggota": "Member",
+    "alasan": "Reason",
+    "upvote": "Upvotes",
+    "status": "Status",
+    "buku": "Linked Book",
+    "tanggal": "Date",
+    "aksi": "Actions"
+  },
+  "action": {
+    "tambah": "Add Request",
+    "setujui": "Approve",
+    "tolak": "Reject",
+    "tandaiSudahDiadakan": "Mark as Acquired",
+    "batalkan": "Cancel",
+    "kembalikanKePending": "Move back to Pending",
+    "upvote": "Upvote",
+    "hapus": "Delete"
+  },
+  "empty": {
+    "all": "No book requests yet.",
+    "filtered": "No requests match this filter."
+  },
+  "create": {
+    "title": "New Book Request",
+    "subtitle": "Record a new book request. Initial status: Pending.",
+    "field": {
+      "anggota": "Member",
+      "anggotaPlaceholder": "Pick a member",
+      "judul": "Book title",
+      "judulPlaceholder": "e.g. Atomic Habits",
+      "pengarang": "Author (optional)",
+      "isbn": "ISBN (optional)",
+      "alasan": "Reason / notes (optional)"
+    },
+    "submit": "Save Request",
+    "cancel": "Cancel",
+    "feedback": {
+      "success": "Request saved.",
+      "error": "Save failed: {{message}}"
+    }
+  },
+  "updateStatus": {
+    "title": "Change Status",
+    "field": {
+      "catatanAdmin": "Admin notes (optional)",
+      "buku": "Link to book (when marking acquired)",
+      "bukuPlaceholder": "Pick a book"
+    },
+    "submit": "Save",
+    "cancel": "Cancel",
+    "feedback": {
+      "success": "Status updated.",
+      "error": "Update failed: {{message}}"
+    }
+  },
+  "deleteConfirm": {
+    "title": "Delete request?",
+    "description": "This request will be permanently removed.",
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "feedback": {
+      "success": "Request deleted.",
+      "error": "Delete failed: {{message}}"
+    }
+  },
+  "upvoteFeedback": {
+    "success": "Thanks, your upvote was recorded.",
+    "error": "Upvote failed: {{message}}"
+  }
+}

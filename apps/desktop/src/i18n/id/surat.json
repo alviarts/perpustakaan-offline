@@ -1,0 +1,67 @@
+{
+  "title": "Surat Bebas Pustaka",
+  "subtitle": "Cetak surat keterangan bebas pustaka untuk anggota yang sudah menyelesaikan seluruh peminjaman dan denda.",
+  "button": {
+    "cetak": "Cetak Surat Bebas Pustaka",
+    "preview": "Pratinjau",
+    "download": "Unduh PDF",
+    "tutup": "Tutup"
+  },
+  "dialog": {
+    "title": "Surat Bebas Pustaka",
+    "checkingEligibility": "Memeriksa kelayakan…",
+    "eligible": "Anggota memenuhi syarat. Surat akan dibuatkan dengan nomor otomatis.",
+    "notEligible": "Anggota belum memenuhi syarat:",
+    "summary": {
+      "activeLoans": "Buku belum dikembalikan: {{count}}",
+      "outstandingDenda": "Sisa denda: Rp{{amount}}",
+      "inactive": "Status anggota tidak aktif"
+    },
+    "preview": {
+      "nomorSurat": "Nomor Surat",
+      "tanggal": "Tanggal Cetak",
+      "anggota": "Anggota",
+      "kelas": "Kelas"
+    }
+  },
+  "feedback": {
+    "generated": "Surat bebas pustaka berhasil dibuat (Nomor: {{nomor}}).",
+    "generateError": "Gagal membuat surat: {{message}}",
+    "downloadStarted": "PDF surat sedang diunduh."
+  },
+  "settings": {
+    "title": "Surat Bebas Pustaka",
+    "subtitle": "Atur format nomor surat, template isi, dan identitas penandatangan.",
+    "section": {
+      "format": "Format Nomor",
+      "template": "Template Isi",
+      "ttd": "Penandatangan"
+    },
+    "field": {
+      "formatNomor": "Format nomor surat",
+      "formatNomorHint": "Placeholder: {tahun}, {bulan}, {nomor:04d}",
+      "nomorTerakhir": "Nomor terakhir",
+      "nomorTerakhirHint": "Diisi otomatis. Surat berikutnya = nomor terakhir + 1.",
+      "previewNomor": "Pratinjau nomor berikutnya",
+      "templateHtml": "Template isi surat",
+      "templateHint": "Placeholder: {nama}, {kode_anggota}, {kelas}, {tanggal}, {nomor_surat}, {nama_perpustakaan}, {kota}",
+      "kepalaSekolahNama": "Nama Kepala Sekolah",
+      "kepalaSekolahNip": "NIP Kepala Sekolah",
+      "kepalaSekolahTtd": "Tanda tangan (PNG)"
+    },
+    "feedback": {
+      "saved": "Pengaturan surat tersimpan.",
+      "saveError": "Gagal menyimpan: {{message}}"
+    }
+  },
+  "log": {
+    "title": "Riwayat Surat Bebas Pustaka",
+    "empty": "Belum ada surat yang dicetak.",
+    "column": {
+      "tanggal": "Tanggal",
+      "nomor": "Nomor",
+      "anggota": "Anggota",
+      "petugas": "Petugas"
+    }
+  }
+}
