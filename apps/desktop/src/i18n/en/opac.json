@@ -95,6 +95,12 @@
     "fullscreenError": "Could not enter fullscreen automatically. Press F11 if not in fullscreen.",
     "limitations": "Note: Ctrl+Alt+Del / Task Manager cannot be disabled from the app."
   },
+  "scanLocked": {
+    "title": "Another member is still signed in: {{nama}}",
+    "description": "Click Sign out & Scan to switch members, or Cancel to keep the current session.",
+    "logoutAndScan": "Sign out & Scan",
+    "cancel": "Cancel"
+  },
   "footer": {
     "poweredBy": "Perpustakaan Nusantara",
     "version": "v{{version}}"
@@ -103,6 +109,7 @@
     "kelas": "Class",
     "jurusan": "Major",
     "searchBooks": "Search Books",
+    "scanOtherKta": "Scan Another KTA",
     "loadError": "Failed to load member data",
     "denda": {
       "title": "Unpaid Fines",

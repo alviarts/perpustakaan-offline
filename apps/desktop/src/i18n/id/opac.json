@@ -95,6 +95,12 @@
     "fullscreenError": "Tidak dapat masuk fullscreen otomatis. Tekan F11 jika belum fullscreen.",
     "limitations": "Catatan: Ctrl+Alt+Del / Task Manager tidak dapat dinonaktifkan dari aplikasi."
   },
+  "scanLocked": {
+    "title": "Anggota lain masih login: {{nama}}",
+    "description": "Klik tombol Logout & Scan untuk pindah anggota, atau Batal untuk tetap di sesi saat ini.",
+    "logoutAndScan": "Logout & Scan",
+    "cancel": "Batal"
+  },
   "footer": {
     "poweredBy": "Perpustakaan Nusantara",
     "version": "v{{version}}"
@@ -103,6 +109,7 @@
     "kelas": "Kelas",
     "jurusan": "Jurusan",
     "searchBooks": "Cari Buku",
+    "scanOtherKta": "Scan KTA Lain",
     "loadError": "Gagal memuat data anggota",
     "denda": {
       "title": "Denda Belum Dibayar",

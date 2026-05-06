@@ -29,6 +29,7 @@ import {
   CircleDollarSign,
   History,
   LogOut,
+  ScanLine,
   Search,
   User as UserIcon,
   X,
@@ -51,6 +52,14 @@ export interface OpacMemberProfileProps {
   member: Anggota;
   onLogout: () => void;
   onSearchBooks: () => void;
+  /**
+   * Optional handler for the "Scan KTA Lain" button that lets a different
+   * student request a fresh scan even when the current member is still
+   * signed in. The parent is expected to intercept via
+   * `OpacScanLockedDialog` (FEAT-OPAC-Scan-Locked) before opening the
+   * camera flow.
+   */
+  onScanKta?: () => void;
 }
 
 const ACTIVE_STATUSES = new Set<AnggotaLoanHistoryRow['status']>([
@@ -123,6 +132,7 @@ export function OpacMemberProfile({
   member,
   onLogout,
   onSearchBooks,
+  onScanKta,
 }: OpacMemberProfileProps): JSX.Element {
   const { t } = useTranslation('opac');
   const { showToast } = useToast();
@@ -236,6 +246,17 @@ export function OpacMemberProfile({
               <Search className="mr-1.5 h-4 w-4" />
               {t('profile.searchBooks')}
             </Button>
+            {onScanKta ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onScanKta}
+                data-testid="opac-profile-scan-other"
+              >
+                <ScanLine className="mr-1.5 h-4 w-4" />
+                {t('profile.scanOtherKta')}
+              </Button>
+            ) : null}
             <Button
               variant="ghost"
               size="sm"
