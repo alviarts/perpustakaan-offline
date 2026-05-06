@@ -62,7 +62,10 @@
     "cameraInUse": "Camera is being used by another app.",
     "cameraUnsupported": "Browser does not support camera access.",
     "cameraOtherError": "An error occurred while accessing the camera.",
-    "selectDevice": "Select camera"
+    "selectDevice": "Select camera",
+    "welcomeBack": "Welcome back, {{nama}}",
+    "kehadiranTercatat": "Attendance recorded",
+    "kehadiranFail": "Failed to record attendance"
   },
   "admin": {
     "unlockButton": "Admin Mode",
@@ -95,5 +98,52 @@
   "footer": {
     "poweredBy": "Perpustakaan Nusantara",
     "version": "v{{version}}"
+  },
+  "profile": {
+    "kelas": "Class",
+    "jurusan": "Major",
+    "searchBooks": "Search Books",
+    "loadError": "Failed to load member data",
+    "denda": {
+      "title": "Unpaid Fines",
+      "description": "Please settle with the librarian."
+    },
+    "activeLoans": {
+      "title": "Active Loans",
+      "empty": "No active loans.",
+      "due": "Due: {{date}}",
+      "onTime": "On time",
+      "overdue": "{{days}} days overdue"
+    },
+    "reservasi": {
+      "title": "My Reservations",
+      "empty": "No active reservations.",
+      "queue": "Queue #{{urutan}}",
+      "slot": "Slot {{slot}}",
+      "expires": "Valid until {{date}}",
+      "cancel": "Cancel",
+      "cancelOk": "Reservation cancelled",
+      "cancelFail": "Failed to cancel reservation",
+      "status": {
+        "menunggu": "Waiting",
+        "siap_diambil": "Ready for pickup",
+        "diambil": "Picked up",
+        "expired": "Expired",
+        "dibatalkan": "Cancelled"
+      }
+    },
+    "history": {
+      "title": "Loan History",
+      "show": "Show",
+      "hide": "Hide",
+      "empty": "No loan history yet.",
+      "lastPinjam": "Last loan: {{date}}"
+    }
+  },
+  "reservasi": {
+    "loginFirst": "Scan your KTA to reserve",
+    "created": "Reservation created",
+    "queueDescription": "{{judul}} — queue #{{urutan}}",
+    "createFail": "Failed to create reservation"
   }
 }

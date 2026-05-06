@@ -6,16 +6,19 @@ import { Input } from '@/components/ui/input';
 import { OpacBookCard } from './OpacBookCard';
 import { OpacBookDetailDialog } from './OpacBookDetailDialog';
 import { bukuApi, type Buku } from '@/lib/buku';
+import type { Anggota } from '@/lib/anggota';
 
 export interface OpacHomePageProps {
   onSearch: (query: string) => void;
   onScanKta: () => void;
   libraryName?: string;
+  member?: Anggota | null;
+  onReserve?: (buku: Buku) => void;
 }
 
 const PAGE_SIZE = 24;
 
-export function OpacHomePage({ onSearch, onScanKta, libraryName }: OpacHomePageProps): JSX.Element {
+export function OpacHomePage({ onSearch, onScanKta, libraryName, member, onReserve }: OpacHomePageProps): JSX.Element {
   const { t } = useTranslation('opac');
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<Buku[]>([]);
@@ -136,6 +139,15 @@ export function OpacHomePage({ onSearch, onScanKta, libraryName }: OpacHomePageP
         buku={selected}
         open={selected !== null}
         onOpenChange={(o) => !o && setSelected(null)}
+        guest={!member}
+        onReserve={
+          onReserve
+            ? (b) => {
+                onReserve(b);
+                setSelected(null);
+              }
+            : undefined
+        }
       />
     </div>
   );

@@ -7,15 +7,23 @@ import { OpacBookCard } from './OpacBookCard';
 import { OpacBookDetailDialog } from './OpacBookDetailDialog';
 import { OpacWishlistDialog } from './OpacWishlistDialog';
 import { bukuApi, type Buku } from '@/lib/buku';
+import type { Anggota } from '@/lib/anggota';
 
 export interface OpacSearchPageProps {
   initialQuery: string;
   onBack: () => void;
+  member?: Anggota | null;
+  onReserve?: (buku: Buku) => void;
 }
 
 const PAGE_SIZE = 24;
 
-export function OpacSearchPage({ initialQuery, onBack }: OpacSearchPageProps): JSX.Element {
+export function OpacSearchPage({
+  initialQuery,
+  onBack,
+  member,
+  onReserve,
+}: OpacSearchPageProps): JSX.Element {
   const { t } = useTranslation('opac');
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
@@ -111,6 +119,15 @@ export function OpacSearchPage({ initialQuery, onBack }: OpacSearchPageProps): J
           setSelected(null);
           setWishlistFor(b);
         }}
+        guest={!member}
+        onReserve={
+          onReserve
+            ? (b) => {
+                onReserve(b);
+                setSelected(null);
+              }
+            : undefined
+        }
       />
       <OpacWishlistDialog
         open={wishlistFor !== null}
