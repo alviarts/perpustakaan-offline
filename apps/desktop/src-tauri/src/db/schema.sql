@@ -420,3 +420,37 @@ BEGIN
 END;
 
 INSERT OR IGNORE INTO schema_version (version) VALUES (1);
+
+-- ----------------------------------------------------------------------------
+-- Stocktake / Opname (FEAT-23, v1.0.8)
+-- Sesi inventarisasi (annual mandatory): admin scan barcode batch lalu sistem
+-- listing eksemplar yang missing. Sesi resumeable, multiple paralel diizinkan.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS stocktake_session (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama            TEXT,
+    tanggal_mulai   TEXT NOT NULL DEFAULT (datetime('now')),
+    tanggal_selesai TEXT,
+    status          TEXT NOT NULL DEFAULT 'berlangsung', -- berlangsung | selesai | dibatalkan
+    catatan         TEXT,
+    petugas_id      INTEGER,
+    FOREIGN KEY (petugas_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_stocktake_session_status ON stocktake_session(status);
+
+CREATE TABLE IF NOT EXISTS stocktake_item (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id    INTEGER NOT NULL,
+    eksemplar_id  INTEGER NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'belum_scan', -- belum_scan | ditemukan | tidak_ditemukan
+    tanggal_scan  TEXT,
+    catatan       TEXT,
+    UNIQUE(session_id, eksemplar_id),
+    FOREIGN KEY (session_id)   REFERENCES stocktake_session(id) ON DELETE CASCADE,
+    FOREIGN KEY (eksemplar_id) REFERENCES eksemplar(id)         ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_stocktake_item_session ON stocktake_item(session_id);
+CREATE INDEX IF NOT EXISTS idx_stocktake_item_status  ON stocktake_item(session_id, status);
+CREATE INDEX IF NOT EXISTS idx_stocktake_item_eksemplar ON stocktake_item(eksemplar_id);
