@@ -13,6 +13,24 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.10] - 2026-05-06
+
+### Fixed
+
+- **Stocktake: tombol kamera barcode scan tersembunyi** — input scan
+  Stocktake sebelumnya hanya menerima ketikan / hand-scanner USB
+  meskipun placeholder bilang "Pindai barcode atau ketik kode…".
+  Sekarang ada tombol **Buka Kamera** di sebelah label scan yang
+  membuka webcam preview dengan ROI overlay (mirip halaman Sirkulasi).
+  Decode kontinyu (cooldown 1.5 detik) langsung mendaftarkan eksemplar
+  ke sesi opname yang berjalan. Hand-scanner USB / ketik manual tetap
+  bisa dipakai paralel; placeholder copy juga diperjelas. (#141)
+
+### Changed
+
+- Camera + scanner di Stocktake otomatis dilepas saat halaman sesi
+  ditutup, supaya webcam tidak "di-pegang" untuk halaman lain. (#141)
+
 ## [1.0.9] - 2026-05-06
 
 Collected fixes + sheets sync expansion. Released as a single rolled-up
