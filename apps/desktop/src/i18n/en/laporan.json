@@ -4,10 +4,19 @@
   "empty": "No data in this range",
   "nav": {
     "grafik": "Charts",
+    "eksekutif": "Executive",
     "topPeminjam": "Top Borrowers",
     "topBuku": "Top Books",
     "kas": "Cash",
     "backup": "Backup"
+  },
+  "eksekutif": {
+    "title": "Executive Report",
+    "subtitle": "One-click PDF for the principal\u2019s monthly meeting: KPIs, trends, and action items.",
+    "cetak": "Print PDF",
+    "preparing": "Preparing\u2026",
+    "toastTitle": "Report prepared",
+    "toastDesc": "The print window will open shortly."
   },
   "error": {
     "load": "Failed to load data"
