@@ -280,3 +280,24 @@ Serves as the "who did what when" for cross-session debugging.
              commandPalette.action.{key} + commandPalette.route.{key}
              in id+en. Test file commandPalette.test.tsx with
              ≥4 cases.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    COMPLETED
+  item:      A1-CommandPalette
+  pr:        153
+  started_at:   2026-05-06T22:48Z
+  completed_at: 2026-05-06T22:55Z
+  notes:     Created commandPaletteRegistry.ts with 17 routes + 8
+             actions (Backup Sekarang, Cetak Laporan Bulanan,
+             Tambah Anggota/Buku/Peminjaman, Toggle Theme, Buka
+             OPAC, Logout). addCommandPaletteAction() lets future
+             features (D5, C1) register their own. Refactored
+             GlobalSearchDialog to fuzzy-match routes/actions and
+             render extra groups. Action callbacks deferred via
+             setTimeout(0) so dialog close doesn't steal focus.
+             Added jsdom polyfills (ResizeObserver,
+             scrollIntoView) to setup.ts so cmdk renders cleanly.
+             5 new unit tests in commandPalette.test.tsx; all 5
+             gates green; PR #153 merged via PAT (sha 2da15989).
+             9/14 items DONE — A2, C1, D1, D5, E1, RELEASE
+             remaining. Continuing to A2-SkeletonScreens next.
