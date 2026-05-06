@@ -186,3 +186,11 @@ Each entry is a markdown section with frontmatter-like fields:
     - i18n: `wishlist.json` namespace id+en parity.
     - Tests: cargo unit tests for status transitions + upvote idempotency; vitest for browser-mock + dialog state.
 - **pickup**: if pause: branch `devin/1778052067-pr-d-anggota-surat-and-wishlist`, draft PR (TBD). Master prompt + this entry sufficient.
+
+### 2026-05-06T07:55:00Z — devin-6b5acc6f8e4a4e778d85e9e626fccb1a — PR D draft opened
+- session: devin-6b5acc6f8e4a4e778d85e9e626fccb1a
+- items: FEAT-21, FEAT-22 (PR D)
+- status: PR_OPEN (draft)
+- pr: #130
+- branch: devin/1778052067-pr-d-anggota-surat-and-wishlist
+- notes: backend complete (22 new cargo tests, 150 total); frontend in progress.

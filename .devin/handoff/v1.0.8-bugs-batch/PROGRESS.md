@@ -20,8 +20,8 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-18 | B        | Buku: reservasi/booking (antrian saat buku sedang dipinjam)                       | MEDIUM   | IN_PR  | #128 | —            | —          |
 | FEAT-19 | C        | Anggota: bulk import dari Excel/CSV (template + validasi NIS unik)                | HIGH     | IN_PR  | #129 (draft) | —            | —          |
 | FEAT-20 | C        | Buku: bulk import via ISBN (Open Library / Google Books fetch metadata)           | MEDIUM   | IN_PR  | #129 (draft) | —            | —          |
-| FEAT-21 | D        | Anggota: cetak surat keterangan bebas pustaka (auto-generate PDF saat eligible)   | MEDIUM   | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T07:21:07Z | —   | —            | —          |
-| FEAT-22 | D        | Wishlist anggota: request pengadaan buku (admin queue review)                     | LOW      | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T07:21:07Z | —   | —            | —          |
+| FEAT-21 | D        | Anggota: cetak surat keterangan bebas pustaka (auto-generate PDF saat eligible)   | MEDIUM   | IN_PR    | 130 | —            | —          |
+| FEAT-22 | D        | Wishlist anggota: request pengadaan buku (admin queue review)                     | LOW      | IN_PR    | 130 | —            | —          |
 | FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | OPEN   | —   | —            | —          |
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | OPEN   | —   | —            | —          |
 | FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | OPEN   | —   | —            | —          |
