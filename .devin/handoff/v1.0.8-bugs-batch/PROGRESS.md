@@ -22,7 +22,7 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-20 | C        | Buku: bulk import via ISBN (Open Library / Google Books fetch metadata)           | MEDIUM   | IN_PR  | #129 (draft) | —            | —          |
 | FEAT-21 | D        | Anggota: cetak surat keterangan bebas pustaka (auto-generate PDF saat eligible)   | MEDIUM   | DONE   | #130 | 2026-05-06   | —          |
 | FEAT-22 | D        | Wishlist anggota: request pengadaan buku (admin queue review)                     | LOW      | DONE   | #130 | 2026-05-06   | —          |
-| FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | PAUSED | #131 | —            | — (rebased onto main, CI re-running, ready to merge after CI green) |
+| FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | DONE   | #131 | 2026-05-06   | —          |
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | DONE   | #132 | 2026-05-06   | —          |
 | FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | DONE   | #134 | 2026-05-06   | —          |
 | FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | DONE   | #135 | 2026-05-06   | —          |

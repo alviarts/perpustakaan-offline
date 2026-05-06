@@ -407,3 +407,27 @@ Each entry is a markdown section with frontmatter-like fields:
   - Rebase conflicts pattern is mostly mechanical: imports + register-list
     files all grew in parallel across PRs. Take-both resolves them.
 - branch: (no new branch — work happened on existing PR feature branches)
+
+## Session devin-66f0e55e455f413894a4e3ba6da395b3 — resume v1.0.8 batch merge
+
+- session_id: devin-66f0e55e455f413894a4e3ba6da395b3
+- item_id: v1.0.8 batch merge resume (from PAUSED)
+- started_at: 2026-05-06T13:42:00Z
+- status: STARTED
+- notes: Resumed PAUSED v1.0.8 batch per pickup instructions in earlier
+  PAUSED entry (devin-f10a64e2bf1643febf5c99f96b707373). PAT was missing
+  at session start; user provided GITHUB_PAT_ALVIARTS via secrets UI
+  (org-scoped, persistent). 4-test verification passed: login=alviarts,
+  perms admin/maintain/push/triage/pull all true, PR #131 mergeable=True,
+  rate_limit 5000/4986. PAT prefix `ghp_c1xaCP...`, classic, length 40.
+- step1_done: PR #131 (FEAT-23 stocktake) squash-merged 2026-05-06T13:42Z.
+  Merge SHA `bc84d122e277ea1c3f0f2245f9f373835f8a9450`. CI was already green
+  (Rust check + Lint+Typecheck+Unit Test both passed; Windows installer +
+  Publish v2 release skipped — those gate on tag push, expected).
+  PROGRESS.md FEAT-23 row flipped PAUSED → DONE.
+- step2_planned: Rebase #133 (FEAT-26 Sheets sync) onto latest main. Expected
+  conflicts in commands/mod.rs, lib.rs, sidebar, common.json, i18n/index.ts.
+- step3_planned: Rebase #136 (FEAT-27 OPAC) onto latest main.
+- step4_planned: Open release PR (PR I) — bump 1.0.7 → 1.0.8 + CHANGELOG.
+- skipped: #129 (FEAT-19/20) still locked by devin-e87e91dd1b25420eb46e75b6d779fb27,
+  lock claimed at 2026-05-06T00:41Z (~13h ago, lock <24h). Will check periodically.
