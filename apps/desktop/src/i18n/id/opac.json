@@ -62,7 +62,10 @@
     "cameraInUse": "Kamera sedang dipakai aplikasi lain.",
     "cameraUnsupported": "Browser tidak mendukung akses kamera.",
     "cameraOtherError": "Terjadi kesalahan saat mengakses kamera.",
-    "selectDevice": "Pilih kamera"
+    "selectDevice": "Pilih kamera",
+    "welcomeBack": "Selamat datang kembali, {{nama}}",
+    "kehadiranTercatat": "Kehadiran tercatat",
+    "kehadiranFail": "Gagal mencatat kehadiran"
   },
   "admin": {
     "unlockButton": "Mode Admin",
@@ -95,5 +98,52 @@
   "footer": {
     "poweredBy": "Perpustakaan Nusantara",
     "version": "v{{version}}"
+  },
+  "profile": {
+    "kelas": "Kelas",
+    "jurusan": "Jurusan",
+    "searchBooks": "Cari Buku",
+    "loadError": "Gagal memuat data anggota",
+    "denda": {
+      "title": "Denda Belum Dibayar",
+      "description": "Mohon segera diselesaikan di petugas perpustakaan."
+    },
+    "activeLoans": {
+      "title": "Peminjaman Aktif",
+      "empty": "Tidak ada peminjaman aktif saat ini.",
+      "due": "Jatuh tempo: {{date}}",
+      "onTime": "Tepat waktu",
+      "overdue": "Terlambat {{days}} hari"
+    },
+    "reservasi": {
+      "title": "Reservasi Saya",
+      "empty": "Belum ada reservasi aktif.",
+      "queue": "Antrean #{{urutan}}",
+      "slot": "Slot {{slot}}",
+      "expires": "Berlaku s/d {{date}}",
+      "cancel": "Batalkan",
+      "cancelOk": "Reservasi dibatalkan",
+      "cancelFail": "Gagal membatalkan reservasi",
+      "status": {
+        "menunggu": "Menunggu",
+        "siap_diambil": "Siap diambil",
+        "diambil": "Sudah diambil",
+        "expired": "Kedaluwarsa",
+        "dibatalkan": "Dibatalkan"
+      }
+    },
+    "history": {
+      "title": "Riwayat Peminjaman",
+      "show": "Tampilkan",
+      "hide": "Sembunyikan",
+      "empty": "Belum ada riwayat peminjaman.",
+      "lastPinjam": "Terakhir pinjam: {{date}}"
+    }
+  },
+  "reservasi": {
+    "loginFirst": "Login dengan KTA terlebih dahulu untuk reservasi",
+    "created": "Reservasi berhasil",
+    "queueDescription": "{{judul}} — antrean #{{urutan}}",
+    "createFail": "Gagal membuat reservasi"
   }
 }
