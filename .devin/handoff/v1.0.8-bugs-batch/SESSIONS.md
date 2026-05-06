@@ -451,3 +451,43 @@ Each entry is a markdown section with frontmatter-like fields:
   - Force-pushed, CI green, squash-merged 2026-05-06T14:08Z, sha 3c48af1.
 - skipped: #129 (FEAT-19/20) lock from 2026-05-06T00:41Z (~13.5h ago, lock <24h).
   PR is draft, single backend commit (`ef33d86` ISBN lookup), frontend wiring + FEAT-19 overwrite mode never implemented. Locking session abandoned without further work. Will block on user for direction (A: take over and finish; B: defer FEAT-19/20 to v1.0.9 + ship v1.0.8 release without them).
+
+## Session devin-66f0e55e455f413894a4e3ba6da395b3 — v1.0.9 collected fixes (handoff)
+
+- session_id: devin-66f0e55e455f413894a4e3ba6da395b3
+- branch: devin/1778080235-fix-buku-import-eksemplar
+- pr: #140 (DRAFT)
+- started_at: 2026-05-06T15:00Z
+- handed_off_at: 2026-05-06T15:42Z
+- status: HANDOFF — first subtask done, remaining 5 subtasks for next Devin.
+- pr_url: https://github.com/alviarts/perpustakaan-offline/pull/140
+- notes:
+  - User reported 4 distinct bugs across 4 messages while v1.0.8 was already
+    shipped. Per user direction "jadikan dulu 1 PR biar untuk release di 1.0.9":
+    bundle ALL fixes into a single tracking PR and release as v1.0.9.
+  - Subtask 0 (stocktake u.full_name fix) already merged via PR #139, ships in
+    v1.0.9 by virtue of being on main.
+  - Subtask 1 (buku_import + backfill) implemented + tested in this PR. 256/256
+    cargo tests pass. Fixes "Buku terpilih tidak punya eksemplar untuk dicetak"
+    after ISBN bulk import, AND self-heals existing v1.0.8 databases via the
+    backfill_missing_eksemplar migration.
+- pickup (next Devin):
+  1. Continue committing to branch devin/1778080235-fix-buku-import-eksemplar.
+     Do NOT open a new PR — keep v1.0.9 in PR #140.
+  2. Implement the 5 remaining subtasks per the §2-§6 sections of PR #140 body:
+     §2 OPAC enhancements (default-show full catalog, stats per card, cover
+        fallback) — files in apps/desktop/src/features/opac/.
+     §3 Bayar Denda preset buttons (Rp 5.000 / 10.000 / 15.000) on Pengembalian
+        page — find existing pattern via `rg "Rp 5.000"`.
+     §4 Sheets sync FEAT-26 extend push/pull to buku, eksemplar, peminjaman
+        tables — extend commands/sheets_sync.rs and remove the yellow
+        "menyusul di rilis selanjutnya" notice in the Settings UI.
+     §5 Layout responsive full-width on list pages (Anggota, Buku, Peminjaman,
+        Pengembalian, Reservasi, Wishlist, Stocktake, Kunjungan) — audit the
+        AppShell container and align with Dashboard density.
+     §6 Bump 1.0.8 → 1.0.9 in 4 files + CHANGELOG.md [1.0.9] section.
+  3. Run all gates (pnpm typecheck/lint/i18n:lint/test/build,
+     cargo check/clippy --all-targets -D warnings/test --lib).
+  4. Flip PR #140 draft → ready, wait CI green, squash-merge.
+  5. Tag annotated v1.0.9 + push tag → release-v2.yml auto-builds Windows
+     MSI/NSIS and publishes the GitHub Release.
