@@ -202,3 +202,15 @@ Each entry is a markdown section with frontmatter-like fields:
 - started_at: 2026-05-06T07:55:00Z
 - status: STARTED
 - branch: devin/$(date +%s)-stocktake (will be created)
+
+## Session devin-6b5acc6f8e4a4e778d85e9e626fccb1a — claim release FEAT-23 + claim PR A (FEAT-16)
+
+- session_id: devin-6b5acc6f8e4a4e778d85e9e626fccb1a
+- released: FEAT-23 (rolled back to OPEN — never started implementation)
+- claimed: BUG-19 + FEAT-16 (PR A — resume PAUSED PR #127)
+- claimed_at: 2026-05-06T08:00:00Z
+- branch: devin/1778013996-pr-a-kta-foto-fit-and-presets (existing)
+- status: STARTED
+- notes: User instructed to finish items bertahap (step-by-step) without skipping.
+  Resuming PR A's PAUSED state per WORKFLOW.md "Pause protocol" — pickup
+  instructions in PR #127 description. Only FEAT-16 remains (BUG-19 done).

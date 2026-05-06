@@ -14,15 +14,15 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 
 | id      | pr_group | title                                                                              | severity | status | pr  | completed_at | depends_on |
 | ------- | -------- | ---------------------------------------------------------------------------------- | -------- | ------ | --- | ------------ | ---------- |
-| BUG-19  | A        | KTA PDF export: foto gepeng (stretch ke aspect ratio slot, tidak preserve)        | HIGH     | PAUSED | #127 (draft) | —            | —          |
-| FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | PAUSED | #127 (draft) | —            | —          |
+| BUG-19  | A        | KTA PDF export: foto gepeng (stretch ke aspect ratio slot, tidak preserve)        | HIGH     | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T08:00:00Z | #127 (draft) | —            | —          |
+| FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T08:00:00Z | #127 (draft) | —            | —          |
 | FEAT-17 | B        | Peminjaman: perpanjangan otomatis (1-klik extend, max N× configurable)            | HIGH     | IN_PR  | #128 | —            | —          |
 | FEAT-18 | B        | Buku: reservasi/booking (antrian saat buku sedang dipinjam)                       | MEDIUM   | IN_PR  | #128 | —            | —          |
 | FEAT-19 | C        | Anggota: bulk import dari Excel/CSV (template + validasi NIS unik)                | HIGH     | IN_PR  | #129 (draft) | —            | —          |
 | FEAT-20 | C        | Buku: bulk import via ISBN (Open Library / Google Books fetch metadata)           | MEDIUM   | IN_PR  | #129 (draft) | —            | —          |
 | FEAT-21 | D        | Anggota: cetak surat keterangan bebas pustaka (auto-generate PDF saat eligible)   | MEDIUM   | IN_PR    | 130 | —            | —          |
 | FEAT-22 | D        | Wishlist anggota: request pengadaan buku (admin queue review)                     | LOW      | IN_PR    | 130 | —            | —          |
-| FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T07:55:00Z | —   | —            | —          |
+| FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | OPEN   | —   | —            | —          |
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | OPEN   | —   | —            | —          |
 | FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | OPEN   | —   | —            | —          |
 | FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | OPEN   | —   | —            | —          |
