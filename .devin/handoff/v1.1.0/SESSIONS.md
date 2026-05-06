@@ -30,3 +30,15 @@ Serves as the "who did what when" for cross-session debugging.
              as the v1.0.13 starter; that file is committed under a
              wip: prefix on this branch and is the seed for
              FEAT-Sirkulasi-Search.
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    STARTED
+  item:      BUG-Pengembalian-DendaDup
+  pr:        -
+  started_at:   2026-05-06T20:48Z
+  notes:     Claiming first OPEN item in v1.1.0 batch. Plan: extract
+             dedup helper apps/desktop/src/lib/dendaPresets.ts (will be
+             reused by FEAT-Peminjaman-DendaInline), refactor
+             PengembalianPage to use it, rename fixed-preset testids to
+             pengembalian-bayar-quick-fixed-{value} per BUGS.md spec,
+             add unit tests at apps/desktop/tests/unit/dendaPresets.test.ts.
