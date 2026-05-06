@@ -348,3 +348,17 @@ Each entry is a markdown section with frontmatter-like fields:
   - i18n: new `opac` namespace (id + en parity).
   - Tests: app_mode round-trip, OPAC routing, idle reset hook, admin unlock flow.
 - pickup: if pause: branch devin/1778075000-pr-h-opac-public-mode + draft PR (TBD).
+
+## Session devin-f10a64e2bf1643febf5c99f96b707373 — FEAT-27 PR_OPEN
+
+- session_id: devin-f10a64e2bf1643febf5c99f96b707373
+- item_id: FEAT-27 (PR H — OPAC public-mode)
+- status: PR_OPEN
+- pr: #136 (https://github.com/alviarts/perpustakaan-offline/pull/136)
+- branch: devin/1778075000-pr-h-opac-public-mode
+- pushed_at: 2026-05-06T12:25:00Z
+- notes: Draft PR opened with same-device-only fallback per BUGS.md line 751 (no
+  FEAT-26 dependency). Frontend gates green locally (typecheck, lint, i18n:lint,
+  273/273 tests, build). Cargo gates skipped — no Rust files touched. KTA scan
+  flow shipped as a stub modal (TODO: decouple `useBarcodeScanner` from
+  `SirkulasiPage` in a follow-up).
