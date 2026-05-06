@@ -76,3 +76,25 @@ Serves as the "who did what when" for cross-session debugging.
              clean (typecheck/lint/i18n:lint/build + 519 tests, +7 new).
              CI green (Lint+Typecheck+Test + Rust check). Squash-merged
              via alviarts PAT (commit d67ae1c).
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    COMPLETED
+  item:      FEAT-Dashboard-Clickable-KPI
+  pr:        '#147'
+  started_at:   2026-05-06T21:24Z
+  completed_at: 2026-05-06T21:30Z
+  notes:     Added optional href to KpiCard + InsightCard. When set
+             AND loading=false, the card is wrapped in a TanStack
+             <Link to={href} aria-label={label}>; loading-state
+             skeletons stay non-clickable. Wired Total Anggota /
+             Total Buku / Buku Dipinjam to /anggota /buku /peminjaman.
+             Buku terlaris and Peminjam teraktif Insights link to the
+             detail page of the top item (null-data falls back to
+             read-only card). Static averages keep their non-clickable
+             presentation. Spec note about ?status=aktif is left as a
+             follow-up since the route doesnt validate search params.
+             New tests at apps/desktop/tests/unit/kpiCard.test.tsx
+             mock the Link to a plain anchor and cover all four
+             href / loading combinations. Local gates clean (523
+             tests, +4 new). CI green. Squash-merged via PAT
+             (commit fd587a8).
