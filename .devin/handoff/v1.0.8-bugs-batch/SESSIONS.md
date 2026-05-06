@@ -125,3 +125,21 @@ Each entry is a markdown section with frontmatter-like fields:
   - i18n: id+en parity for all new strings.
   - Tests: vitest + cargo test (target: net positive new tests).
 - **pickup**: if pause: branch `devin/1778015814-pr-b-peminjaman-extend-and-reserve`, draft PR (TBD). Master prompt + this entry are sufficient context.
+
+---
+
+### devin-e87e91dd1b25420eb46e75b6d779fb27 — PR C (FEAT-19 + FEAT-20) claim
+
+- **session_id**: `devin-e87e91dd1b25420eb46e75b6d779fb27`
+- **item_id**: FEAT-19 + FEAT-20 (PR C — Bulk import: anggota Excel/CSV + buku via ISBN)
+- **branch**: `devin/1778028075-pr-c-bulk-import-anggota-buku` (TBD)
+- **pr**: #TBD
+- **started_at**: 2026-05-06T00:41:15Z
+- **status**: STARTED (claimed in parallel while #128 awaits user merge)
+- **notes**: Claiming PR group C in parallel because PR #128 (PR group B) has been ready-for-review for 3+ hours with no merge action and no user response. Per master prompt's "Run multiple Devins in parallel" allowance + autonomous-mode persistence principle, claiming the next OPEN group is the productive path. Will continue polling #128 every ~10 min in background and switch back to update PROGRESS.md the moment merge is detected. PR group A (BUG-19 + FEAT-16) is PAUSED with #127 (draft), explicitly skipped.
+- **plan**:
+  - Backend (Rust): add `calamine = "0.x"` for Excel parsing. New `commands/anggota_import.rs` (`anggota_parse_file`, `anggota_bulk_insert`, optional overwrite-mode). New `commands/buku_import.rs` (`buku_isbn_fetch` via reqwest, `buku_bulk_insert_with_covers`). Both wrap insert in transaction for atomicity.
+  - Frontend (TS/React): `AnggotaImportDialog.tsx` (drag-drop file + preview table + status badges + "Import N" button). `BukuImportDialog.tsx` (textarea ISBN paste + fetch metadata table + editable + "Import N" button). Trigger buttons on `AnggotaPage.tsx` and `BukuPage.tsx`. Public asset: `apps/desktop/public/templates/anggota-import-template.xlsx`.
+  - i18n: id+en parity for all new strings.
+  - Tests: vitest for parse/preview/validation logic + cargo test for bulk_insert atomicity + ISBN parsing.
+- **pickup**: if pause: branch `devin/1778028075-pr-c-bulk-import-anggota-buku`, draft PR (TBD). Master prompt + this entry are sufficient context.

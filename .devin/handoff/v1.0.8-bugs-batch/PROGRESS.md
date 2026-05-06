@@ -18,8 +18,8 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | PAUSED | #127 (draft) | —            | —          |
 | FEAT-17 | B        | Peminjaman: perpanjangan otomatis (1-klik extend, max N× configurable)            | HIGH     | IN_PR  | #128 | —            | —          |
 | FEAT-18 | B        | Buku: reservasi/booking (antrian saat buku sedang dipinjam)                       | MEDIUM   | IN_PR  | #128 | —            | —          |
-| FEAT-19 | C        | Anggota: bulk import dari Excel/CSV (template + validasi NIS unik)                | HIGH     | OPEN   | —   | —            | —          |
-| FEAT-20 | C        | Buku: bulk import via ISBN (Open Library / Google Books fetch metadata)           | MEDIUM   | OPEN   | —   | —            | —          |
+| FEAT-19 | C        | Anggota: bulk import dari Excel/CSV (template + validasi NIS unik)                | HIGH     | IN_PROGRESS_BY_devin-e87e91dd1b25420eb46e75b6d779fb27:2026-05-06T00:41:15Z | —   | —            | —          |
+| FEAT-20 | C        | Buku: bulk import via ISBN (Open Library / Google Books fetch metadata)           | MEDIUM   | IN_PROGRESS_BY_devin-e87e91dd1b25420eb46e75b6d779fb27:2026-05-06T00:41:15Z | —   | —            | —          |
 | FEAT-21 | D        | Anggota: cetak surat keterangan bebas pustaka (auto-generate PDF saat eligible)   | MEDIUM   | OPEN   | —   | —            | —          |
 | FEAT-22 | D        | Wishlist anggota: request pengadaan buku (admin queue review)                     | LOW      | OPEN   | —   | —            | —          |
 | FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | OPEN   | —   | —            | —          |
