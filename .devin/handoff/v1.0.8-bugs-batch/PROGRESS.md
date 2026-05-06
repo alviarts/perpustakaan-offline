@@ -24,7 +24,7 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-22 | D        | Wishlist anggota: request pengadaan buku (admin queue review)                     | LOW      | IN_PR    | 130 | —            | —          |
 | FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | IN_PR    | 131 | —            | —          |
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | IN_PR  | #132 | —            | —          |
-| FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | OPEN   | —   | —            | —          |
+| FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | IN_PROGRESS_BY_devin-4923982bb2494e4bb0d28d50d93540d9:2026-05-05T17:30:00Z | —   | —            | —          |
 | FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | OPEN   | —   | —            | —          |
 | FEAT-26 | G        | Google Sheets bidirectional sync (push+pull delta + scheduler + conflict resolve) | HIGH     | IN_PR  | #133 | —            | —          |
 | FEAT-27 | H        | OPAC public-mode: kiosk fullscreen, dual-UI, scan KTA optional, admin-pwd unlock  | HIGH     | OPEN   | —   | —            | FEAT-26    |
