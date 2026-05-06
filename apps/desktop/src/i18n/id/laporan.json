@@ -98,6 +98,52 @@
     "scheduleSave": "Simpan Jadwal",
     "scheduleSaved": "Jadwal disimpan",
     "scheduleFailed": "Gagal menyimpan jadwal",
-    "lastRun": "Terakhir berjalan"
+    "lastRun": "Terakhir berjalan",
+    "history": {
+      "title": "Riwayat Backup",
+      "subtitle": "Audit semua backup (lokal, cloud, encrypted). Sortir terbaru dulu.",
+      "from": "Dari (ISO)",
+      "to": "Sampai (ISO)",
+      "destType": "Tipe Tujuan",
+      "allTypes": "Semua",
+      "empty": "Belum ada riwayat backup.",
+      "loadFailed": "Gagal memuat riwayat",
+      "deleteOk": "Entri riwayat dihapus.",
+      "deleteFailed": "Gagal menghapus entri.",
+      "refresh": "Refresh",
+      "col": {
+        "created": "Tanggal",
+        "path": "Path",
+        "dest": "Tujuan",
+        "size": "Ukuran",
+        "status": "Status"
+      }
+    },
+    "encrypted": {
+      "title": "Backup Terenkripsi",
+      "subtitle": "Backup .db dengan AES-256-GCM. Password diubah jadi key via PBKDF2 (200k iter). Wajib ingat password — file tidak bisa dipulihkan tanpa itu.",
+      "password": "Password (≥ 8 karakter)",
+      "show": "Tampilkan",
+      "hide": "Sembunyikan",
+      "create": "Buat Backup Terenkripsi",
+      "ok": "Backup terenkripsi berhasil.",
+      "failed": "Backup terenkripsi gagal.",
+      "shortPwd": "Password minimal 8 karakter."
+    },
+    "cloud": {
+      "title": "Backup ke Cloud (rclone)",
+      "subtitle": "Upload backup ke Google Drive / Dropbox / S3 / dst. via binary rclone yang sudah Anda install. Aplikasi tidak menyimpan kredensial cloud — semua dikelola lewat `rclone config`.",
+      "provider": "Provider",
+      "remote": "Nama Remote (`rclone config` name)",
+      "folder": "Folder Remote",
+      "autoUpload": "Auto-upload setiap backup terjadwal selesai",
+      "save": "Simpan Pengaturan",
+      "savedTitle": "Pengaturan cloud disimpan.",
+      "saveFailed": "Gagal menyimpan pengaturan cloud.",
+      "uploadNow": "Upload File ke Cloud",
+      "pickFile": "Pilih file backup untuk upload",
+      "uploadOk": "Upload selesai.",
+      "uploadFailed": "Upload gagal."
+    }
   }
 }

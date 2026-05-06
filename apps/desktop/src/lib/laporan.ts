@@ -64,6 +64,51 @@ export interface BackupSchedule {
   lastRun: string | null;
 }
 
+/**
+ * FEAT-24: a single row of `backup_history`. The Rust side serializes with
+ * `#[serde(rename_all = "camelCase")]`, so field names already match the TS
+ * naming convention.
+ */
+export interface BackupHistoryRow {
+  id: number;
+  path: string;
+  sizeBytes: number;
+  checksum: string | null;
+  destType: string;
+  destLabel: string | null;
+  encrypted: boolean;
+  status: string;
+  error: string | null;
+  createdAt: string;
+}
+
+export interface BackupHistoryListArgs {
+  from?: string;
+  to?: string;
+  destType?: string;
+  limit?: number;
+}
+
+export interface BackupCloudSettings {
+  provider: 'lokal' | 'gdrive' | 'dropbox' | 'rclone';
+  rcloneRemote: string;
+  remoteFolder: string;
+  autoUpload: boolean;
+}
+
+export interface BackupCloudUploadInput {
+  sourcePath: string;
+  remote?: string;
+  folder?: string;
+}
+
+export interface BackupCloudUploadResult {
+  remote: string;
+  folder: string;
+  stdout: string;
+  stderr: string;
+}
+
 export type KasJenis = 'masuk' | 'keluar';
 export type KasSumber = 'manual' | 'denda' | 'hilang' | 'modal';
 
@@ -88,6 +133,20 @@ export interface LaporanRpc {
   backupScheduleGet: () => Promise<BackupSchedule>;
   backupScheduleSet: (enabled: boolean, cron: string) => Promise<BackupSchedule>;
   backupDbPath: () => Promise<string>;
+  // FEAT-24: backup history + encrypted backups + cloud passthrough.
+  backupHistoryList: (args?: BackupHistoryListArgs) => Promise<BackupHistoryRow[]>;
+  backupHistoryGet: (id: number) => Promise<BackupHistoryRow>;
+  backupHistoryDelete: (id: number) => Promise<void>;
+  backupCreateHistory: (
+    targetDir: string,
+    destType?: string,
+    destLabel?: string,
+  ) => Promise<BackupHistoryRow>;
+  backupCreateEncrypted: (targetDir: string, password: string) => Promise<BackupHistoryRow>;
+  backupRestoreEncrypted: (filePath: string, password: string) => Promise<BackupResult>;
+  backupCloudSettingsGet: () => Promise<BackupCloudSettings>;
+  backupCloudSettingsSet: (settings: BackupCloudSettings) => Promise<BackupCloudSettings>;
+  backupCloudUpload: (input: BackupCloudUploadInput) => Promise<BackupCloudUploadResult>;
 }
 
 const tauriRpc: LaporanRpc = {
@@ -108,6 +167,25 @@ const tauriRpc: LaporanRpc = {
   backupScheduleSet: (enabled, cron) =>
     invoke<BackupSchedule>('backup_schedule_set', { enabled, cron }),
   backupDbPath: () => invoke<string>('backup_db_path'),
+  backupHistoryList: (args) => invoke<BackupHistoryRow[]>('backup_history_list', { args }),
+  backupHistoryGet: (id) => invoke<BackupHistoryRow>('backup_history_get', { id }),
+  backupHistoryDelete: (id) => invoke<void>('backup_history_delete', { id }),
+  backupCreateHistory: (targetDir, destType, destLabel) =>
+    invoke<BackupHistoryRow>('backup_create_history', { targetDir, destType, destLabel }),
+  backupCreateEncrypted: (targetDir, password) =>
+    invoke<BackupHistoryRow>('backup_create_encrypted', { targetDir, password }),
+  backupRestoreEncrypted: (filePath, password) =>
+    invoke<BackupResult>('backup_restore_encrypted', { filePath, password }),
+  backupCloudSettingsGet: () => invoke<BackupCloudSettings>('backup_cloud_settings_get'),
+  backupCloudSettingsSet: ({ provider, rcloneRemote, remoteFolder, autoUpload }) =>
+    invoke<BackupCloudSettings>('backup_cloud_settings_set', {
+      provider,
+      rcloneRemote,
+      remoteFolder,
+      autoUpload,
+    }),
+  backupCloudUpload: (input) =>
+    invoke<BackupCloudUploadResult>('backup_cloud_upload', { input }),
 };
 
 const mockRpc: LaporanRpc = {
@@ -285,6 +363,84 @@ const mockRpc: LaporanRpc = {
   },
   async backupDbPath() {
     return '/mock/perpustakaan.db';
+  },
+  async backupHistoryList() {
+    return [
+      {
+        id: 1,
+        path: '/mock/backup/perpustakaan-20260101-020000.db',
+        sizeBytes: 1_234_567,
+        checksum: 'a'.repeat(64),
+        destType: 'lokal',
+        destLabel: null,
+        encrypted: false,
+        status: 'sukses',
+        error: null,
+        createdAt: '2026-01-01T02:00:00',
+      },
+    ];
+  },
+  async backupHistoryGet(id) {
+    return {
+      id,
+      path: '/mock/backup/perpustakaan.db',
+      sizeBytes: 0,
+      checksum: null,
+      destType: 'lokal',
+      destLabel: null,
+      encrypted: false,
+      status: 'sukses',
+      error: null,
+      createdAt: '2026-01-01T00:00:00',
+    };
+  },
+  async backupHistoryDelete() {
+    return undefined;
+  },
+  async backupCreateHistory(_targetDir, destType, destLabel) {
+    return {
+      id: 99,
+      path: '/mock/backup/perpustakaan-mock.db',
+      sizeBytes: 0,
+      checksum: '0'.repeat(64),
+      destType: destType ?? 'lokal',
+      destLabel: destLabel ?? null,
+      encrypted: false,
+      status: 'sukses',
+      error: null,
+      createdAt: new Date().toISOString().slice(0, 19),
+    };
+  },
+  async backupCreateEncrypted() {
+    return {
+      id: 100,
+      path: '/mock/backup/perpustakaan-mock.db.enc',
+      sizeBytes: 0,
+      checksum: '0'.repeat(64),
+      destType: 'lokal',
+      destLabel: 'Encrypted (AES-256)',
+      encrypted: true,
+      status: 'sukses',
+      error: null,
+      createdAt: new Date().toISOString().slice(0, 19),
+    };
+  },
+  async backupRestoreEncrypted() {
+    return { path: '/mock/perpustakaan.db', checksum: '0'.repeat(64), sizeBytes: 0 };
+  },
+  async backupCloudSettingsGet() {
+    return { provider: 'lokal', rcloneRemote: '', remoteFolder: '', autoUpload: false };
+  },
+  async backupCloudSettingsSet(s) {
+    return s;
+  },
+  async backupCloudUpload({ remote, folder }) {
+    return {
+      remote: remote ?? 'mock-remote',
+      folder: folder ?? '/',
+      stdout: 'mock upload OK',
+      stderr: '',
+    };
   },
 };
 
