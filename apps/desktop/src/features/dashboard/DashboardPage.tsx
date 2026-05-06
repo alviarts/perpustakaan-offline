@@ -25,6 +25,7 @@ import { ChartLine } from '@/components/shared/ChartLine';
 import { Heatmap } from '@/components/shared/Heatmap';
 import { LiveClock } from '@/components/shared/LiveClock';
 import { OverduePanel } from '@/features/dashboard/OverduePanel';
+import { SystemHealthCard } from '@/features/dashboard/SystemHealthCard';
 import { getQuoteByIndex } from '@/lib/dailyQuote';
 import { useQuoteRotation } from '@/features/dashboard/useQuoteRotation';
 import { formatTauriError } from '@/lib/errors';
@@ -308,6 +309,8 @@ export function DashboardPage() {
               href="/peminjaman"
             />
           </section>
+
+          <SystemHealthCard />
 
           <OverduePanel />
 

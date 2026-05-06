@@ -166,6 +166,7 @@ pub fn run() {
             commands::dashboard::dashboard_trend,
             commands::dashboard::dashboard_heatmap,
             commands::dashboard::dashboard_insights,
+            commands::dashboard::dashboard_system_health,
             commands::laporan::laporan_grafik,
             commands::laporan::laporan_top_peminjam,
             commands::laporan::laporan_top_buku,

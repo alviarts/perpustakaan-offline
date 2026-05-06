@@ -67,6 +67,16 @@ export interface DashboardInsights {
   avgLoanDurationDays: number;
 }
 
+/** D1-SystemHealthWidget — operational snapshot. */
+export interface SystemHealth {
+  dbSizeBytes: number;
+  lastBackupAt: string | null;
+  nextBackupAt: string | null;
+  pendingReservasi: number;
+  appVersion: string;
+  updateAvailable: boolean | null;
+}
+
 export interface DashboardRpc {
   kpi: () => Promise<DashboardKpi>;
   ddc: () => Promise<DdcSlice[]>;
@@ -76,6 +86,7 @@ export interface DashboardRpc {
   trend: (window: TrendWindow) => Promise<TrendBucket[]>;
   heatmap: () => Promise<HeatCell[]>;
   insights: () => Promise<DashboardInsights>;
+  systemHealth: () => Promise<SystemHealth>;
 }
 
 const tauriRpc: DashboardRpc = {
@@ -90,6 +101,7 @@ const tauriRpc: DashboardRpc = {
   trend: (window) => invoke<TrendBucket[]>('dashboard_trend', { window }),
   heatmap: () => invoke<HeatCell[]>('dashboard_heatmap'),
   insights: () => invoke<DashboardInsights>('dashboard_insights'),
+  systemHealth: () => invoke<SystemHealth>('dashboard_system_health'),
 };
 
 const DDC_LABELS: Record<string, string> = {
@@ -229,6 +241,16 @@ const mockRpc: DashboardRpc = {
       },
       avgLoansPerMember: 3.2,
       avgLoanDurationDays: 5.8,
+    };
+  },
+  async systemHealth() {
+    return {
+      dbSizeBytes: 2 * 1024 * 1024 + 384 * 1024,
+      lastBackupAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
+      nextBackupAt: null,
+      pendingReservasi: 2,
+      appVersion: '1.0.12',
+      updateAvailable: null,
     };
   },
 };

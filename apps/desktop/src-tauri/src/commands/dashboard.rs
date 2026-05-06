@@ -641,6 +641,68 @@ pub(crate) fn dashboard_insights_inner(conn: &Connection) -> DashboardInsights {
     }
 }
 
+/// D1-SystemHealthWidget — single round-trip snapshot of the install's
+/// operational state (DB size, latest backup, next-backup-at, pending
+/// reservasi, version). Rendered by `SystemHealthCard.tsx` on the
+/// Dashboard.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemHealth {
+    pub db_size_bytes: i64,
+    pub last_backup_at: Option<String>,
+    pub next_backup_at: Option<String>,
+    pub pending_reservasi: i64,
+    pub app_version: String,
+    pub update_available: Option<bool>,
+}
+
+#[tauri::command]
+pub fn dashboard_system_health(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> AppResult<SystemHealth> {
+    let conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+
+    let pending_reservasi: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM reservasi WHERE status = 'menunggu'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap_or(0);
+
+    let last_backup_at: Option<String> = conn
+        .query_row(
+            "SELECT created_at FROM backup_history WHERE status = 'ok' ORDER BY created_at DESC LIMIT 1",
+            [],
+            |r| r.get(0),
+        )
+        .ok();
+
+    // We don't compute the next-run server-side — the front-end derives it
+    // from `backup_schedule_get` (cron + lastRun) so users with cron parsers
+    // installed see a precise date, while bare installs fall back to a
+    // friendly schedule label. This keeps the Rust side small.
+    let next_backup_at: Option<String> = None;
+
+    let db_size_bytes = match crate::db::resolve_db_path(&app) {
+        Ok(p) => std::fs::metadata(&p).map(|m| m.len() as i64).unwrap_or(0),
+        Err(_) => 0,
+    };
+
+    Ok(SystemHealth {
+        db_size_bytes,
+        last_backup_at,
+        next_backup_at,
+        pending_reservasi,
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        update_available: None,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
