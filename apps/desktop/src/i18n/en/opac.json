@@ -51,7 +51,17 @@
     "scanInstruction": "Point your KTA barcode at the camera",
     "memberNotFound": "No member found for code {{kode}}",
     "scanError": "Could not read the KTA",
-    "idleReset": "Session ended due to inactivity"
+    "idleReset": "Session ended due to inactivity",
+    "startCamera": "Start camera",
+    "starting": "Starting camera…",
+    "stopCamera": "Stop camera",
+    "cameraOff": "Camera is off",
+    "cameraPermissionDenied": "Camera access blocked. Open browser/system settings to enable.",
+    "cameraNoDevice": "No camera detected.",
+    "cameraInUse": "Camera is being used by another app.",
+    "cameraUnsupported": "Browser does not support camera access.",
+    "cameraOtherError": "An error occurred while accessing the camera.",
+    "selectDevice": "Select camera"
   },
   "admin": {
     "unlockButton": "Admin Mode",

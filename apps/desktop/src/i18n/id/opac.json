@@ -51,7 +51,17 @@
     "scanInstruction": "Arahkan barcode KTA Anda ke kamera",
     "memberNotFound": "Anggota tidak ditemukan untuk kode {{kode}}",
     "scanError": "Tidak dapat membaca KTA",
-    "idleReset": "Sesi otomatis berakhir karena tidak aktif"
+    "idleReset": "Sesi otomatis berakhir karena tidak aktif",
+    "startCamera": "Aktifkan Kamera",
+    "starting": "Membuka kamera…",
+    "stopCamera": "Matikan Kamera",
+    "cameraOff": "Kamera belum aktif",
+    "cameraPermissionDenied": "Akses kamera diblokir. Buka pengaturan browser/sistem untuk mengaktifkan.",
+    "cameraNoDevice": "Tidak ada kamera yang terdeteksi.",
+    "cameraInUse": "Kamera sedang dipakai aplikasi lain.",
+    "cameraUnsupported": "Browser tidak mendukung akses kamera.",
+    "cameraOtherError": "Terjadi kesalahan saat mengakses kamera.",
+    "selectDevice": "Pilih kamera"
   },
   "admin": {
     "unlockButton": "Mode Admin",

@@ -8,6 +8,7 @@ import { useOpacIdleReset } from './useOpacIdleReset';
 import { settingsApi } from '@/lib/settings';
 import { loginRequest, isTauri } from '@/lib/auth';
 import { useToast } from '@/components/ui/toast-manager';
+import type { Anggota } from '@/lib/anggota';
 
 type View = { kind: 'home' } | { kind: 'search'; query: string };
 
@@ -45,11 +46,13 @@ export function OpacApp({
   const { showToast } = useToast();
   const [view, setView] = useState<View>({ kind: 'home' });
   const [scanOpen, setScanOpen] = useState(false);
+  const [member, setMember] = useState<Anggota | null>(null);
 
   const goHome = useCallback(() => setView({ kind: 'home' }), []);
 
   useOpacIdleReset(() => {
     setScanOpen(false);
+    setMember(null);
     setView({ kind: 'home' });
   });
 
@@ -91,6 +94,26 @@ export function OpacApp({
 
   return (
     <div className="relative h-full w-full bg-background" data-testid="opac-app">
+      {member && (
+        <div
+          className="border-b bg-primary/10 px-6 py-2 text-sm"
+          role="status"
+          data-testid="opac-member-banner"
+        >
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
+            <span className="font-medium">
+              {t('session.welcome', { nama: member.nama })}
+            </span>
+            <button
+              type="button"
+              onClick={() => setMember(null)}
+              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+            >
+              {t('session.logout')}
+            </button>
+          </div>
+        </div>
+      )}
       {view.kind === 'home' ? (
         <OpacHomePage
           libraryName={libraryName}
@@ -100,7 +123,11 @@ export function OpacApp({
       ) : (
         <OpacSearchPage initialQuery={view.query} onBack={goHome} />
       )}
-      <OpacKtaScanFlow open={scanOpen} onOpenChange={setScanOpen} />
+      <OpacKtaScanFlow
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        onMemberAuthenticated={(m) => setMember(m)}
+      />
       <OpacAdminUnlockButton
         onVerify={verifyAdmin}
         onSuccess={() => {
