@@ -35,6 +35,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(WISHLIST_SQL)?;
     conn.execute_batch(SYNC_SQL)?;
     apply_additive_migrations(conn)?;
+    backfill_missing_eksemplar(conn)?;
     seed_master_data(conn)?;
     seed_kta_default_template(conn)?;
     seed_label_buku_default_template(conn)?;
@@ -354,6 +355,54 @@ fn apply_additive_migrations(conn: &Connection) -> AppResult<()> {
         "INTEGER NOT NULL DEFAULT 0",
     )?;
     add_column_if_missing(conn, "peminjaman", "tanggal_perpanjangan_terakhir", "TEXT")?;
+    Ok(())
+}
+
+/// Backfill missing `eksemplar` rows for any `buku` whose denormalized
+/// `jumlah_eksemplar` exceeds the actual COUNT in `eksemplar`. The v1.0.8
+/// FEAT-20 ISBN bulk import path INSERT-ed into `buku` only and never
+/// created the per-copy rows that `cetak label` and `peminjaman` iterate
+/// over, leaving books that looked importable but rejected with
+/// "Buku terpilih tidak punya eksemplar untuk dicetak". This migration runs
+/// on every startup so existing v1.0.8 databases self-heal without the user
+/// re-importing.
+///
+/// Numbering follows `buku_create_inner`: `kode_buku` + `-NN` zero-padded to
+/// two digits. We INSERT OR IGNORE so kodes already present (e.g. from a
+/// prior partial backfill or a manual eksemplar) are kept intact.
+fn backfill_missing_eksemplar(conn: &Connection) -> AppResult<()> {
+    let mut stmt = conn.prepare(
+        "SELECT b.id, b.kode_buku, b.jumlah_eksemplar,
+                (SELECT COUNT(*) FROM eksemplar e WHERE e.buku_id = b.id) AS actual
+           FROM buku b
+          WHERE b.jumlah_eksemplar > (SELECT COUNT(*) FROM eksemplar e WHERE e.buku_id = b.id)",
+    )?;
+    let rows: Vec<(i64, String, i64, i64)> = stmt
+        .query_map([], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    if rows.is_empty() {
+        return Ok(());
+    }
+    let mut total_inserted: i64 = 0;
+    for (buku_id, kode_buku, jumlah, _actual) in &rows {
+        for n in 1..=*jumlah {
+            let kode_eksemplar = format!("{kode_buku}-{n:02}");
+            let inserted = conn.execute(
+                "INSERT OR IGNORE INTO eksemplar (buku_id, kode_eksemplar, status)
+                 VALUES (?1, ?2, 'tersedia')",
+                rusqlite::params![buku_id, kode_eksemplar],
+            )?;
+            total_inserted += inserted as i64;
+        }
+    }
+    if total_inserted > 0 {
+        log::info!(
+            "backfilled {total_inserted} missing eksemplar row(s) across {} buku",
+            rows.len()
+        );
+    }
     Ok(())
 }
 
@@ -749,5 +798,164 @@ mod tests {
             .query_row("SELECT kode FROM ddc", [], |r| r.get(0))
             .unwrap();
         assert_eq!(kode, "CUSTOM");
+    }
+
+    fn count_eksemplar_for(conn: &Connection, buku_id: i64) -> i64 {
+        conn.query_row(
+            "SELECT COUNT(*) FROM eksemplar WHERE buku_id = ?1",
+            rusqlite::params![buku_id],
+            |r| r.get(0),
+        )
+        .unwrap()
+    }
+
+    fn list_kode(conn: &Connection, buku_id: i64) -> Vec<String> {
+        let mut stmt = conn
+            .prepare(
+                "SELECT kode_eksemplar FROM eksemplar WHERE buku_id = ?1 \
+                 ORDER BY kode_eksemplar ASC",
+            )
+            .unwrap();
+        stmt.query_map(rusqlite::params![buku_id], |r| r.get::<_, String>(0))
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+    }
+
+    #[test]
+    fn backfill_creates_missing_eksemplar() {
+        // Regression for v1.0.8 FEAT-20 ISBN bulk import: imported buku had
+        // jumlah_eksemplar > 0 but zero rows in `eksemplar`, breaking cetak
+        // label and peminjaman.
+        let conn = fresh_conn();
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia)
+             VALUES ('B-LEGACY', 'Buku Lama', 3, 3)",
+            [],
+        )
+        .unwrap();
+        let buku_id = conn.last_insert_rowid();
+        assert_eq!(count_eksemplar_for(&conn, buku_id), 0);
+
+        backfill_missing_eksemplar(&conn).unwrap();
+
+        assert_eq!(
+            list_kode(&conn, buku_id),
+            vec!["B-LEGACY-01", "B-LEGACY-02", "B-LEGACY-03"]
+        );
+    }
+
+    #[test]
+    fn backfill_is_idempotent() {
+        let conn = fresh_conn();
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia)
+             VALUES ('B-RUN', 'Buku Run', 2, 2)",
+            [],
+        )
+        .unwrap();
+        let buku_id = conn.last_insert_rowid();
+
+        backfill_missing_eksemplar(&conn).unwrap();
+        backfill_missing_eksemplar(&conn).unwrap();
+        backfill_missing_eksemplar(&conn).unwrap();
+
+        assert_eq!(count_eksemplar_for(&conn, buku_id), 2);
+    }
+
+    #[test]
+    fn backfill_skips_books_already_complete() {
+        // A buku created via `buku_create_inner` already has all its
+        // eksemplar rows; backfill must be a no-op for it.
+        let conn = fresh_conn();
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia)
+             VALUES ('B-OK', 'Buku Ok', 2, 2)",
+            [],
+        )
+        .unwrap();
+        let buku_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, 'B-OK-01', 'tersedia')",
+            rusqlite::params![buku_id],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, 'B-OK-02', 'dipinjam')",
+            rusqlite::params![buku_id],
+        )
+        .unwrap();
+
+        backfill_missing_eksemplar(&conn).unwrap();
+
+        // Existing rows are intact (status not reset to 'tersedia').
+        let dipinjam: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM eksemplar WHERE buku_id = ?1 AND status = 'dipinjam'",
+                rusqlite::params![buku_id],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(dipinjam, 1);
+        assert_eq!(count_eksemplar_for(&conn, buku_id), 2);
+    }
+
+    #[test]
+    fn backfill_fills_partial_gaps_without_overwriting() {
+        // A buku where the user manually deleted some kodes; backfill must
+        // only insert missing ones, keep custom kodes alone.
+        let conn = fresh_conn();
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia)
+             VALUES ('B-MIX', 'Buku Mix', 3, 3)",
+            [],
+        )
+        .unwrap();
+        let buku_id = conn.last_insert_rowid();
+        // Pre-existing: only kode -02 exists (e.g. -01 deleted, -03 not yet
+        // created). Backfill must add -01 and -03 but leave -02 untouched.
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) VALUES (?1, 'B-MIX-02', 'rusak')",
+            rusqlite::params![buku_id],
+        )
+        .unwrap();
+
+        backfill_missing_eksemplar(&conn).unwrap();
+
+        assert_eq!(
+            list_kode(&conn, buku_id),
+            vec!["B-MIX-01", "B-MIX-02", "B-MIX-03"]
+        );
+        let rusak: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM eksemplar WHERE kode_eksemplar = 'B-MIX-02' AND status = 'rusak'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(rusak, 1);
+    }
+
+    #[test]
+    fn run_migrations_runs_backfill_automatically() {
+        // End-to-end: open in-memory db, manually create a "v1.0.8 ISBN
+        // import" row (buku without eksemplar), then run migrations again
+        // and confirm backfill kicked in.
+        let conn = Connection::open_in_memory().unwrap();
+        conn.pragma_update(None, "foreign_keys", "ON").unwrap();
+        run_migrations(&conn).unwrap();
+        conn.execute(
+            "INSERT INTO buku (kode_buku, judul, jumlah_eksemplar, jumlah_tersedia)
+             VALUES ('B-V108', 'Buku v1.0.8 import', 2, 2)",
+            [],
+        )
+        .unwrap();
+        let buku_id = conn.last_insert_rowid();
+        assert_eq!(count_eksemplar_for(&conn, buku_id), 0);
+
+        // Re-run migrations (mimics next app launch on v1.0.9).
+        run_migrations(&conn).unwrap();
+
+        assert_eq!(count_eksemplar_for(&conn, buku_id), 2);
     }
 }
