@@ -243,3 +243,23 @@ Serves as the "who did what when" for cross-session debugging.
              OpacScanLockedDialog.tsx + wire into OpacApp.tsx +
              unit tests, then continue continuous-autonomous loop
              through items A1, A2, C1, D1, D5, E1, RELEASE.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    COMPLETED
+  item:      FEAT-OPAC-Scan-Locked
+  pr:        152
+  started_at:   2026-05-06T22:30Z
+  completed_at: 2026-05-06T22:46Z
+  notes:     Implemented OpacScanLockedDialog + wired into OpacApp
+             handleScanKtaRequest/handleLogoutAndScan. Also added
+             optional onScanKta prop to OpacMemberProfile so a
+             different student can request a scan from inside the
+             previous member's profile (the realistic real-world
+             trigger; the home-page "Scan KTA Saya" is unreachable
+             once goHome redirects to profile). i18n keys
+             opac.scanLocked.{title,description,logoutAndScan,cancel}
+             and opac.profile.scanOtherKta added in id+en. 4 new
+             unit tests in opacScanLockedDialog.test.tsx. All 5
+             local gates green; PR #152 merged via PAT (sha
+             f5c6c126). 8/14 items DONE — A1, A2, C1, D1, D5, E1,
+             RELEASE remaining. Continuing to A1-CommandPalette next.
