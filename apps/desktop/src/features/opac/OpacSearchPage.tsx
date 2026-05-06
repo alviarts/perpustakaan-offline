@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Heart, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CardSkeleton } from '@/components/shared/CardSkeleton';
 import { OpacBookCard } from './OpacBookCard';
 import { OpacBookDetailDialog } from './OpacBookDetailDialog';
 import { OpacWishlistDialog } from './OpacWishlistDialog';
@@ -91,7 +92,11 @@ export function OpacSearchPage({
 
       <main className="flex-1 overflow-auto p-6">
         {loading ? (
-          <p className="text-sm text-muted-foreground">{t('search.loading')}</p>
+          <CardSkeleton
+            count={20}
+            gridClassName="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            data-testid="opac-search-card-skeleton"
+          />
         ) : error ? (
           <p className="text-sm text-destructive">{error}</p>
         ) : items.length === 0 ? (

@@ -180,6 +180,25 @@ export function PengembalianPage() {
               )}
             </div>
             <ul className="flex max-h-[420px] flex-col gap-1 overflow-y-auto">
+              {searching && results.length === 0 && (
+                <>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <li
+                      key={`pengembalian-skeleton-${i}`}
+                      className="flex items-center gap-3 rounded border border-border px-3 py-2"
+                      aria-busy="true"
+                      aria-hidden="true"
+                      data-testid="pengembalian-result-skeleton"
+                    >
+                      <div className="h-9 w-9 rounded-full bg-muted motion-reduce:animate-none animate-pulse" />
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <div className="h-3 w-2/3 rounded bg-muted motion-reduce:animate-none animate-pulse" />
+                        <div className="h-3 w-1/2 rounded bg-muted motion-reduce:animate-none animate-pulse" />
+                      </div>
+                    </li>
+                  ))}
+                </>
+              )}
               {results.length === 0 && !searching && (
                 <li className="rounded border border-dashed p-4 text-center text-sm text-muted-foreground">
                   {t('peminjaman:pengembalian.empty', { defaultValue: 'Tidak ada peminjaman aktif' })}
