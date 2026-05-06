@@ -60,16 +60,19 @@ Serves as the "who did what when" for cross-session debugging.
              flow on FEAT-Peminjaman-DendaInline next.
 
 - session_id: devin-c6e882bf432b47a0bd0340b111941348
-  status:    STARTED
+  status:    COMPLETED
   item:      FEAT-Peminjaman-DendaInline
-  pr:        -
+  pr:        '#146'
   started_at:   2026-05-06T21:08Z
-  notes:     Claiming next OPEN item. Plan: import dendaQuickPresets
-             helper from #145 into PeminjamanDetail, add loanRules
-             fetch + dendaQuickButtons useMemo, render preset row under
-             existing peminjaman-bayar input with testids
-             peminjaman-bayar-quick + peminjaman-bayar-quick-{N}x +
-             peminjaman-bayar-quick-fixed-{value}. Add new test file
-             apps/desktop/tests/unit/peminjamanDetailDendaPresets.test.tsx.
-             Only render preset row when activeItems.length > 0 (already
-             gated).
+  completed_at: 2026-05-06T21:21Z
+  notes:     Implemented as a shared <DendaQuickPresetRow> component
+             rather than duplicating JSX. PengembalianPage migrated to
+             the shared component (testids preserved verbatim from
+             #145); PeminjamanDetail mounts it under the existing
+             peminjaman-bayar Input, gated by activeItems.length > 0.
+             New tests at apps/desktop/tests/unit/dendaQuickPresetRow.test.tsx
+             cover dendaPerHari = 5000 / 2000 / 0, onSelect payload
+             for both kinds, and testidPrefix isolation. Local gates
+             clean (typecheck/lint/i18n:lint/build + 519 tests, +7 new).
+             CI green (Lint+Typecheck+Test + Rust check). Squash-merged
+             via alviarts PAT (commit d67ae1c).
