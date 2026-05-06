@@ -263,3 +263,20 @@ Serves as the "who did what when" for cross-session debugging.
              local gates green; PR #152 merged via PAT (sha
              f5c6c126). 8/14 items DONE — A1, A2, C1, D1, D5, E1,
              RELEASE remaining. Continuing to A1-CommandPalette next.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    STARTED
+  item:      A1-CommandPalette
+  pr:        null
+  started_at: 2026-05-06T22:48Z
+  notes:     Extend GlobalSearchDialog into a true command palette
+             (routes + actions registry). Will create
+             commandPaletteRegistry.ts with COMMAND_PALETTE_ROUTES
+             (~15) and COMMAND_PALETTE_ACTIONS (~8). Empty query →
+             Aksi Cepat + Halaman top 6. Non-empty query → fuzzy
+             filter routes/actions + existing data search. Skip
+             "Toggle Mode Demo" because D5-DemoMode is OPEN
+             (forward-reference). i18n keys
+             commandPalette.action.{key} + commandPalette.route.{key}
+             in id+en. Test file commandPalette.test.tsx with
+             ≥4 cases.

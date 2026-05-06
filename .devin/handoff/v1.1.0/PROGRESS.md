@@ -25,7 +25,7 @@ treats locks older than 24 h as stale and may take over.
 | FEAT-Sirkulasi-Search           | Wire ScanSearchInput, anggota+buku search dropdown       | —          | DONE   | #150 | 2026-05-06 | 2026-05-06   |
 | FEAT-OPAC-PostScanProfile       | Post-scan profile (loans, denda, kunjungan, reservasi)   | —          | DONE       | #151 | 2026-05-06 | 2026-05-06   |
 | FEAT-OPAC-Scan-Locked           | Scan KTA blocks if member already logged in              | FEAT-OPAC-PostScanProfile | DONE | #152 | 2026-05-06 | 2026-05-06 |
-| A1-CommandPalette               | Extend GlobalSearchDialog with route + action commands   | —          | OPEN   |     |            |              |
+| A1-CommandPalette               | Extend GlobalSearchDialog with route + action commands   | —          | IN_PROGRESS_BY_devin-81dbfdf5cf0a4377a2612b1ac3922053:2026-05-06T22:48Z | | 2026-05-06 | |
 | A2-SkeletonScreens              | Replace spinners with skeleton placeholders in tables    | —          | OPEN   |     |            |              |
 | C1-LaporanEksekutifPDF          | One-click executive monthly report PDF                   | —          | OPEN   |     |            |              |
 | D1-SystemHealthWidget           | Dashboard card: DB size, backups, reservasi, version     | —          | OPEN   |     |            |              |
