@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, History, Pencil } from 'lucide-react';
+import { ArrowLeft, FileText, History, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { AnggotaForm } from '@/features/anggota/AnggotaForm';
 import { AnggotaRiwayatPanel } from '@/features/anggota/AnggotaRiwayatPanel';
+import { SuratBebasPustakaDialog } from '@/features/surat/SuratBebasPustakaDialog';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { toAnggotaInput } from '@/features/anggota/schema';
 import { useToast } from '@/components/ui/toast-manager';
@@ -31,6 +32,7 @@ function EditAnggotaRoute() {
   const [jurusan, setJurusan] = useState<string[]>([]);
   const [agama, setAgama] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [suratOpen, setSuratOpen] = useState(false);
   const [tab, setTab] = useState<AnggotaDetailTab>('edit');
 
   useEffect(() => {
@@ -70,6 +72,17 @@ function EditAnggotaRoute() {
             {t('common:actions.back')}
           </Link>
         </Button>
+        {item && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSuratOpen(true)}
+            data-testid="anggota-surat-button"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            {t('surat:button.cetak', { defaultValue: 'Cetak Surat Bebas Pustaka' })}
+          </Button>
+        )}
       </div>
 
       <div className="mb-4">
@@ -129,6 +142,14 @@ function EditAnggotaRoute() {
       ) : item ? (
         <AnggotaRiwayatPanel anggotaId={item.id} />
       ) : null}
+
+      {item && (
+        <SuratBebasPustakaDialog
+          open={suratOpen}
+          onOpenChange={setSuratOpen}
+          anggotaId={item.id}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmOpen}

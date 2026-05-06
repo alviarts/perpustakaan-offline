@@ -1,0 +1,92 @@
+{
+  "title": "Wishlist & Pengadaan",
+  "subtitle": "Daftar permintaan buku dari anggota. Petugas dapat menyetujui, menolak, atau menandai sudah diadakan.",
+  "filter": {
+    "all": "Semua",
+    "pending": "Pending",
+    "disetujui": "Disetujui",
+    "ditolak": "Ditolak",
+    "sudahDiadakan": "Sudah Diadakan",
+    "dibatalkan": "Dibatalkan"
+  },
+  "status": {
+    "pending": "Pending",
+    "disetujui": "Disetujui",
+    "ditolak": "Ditolak",
+    "sudah_diadakan": "Sudah Diadakan",
+    "dibatalkan": "Dibatalkan"
+  },
+  "column": {
+    "judul": "Judul",
+    "pengarang": "Pengarang",
+    "isbn": "ISBN",
+    "anggota": "Anggota",
+    "alasan": "Alasan",
+    "upvote": "Upvote",
+    "status": "Status",
+    "buku": "Buku Terkait",
+    "tanggal": "Tanggal",
+    "aksi": "Aksi"
+  },
+  "action": {
+    "tambah": "Tambah Wishlist",
+    "setujui": "Setujui",
+    "tolak": "Tolak",
+    "tandaiSudahDiadakan": "Tandai Sudah Diadakan",
+    "batalkan": "Batalkan",
+    "kembalikanKePending": "Kembalikan ke Pending",
+    "upvote": "Upvote",
+    "hapus": "Hapus"
+  },
+  "empty": {
+    "all": "Belum ada permintaan buku.",
+    "filtered": "Tidak ada permintaan untuk filter ini."
+  },
+  "create": {
+    "title": "Tambah Permintaan Buku",
+    "subtitle": "Catat permintaan buku dari anggota. Status awal: Pending.",
+    "field": {
+      "anggota": "Anggota",
+      "anggotaPlaceholder": "Pilih anggota",
+      "judul": "Judul buku",
+      "judulPlaceholder": "Contoh: Atomic Habits",
+      "pengarang": "Pengarang (opsional)",
+      "isbn": "ISBN (opsional)",
+      "alasan": "Alasan / catatan (opsional)"
+    },
+    "submit": "Simpan Permintaan",
+    "cancel": "Batal",
+    "feedback": {
+      "success": "Permintaan tersimpan.",
+      "error": "Gagal menyimpan: {{message}}"
+    }
+  },
+  "updateStatus": {
+    "title": "Ubah Status",
+    "field": {
+      "catatanAdmin": "Catatan admin (opsional)",
+      "buku": "Tautkan ke buku (saat sudah diadakan)",
+      "bukuPlaceholder": "Pilih buku"
+    },
+    "submit": "Simpan",
+    "cancel": "Batal",
+    "feedback": {
+      "success": "Status diperbarui.",
+      "error": "Gagal mengubah status: {{message}}"
+    }
+  },
+  "deleteConfirm": {
+    "title": "Hapus permintaan?",
+    "description": "Permintaan ini akan dihapus permanen.",
+    "confirm": "Hapus",
+    "cancel": "Batal",
+    "feedback": {
+      "success": "Permintaan dihapus.",
+      "error": "Gagal menghapus: {{message}}"
+    }
+  },
+  "upvoteFeedback": {
+    "success": "Terima kasih, suara dicatat.",
+    "error": "Gagal upvote: {{message}}"
+  }
+}

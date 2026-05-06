@@ -17,6 +17,8 @@ import idLabelBuku from './id/label-buku.json';
 import idSirkulasi from './id/sirkulasi.json';
 import idReservasi from './id/reservasi.json';
 import idErrors from './id/errors.json';
+import idSurat from './id/surat.json';
+import idWishlist from './id/wishlist.json';
 
 import enCommon from './en/common.json';
 import enAuth from './en/auth.json';
@@ -34,6 +36,8 @@ import enLabelBuku from './en/label-buku.json';
 import enSirkulasi from './en/sirkulasi.json';
 import enReservasi from './en/reservasi.json';
 import enErrors from './en/errors.json';
+import enSurat from './en/surat.json';
+import enWishlist from './en/wishlist.json';
 
 export const NAMESPACES = [
   'common',
@@ -52,6 +56,8 @@ export const NAMESPACES = [
   'sirkulasi',
   'reservasi',
   'errors',
+  'surat',
+  'wishlist',
 ] as const;
 
 export const SUPPORTED_LOCALES = ['id', 'en'] as const;
@@ -75,6 +81,8 @@ const resources = {
     sirkulasi: idSirkulasi,
     reservasi: idReservasi,
     errors: idErrors,
+    surat: idSurat,
+    wishlist: idWishlist,
   },
   en: {
     common: enCommon,
@@ -93,6 +101,8 @@ const resources = {
     sirkulasi: enSirkulasi,
     reservasi: enReservasi,
     errors: enErrors,
+    surat: enSurat,
+    wishlist: enWishlist,
   },
 } as const;
 

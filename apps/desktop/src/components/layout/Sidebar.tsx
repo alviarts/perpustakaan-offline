@@ -13,6 +13,7 @@ import {
   Library,
   ScanLine,
   BookMarked,
+  Heart,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -38,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/sirkulasi', labelKey: 'common:menu.sirkulasi', Icon: ScanLine },
   { to: '/kunjungan', labelKey: 'common:menu.kunjungan', Icon: CalendarCheck },
   { to: '/laporan', labelKey: 'common:menu.laporan', Icon: BarChart3 },
+  { to: '/wishlist', labelKey: 'common:menu.wishlist', Icon: Heart },
   { to: '/settings', labelKey: 'common:menu.settings', Icon: Settings },
 ];
 
