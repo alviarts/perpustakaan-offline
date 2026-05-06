@@ -1,124 +1,630 @@
 [
-  { "text": "Buku adalah jendela dunia, sedangkan membaca adalah kuncinya.", "author": "Pepatah" },
-  { "text": "Tidak ada kapal yang lebih cepat daripada sebuah buku untuk membawamu ke negeri-negeri jauh.", "author": "Emily Dickinson" },
-  { "text": "Membaca seribu buku setiap tahun seperti menempa seribu tongkat untuk pikiran.", "author": "Pepatah Tionghoa" },
-  { "text": "Aku selalu membayangkan surga adalah semacam perpustakaan.", "author": "Jorge Luis Borges" },
-  { "text": "Sebuah buku adalah taman saku.", "author": "Pepatah Arab" },
-  { "text": "Orang yang membaca tidak akan pernah hidup hanya satu kehidupan.", "author": "George R. R. Martin" },
-  { "text": "Sekali kamu belajar membaca, kamu akan bebas selamanya.", "author": "Frederick Douglass" },
-  { "text": "Ilmu tanpa amal seperti pohon tanpa buah.", "author": "Ali bin Abi Thalib" },
-  { "text": "Buku tidak pernah mengkhianati pembacanya.", "author": "Pepatah" },
-  { "text": "Bacalah, karena dengan membaca seseorang menjadi besar.", "author": "Iqbal" },
-  { "text": "Belajarlah dari masa lalu, hiduplah untuk hari ini, berharaplah untuk hari esok.", "author": "Albert Einstein" },
-  { "text": "Buku yang baik adalah teman terbaik, hari ini dan selamanya.", "author": "Martin Tupper" },
-  { "text": "Pendidikan adalah senjata paling ampuh untuk mengubah dunia.", "author": "Nelson Mandela" },
-  { "text": "Tuntutlah ilmu sejak buaian hingga liang lahat.", "author": "Pepatah" },
-  { "text": "Membaca adalah olahraga pikiran.", "author": "Joseph Addison" },
-  { "text": "Tidak ada teman yang lebih setia daripada sebuah buku.", "author": "Ernest Hemingway" },
-  { "text": "Buku adalah jendela ajaib yang membuka cakrawala.", "author": "Pepatah" },
-  { "text": "Hidup tanpa buku seperti hari tanpa matahari.", "author": "Pepatah" },
-  { "text": "Buku terbaik adalah buku yang membuatmu berpikir lebih lama daripada membacanya.", "author": "Pepatah" },
-  { "text": "Pengetahuan adalah kekuatan; informasi adalah kebebasan.", "author": "Kofi Annan" },
-  { "text": "Buku adalah cermin: kamu hanya melihat apa yang sudah ada di dalam dirimu.", "author": "Carlos Ruiz Zafón" },
-  { "text": "Setiap perpustakaan kecil pun adalah jembatan antara generasi.", "author": "Pepatah" },
-  { "text": "Buku-buku berbicara kepada kita tanpa suara, namun selalu didengar.", "author": "Pepatah" },
-  { "text": "Pikiran yang terbuka, seperti payung, hanya berfungsi ketika terbuka.", "author": "James Dewar" },
-  { "text": "Hari ini seorang pembaca, esok seorang pemimpin.", "author": "Margaret Fuller" },
-  { "text": "Buku adalah tabungan pengetahuan yang tidak pernah habis.", "author": "Pepatah" },
-  { "text": "Gemar membaca menumbuhkan rasa ingin tahu yang tak ada habisnya.", "author": "Pepatah" },
-  { "text": "Setiap halaman adalah langkah menuju cakrawala baru.", "author": "Pepatah" },
-  { "text": "Pengetahuan tidak hanya untuk diketahui, tapi untuk diamalkan.", "author": "Imam Syafi'i" },
-  { "text": "Tinta seorang pelajar lebih suci daripada darah seorang pejuang.", "author": "Pepatah" },
-  { "text": "Sebuah buku adalah mimpi yang kau pegang di tanganmu.", "author": "Neil Gaiman" },
-  { "text": "Tidak ada akhir dari pembelajaran, hanya awal yang baru.", "author": "Pepatah" },
-  { "text": "Buku menyembuhkan luka yang tidak terlihat oleh mata.", "author": "Pepatah" },
-  { "text": "Belajar tanpa berpikir adalah sia-sia, berpikir tanpa belajar adalah berbahaya.", "author": "Konfusius" },
-  { "text": "Anak-anak yang membaca tumbuh menjadi dewasa yang berpikir.", "author": "Pepatah" },
-  { "text": "Tidak ada perpustakaan yang terlalu kecil untuk mengubah hidup seseorang.", "author": "Pepatah" },
-  { "text": "Pengetahuan terkecil sekalipun lebih berharga daripada permata terbesar.", "author": "Pepatah" },
-  { "text": "Ilmu adalah pelita yang menerangi gelapnya kebodohan.", "author": "Pepatah" },
-  { "text": "Buku yang dibaca kembali sering kali memberi makna baru.", "author": "Italo Calvino" },
-  { "text": "Setiap penulis pertama-tama adalah seorang pembaca yang setia.", "author": "Pepatah" },
-  { "text": "Membaca memberi kita tempat untuk pergi ketika kita harus tinggal di tempat kita berada.", "author": "Mason Cooley" },
-  { "text": "Sekecil apapun pengetahuanmu, bagikan; karena cahaya tidak hilang ketika dibagi.", "author": "Pepatah" },
-  { "text": "Pendidikan adalah paspor menuju masa depan.", "author": "Malcolm X" },
-  { "text": "Buku yang baik adalah peristiwa dalam hidup seseorang.", "author": "Stendhal" },
-  { "text": "Berfikir itu rumit, membaca lebih sederhana — namun keduanya saling membutuhkan.", "author": "Pepatah" },
-  { "text": "Sebuah halaman per hari menjaga kebodohan menjauh.", "author": "Pepatah" },
-  { "text": "Belajarlah seakan-akan kamu akan hidup selamanya.", "author": "Mahatma Gandhi" },
-  { "text": "Setiap buku adalah perjalanan panjang yang dimulai dari satu kalimat.", "author": "Pepatah" },
-  { "text": "Pengetahuan tanpa kebijaksanaan ibarat air pada pasir.", "author": "Pepatah" },
-  { "text": "Yang terhebat dari membaca adalah menemukan diri sendiri di antara baris-barisnya.", "author": "Pepatah" },
-  { "text": "Tidak ada kebahagiaan yang lebih dalam daripada menemukan buku yang tepat di waktu yang tepat.", "author": "Pepatah" },
-  { "text": "Bacalah, dengan nama Tuhanmu yang menciptakan.", "author": "Al-Qur'an, QS. Al-'Alaq: 1" },
-  { "text": "Pendidikan adalah api yang menyalakan, bukan bejana yang diisi.", "author": "Plutarch" },
-  { "text": "Tidak ada yang lebih kuat dari kebiasaan membaca.", "author": "Pepatah" },
-  { "text": "Buku adalah mesin waktu yang membawamu ke masa lalu dan masa depan.", "author": "Pepatah" },
-  { "text": "Pikiran yang membaca tidak pernah lapar.", "author": "Pepatah" },
-  { "text": "Pendidikan terbaik adalah yang menyalakan rasa ingin tahu.", "author": "Pepatah" },
-  { "text": "Membaca membawamu ke negeri tempat kakimu tidak pernah menapak.", "author": "Pepatah" },
-  { "text": "Lebih baik tahu sedikit dengan benar daripada banyak dengan keliru.", "author": "Pepatah" },
-  { "text": "Sebuah perpustakaan adalah rumah bagi seribu pikiran.", "author": "Pepatah" },
-  { "text": "Buku tertutup hanyalah sekelompok kertas, buku terbuka adalah dunia yang hidup.", "author": "Pepatah" },
-  { "text": "Pemimpin yang baik adalah pembaca yang baik.", "author": "Harry S. Truman" },
-  { "text": "Lebih baik nyalakan satu lilin daripada mengutuk kegelapan.", "author": "Pepatah Tionghoa" },
-  { "text": "Bukan jumlah buku yang kau baca, melainkan apa yang kau lakukan setelahnya.", "author": "Pepatah" },
-  { "text": "Yang menulis akan membaca, yang membaca akan berpikir, yang berpikir akan tumbuh.", "author": "Pepatah" },
-  { "text": "Membaca adalah bercakap-cakap dengan orang-orang paling bijak di sepanjang zaman.", "author": "René Descartes" },
-  { "text": "Pengetahuan adalah harta yang menyertai pemiliknya kemana pun ia pergi.", "author": "Pepatah" },
-  { "text": "Sebuah ide yang baik bisa mengubah ribuan hari berikutnya.", "author": "Pepatah" },
-  { "text": "Kebodohan tidak punya batas, tetapi pengetahuan menjadikan batas-batasnya nyata.", "author": "Pepatah" },
-  { "text": "Buku tidak pernah usang ketika pembacanya selalu baru.", "author": "Pepatah" },
-  { "text": "Tinta hitam di atas kertas putih bisa menerangi seluruh hidupmu.", "author": "Pepatah" },
-  { "text": "Yang membaca puisi tidak akan pernah hidup tanpa harapan.", "author": "Pepatah" },
-  { "text": "Pembaca yang teliti adalah penulis yang lebih baik.", "author": "Pepatah" },
-  { "text": "Setiap buku tua menyimpan suara yang tidak pernah hilang.", "author": "Pepatah" },
-  { "text": "Mencari ilmu adalah ibadah yang tidak pernah selesai.", "author": "Imam Al-Ghazali" },
-  { "text": "Pengetahuan tanpa karakter adalah pedang tanpa pegangan.", "author": "Pepatah" },
-  { "text": "Membaca membentuk pikiran seperti olahraga membentuk tubuh.", "author": "Joseph Addison" },
-  { "text": "Belajar dari kesalahan, tapi jangan tinggal di sana.", "author": "Pepatah" },
-  { "text": "Setiap halaman yang kau lewatkan adalah dunia yang tidak kau kunjungi.", "author": "Pepatah" },
-  { "text": "Hidup yang tidak diperiksa tidak layak untuk dijalani.", "author": "Sokrates" },
-  { "text": "Buku adalah pintu, dan kunci-kuncinya berserakan di sekeliling kita.", "author": "Pepatah" },
-  { "text": "Manusia menjadi tua ketika ia berhenti belajar.", "author": "Pepatah" },
-  { "text": "Tidak semua pembaca menjadi pemimpin, tapi semua pemimpin adalah pembaca.", "author": "Harry S. Truman" },
-  { "text": "Seseorang dengan buku tidak pernah benar-benar sendirian.", "author": "Pepatah" },
-  { "text": "Buku menanam benih, waktu menumbuhkannya.", "author": "Pepatah" },
-  { "text": "Yang membaca dengan cermat akan berpikir dengan jernih.", "author": "Pepatah" },
-  { "text": "Pengetahuan harus diuji oleh pengalaman, dan pengalaman dibimbing oleh pengetahuan.", "author": "Pepatah" },
-  { "text": "Setiap kalimat indah adalah hadiah dari masa lalu untuk masa kini.", "author": "Pepatah" },
-  { "text": "Buku-buku adalah lebah yang membawa serbuk dari satu pikiran ke pikiran lain.", "author": "James Russell Lowell" },
-  { "text": "Tidak ada hari yang sia-sia jika kita belajar sesuatu yang baru.", "author": "Pepatah" },
-  { "text": "Jadilah seperti pohon yang berbuah: dilempari batu, namun memberi balasan dengan buah.", "author": "Pepatah" },
-  { "text": "Dengan ilmu, hidup menjadi mudah; dengan seni, hidup menjadi indah; dengan agama, hidup menjadi terarah.", "author": "Mukti Ali" },
-  { "text": "Sebaik-baik manusia adalah yang paling bermanfaat bagi sesamanya.", "author": "HR. Ahmad" },
-  { "text": "Berani bertanya adalah awal dari pengetahuan.", "author": "Pepatah" },
-  { "text": "Air beriak tanda tak dalam, air tenang menghanyutkan.", "author": "Peribahasa Indonesia" },
-  { "text": "Sambil menyelam minum air — pelajari banyak hal sekaligus.", "author": "Peribahasa Indonesia" },
-  { "text": "Buku adalah guru yang sabar, ia menunggu sampai kau siap mendengarnya.", "author": "Pepatah" },
-  { "text": "Pengetahuan baru dapat menyelesaikan masalah lama, tetapi cara berpikir lama hanya akan mengulang-ulang masalah baru.", "author": "Pepatah" },
-  { "text": "Tidak ada warisan yang lebih indah daripada cinta membaca.", "author": "Pepatah" },
-  { "text": "Buku yang ditulis dengan hati akan dibaca dengan hati.", "author": "Pepatah" },
-  { "text": "Membaca adalah memberi makan jiwa.", "author": "Pepatah" },
-  { "text": "Apa yang dikerjakan dengan cinta tidak akan terasa berat.", "author": "Pepatah" },
-  { "text": "Tak kenal maka tak sayang — kenali bukunya, sayangi isinya.", "author": "Peribahasa Indonesia" },
-  { "text": "Nikmatilah perjalanan membaca; tujuan akan datang dengan sendirinya.", "author": "Pepatah" },
-  { "text": "Kebijaksanaan tidak datang dari usia, tetapi dari kemauan untuk terus belajar.", "author": "Pepatah" },
-  { "text": "Tulislah, walau hanya satu paragraf hari ini.", "author": "Pepatah" },
-  { "text": "Yang menulis menyimpan ingatan; yang membaca menghidupkannya kembali.", "author": "Pepatah" },
-  { "text": "Setiap pertanyaan adalah pintu kecil menuju pengetahuan yang lebih luas.", "author": "Pepatah" },
-  { "text": "Hujan memberi air, ilmu memberi makna.", "author": "Pepatah" },
-  { "text": "Buku adalah sepasang sayap untuk pikiran yang lelah.", "author": "Pepatah" },
-  { "text": "Membaca itu seperti menyalakan lilin — sekecil apapun, ia mengusir gelap.", "author": "Pepatah" },
-  { "text": "Belajarlah hingga matahari yang terbit tidak menemuimu dalam kemalasan.", "author": "Pepatah" },
-  { "text": "Kemampuan membaca adalah hadiah; kebiasaan membaca adalah disiplin.", "author": "Pepatah" },
-  { "text": "Jangan mencari ilmu untuk gengsi, carilah untuk mengubah diri.", "author": "Pepatah" },
-  { "text": "Setiap penulis besar pernah menjadi pembaca yang lapar.", "author": "Pepatah" },
-  { "text": "Pendidikan tidak mempersiapkan untuk hidup; pendidikan adalah hidup itu sendiri.", "author": "John Dewey" },
-  { "text": "Membaca dengan hati lebih bermakna daripada membaca dengan mata.", "author": "Pepatah" },
-  { "text": "Kata-kata yang baik adalah investasi yang tidak pernah merugi.", "author": "Pepatah" },
-  { "text": "Buku adalah peta; pembaca adalah penjelajah.", "author": "Pepatah" },
-  { "text": "Apa yang kau baca hari ini akan membentuk siapa dirimu esok.", "author": "Pepatah" },
-  { "text": "Sedikit demi sedikit, lama-lama menjadi bukit — begitu juga ilmu.", "author": "Peribahasa Indonesia" },
-  { "text": "Pengetahuan tidak membuatmu sombong, tapi membuatmu rendah hati.", "author": "Pepatah" }
+  {
+    "text": "Buku adalah jendela dunia, sedangkan membaca adalah kuncinya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tidak ada kapal yang lebih cepat daripada sebuah buku untuk membawamu ke negeri-negeri jauh.",
+    "author": "Emily Dickinson"
+  },
+  {
+    "text": "Membaca seribu buku setiap tahun seperti menempa seribu tongkat untuk pikiran.",
+    "author": "Pepatah Tionghoa"
+  },
+  {
+    "text": "Aku selalu membayangkan surga adalah semacam perpustakaan.",
+    "author": "Jorge Luis Borges"
+  },
+  {
+    "text": "Sebuah buku adalah taman saku.",
+    "author": "Pepatah Arab"
+  },
+  {
+    "text": "Orang yang membaca tidak akan pernah hidup hanya satu kehidupan.",
+    "author": "George R. R. Martin"
+  },
+  {
+    "text": "Sekali kamu belajar membaca, kamu akan bebas selamanya.",
+    "author": "Frederick Douglass"
+  },
+  {
+    "text": "Ilmu tanpa amal seperti pohon tanpa buah.",
+    "author": "Ali bin Abi Thalib"
+  },
+  {
+    "text": "Buku tidak pernah mengkhianati pembacanya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Bacalah, karena dengan membaca seseorang menjadi besar.",
+    "author": "Iqbal"
+  },
+  {
+    "text": "Belajarlah dari masa lalu, hiduplah untuk hari ini, berharaplah untuk hari esok.",
+    "author": "Albert Einstein"
+  },
+  {
+    "text": "Buku yang baik adalah teman terbaik, hari ini dan selamanya.",
+    "author": "Martin Tupper"
+  },
+  {
+    "text": "Pendidikan adalah senjata paling ampuh untuk mengubah dunia.",
+    "author": "Nelson Mandela"
+  },
+  {
+    "text": "Tuntutlah ilmu sejak buaian hingga liang lahat.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca adalah olahraga pikiran.",
+    "author": "Joseph Addison"
+  },
+  {
+    "text": "Tidak ada teman yang lebih setia daripada sebuah buku.",
+    "author": "Ernest Hemingway"
+  },
+  {
+    "text": "Buku adalah jendela ajaib yang membuka cakrawala.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Hidup tanpa buku seperti hari tanpa matahari.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku terbaik adalah buku yang membuatmu berpikir lebih lama daripada membacanya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pengetahuan adalah kekuatan; informasi adalah kebebasan.",
+    "author": "Kofi Annan"
+  },
+  {
+    "text": "Buku adalah cermin: kamu hanya melihat apa yang sudah ada di dalam dirimu.",
+    "author": "Carlos Ruiz Zafón"
+  },
+  {
+    "text": "Setiap perpustakaan kecil pun adalah jembatan antara generasi.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku-buku berbicara kepada kita tanpa suara, namun selalu didengar.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pikiran yang terbuka, seperti payung, hanya berfungsi ketika terbuka.",
+    "author": "James Dewar"
+  },
+  {
+    "text": "Hari ini seorang pembaca, esok seorang pemimpin.",
+    "author": "Margaret Fuller"
+  },
+  {
+    "text": "Buku adalah tabungan pengetahuan yang tidak pernah habis.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Gemar membaca menumbuhkan rasa ingin tahu yang tak ada habisnya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap halaman adalah langkah menuju cakrawala baru.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pengetahuan tidak hanya untuk diketahui, tapi untuk diamalkan.",
+    "author": "Imam Syafi'i"
+  },
+  {
+    "text": "Tinta seorang pelajar lebih suci daripada darah seorang pejuang.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Sebuah buku adalah mimpi yang kau pegang di tanganmu.",
+    "author": "Neil Gaiman"
+  },
+  {
+    "text": "Tidak ada akhir dari pembelajaran, hanya awal yang baru.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku menyembuhkan luka yang tidak terlihat oleh mata.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Belajar tanpa berpikir adalah sia-sia, berpikir tanpa belajar adalah berbahaya.",
+    "author": "Konfusius"
+  },
+  {
+    "text": "Anak-anak yang membaca tumbuh menjadi dewasa yang berpikir.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tidak ada perpustakaan yang terlalu kecil untuk mengubah hidup seseorang.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pengetahuan terkecil sekalipun lebih berharga daripada permata terbesar.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Ilmu adalah pelita yang menerangi gelapnya kebodohan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku yang dibaca kembali sering kali memberi makna baru.",
+    "author": "Italo Calvino"
+  },
+  {
+    "text": "Setiap penulis pertama-tama adalah seorang pembaca yang setia.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca memberi kita tempat untuk pergi ketika kita harus tinggal di tempat kita berada.",
+    "author": "Mason Cooley"
+  },
+  {
+    "text": "Sekecil apapun pengetahuanmu, bagikan; karena cahaya tidak hilang ketika dibagi.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pendidikan adalah paspor menuju masa depan.",
+    "author": "Malcolm X"
+  },
+  {
+    "text": "Buku yang baik adalah peristiwa dalam hidup seseorang.",
+    "author": "Stendhal"
+  },
+  {
+    "text": "Berfikir itu rumit, membaca lebih sederhana — namun keduanya saling membutuhkan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Sebuah halaman per hari menjaga kebodohan menjauh.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Belajarlah seakan-akan kamu akan hidup selamanya.",
+    "author": "Mahatma Gandhi"
+  },
+  {
+    "text": "Setiap buku adalah perjalanan panjang yang dimulai dari satu kalimat.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pengetahuan tanpa kebijaksanaan ibarat air pada pasir.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Yang terhebat dari membaca adalah menemukan diri sendiri di antara baris-barisnya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tidak ada kebahagiaan yang lebih dalam daripada menemukan buku yang tepat di waktu yang tepat.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Bacalah, dengan nama Tuhanmu yang menciptakan.",
+    "author": "Al-Qur'an, QS. Al-'Alaq: 1"
+  },
+  {
+    "text": "Pendidikan adalah api yang menyalakan, bukan bejana yang diisi.",
+    "author": "Plutarch"
+  },
+  {
+    "text": "Tidak ada yang lebih kuat dari kebiasaan membaca.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku adalah mesin waktu yang membawamu ke masa lalu dan masa depan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pikiran yang membaca tidak pernah lapar.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pendidikan terbaik adalah yang menyalakan rasa ingin tahu.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca membawamu ke negeri tempat kakimu tidak pernah menapak.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Lebih baik tahu sedikit dengan benar daripada banyak dengan keliru.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Sebuah perpustakaan adalah rumah bagi seribu pikiran.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku tertutup hanyalah sekelompok kertas, buku terbuka adalah dunia yang hidup.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pemimpin yang baik adalah pembaca yang baik.",
+    "author": "Harry S. Truman"
+  },
+  {
+    "text": "Lebih baik nyalakan satu lilin daripada mengutuk kegelapan.",
+    "author": "Pepatah Tionghoa"
+  },
+  {
+    "text": "Bukan jumlah buku yang kau baca, melainkan apa yang kau lakukan setelahnya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Yang menulis akan membaca, yang membaca akan berpikir, yang berpikir akan tumbuh.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca adalah bercakap-cakap dengan orang-orang paling bijak di sepanjang zaman.",
+    "author": "René Descartes"
+  },
+  {
+    "text": "Pengetahuan adalah harta yang menyertai pemiliknya kemana pun ia pergi.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Sebuah ide yang baik bisa mengubah ribuan hari berikutnya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Kebodohan tidak punya batas, tetapi pengetahuan menjadikan batas-batasnya nyata.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku tidak pernah usang ketika pembacanya selalu baru.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tinta hitam di atas kertas putih bisa menerangi seluruh hidupmu.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Yang membaca puisi tidak akan pernah hidup tanpa harapan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pembaca yang teliti adalah penulis yang lebih baik.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap buku tua menyimpan suara yang tidak pernah hilang.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Mencari ilmu adalah ibadah yang tidak pernah selesai.",
+    "author": "Imam Al-Ghazali"
+  },
+  {
+    "text": "Pengetahuan tanpa karakter adalah pedang tanpa pegangan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca membentuk pikiran seperti olahraga membentuk tubuh.",
+    "author": "Joseph Addison"
+  },
+  {
+    "text": "Belajar dari kesalahan, tapi jangan tinggal di sana.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap halaman yang kau lewatkan adalah dunia yang tidak kau kunjungi.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Hidup yang tidak diperiksa tidak layak untuk dijalani.",
+    "author": "Sokrates"
+  },
+  {
+    "text": "Buku adalah pintu, dan kunci-kuncinya berserakan di sekeliling kita.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Manusia menjadi tua ketika ia berhenti belajar.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tidak semua pembaca menjadi pemimpin, tapi semua pemimpin adalah pembaca.",
+    "author": "Harry S. Truman"
+  },
+  {
+    "text": "Seseorang dengan buku tidak pernah benar-benar sendirian.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku menanam benih, waktu menumbuhkannya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Yang membaca dengan cermat akan berpikir dengan jernih.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pengetahuan harus diuji oleh pengalaman, dan pengalaman dibimbing oleh pengetahuan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap kalimat indah adalah hadiah dari masa lalu untuk masa kini.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku-buku adalah lebah yang membawa serbuk dari satu pikiran ke pikiran lain.",
+    "author": "James Russell Lowell"
+  },
+  {
+    "text": "Tidak ada hari yang sia-sia jika kita belajar sesuatu yang baru.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Jadilah seperti pohon yang berbuah: dilempari batu, namun memberi balasan dengan buah.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Dengan ilmu, hidup menjadi mudah; dengan seni, hidup menjadi indah; dengan agama, hidup menjadi terarah.",
+    "author": "Mukti Ali"
+  },
+  {
+    "text": "Sebaik-baik manusia adalah yang paling bermanfaat bagi sesamanya.",
+    "author": "HR. Ahmad"
+  },
+  {
+    "text": "Berani bertanya adalah awal dari pengetahuan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Air beriak tanda tak dalam, air tenang menghanyutkan.",
+    "author": "Peribahasa Indonesia"
+  },
+  {
+    "text": "Sambil menyelam minum air — pelajari banyak hal sekaligus.",
+    "author": "Peribahasa Indonesia"
+  },
+  {
+    "text": "Buku adalah guru yang sabar, ia menunggu sampai kau siap mendengarnya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pengetahuan baru dapat menyelesaikan masalah lama, tetapi cara berpikir lama hanya akan mengulang-ulang masalah baru.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tidak ada warisan yang lebih indah daripada cinta membaca.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku yang ditulis dengan hati akan dibaca dengan hati.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca adalah memberi makan jiwa.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Apa yang dikerjakan dengan cinta tidak akan terasa berat.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tak kenal maka tak sayang — kenali bukunya, sayangi isinya.",
+    "author": "Peribahasa Indonesia"
+  },
+  {
+    "text": "Nikmatilah perjalanan membaca; tujuan akan datang dengan sendirinya.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Kebijaksanaan tidak datang dari usia, tetapi dari kemauan untuk terus belajar.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tulislah, walau hanya satu paragraf hari ini.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Yang menulis menyimpan ingatan; yang membaca menghidupkannya kembali.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap pertanyaan adalah pintu kecil menuju pengetahuan yang lebih luas.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Hujan memberi air, ilmu memberi makna.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku adalah sepasang sayap untuk pikiran yang lelah.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Membaca itu seperti menyalakan lilin — sekecil apapun, ia mengusir gelap.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Belajarlah hingga matahari yang terbit tidak menemuimu dalam kemalasan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Kemampuan membaca adalah hadiah; kebiasaan membaca adalah disiplin.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Jangan mencari ilmu untuk gengsi, carilah untuk mengubah diri.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap penulis besar pernah menjadi pembaca yang lapar.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pendidikan tidak mempersiapkan untuk hidup; pendidikan adalah hidup itu sendiri.",
+    "author": "John Dewey"
+  },
+  {
+    "text": "Membaca dengan hati lebih bermakna daripada membaca dengan mata.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Kata-kata yang baik adalah investasi yang tidak pernah merugi.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Buku adalah peta; pembaca adalah penjelajah.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Apa yang kau baca hari ini akan membentuk siapa dirimu esok.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Sedikit demi sedikit, lama-lama menjadi bukit — begitu juga ilmu.",
+    "author": "Peribahasa Indonesia"
+  },
+  {
+    "text": "Pengetahuan tidak membuatmu sombong, tapi membuatmu rendah hati.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Orang boleh pandai setinggi langit, tapi selama ia tidak menulis, ia akan hilang di dalam masyarakat dan dari sejarah.",
+    "author": "Pramoedya Ananta Toer"
+  },
+  {
+    "text": "Membaca menjadikan seseorang berisi, berdiskusi membuatnya siap, dan menulis menjadikan dirinya cermat.",
+    "author": "Francis Bacon"
+  },
+  {
+    "text": "Buku adalah cerminan diri; ia menampakkan kepada kita siapa kita seandainya kita berani menjadi diri sendiri.",
+    "author": "Andrea Hirata"
+  },
+  {
+    "text": "Bangsa yang besar adalah bangsa yang menghargai ilmunya — dan ilmu hidup di dalam buku.",
+    "author": "Soekarno"
+  },
+  {
+    "text": "Bacalah! Itulah perintah pertama, dan barangkali yang paling kekal bagi peradaban manusia.",
+    "author": "Buya Hamka"
+  },
+  {
+    "text": "Habiskan jatah gagalmu selagi muda dengan banyak membaca, banyak mencoba, dan banyak bertanya.",
+    "author": "Dahlan Iskan"
+  },
+  {
+    "text": "Bacalah seribu buku sebelum kamu mengeluarkan satu kata.",
+    "author": "Tere Liye"
+  },
+  {
+    "text": "Pendidikan adalah daya upaya yang sengaja untuk memajukan budi pekerti, pikiran, serta jasmani anak-anak.",
+    "author": "Ki Hadjar Dewantara"
+  },
+  {
+    "text": "Habiskan ilmu sebanyak-banyaknya, sebab ilmu yang sedikit bisa membuat manusia merasa pintar; ilmu yang banyak membuat manusia merasa rendah hati.",
+    "author": "B.J. Habibie"
+  },
+  {
+    "text": "Perempuan yang membaca adalah perempuan yang menyalakan lentera bagi anak-anaknya kelak.",
+    "author": "R.A. Kartini"
+  },
+  {
+    "text": "Tanpa perpustakaan kita tidak punya masa lalu, dan tanpa masa lalu kita tidak punya masa depan.",
+    "author": "Ray Bradbury"
+  },
+  {
+    "text": "Sebuah ruangan tanpa buku ibarat tubuh tanpa jiwa.",
+    "author": "Marcus Tullius Cicero"
+  },
+  {
+    "text": "Buku-buku, ya, buku-buku — itulah yang membentuk peradaban.",
+    "author": "Carl Sagan"
+  },
+  {
+    "text": "Sebuah buku yang baik adalah teman terbaik, dahulu, sekarang, dan selamanya.",
+    "author": "Martin Tupper"
+  },
+  {
+    "text": "Kau tidak benar-benar mengenal seseorang sampai kamu tahu buku-buku apa yang ia baca.",
+    "author": "Umberto Eco"
+  },
+  {
+    "text": "Membaca adalah jendela tempat kita melihat dunia, dan kadang-kadang melihat ke dalam diri kita sendiri.",
+    "author": "Maya Angelou"
+  },
+  {
+    "text": "Buku adalah perangkat unik yang dapat memuat seluruh dunia di dalam genggaman tangan.",
+    "author": "Italo Calvino"
+  },
+  {
+    "text": "Membaca adalah satu-satunya cara untuk memasuki kehidupan orang lain dengan sopan.",
+    "author": "Joyce Carol Oates"
+  },
+  {
+    "text": "Setiap buku yang kamu lewatkan adalah seseorang yang tidak pernah kamu temui.",
+    "author": "Anonim"
+  },
+  {
+    "text": "Bahasa adalah peta budaya, dan buku adalah atlasnya.",
+    "author": "Rita Mae Brown"
+  },
+  {
+    "text": "Menuntut ilmu itu wajib bagi setiap muslim laki-laki dan perempuan.",
+    "author": "HR. Ibnu Majah"
+  },
+  {
+    "text": "Barang siapa menempuh suatu jalan untuk menuntut ilmu, niscaya Allah memudahkan baginya jalan menuju surga.",
+    "author": "HR. Muslim"
+  },
+  {
+    "text": "Tinta para ulama lebih mulia dari darah para syuhada.",
+    "author": "HR. Ad-Dailami"
+  },
+  {
+    "text": "Ilmu adalah cahaya yang menyinari hati; tanpa cahaya, hati hanya kegelapan.",
+    "author": "Imam Malik"
+  },
+  {
+    "text": "Barang siapa keluar untuk mencari ilmu, ia berada di jalan Allah hingga ia kembali.",
+    "author": "HR. At-Tirmidzi"
+  },
+  {
+    "text": "Perpustakaan adalah tempat suci di mana setiap orang berhak menjadi raja, asalkan ia mau membaca.",
+    "author": "Jules Verne"
+  },
+  {
+    "text": "Anak yang membaca akan menjadi orang dewasa yang berpikir.",
+    "author": "Anonim"
+  },
+  {
+    "text": "Ada kekuatan ajaib pada setiap halaman yang dibuka dan setiap kata yang dieja.",
+    "author": "Dr. Seuss"
+  },
+  {
+    "text": "Memberi seorang anak buku berarti memberi mereka sayap untuk terbang seumur hidup.",
+    "author": "Anonim"
+  },
+  {
+    "text": "Buku tidak hanya mengajarkan apa yang kita tidak tahu, tetapi juga mengingatkan apa yang sudah kita lupakan.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Pikiran kita berkembang dengan apa yang kita beri makan; berilah ia buku-buku terbaik.",
+    "author": "Marcus Aurelius"
+  },
+  {
+    "text": "Membaca tanpa merenung sama dengan makan tanpa mengunyah.",
+    "author": "Edmund Burke"
+  },
+  {
+    "text": "Perpustakaan adalah rumah sakit untuk pikiran yang lelah.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Tidak ada peninggalan yang lebih berharga daripada perpustakaan yang dibangun dengan sabar oleh orang tua.",
+    "author": "Pepatah"
+  },
+  {
+    "text": "Setiap pembaca adalah seorang penulis dalam dirinya sendiri — sebab ia menafsirkan kembali setiap halaman.",
+    "author": "Roland Barthes"
+  }
 ]
