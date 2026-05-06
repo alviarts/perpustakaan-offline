@@ -167,12 +167,12 @@ Serves as the "who did what when" for cross-session debugging.
   item:      FEAT-OPAC-PostScanProfile
   pr:        null
   paused_at: 2026-05-06T22:06Z
-  notes:     User said "pause di 7" \u2014 the v1.1.0 batch is paused
+  notes:     User said "pause di 7" — the v1.1.0 batch is paused
              before starting item 7 (FEAT-OPAC-PostScanProfile).
              No code work has begun on this item. To resume, paste
              the v1.1.0 master prompt into a fresh Devin session and
-             it will pick up from this PROGRESS.md row (PAUSED \u2192 claim
-             \u2192 implement). Items 1-6 are all DONE. Items 8-13 (top-6
+             it will pick up from this PROGRESS.md row (PAUSED -> claim
+             -> implement). Items 1-6 are all DONE. Items 8-13 (top-6
              new features added mid-batch) and item 14 (release) are
              still OPEN.
              Pickup hint: read .devin/handoff/v1.1.0/BUGS.md section
