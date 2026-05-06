@@ -25,7 +25,7 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-23 | E        | Stocktake/Opname mode: scan barcode batch + report buku missing                   | MEDIUM   | IN_PR    | 131 | —            | —          |
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | IN_PR  | #132 | —            | —          |
 | FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | IN_PR  | #134 | —            | —          |
-| FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | OPEN   | —   | —            | —          |
+| FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | IN_PROGRESS_BY_devin-f10a64e2bf1643febf5c99f96b707373:2026-05-06T10:20:19Z | —   | —            | —          |
 | FEAT-26 | G        | Google Sheets bidirectional sync (push+pull delta + scheduler + conflict resolve) | HIGH     | IN_PR  | #133 | —            | —          |
 | FEAT-27 | H        | OPAC public-mode: kiosk fullscreen, dual-UI, scan KTA optional, admin-pwd unlock  | HIGH     | OPEN   | —   | —            | FEAT-26    |
 

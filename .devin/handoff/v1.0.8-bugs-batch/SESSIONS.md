@@ -270,3 +270,32 @@ Each entry is a markdown section with frontmatter-like fields:
        deferred to v1.0.9 because OAuth refresh-token flow needs UX
        extensive testing + user-supplied credentials.
 - branch: TBD (will create devin/<ts>-pr-e-backup-enhancement from main)
+
+## Session devin-f10a64e2bf1643febf5c99f96b707373 — claim FEAT-28 (PR J)
+
+- session_id: devin-f10a64e2bf1643febf5c99f96b707373
+- item_id: FEAT-28 (PR J — Sirkulasi scanner overlay + ROI decode + preprocessing + multi-decoder)
+- started_at: 2026-05-06T10:20:19Z
+- status: STARTED
+- branch: TBD (will create devin/1778062819-pr-j-sirkulasi-scanner-v2 from main)
+- notes: Picked next OPEN row per master prompt — FEAT-28 is the only OPEN row with no `depends_on` and no live IN_PROGRESS_BY lock. Skipped:
+  - PR #127 (PR A, BUG-19+FEAT-16) — IN_PR ready-for-review.
+  - PR #128 (PR B, FEAT-17/18) — IN_PR ready-for-review.
+  - PR #129 (PR C, FEAT-19/20) — IN_PR draft, locked by devin-e87e91dd1b25420eb46e75b6d779fb27.
+  - PR #130 (PR D, FEAT-21/22) — IN_PR draft.
+  - PR #131 (PR E, FEAT-23) — IN_PR ready-for-review.
+  - PR #132 (PR E, FEAT-24) — IN_PR.
+  - PR #133 (PR G, FEAT-26) — IN_PR.
+  - PR #134 (PR F, FEAT-25) — IN_PR.
+  - FEAT-27 (PR H) — depends on FEAT-26 (still IN_PR, not DONE).
+  - PAT auto-injection was missing at session start; user re-provisioned org-scoped GITHUB_PAT_ALVIARTS (classic ghp_, length 40, prefix ghp_c1xaCP — same PAT as 2026-05-05 rotation). 4-test verification all green.
+- plan:
+  - Frontend (TS/React): major rewrite of `apps/desktop/src/features/sirkulasi/useBarcodeScanner.ts` (currently 263 LOC, single-format @zxing decoder). Add overlay aiming guide on `SirkulasiPage.tsx` <video> element + ROI decode + preprocess pipeline + manual scan button + multi-format decode + optional torch. Existing dep `@zxing/browser` already supports multi-format via `MultiFormatReader` + DecodeHints (no library switch needed if @zxing covers EAN+Code128+QR+DataMatrix).
+  - New utilities under `apps/desktop/src/lib/scanner/`:
+    - `overlay.ts` — compute ROI rect from video dimensions (70% W × 30% H, centered, landscape barcode shape), render bracket corners math.
+    - `preprocess.ts` — Canvas filter pipeline (grayscale, contrast +30%, sharpen kernel) with pure functions for testability.
+    - `decoder.ts` — multi-format wrapper around `@zxing/browser` BrowserMultiFormatReader + DecodeHintType.POSSIBLE_FORMATS, exposing `decodeOnce(canvas)`, `decodeContinuous(video, onResult, onError)`, manual `decodeWithRetry(canvas, 3 variants)`.
+  - i18n: id+en parity for new strings (overlay label, scan-now button, toast messages, torch label).
+  - Tests: vitest unit tests for `overlay.ts` (ROI rect math), `preprocess.ts` (Canvas filter pure transforms with mock ImageData), `decoder.ts` (mock @zxing reader → assert hint formats + retry order).
+  - No backend/Tauri changes needed.
+- pickup: if pause: branch `devin/1778062819-pr-j-sirkulasi-scanner-v2`, draft PR (TBD). Master prompt + this entry sufficient.
