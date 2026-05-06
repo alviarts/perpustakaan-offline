@@ -8,9 +8,16 @@
  * after BUG-18's resolution bump.
  *
  * The manual "Scan Sekarang" button trades latency for accuracy by
- * running up to three decode passes per click — each pass uses a
+ * running multiple decode passes per click — each pass uses a
  * different preprocessing variant. {@link applyPreprocess} produces
  * the variant; the decoder picks the first one that returns a hit.
+ *
+ * v1.0.11 expanded the variant set to handle:
+ * - **Inverted** (white-on-black labels, dark-mode QR on phone screens).
+ * - **Brighten** (gamma < 1) for under-exposed frames in dim rooms.
+ * - **Darken** (gamma > 1) for blown-out highlights and glare.
+ * - **Adaptive threshold** for very uneven lighting (window-side glare
+ *   that washes out one half of the barcode).
  *
  * All transforms here are pure functions over `ImageData`. They are
  * intentionally easy to test in isolation: pass in a synthetic
@@ -18,7 +25,14 @@
  * no async.
  */
 
-export type PreprocessVariant = 'normal' | 'grayscale' | 'contrast';
+export type PreprocessVariant =
+  | 'normal'
+  | 'grayscale'
+  | 'contrast'
+  | 'inverted'
+  | 'brighten'
+  | 'darken'
+  | 'adaptiveThreshold';
 
 /**
  * Build a fresh ImageData buffer the same size as the source. Used by
@@ -100,12 +114,209 @@ export function applyContrast(src: ImageData, factor: number): ImageData {
 }
 
 /**
+ * Invert each colour channel (255 - v). Useful for white-on-dark
+ * barcodes — phone-screen QR codes in dark mode are the canonical
+ * case, but laser-engraved labels on dark plastic also show up that
+ * way after binarisation. zxing's `ALSO_INVERTED` hint covers many of
+ * these natively, but the explicit pre-inverted pass gives jsQR a
+ * second chance too.
+ *
+ * Alpha is preserved.
+ */
+export function applyInvert(src: ImageData): ImageData {
+  const out = cloneShape(src);
+  const s = src.data;
+  const d = out.data;
+  for (let i = 0; i < s.length; i += 4) {
+    d[i] = 255 - (s[i] ?? 0);
+    d[i + 1] = 255 - (s[i + 1] ?? 0);
+    d[i + 2] = 255 - (s[i + 2] ?? 0);
+    d[i + 3] = s[i + 3] ?? 255;
+  }
+  return out;
+}
+
+/**
+ * Apply a per-channel gamma curve. `gamma < 1` brightens midtones
+ * (rescues under-exposed frames in dim classrooms); `gamma > 1`
+ * darkens midtones (tames blown-out highlights from sunlight glare).
+ *
+ * Implementation uses a 256-entry lookup table for the per-channel
+ * map — much faster than calling `Math.pow` per pixel on a 1080p
+ * crop. Alpha is left untouched.
+ */
+export function applyGamma(src: ImageData, gamma: number): ImageData {
+  const out = cloneShape(src);
+  const lut = new Uint8ClampedArray(256);
+  for (let v = 0; v < 256; v++) {
+    lut[v] = Math.round(255 * Math.pow(v / 255, gamma));
+  }
+  const s = src.data;
+  const d = out.data;
+  for (let i = 0; i < s.length; i += 4) {
+    d[i] = lut[s[i] ?? 0] ?? 0;
+    d[i + 1] = lut[s[i + 1] ?? 0] ?? 0;
+    d[i + 2] = lut[s[i + 2] ?? 0] ?? 0;
+    d[i + 3] = s[i + 3] ?? 255;
+  }
+  return out;
+}
+
+/**
+ * Block-mean adaptive threshold. For each pixel, compute the mean
+ * luminance over a square block centered on it; binarise to black
+ * or white based on whether the pixel is below or above
+ * `(blockMean - bias)`.
+ *
+ * A small constant `bias` (default 8) suppresses noise in flat
+ * regions — without it, an evenly-lit white page ends up speckled
+ * because every pixel sits arbitrarily close to its own block mean.
+ *
+ * This is a stripped-down version of Bradley/Sauvola adaptive
+ * thresholding tuned for our use case (binarising the ROI before
+ * handing it to zxing). It rescues the "half the page is in shadow"
+ * case where global contrast boosts can't push everything into the
+ * same dynamic range.
+ *
+ * Block size defaults to ~1/16 of the image's shorter side, capped
+ * to odd integers in `[3, 51]`. Larger blocks smooth more aggressively
+ * (good for text-heavy pages) but slow the decode down.
+ *
+ * Implementation note: we use an integral-image (summed-area table)
+ * so each block lookup is O(1) regardless of block size — total cost
+ * is O(N) for an N-pixel image rather than O(N · blockSize²).
+ */
+export function applyAdaptiveThreshold(
+  src: ImageData,
+  options: { blockSize?: number; bias?: number } = {},
+): ImageData {
+  const w = src.width;
+  const h = src.height;
+  const out = cloneShape(src);
+  if (w <= 0 || h <= 0) {
+    return out;
+  }
+  const minDim = Math.min(w, h);
+  const requestedBlock = options.blockSize ?? Math.max(15, Math.round(minDim / 16));
+  // Force odd, clamp to a reasonable range — large blocks hurt perf
+  // disproportionately because of the integral-image edge handling.
+  let blockSize = requestedBlock;
+  if (blockSize < 3) blockSize = 3;
+  if (blockSize > 51) blockSize = 51;
+  if (blockSize % 2 === 0) blockSize += 1;
+  const half = (blockSize - 1) >> 1;
+  const bias = options.bias ?? 8;
+
+  // Integral image of the per-pixel luminance. Width/height are +1
+  // larger so the (-1)-indexed boundary case becomes a free 0 row.
+  const iw = w + 1;
+  const ih = h + 1;
+  const integral = new Float64Array(iw * ih);
+  const s = src.data;
+  for (let y = 0; y < h; y++) {
+    let rowSum = 0;
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const r = s[i] ?? 0;
+      const g = s[i + 1] ?? 0;
+      const b = s[i + 2] ?? 0;
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      rowSum += lum;
+      integral[(y + 1) * iw + (x + 1)] = (integral[y * iw + (x + 1)] ?? 0) + rowSum;
+    }
+  }
+
+  const d = out.data;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const x0 = Math.max(0, x - half);
+      const y0 = Math.max(0, y - half);
+      const x1 = Math.min(w - 1, x + half);
+      const y1 = Math.min(h - 1, y + half);
+      const area = (x1 - x0 + 1) * (y1 - y0 + 1);
+      const sum =
+        (integral[(y1 + 1) * iw + (x1 + 1)] ?? 0) -
+        (integral[y0 * iw + (x1 + 1)] ?? 0) -
+        (integral[(y1 + 1) * iw + x0] ?? 0) +
+        (integral[y0 * iw + x0] ?? 0);
+      const mean = sum / area;
+      const r = s[i] ?? 0;
+      const g = s[i + 1] ?? 0;
+      const b = s[i + 2] ?? 0;
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      const v = lum < mean - bias ? 0 : 255;
+      d[i] = v;
+      d[i + 1] = v;
+      d[i + 2] = v;
+      d[i + 3] = s[i + 3] ?? 255;
+    }
+  }
+  return out;
+}
+
+export interface ImageStats {
+  /** Average luminance over all pixels (0..255). */
+  mean: number;
+  /** Minimum per-pixel luminance encountered. */
+  min: number;
+  /** Maximum per-pixel luminance encountered. */
+  max: number;
+}
+
+/**
+ * Cheap one-pass luminance histogram summary. Used by the decoder
+ * to:
+ *
+ * - Skip pitch-black frames (e.g. camera covered, autoexposure not
+ *   converged yet). `max < 10` → no point feeding zxing anything,
+ *   it's all noise.
+ * - Pick which preprocess variants to try first. A frame whose mean
+ *   sits below 70 is much more likely to decode after a brighten
+ *   pass than a contrast pass; a frame with mean above 200 wants
+ *   darken first; a frame with `max - min < 40` wants the adaptive
+ *   threshold first because it has almost no global contrast.
+ *
+ * Only samples luminance — colour cast is handled separately by the
+ * grayscale variant.
+ */
+export function analyzeImageStats(src: ImageData): ImageStats {
+  const s = src.data;
+  if (s.length < 4) {
+    return { mean: 0, min: 0, max: 0 };
+  }
+  let total = 0;
+  let count = 0;
+  let min = 255;
+  let max = 0;
+  for (let i = 0; i < s.length; i += 4) {
+    const r = s[i] ?? 0;
+    const g = s[i + 1] ?? 0;
+    const b = s[i + 2] ?? 0;
+    const y = 0.299 * r + 0.587 * g + 0.114 * b;
+    total += y;
+    count += 1;
+    if (y < min) min = y;
+    if (y > max) max = y;
+  }
+  return {
+    mean: count > 0 ? total / count : 0,
+    min: count > 0 ? min : 0,
+    max: count > 0 ? max : 0,
+  };
+}
+
+/**
  * Pick the preprocessing variant requested by the caller.
  *
  * The decoder tries variants in this order:
- *   1. `'normal'`   — pass-through (still useful as a baseline pass).
- *   2. `'contrast'` — +30% contrast boost (most common decode rescue).
- *   3. `'grayscale'`— pure luminance (last resort: handles colour cast).
+ *   1. `'normal'`              — pass-through (still useful as a baseline pass).
+ *   2. `'contrast'`            — +30% contrast boost (most common decode rescue).
+ *   3. `'grayscale'`           — pure luminance (handles colour cast).
+ *   4. `'inverted'`            — flip black/white (white-on-dark labels, dark-mode QR).
+ *   5. `'brighten'`            — gamma 0.5 (rescues under-exposed frames).
+ *   6. `'darken'`              — gamma 1.6 (tames overexposed glare).
+ *   7. `'adaptiveThreshold'`   — local mean binarisation (uneven lighting / shadow).
  *
  * We expose them as discrete variants rather than as a single
  * configurable pipeline because the manual scan button benefits from
@@ -119,6 +330,14 @@ export function applyPreprocess(src: ImageData, variant: PreprocessVariant): Ima
       return toGrayscale(src);
     case 'contrast':
       return applyContrast(src, 1.3);
+    case 'inverted':
+      return applyInvert(src);
+    case 'brighten':
+      return applyGamma(src, 0.5);
+    case 'darken':
+      return applyGamma(src, 1.6);
+    case 'adaptiveThreshold':
+      return applyAdaptiveThreshold(src);
     default: {
       // Exhaustiveness guard. Compile-time `never` ensures all cases
       // are handled; the runtime fallback returns the source unchanged.
@@ -130,15 +349,43 @@ export function applyPreprocess(src: ImageData, variant: PreprocessVariant): Ima
 }
 
 /**
- * Default retry order for the manual scan button.
+ * Default retry order for the manual scan button. Ordered by how
+ * often each variant rescues a missed decode in practice — `'normal'`
+ * first because most frames are fine, then progressively heavier
+ * preprocesses.
  *
- * The order is designed for the median classroom case: most decodes
- * miss because of low contrast (under-lit barcodes on white paper),
- * so contrast boost is tried *before* grayscale. Grayscale is kept
- * last as the safety net for colour-cast failures.
+ * The full ordered list trades latency (~50 ms per variant on a 1080p
+ * ROI) for catch-rate. Manual scan's budget is generous; continuous
+ * decode picks a smaller subset {@link CONTINUOUS_VARIANTS}.
  */
 export const MANUAL_RETRY_VARIANTS: PreprocessVariant[] = [
   'normal',
   'contrast',
+  'grayscale',
+  'inverted',
+  'brighten',
+  'darken',
+  'adaptiveThreshold',
+];
+
+/**
+ * Variant subset cycled by the continuous-decode loop, one per tick.
+ *
+ * Smaller than the manual list (continuous mode runs ~12.5 fps and
+ * each tick must finish well within the 80 ms budget) but covers the
+ * lighting cases that most often trip up real classroom scans:
+ *
+ * - `normal` — the easy case, hit immediately when conditions are good.
+ * - `contrast` — rescues mild under-/over-exposure.
+ * - `inverted` — dark-mode phone QR.
+ * - `grayscale` — colour-cast under warm LEDs.
+ *
+ * The remaining heavy variants (brighten/darken/adaptiveThreshold)
+ * are only tried by the manual button.
+ */
+export const CONTINUOUS_VARIANTS: PreprocessVariant[] = [
+  'normal',
+  'contrast',
+  'inverted',
   'grayscale',
 ];

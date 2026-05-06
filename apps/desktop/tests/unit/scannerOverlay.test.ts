@@ -13,12 +13,12 @@ import {
  * decode regression, so unit-test the pure math.
  */
 describe('computeRoi', () => {
-  it('produces a centered rectangle at 70% × 30% of the video frame', () => {
+  it('produces a centered rectangle at 70% × 55% of the video frame', () => {
     const roi = computeRoi(1280, 720);
     expect(roi.width).toBe(896); // round(1280 * 0.7)
-    expect(roi.height).toBe(216); // round(720 * 0.3)
+    expect(roi.height).toBe(396); // round(720 * 0.55)
     expect(roi.x).toBe(192); // round((1280 - 896) / 2)
-    expect(roi.y).toBe(252); // round((720 - 216) / 2)
+    expect(roi.y).toBe(162); // round((720 - 396) / 2)
   });
 
   it('keeps the rectangle inside the video bounds at common resolutions', () => {
@@ -39,7 +39,8 @@ describe('computeRoi', () => {
 
   it('handles square frames without skewing the aspect', () => {
     const roi = computeRoi(500, 500);
-    // width fraction is larger than height fraction by construction.
+    // width fraction (0.7) is still larger than height fraction (0.55)
+    // — the box stays landscape even on square frames.
     expect(roi.width).toBeGreaterThan(roi.height);
   });
 
@@ -52,7 +53,7 @@ describe('computeRoi', () => {
 
   it('exposes the percentage constants for the React overlay div', () => {
     expect(ROI_PERCENT.width).toBeCloseTo(0.7, 5);
-    expect(ROI_PERCENT.height).toBeCloseTo(0.3, 5);
+    expect(ROI_PERCENT.height).toBeCloseTo(0.55, 5);
   });
 });
 

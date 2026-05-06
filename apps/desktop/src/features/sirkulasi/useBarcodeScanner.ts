@@ -23,27 +23,35 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { computeRoi } from '@/lib/scanner/overlay';
 import {
   createImageDataReader,
+  decodeAny,
+  decodeWithJsQR,
   decodeWithRetry,
   type DecodedResult,
+  type Point2D,
 } from '@/lib/scanner/decoder';
-import { type PreprocessVariant } from '@/lib/scanner/preprocess';
+import {
+  analyzeImageStats,
+  CONTINUOUS_VARIANTS,
+  MANUAL_RETRY_VARIANTS,
+} from '@/lib/scanner/preprocess';
 
 /**
- * Variants tried per continuous-decode tick. We round-robin so each
- * tick stays cheap (one preprocess + one zxing pass) while still
- * giving every variant a fair shot within ~300 ms — fast enough that
- * even a brief barcode hold over the ROI gets at least one of each
- * preprocess flavour. Order copies `MANUAL_RETRY_VARIANTS` for
- * symmetry with the manual button. (BUG-22.)
+ * Decode loop tick interval in milliseconds. 80 ms ≈ 12.5 fps decode
+ * rate (v1.0.11, down from 100 ms). Cycling through the four
+ * {@link CONTINUOUS_VARIANTS} now takes ~320 ms — still well under
+ * the cooldown, so we never deliver the same barcode twice in one
+ * steady hold, but each variant gets a fresh shot every cycle.
  */
-const CONTINUOUS_VARIANTS: PreprocessVariant[] = ['normal', 'contrast', 'grayscale'];
+const TICK_MS = 80;
 
 /**
- * Decode loop tick interval in milliseconds. 100 ms = 10 fps decode
- * rate, plenty for hand-aim and well below the cooldown so we never
- * deliver the same barcode twice in one steady hold. (BUG-22.)
+ * Below this mean luminance we treat the frame as effectively black
+ * (camera covered, autoexposure not converged, lights out) and skip
+ * the decode entirely. Saves the cost of running zxing + jsQR over
+ * pure noise and prevents the decoder from raising spurious internal
+ * exceptions on degenerate bitmaps.
  */
-const TICK_MS = 100;
+const DARK_FRAME_MEAN_THRESHOLD = 8;
 
 export interface UseBarcodeScannerOptions {
   onDecode: (text: string) => void;
@@ -97,7 +105,54 @@ export interface UseBarcodeScannerResult {
    * applied; rejects if the track no longer exists.
    */
   toggleTorch: () => Promise<void>;
+  /**
+   * Most recent decoded barcode location in ROI-pixel coordinates,
+   * along with the pixel size of the ROI it was decoded against.
+   * Drives the live tracking SVG overlay. Cleared automatically
+   * after `LOCATION_FADE_MS` of no new detection.
+   *
+   * `null` when no detection is currently in flight.
+   */
+  lastDetection: ScannerDetection | null;
+  /**
+   * True for a brief moment after a successful decode triggers a
+   * cooldown-emit. The overlay flashes yellow during this window.
+   */
+  decodeFlash: boolean;
 }
+
+/**
+ * Snapshot of the most recent decoded barcode position, in the
+ * coordinate system of the ROI crop the decoder ran against. The
+ * rendering layer rescales these into CSS units using the ROI
+ * percentages from {@link ROI_PERCENT}.
+ */
+export interface ScannerDetection {
+  location: Point2D[];
+  /** Pixel width of the ROI crop the location was measured in. */
+  roiWidth: number;
+  /** Pixel height of the ROI crop the location was measured in. */
+  roiHeight: number;
+  /** Format of the barcode (e.g. `'CODE_128'`, `'QR_CODE'`). */
+  format: string;
+  /** Source of the decode (`'zxing'` or `'jsqr'`). */
+  source: 'zxing' | 'jsqr';
+  /** Wall-clock timestamp (ms since epoch) when this detection landed. */
+  at: number;
+}
+
+/**
+ * Lifetime of a tracking polygon after the last successful detection.
+ * Visible state lingers a few hundred ms so the overlay doesn't
+ * flicker away the instant the operator's hand drifts and the next
+ * tick misses.
+ */
+const LOCATION_FADE_MS = 600;
+
+/**
+ * Duration of the yellow "decode succeeded" flash on the overlay.
+ */
+const DECODE_FLASH_MS = 350;
 
 /**
  * Map a `getUserMedia` failure to one of {@link ScannerErrorKind}.
@@ -173,6 +228,44 @@ export function useBarcodeScanner(
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
+  const [lastDetection, setLastDetection] = useState<ScannerDetection | null>(null);
+  const [decodeFlash, setDecodeFlash] = useState(false);
+  const detectionFadeTimerRef = useRef<number | null>(null);
+  const decodeFlashTimerRef = useRef<number | null>(null);
+
+  /**
+   * Record a fresh detection for the live tracking overlay and
+   * schedule a fade-out if no further detection lands within
+   * {@link LOCATION_FADE_MS}. Successive detections refresh the
+   * timer, so a steady aim keeps the polygon visible.
+   */
+  const pushDetection = useCallback((detection: ScannerDetection) => {
+    setLastDetection(detection);
+    if (detectionFadeTimerRef.current !== null) {
+      clearTimeout(detectionFadeTimerRef.current);
+    }
+    detectionFadeTimerRef.current = window.setTimeout(() => {
+      setLastDetection(null);
+      detectionFadeTimerRef.current = null;
+    }, LOCATION_FADE_MS);
+  }, []);
+
+  /**
+   * Briefly flash the overlay yellow to acknowledge a successful
+   * decode. The flash is independent of the polygon fade so the
+   * operator gets a clear "got it" signal even if the polygon was
+   * already visible.
+   */
+  const triggerFlash = useCallback(() => {
+    setDecodeFlash(true);
+    if (decodeFlashTimerRef.current !== null) {
+      clearTimeout(decodeFlashTimerRef.current);
+    }
+    decodeFlashTimerRef.current = window.setTimeout(() => {
+      setDecodeFlash(false);
+      decodeFlashTimerRef.current = null;
+    }, DECODE_FLASH_MS);
+  }, []);
 
   /** Stop and release the active camera, if any. */
   const stop = useCallback(() => {
@@ -204,6 +297,16 @@ export function useBarcodeScanner(
     setActive(false);
     setTorchSupported(false);
     setTorchOn(false);
+    setLastDetection(null);
+    setDecodeFlash(false);
+    if (detectionFadeTimerRef.current !== null) {
+      clearTimeout(detectionFadeTimerRef.current);
+      detectionFadeTimerRef.current = null;
+    }
+    if (decodeFlashTimerRef.current !== null) {
+      clearTimeout(decodeFlashTimerRef.current);
+      decodeFlashTimerRef.current = null;
+    }
   }, []);
 
   const start = useCallback(async (): Promise<void> => {
@@ -348,10 +451,36 @@ export function useBarcodeScanner(
                     roi.height,
                   );
                   const imageData = ctx.getImageData(0, 0, roi.width, roi.height);
+                  // Skip pitch-black frames before paying for zxing
+                  // + jsQR. Cheap luminance summary; bail-out keeps
+                  // the loop responsive when the camera is covered
+                  // or the room lights drop. (v1.0.11 BUG-22.)
+                  const stats = analyzeImageStats(imageData);
+                  if (stats.max < DARK_FRAME_MEAN_THRESHOLD) {
+                    rafRef.current = requestAnimationFrame(tick);
+                    return;
+                  }
                   const variant = CONTINUOUS_VARIANTS[variantIdx] ?? 'normal';
                   variantIdx = (variantIdx + 1) % CONTINUOUS_VARIANTS.length;
-                  const hit = decodeWithRetry(imageReader, imageData, [variant]);
+                  // Try zxing first with the current variant; fall
+                  // back to jsQR (QR-only, more tolerant of moiré)
+                  // on every miss. jsQR is a single call per tick
+                  // — it's already fast enough for the 80 ms budget.
+                  let hit = decodeWithRetry(imageReader, imageData, [variant]);
+                  if (!hit) {
+                    hit = decodeWithJsQR(imageData);
+                  }
                   if (hit) {
+                    if (hit.location) {
+                      pushDetection({
+                        location: hit.location,
+                        roiWidth: roi.width,
+                        roiHeight: roi.height,
+                        format: hit.format,
+                        source: hit.source,
+                        at: Date.now(),
+                      });
+                    }
                     const text = hit.text;
                     const at = performance.now();
                     const last = lastDecodedRef.current;
@@ -361,6 +490,7 @@ export function useBarcodeScanner(
                       at - last.at >= cooldownMs
                     ) {
                       lastDecodedRef.current = { text, at };
+                      triggerFlash();
                       onDecodeRef.current(text);
                     }
                   }
@@ -383,7 +513,7 @@ export function useBarcodeScanner(
     } finally {
       setStarting(false);
     }
-  }, [selectedDeviceId, cooldownMs]);
+  }, [selectedDeviceId, cooldownMs, pushDetection, triggerFlash]);
 
   // Restart the stream if the user picks a different camera while running.
   const selectDevice = useCallback(
@@ -411,7 +541,11 @@ export function useBarcodeScanner(
     // Crop to the same ROI rectangle the overlay renders. Decoding
     // only this region speeds the manual scan up (~4× fewer pixels)
     // and removes the cluttered background that otherwise confuses
-    // zxing's binarizer.
+    // zxing's binarizer. (v1.0.11) If the ROI pass misses, fall back
+    // to the full frame — operators sometimes hold the barcode at
+    // the edge of the viewport and the ROI crop excludes part of
+    // the symbol; the full-frame retry catches those without
+    // requiring a second click.
     const roi = computeRoi(w, h);
     if (roi.width <= 0 || roi.height <= 0) return null;
 
@@ -420,12 +554,70 @@ export function useBarcodeScanner(
     canvas.height = roi.height;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    ctx.drawImage(video, roi.x, roi.y, roi.width, roi.height, 0, 0, roi.width, roi.height);
+    ctx.drawImage(
+      video,
+      roi.x,
+      roi.y,
+      roi.width,
+      roi.height,
+      0,
+      0,
+      roi.width,
+      roi.height,
+    );
     const imageData = ctx.getImageData(0, 0, roi.width, roi.height);
-
     const reader = createImageDataReader();
-    return decodeWithRetry(reader, imageData);
-  }, []);
+
+    const roiHit = decodeAny(reader, imageData, MANUAL_RETRY_VARIANTS);
+    if (roiHit) {
+      if (roiHit.location) {
+        pushDetection({
+          location: roiHit.location,
+          roiWidth: roi.width,
+          roiHeight: roi.height,
+          format: roiHit.format,
+          source: roiHit.source,
+          at: Date.now(),
+        });
+      }
+      triggerFlash();
+      return roiHit;
+    }
+
+    // Full-frame fallback. Reuse the same canvas at the larger size
+    // so we don't pay for two allocations when the manual button
+    // gets clicked rapidly.
+    canvas.width = w;
+    canvas.height = h;
+    const ctxFull = canvas.getContext('2d');
+    if (!ctxFull) return null;
+    ctxFull.drawImage(video, 0, 0, w, h);
+    const fullImage = ctxFull.getImageData(0, 0, w, h);
+    const fullHit = decodeAny(reader, fullImage, MANUAL_RETRY_VARIANTS);
+    if (fullHit) {
+      if (fullHit.location) {
+        // Convert from full-frame coords back into ROI coords so the
+        // overlay (which is positioned over the ROI) draws the
+        // polygon in the right place. Out-of-ROI hits clamp to the
+        // ROI edges so the overlay still shows the operator that
+        // we caught the symbol — they can re-aim from there.
+        const adjusted = fullHit.location.map((p) => ({
+          x: Math.max(0, Math.min(roi.width, p.x - roi.x)),
+          y: Math.max(0, Math.min(roi.height, p.y - roi.y)),
+        }));
+        pushDetection({
+          location: adjusted,
+          roiWidth: roi.width,
+          roiHeight: roi.height,
+          format: fullHit.format,
+          source: fullHit.source,
+          at: Date.now(),
+        });
+      }
+      triggerFlash();
+    }
+    return fullHit;
+  }, [pushDetection, triggerFlash]);
 
   const toggleTorch = useCallback(async (): Promise<void> => {
     const stream = streamRef.current;
@@ -459,6 +651,14 @@ export function useBarcodeScanner(
         }
       }
       streamRef.current = null;
+      if (detectionFadeTimerRef.current !== null) {
+        clearTimeout(detectionFadeTimerRef.current);
+        detectionFadeTimerRef.current = null;
+      }
+      if (decodeFlashTimerRef.current !== null) {
+        clearTimeout(decodeFlashTimerRef.current);
+        decodeFlashTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -477,5 +677,7 @@ export function useBarcodeScanner(
     torchSupported,
     torchOn,
     toggleTorch,
+    lastDetection,
+    decodeFlash,
   };
 }

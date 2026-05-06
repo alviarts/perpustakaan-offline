@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-manager';
 import { useBarcodeScanner } from '@/features/sirkulasi/useBarcodeScanner';
+import { ScannerTrackingOverlay } from '@/features/sirkulasi/ScannerTrackingOverlay';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { parseQrPayload } from '@/lib/kta';
 
@@ -126,6 +127,14 @@ export function OpacKtaScanFlow({
             muted
             playsInline
           />
+          {scanner.active && scanner.lastDetection && (
+            <ScannerTrackingOverlay
+              location={scanner.lastDetection.location}
+              roiWidth={scanner.lastDetection.roiWidth}
+              roiHeight={scanner.lastDetection.roiHeight}
+              flash={scanner.decodeFlash}
+            />
+          )}
           {!scanner.active && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 text-white">
               <CameraOff className="h-10 w-10 opacity-70" aria-hidden="true" />

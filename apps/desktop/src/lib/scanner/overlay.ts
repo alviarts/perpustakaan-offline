@@ -27,17 +27,20 @@
 /**
  * ROI rectangle as a fraction of the video frame.
  *
- * - 70% width × 30% height matches a typical landscape barcode aspect
- *   ratio (EAN-13 ≈ 2.4:1, Code-128 varies). Wide enough to fit the
- *   full barcode at a normal arm's-length distance, tall enough that
- *   slight tilt or vertical drift still keeps the bars in frame.
+ * - 70% width × 55% height (v1.0.11) — wider than the v1.0.10
+ *   70% × 30% rectangle so square QR codes (and Data Matrix) fit
+ *   comfortably alongside landscape Code-128 / EAN labels. The
+ *   55% height is a compromise: tall enough that a centered QR at
+ *   normal arm's-length distance fills most of the box, short enough
+ *   that the operator still sees their hands and the surroundings
+ *   for context.
  * - Centered (left/top = (1 - size)/2). Easier for operators than
  *   off-center alignment and matches every other phone-camera
  *   scanner UI in the wild.
  */
 export const ROI_PERCENT = {
   width: 0.7,
-  height: 0.3,
+  height: 0.55,
 } as const;
 
 export interface RoiRect {

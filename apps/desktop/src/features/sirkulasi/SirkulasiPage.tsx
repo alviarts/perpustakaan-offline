@@ -55,6 +55,7 @@ import {
 import { formatTauriError } from '@/lib/errors';
 import { useBarcodeScanner } from './useBarcodeScanner';
 import { ScannerOverlay } from './ScannerOverlay';
+import { ScannerTrackingOverlay } from './ScannerTrackingOverlay';
 
 type Mode = 'pinjam' | 'kembalikan';
 
@@ -530,19 +531,29 @@ export function SirkulasiPage() {
                 playsInline
               />
               {scanner.active && (
-                <ScannerOverlay
-                  label={t('sirkulasi:scanner.overlayLabel', {
-                    defaultValue: 'Arahkan barcode ke dalam kotak',
-                  })}
-                  busy={scanningOnce}
-                  busyLabel={
-                    scanningOnce
-                      ? t('sirkulasi:scanner.scanning', {
-                          defaultValue: 'Memindai…',
-                        })
-                      : undefined
-                  }
-                />
+                <>
+                  <ScannerOverlay
+                    label={t('sirkulasi:scanner.overlayLabel', {
+                      defaultValue: 'Arahkan barcode ke dalam kotak',
+                    })}
+                    busy={scanningOnce}
+                    busyLabel={
+                      scanningOnce
+                        ? t('sirkulasi:scanner.scanning', {
+                            defaultValue: 'Memindai…',
+                          })
+                        : undefined
+                    }
+                  />
+                  {scanner.lastDetection && (
+                    <ScannerTrackingOverlay
+                      location={scanner.lastDetection.location}
+                      roiWidth={scanner.lastDetection.roiWidth}
+                      roiHeight={scanner.lastDetection.roiHeight}
+                      flash={scanner.decodeFlash}
+                    />
+                  )}
+                </>
               )}
               {!scanner.active && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 text-white">
