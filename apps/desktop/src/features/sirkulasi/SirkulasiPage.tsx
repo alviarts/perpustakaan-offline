@@ -18,6 +18,9 @@ import { Link } from '@tanstack/react-router';
 import {
   CameraOff,
   CheckCircle2,
+  Flashlight,
+  FlashlightOff,
+  Focus,
   Keyboard,
   Loader2,
   RefreshCw,
@@ -51,6 +54,7 @@ import {
 } from '@/lib/peminjaman';
 import { formatTauriError } from '@/lib/errors';
 import { useBarcodeScanner } from './useBarcodeScanner';
+import { ScannerOverlay } from './ScannerOverlay';
 
 type Mode = 'pinjam' | 'kembalikan';
 
@@ -265,6 +269,63 @@ export function SirkulasiPage() {
       void handleScan(text);
     },
   });
+  const [scanningOnce, setScanningOnce] = useState(false);
+
+  /**
+   * Handler for the manual "Scan Sekarang" button. Captures the current
+   * frame, crops to ROI, and runs the 3-pass preprocess pipeline.
+   * Toasts the outcome and feeds successful hits through the same
+   * `handleScan` pipeline as continuous decode (so anggota / eksemplar
+   * dispatch is identical).
+   */
+  const onClickScanOnce = async (): Promise<void> => {
+    if (scanningOnce) return;
+    setScanningOnce(true);
+    try {
+      const result = await scanner.decodeOnce();
+      if (result) {
+        showToast({
+          title: t('sirkulasi:scanner.scanSuccess', {
+            defaultValue: 'Berhasil: {{code}}',
+            code: result.text,
+          }),
+        });
+        void handleScan(result.text);
+      } else {
+        showToast({
+          variant: 'destructive',
+          title: t('sirkulasi:scanner.scanFail', {
+            defaultValue:
+              'Tidak terdeteksi — coba ulangi atau ketik manual.',
+          }),
+        });
+      }
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('sirkulasi:scanner.scanError', {
+          defaultValue: 'Gagal melakukan scan',
+        }),
+        description: formatTauriError(err),
+      });
+    } finally {
+      setScanningOnce(false);
+    }
+  };
+
+  const onClickToggleTorch = async (): Promise<void> => {
+    try {
+      await scanner.toggleTorch();
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('sirkulasi:scanner.torchError', {
+          defaultValue: 'Senter tidak dapat diaktifkan',
+        }),
+        description: formatTauriError(err),
+      });
+    }
+  };
 
   const onSubmitManual = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -468,6 +529,21 @@ export function SirkulasiPage() {
                 muted
                 playsInline
               />
+              {scanner.active && (
+                <ScannerOverlay
+                  label={t('sirkulasi:scanner.overlayLabel', {
+                    defaultValue: 'Arahkan barcode ke dalam kotak',
+                  })}
+                  busy={scanningOnce}
+                  busyLabel={
+                    scanningOnce
+                      ? t('sirkulasi:scanner.scanning', {
+                          defaultValue: 'Memindai…',
+                        })
+                      : undefined
+                  }
+                />
+              )}
               {!scanner.active && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 text-white">
                   <CameraOff className="h-10 w-10 opacity-70" />
@@ -483,6 +559,52 @@ export function SirkulasiPage() {
                 </div>
               )}
             </div>
+
+            {scanner.active && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    void onClickScanOnce();
+                  }}
+                  disabled={scanningOnce}
+                >
+                  {scanningOnce ? (
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Focus className="mr-1.5 h-4 w-4" />
+                  )}
+                  {t('sirkulasi:scanner.scanNow', {
+                    defaultValue: 'Scan Sekarang',
+                  })}
+                </Button>
+                {scanner.torchSupported && (
+                  <Button
+                    type="button"
+                    variant={scanner.torchOn ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      void onClickToggleTorch();
+                    }}
+                  >
+                    {scanner.torchOn ? (
+                      <Flashlight className="mr-1.5 h-4 w-4" />
+                    ) : (
+                      <FlashlightOff className="mr-1.5 h-4 w-4" />
+                    )}
+                    {scanner.torchOn
+                      ? t('sirkulasi:scanner.torchOn', {
+                          defaultValue: 'Senter aktif',
+                        })
+                      : t('sirkulasi:scanner.torchOff', {
+                          defaultValue: 'Nyalakan senter',
+                        })}
+                  </Button>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-2">
               {scanner.active ? (
