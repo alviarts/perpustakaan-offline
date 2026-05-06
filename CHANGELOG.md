@@ -13,6 +13,83 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.11] - 2026-05-06
+
+### Added
+
+- **Live tracking overlay untuk scanner Sirkulasi / OPAC / Stocktake** —
+  begitu decoder mendeteksi barcode atau QR di frame, sebuah polygon
+  hijau langsung "menempel" di posisi simbol di preview kamera (mirip
+  scanner QR di kamera HP). Polygon flash kuning singkat ketika
+  decode sukses, dan fade-out otomatis ~600 ms setelah deteksi
+  hilang. Memberi feedback visual yang jelas ke operator bahwa
+  scanner benar-benar melihat kode — bukan hanya "diam saja".
+- **jsQR sebagai decoder paralel khusus QR** — library spesialis QR
+  (~30 KB) yang jauh lebih tahan moiré pattern (raster layar HP ×
+  raster webcam), QR low-res, dan QR di tepi viewport daripada
+  binarizer ZXing. Dipanggil sebagai fallback setelah ZXing gagal,
+  jadi tidak menambah latensi pada kasus-kasus mudah. Mode
+  `attemptBoth` menangani QR dark-mode (kotak putih di latar hitam)
+  tanpa preprocess tambahan.
+- **Preprocess variant baru**: `inverted`, `brighten` (gamma 0.5),
+  `darken` (gamma 1.6), dan `adaptiveThreshold` (block-mean lokal).
+  Tombol "Scan Sekarang" sekarang siklus lengkap 7 varian per klik
+  daripada 3, sehingga jauh lebih banyak kasus pencahayaan tertangkap
+  (gelap, terlalu terang, kontras rendah, lampu kelas yang tidak
+  rata).
+- **`analyzeImageStats(image)` helper** — rangkuman luminansi (mean,
+  min, max). Dipakai `useBarcodeScanner` untuk skip frame
+  pitch-black (mean < 8) sebelum membayar biaya zxing/jsQR, dan
+  membuka jalan untuk pemilihan varian adaptif berbasis statistik.
+
+### Fixed
+
+- **QR di layar HP tidak terbaca walaupun sudah jelas (#141 follow-up)** —
+  kombinasi 3 hal: ROI 70% × 30% terlalu sempit untuk QR persegi,
+  ZXing tidak mencoba bitmap yang dibalik (dark-mode QR), dan tidak
+  ada decoder QR-specialist. v1.0.11 memperbesar ROI ke 70% × 55%,
+  menambahkan varian `inverted` di pipeline, dan jsQR fallback —
+  catch-rate naik signifikan untuk QR di layar HP / phone screen.
+- **"Scan Sekarang" miss kalau barcode di tepi ROI** — kalau decode
+  ROI gagal, sekarang otomatis retry decode seluruh frame sebagai
+  fallback (koordinat lokasi di-clamp ke kotak ROI supaya overlay
+  tetap menampilkan lokasi yang benar).
+- **Continuous decode sering miss QR dark-mode** — loop kontinyu
+  sekarang siklus 4 varian (`normal → contrast → inverted →
+  grayscale`) bukan 3, dengan tick rate dinaikkan dari 100 ms ke 80 ms
+  (12.5 fps). Total siklus ~320 ms — masih di bawah cooldown
+  decode, tapi tiap varian dapat ronde baru lebih cepat.
+- **Decoder crash di frame pitch-black** — luminance summary di
+  awal tiap tick mengeluarkan frame dengan max < 8 sebelum sampai
+  ke ZXing/jsQR. Mengurangi error log noise di console saat kamera
+  baru terbuka / ditutup penutup lensa.
+
+### Changed
+
+- `MANUAL_RETRY_VARIANTS` diperluas dari 3 ke 7 varian. Tombol
+  "Scan Sekarang" sekarang lebih lambat sedikit pada kasus terburuk
+  (~7 × 50 ms = 350 ms) tapi catch-rate jauh lebih tinggi pada
+  kondisi pencahayaan klasroom yang sulit.
+- `DecodedResult` sekarang membawa `location` (polygon 2-4 titik
+  di koordinat ROI) dan `source` (`zxing` atau `jsqr`). Dipakai
+  oleh overlay tracking; data flow lain tidak bergantung padanya
+  jadi backward-compatible.
+- Hint `ALSO_INVERTED` ZXing tidak ditambahkan karena
+  `@zxing/library` 0.21 tidak mengekspor enum tersebut. Fungsi yang
+  sama dipenuhi oleh varian `inverted` di retry chain dan jsQR
+  `attemptBoth`.
+
+### Tests
+
+- 36 unit test baru di `scannerPreprocess.test.ts` mencakup setiap
+  varian baru + helper `analyzeImageStats` + adaptive threshold
+  edge cases.
+- 13 skenario end-to-end di `scannerScenarios.test.ts` — render QR
+  sintetis dengan `qrcode` lalu uji decode pada kondisi:
+  bright/baseline, gelap (25%/10% brightness), gelap total
+  (pitch-black), kontras rendah, dark-mode (inverted), glare
+  overexposed, dan low-res (3 px / module). Semua 478 test pass.
+
 ## [1.0.10] - 2026-05-06
 
 ### Fixed

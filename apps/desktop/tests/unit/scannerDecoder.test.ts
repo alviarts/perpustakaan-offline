@@ -7,6 +7,7 @@ import {
   imageDataToBitmap,
   SUPPORTED_FORMATS,
 } from '@/lib/scanner/decoder';
+import { MANUAL_RETRY_VARIANTS } from '@/lib/scanner/preprocess';
 
 /**
  * Minimal RGBA `ImageData` factory shared with the preprocess tests —
@@ -83,6 +84,9 @@ describe('decodeWithRetry', () => {
       return {
         getText: () => hitText,
         getBarcodeFormat: () => hitFormat,
+        // Provide an empty result-point list so the v1.0.11 location
+        // extractor short-circuits to `null` instead of throwing.
+        getResultPoints: () => [],
       };
     });
     const reset = vi.fn();
@@ -95,8 +99,11 @@ describe('decodeWithRetry', () => {
     const reader = stubReader(99);
     const result = decodeWithRetry(reader, blankImage(10, 10));
     expect(result).toBeNull();
-    // exactly the default 3 variants attempted
-    expect((reader as unknown as { decode: { mock: { calls: unknown[] } } }).decode.mock.calls.length).toBe(3);
+    // Exactly one decode pass per default variant.
+    expect(
+      (reader as unknown as { decode: { mock: { calls: unknown[] } } }).decode.mock.calls
+        .length,
+    ).toBe(MANUAL_RETRY_VARIANTS.length);
   });
 
   it('returns the first successful hit and stops trying further variants', () => {

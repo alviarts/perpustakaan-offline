@@ -1,6 +1,6 @@
 {
   "name": "@perpustakaan/desktop",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "private": true,
   "type": "module",
   "scripts": {
@@ -45,6 +45,7 @@
     "i18next": "^24.2.1",
     "jsbarcode": "^3.12.3",
     "jspdf": "^2.5.2",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.468.0",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",

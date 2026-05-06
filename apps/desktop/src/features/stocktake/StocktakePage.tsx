@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useBarcodeScanner } from '@/features/sirkulasi/useBarcodeScanner';
 import { ScannerOverlay } from '@/features/sirkulasi/ScannerOverlay';
+import { ScannerTrackingOverlay } from '@/features/sirkulasi/ScannerTrackingOverlay';
 import {
   Dialog,
   DialogContent,
@@ -596,15 +597,25 @@ export function StocktakePage() {
                       playsInline
                     />
                     {cameraScanner.active && (
-                      <ScannerOverlay
-                        label={t('stocktake:session.cameraOverlay')}
-                        busy={scanning}
-                        busyLabel={
-                          scanning
-                            ? t('stocktake:session.cameraScanning')
-                            : undefined
-                        }
-                      />
+                      <>
+                        <ScannerOverlay
+                          label={t('stocktake:session.cameraOverlay')}
+                          busy={scanning}
+                          busyLabel={
+                            scanning
+                              ? t('stocktake:session.cameraScanning')
+                              : undefined
+                          }
+                        />
+                        {cameraScanner.lastDetection && (
+                          <ScannerTrackingOverlay
+                            location={cameraScanner.lastDetection.location}
+                            roiWidth={cameraScanner.lastDetection.roiWidth}
+                            roiHeight={cameraScanner.lastDetection.roiHeight}
+                            flash={cameraScanner.decodeFlash}
+                          />
+                        )}
+                      </>
                     )}
                     {!cameraScanner.active && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 text-white">
