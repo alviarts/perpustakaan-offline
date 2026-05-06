@@ -666,3 +666,392 @@ Anggota lain masih login: <nama>
   "logout" semantics may include closing a Reservasi tab or
   similar. Pick this item only after FEAT-OPAC-PostScanProfile is
   merged.
+
+---
+
+## A1-CommandPalette
+
+### Symptom / what the user wants
+
+The repo already has a `GlobalSearchDialog` component
+(`apps/desktop/src/components/layout/GlobalSearchDialog.tsx`) that opens
+on Ctrl/Cmd+K and searches anggota / buku / peminjaman. It is a strong
+foundation but currently ONLY does data search.
+
+Goal: turn it into a true command palette that also:
+- Navigates to any in-app route (Anggota, Buku, Peminjaman, Pengembalian,
+  Sirkulasi, Reservasi, Wishlist, KTA, Stocktake, Audit Log, Backup,
+  Pengaturan, Manual, Tentang, OPAC, Logout).
+- Fires quick actions (Backup Sekarang, Cetak Laporan Bulanan PDF,
+  Tambah Anggota, Tambah Buku, Kunci Layar, Toggle Tema, Toggle Mode
+  Demo (D5), Buka OPAC).
+
+### Files affected
+
+- `apps/desktop/src/components/layout/GlobalSearchDialog.tsx`
+  - Add a new `CommandHit` discriminated union with kinds: `'anggota'`,
+    `'buku'`, `'peminjaman'`, `'route'`, `'action'`.
+  - Build a static list of route hits (synced with router `__authed`
+    children). Filter against `query` with the existing fuzzy matcher.
+  - Build a static list of action hits each with an `execute` callback
+    + an `icon` (lucide-react) + `i18n key` for label & description.
+  - Sort group order: matched data hits first, then routes, then
+    actions. Only include groups that have ≥ 1 visible hit.
+- New file
+  `apps/desktop/src/components/layout/commandPaletteRegistry.ts`
+  exporting the route + action lists so other features can register
+  more actions later (e.g. FEAT-Sirkulasi-Search may want a
+  "Mulai Sirkulasi" action).
+- `apps/desktop/src/i18n/{id,en}/common.json` — new namespace block
+  `commandPalette.action.{key}` and `commandPalette.route.{key}`.
+
+### Acceptance criteria
+
+- Pressing Ctrl/Cmd+K opens the dialog (existing behavior).
+- With an empty query, the palette shows three default groups:
+  `Aksi Cepat` (8+ actions), `Halaman` (top 6 most-used routes), and
+  no data search section (skip empty searches).
+- Typing "back" matches `Aksi Cepat → Backup Sekarang`. Pressing Enter
+  triggers an immediate `backupApi.runNow()` call (or the existing
+  manual-backup helper) and shows a success toast.
+- Typing "lapor" matches `Halaman → Laporan` and `Aksi Cepat → Cetak
+  Laporan Bulanan`. Both navigate / execute correctly.
+- Typing "ali" still searches anggota (existing data search keeps
+  working). Mixed groups render in the order: anggota / buku /
+  peminjaman / routes / actions.
+- Keyboard navigation (↑/↓, Enter, Esc) works across all groups.
+- All labels go through i18n; `id` and `en` parity. The i18n-coverage
+  test must pass.
+
+### Tests
+
+- `apps/desktop/tests/unit/commandPalette.test.tsx`:
+  - Empty query renders Aksi Cepat + Halaman groups, no data groups.
+  - Typing "back" surfaces the Backup action and a "back" data hit
+    shouldn't crash if no data matches.
+  - Selecting a route hit calls `navigate` with the right path.
+  - Selecting an action hit calls the registered `execute` callback.
+- Update `tests/unit/globalSearchDialog.test.tsx` if it asserts
+  exact group ordering — preserve existing data-search tests.
+
+### Risks
+
+- Don't break the existing global search keyboard wiring in
+  `Header.tsx`. The dialog still mounts at the same place.
+- Action `execute` callbacks must run AFTER the dialog closes, or the
+  dialog will steal focus from any toast / confirm.
+- Don't force-await long actions in the dialog handler; fire-and-forget
+  + toast for things like Backup Sekarang.
+
+---
+
+## A2-SkeletonScreens
+
+### Symptom / what the user wants
+
+Today most large tables render a centered spinner during initial load.
+Spinners delay the user's mental "this page is loaded" signal because
+nothing structural is visible. Skeletons (gray pulsing placeholders
+matching the final layout) feel snappier and reduce perceived latency
+even though backend timing is unchanged.
+
+### Files affected
+
+- New shared component
+  `apps/desktop/src/components/shared/TableSkeleton.tsx`:
+  - Props: `columns: number`, `rows?: number = 8`,
+    `widths?: ReadonlyArray<string>` (per-column width hints).
+  - Renders a `<table>` with the same column count + N rows of
+    `<Skeleton />` (existing `@/components/ui/skeleton`) cells.
+- Wire it into the loading state of:
+  - `apps/desktop/src/features/anggota/AnggotaListPage.tsx`
+  - `apps/desktop/src/features/buku/BukuListPage.tsx`
+  - `apps/desktop/src/features/peminjaman/PeminjamanListPage.tsx`
+  - `apps/desktop/src/features/pengembalian/PengembalianPage.tsx`
+    (search results panel)
+  - `apps/desktop/src/features/dashboard/DashboardPage.tsx` already
+    uses Skeleton for KPI cards — leave alone.
+- New shared component
+  `apps/desktop/src/components/shared/CardSkeleton.tsx` for OPAC book
+  grid (`OpacHomePage`, `OpacSearchPage`).
+
+### Acceptance criteria
+
+- On initial load of each listed page, the user sees skeleton placeholders
+  matching the final table or grid layout, not a centered spinner.
+- Skeletons fade out cleanly when data arrives (no flash of empty state).
+- For pages with both filter bar + table, the filter bar renders
+  immediately; only the table region uses the skeleton.
+- Component respects `prefers-reduced-motion` — if reduced, skeleton
+  pulse is disabled.
+
+### Tests
+
+- `apps/desktop/tests/unit/tableSkeleton.test.tsx`:
+  - Renders the requested number of rows × columns.
+  - Honors per-column width hints.
+- `apps/desktop/tests/unit/cardSkeleton.test.tsx`:
+  - Renders requested card count.
+
+### Risks
+
+- Tailwind `animate-pulse` already exists (used by existing Skeleton).
+  No new keyframes needed.
+- Don't change a11y: include a single `aria-busy="true"` on the
+  container so screen readers announce loading.
+
+---
+
+## C1-LaporanEksekutifPDF
+
+### Symptom / what the user wants
+
+Pustakawan currently has to copy KPI numbers manually from Dashboard +
+Laporan into a Word doc to bring to monthly meetings with the kepala
+sekolah. Goal: one button "Cetak Laporan Eksekutif" that produces a
+PDF ready to print or email.
+
+### Files affected
+
+- New file `apps/desktop/src/lib/pdf/laporanEksekutifPdf.ts`:
+  - Function `generateLaporanEksekutifPdf(period: { startIso, endIso })`
+    returns a `Blob`.
+  - Uses the existing pdf stack already in
+    `apps/desktop/src/lib/pdf/` (look for `kasPdf.ts` or `stocktakePdf.ts`
+    as a template — they use `pdf-lib` or similar).
+- Page: `apps/desktop/src/features/laporan/LaporanLayout.tsx` adds a
+  new "Eksekutif" sub-page (or a button inside an existing sub-page)
+  that opens a date-range picker (default = current month) and a
+  primary "Cetak PDF" button.
+- New i18n keys under `apps/desktop/src/i18n/{id,en}/laporan.json`.
+
+### PDF content
+
+Page 1 (cover):
+- Header: school logo + nama sekolah from `appSettings`.
+- Title: "Laporan Eksekutif Perpustakaan" + period range.
+- Summary KPIs (4-up grid): Total anggota aktif, Total buku, Peminjaman
+  bulan ini, Denda outstanding.
+
+Page 2 (trends):
+- Line chart: Peminjaman per minggu in period.
+- Bar chart: Top 5 buku.
+- Bar chart: Top 5 anggota peminjam.
+
+Page 3 (action items):
+- Bullet list with auto-generated action items: e.g. "Anggota X
+  memiliki denda > Rp 50.000 — kirim surat", "Buku Y memiliki
+  reservasi 3 dengan stok 0 — pertimbangkan pengadaan".
+- Footer: tanda tangan area for kepala sekolah + pustakawan + tanggal
+  cetak.
+
+### Acceptance criteria
+
+- The button opens a small dialog: from-tanggal, ke-tanggal (default
+  = bulan berjalan), tombol "Cetak".
+- Clicking Cetak calls `generateLaporanEksekutifPdf` and triggers
+  download via the existing PDF download helper.
+- PDF must contain school name + logo (if set in identitas), correct
+  KPI numbers, all three charts on page 2, and the action-item list.
+- Operates entirely offline (no fonts fetched from web).
+
+### Tests
+
+- `apps/desktop/tests/unit/laporanEksekutifPdf.test.ts`:
+  - Generates a non-empty Blob given a fake dataset.
+  - Dataset with no peminjaman gracefully produces a PDF stating
+    "Tidak ada peminjaman dalam periode ini".
+  - Dataset with denda > 50000 includes the action item.
+
+### Risks
+
+- pdf-lib (or whatever the existing stack uses) needs Indonesian font
+  registered for proper rendering of "ñ", curly quotes, etc. Reuse
+  whatever existing PDFs use.
+- Charts must be rendered server-side / canvas-side, not as DOM
+  screenshots, otherwise printout looks blurry. Reuse the existing
+  chart-to-PDF helper if any (check `kasPdf.ts`).
+
+---
+
+## D1-SystemHealthWidget
+
+### Symptom / what the user wants
+
+A single dashboard card that summarises the health of the install at
+a glance: DB size, last backup, next scheduled backup, pending
+reservasi count, version + update available flag.
+
+### Files affected
+
+- New component
+  `apps/desktop/src/features/dashboard/SystemHealthCard.tsx`.
+- Add a new RPC or extend existing `dashboardApi.getSystemHealth()` in
+  `apps/desktop/src/lib/dashboard.ts`. The Rust side may already expose
+  some of these (look at `apps/desktop/src-tauri/src/cmd/dashboard.rs`
+  + `backup.rs`). If not, add a thin command that returns:
+  ```ts
+  interface SystemHealth {
+    dbSizeBytes: number;
+    lastBackupAt: string | null;
+    nextBackupAt: string | null;
+    pendingReservasi: number;
+    appVersion: string;
+    updateAvailable: boolean | null;
+  }
+  ```
+- `DashboardPage.tsx` — render the card under the existing KPI grid.
+
+### Acceptance criteria
+
+- Card shows 5 lines: DB size formatted (KB/MB/GB), last backup
+  relative ("2 jam lalu" via existing date-fns), next backup absolute,
+  pending reservasi count (0 → green checkmark, > 0 → orange bell),
+  app version with "Update tersedia" pill if true.
+- Clicking the backup line navigates to Settings → Backup.
+- Clicking the reservasi line navigates to /reservasi.
+- Card has skeleton (A2) while data loads.
+
+### Tests
+
+- `apps/desktop/tests/unit/systemHealthCard.test.tsx`:
+  - Renders all 5 lines with mock data.
+  - "Update tersedia" pill only renders when `updateAvailable` true.
+  - Pending reservasi 0 renders green check.
+
+### Risks
+
+- DB size check must not block UI; use `getMetadata`-style call that
+  is fast (< 50ms).
+- Version comparison should reuse the existing version-check helper if
+  one exists for the manual update flow (jalur C); otherwise this row
+  just shows the current version with no pill.
+
+---
+
+## D5-SandboxDemoMode
+
+### Symptom / what the user wants
+
+A toggle in Settings (or via Command Palette → "Mode Demo") that
+switches the entire app to a sandboxed copy of the database. Saat
+aktif, banner kuning menyala, semua perubahan masuk ke `demo.db`
+terpisah, dan tombol "Kembali ke Mode Asli" menonaktifkan kembali.
+
+Use case: pelatihan petugas baru, demo ke sekolah lain, debugging
+tanpa risiko menyentuh data produksi.
+
+### Files affected
+
+- Rust: `apps/desktop/src-tauri/src/state.rs` (or wherever the active
+  DB path is stored) — add a `sandbox_mode: AtomicBool` and a helper
+  `current_db_path()` that picks `demo.db` when the flag is on.
+- `apps/desktop/src-tauri/src/cmd/sandbox.rs` (new) with:
+  - `enable_sandbox()`: copies a fresh seed (the app's bundled seed
+    SQL or a snapshot of the current production DB minus
+    audit/sensitive rows) into `demo.db`, sets the flag, returns the
+    new active DB path.
+  - `disable_sandbox()`: clears the flag, restores production DB
+    handle, optionally archives `demo.db` to `~/.config/<app>/demo-archive/<ts>.db`.
+  - `is_sandbox_active()`.
+- TS: `apps/desktop/src/lib/sandbox.ts` thin wrapper.
+- New settings page `apps/desktop/src/features/settings/SandboxPage.tsx`
+  + section entry in `sections.ts` ("Mode Demo / Sandbox").
+- Banner: `apps/desktop/src/components/layout/SandboxBanner.tsx` mounted
+  globally above the Header. Yellow background, message "Mode Demo
+  aktif — perubahan tidak menyentuh data asli", primary button
+  "Kembali ke Mode Asli".
+
+### Acceptance criteria
+
+- Toggle "Aktifkan Mode Demo" in SandboxPage shows a confirm dialog
+  ("Akan membuat salinan DB demo. Lanjut?"), then on Confirm:
+  enables sandbox, app reloads (reset all React Query caches), banner
+  appears, all data displayed is from `demo.db`.
+- Toggle "Kembali ke Mode Asli" disables sandbox, app reloads, banner
+  disappears, original data is back.
+- Sandbox state persists across app restarts (stored in app config so
+  if user restarts mid-demo they're still in demo mode + banner
+  shows).
+- Audit log records sandbox toggles even though sandbox writes don't
+  reach prod DB (audit row goes to a separate sandbox log).
+
+### Tests
+
+- `apps/desktop/tests/unit/sandboxBanner.test.tsx`:
+  - Banner renders only when `is_sandbox_active() === true`.
+  - "Kembali ke Mode Asli" button calls disable RPC.
+- Rust unit test for `enable_sandbox` / `disable_sandbox` flow.
+
+### Risks
+
+- Schema migrations: when `enable_sandbox` is called, the demo DB
+  must run migrations to match production schema. Reuse the existing
+  migration runner.
+- Backup scheduler must skip sandbox mode (don't back up demo DB into
+  the regular cloud target).
+- Mark this row as schema-touching in the PR description so other
+  Devins know to base off main after this merges.
+
+---
+
+## E1-OPACBukuPilihan
+
+### Symptom / what the user wants
+
+OPAC home today renders an alphabetised grid of all books. Member-facing
+"wow" is low. Add a curated carousel at the top: admin pins 3-5 buku
+weekly (e.g. tema bulan literasi); carousel auto-rotates every 5s,
+manual prev/next arrows, click → opens existing
+`OpacBookDetailDialog`.
+
+### Files affected
+
+- DB: new table `buku_pilihan` with columns
+  `(id, buku_id, position, pinned_at, label, expires_at?)`. Migration
+  added under `apps/desktop/src-tauri/migrations/`.
+- Rust: `apps/desktop/src-tauri/src/cmd/buku_pilihan.rs` with
+  `list_active()`, `pin(buku_id, label)`, `unpin(id)`,
+  `reorder(ids[])`. Cap at 5 active pins.
+- TS API: `apps/desktop/src/lib/bukuPilihan.ts`.
+- New admin page
+  `apps/desktop/src/features/buku/BukuPilihanAdminPage.tsx` accessible
+  from the Buku list ("Atur Pilihan OPAC" button) — shows current
+  pinned books, lets admin add (search + pick), reorder (drag), unpin.
+- OPAC: `OpacHomePage.tsx` — render
+  `apps/desktop/src/features/opac/OpacFeaturedCarousel.tsx` above the
+  existing book grid only when `bukuPilihanApi.listActive()` returns
+  ≥ 1 row. Auto-rotate every 5s with pause-on-hover, manual arrows,
+  dot indicators.
+
+### Acceptance criteria
+
+- Admin can pin up to 5 buku; pin order is the rendered order.
+- OPAC carousel auto-rotates every 5s, pauses when hovered, advances
+  with arrow buttons or dot click.
+- Clicking a slide opens existing `OpacBookDetailDialog`.
+- When 0 pins are active, the carousel section is hidden entirely;
+  the existing OPAC grid layout is unchanged.
+- Carousel is keyboard-accessible (←/→ + Enter).
+- Component respects `prefers-reduced-motion` — disables auto-rotate
+  + animation, shows manual arrows only.
+
+### Tests
+
+- `apps/desktop/tests/unit/opacFeaturedCarousel.test.tsx`:
+  - Renders N slides given N pinned books.
+  - Auto-rotate advances after 5s (use vitest fake timers).
+  - Hover pauses auto-rotate.
+  - Empty pin list returns null.
+- `apps/desktop/tests/unit/bukuPilihanApi.test.ts`:
+  - `listActive` filters out expired pins.
+  - `pin` rejects when 5 pins already active.
+
+### Risks
+
+- Schema migration: introduces `buku_pilihan`. Sequence with D5
+  (sandbox) so both migrations can run in any order — keep the
+  migration name unique and strictly additive.
+- Carousel must be keyboard-accessible (focus indicators on arrows
+  + dots).
+- Don't autoplay video / heavy media; only static cover images.

@@ -44,3 +44,17 @@ Serves as the "who did what when" for cross-session debugging.
              (Lint+Typecheck+Test + Rust check), squash-merged via PAT.
              Helper is exported with default constants ready for
              FEAT-Peminjaman-DendaInline to import.
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    SCOPE_EXPANDED
+  item:      (none)
+  pr:        -
+  started_at:   2026-05-06T21:05Z
+  notes:     User redirected mid-batch to add 6 "biar mantap" features
+             before release. Appended A1-CommandPalette, A2-SkeletonScreens,
+             C1-LaporanEksekutifPDF, D1-SystemHealthWidget, D5-SandboxDemoMode,
+             E1-OPACBukuPilihan to PROGRESS.md (between item 8 and RELEASE),
+             added full spec sections to BUGS.md, updated SESSION_HANDOFF.md
+             scope summary table from 8 → 14 items + parallelism notes.
+             Scope-expansion-only commit; no code changes. Resumed claim
+             flow on FEAT-Peminjaman-DendaInline next.

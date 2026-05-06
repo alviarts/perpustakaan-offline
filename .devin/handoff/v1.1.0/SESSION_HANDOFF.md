@@ -150,7 +150,9 @@ items.
 
 ---
 
-## v1.1.0 scope summary (8 items)
+## v1.1.0 scope summary (14 items)
+
+Original 8 items:
 
 | # | id | summary |
 |---|----|---------|
@@ -162,6 +164,17 @@ items.
 | 6 | `FEAT-Sirkulasi-Search` | Continue the v1.0.13 WIP: wire `ScanSearchInput.tsx` into SirkulasiPage (replacing the plain Input + Kirim form), add tests, support both pinjam (anggota + buku) and kembalikan (anggota only) modes. |
 | 7 | `FEAT-OPAC-PostScanProfile` | After scan KTA: surface active loans, outstanding denda, recent history; auto-create a `kunjungan` row (attendance log); add reservasi when 0 eksemplar tersedia. New schema: `reservasi(id, buku_id, anggota_id, status, requested_at, fulfilled_at?, expires_at)`. |
 | 8 | `FEAT-OPAC-Scan-Locked` | If the OPAC member banner is showing (someone is still logged in) when "Scan KTA Saya" is clicked, intercept with a dialog: "Anggota lain masih login (X) — klik Logout untuk pindah anggota." Logout button clears `member`, then opens the scan flow. |
+
+Additional 6 "biar mantap" items (added 2026-05-06 mid-batch by user request):
+
+| #  | id | summary |
+|----|----|---------|
+| 9  | `A1-CommandPalette` | Extend the existing `GlobalSearchDialog` (Ctrl/Cmd+K) into a full command palette with route navigation hits (Anggota, Buku, ..., Logout) and quick-action hits (Backup Sekarang, Cetak Laporan Bulanan, Tambah Anggota/Buku, Toggle Tema, Toggle Mode Demo, Kunci Layar). New registry file so future features can register actions. |
+| 10 | `A2-SkeletonScreens` | Shared `TableSkeleton` + `CardSkeleton` components replace spinners on Anggota / Buku / Peminjaman / Pengembalian search / OPAC grid pages. Honors `prefers-reduced-motion`. |
+| 11 | `C1-LaporanEksekutifPDF` | One-click "Cetak Laporan Eksekutif" — PDF with school header + monthly KPI grid + trend charts + top 5 anggota / buku + denda outstanding + auto-generated action items. Tinggal bawa ke meeting kepala sekolah. |
+| 12 | `D1-SystemHealthWidget` | Dashboard card showing DB size, last/next backup, pending reservasi, app version with update-available pill. Sekali lihat tahu app sehat. |
+| 13 | `D5-SandboxDemoMode` | Toggle in Settings (also exposed via A1 Command Palette) to switch app to a sandboxed `demo.db`. Yellow banner saat aktif. Audit log records toggles. Backup scheduler skips sandbox mode. Schema-touching (additive). |
+| 14 | `E1-OPACBukuPilihan` | New `buku_pilihan` table + admin page (Buku → "Atur Pilihan OPAC") to pin up to 5 books. OPAC home renders a featured carousel above the existing grid; auto-rotate 5s with pause-on-hover, manual arrows, dot indicators, keyboard nav. Schema-touching (additive). |
 
 See `BUGS.md` for full specs.
 
