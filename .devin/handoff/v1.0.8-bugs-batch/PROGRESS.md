@@ -41,7 +41,7 @@ When all rows above are DONE:
 
 | id      | title                                               | status | pr  | completed_at |
 | ------- | --------------------------------------------------- | ------ | --- | ------------ |
-| RELEASE | chore(release): bump versions to v1.0.8 + CHANGELOG | OPEN   | —   | —            |
+| RELEASE | chore(release): bump versions to v1.0.8 + CHANGELOG | DONE   | #137 | 2026-05-06   |
 
 Release process (see WORKFLOW.md "Release PR" section for full detail):
 
