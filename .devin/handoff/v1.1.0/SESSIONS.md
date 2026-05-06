@@ -188,3 +188,42 @@ Serves as the "who did what when" for cross-session debugging.
   notes:     Resumed after user said "lanjut pause di 8". Claiming
              item 7 now; will implement and merge then pause before
              item 8 (FEAT-OPAC-Scan-Locked).
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    COMPLETED
+  item:      FEAT-OPAC-PostScanProfile
+  pr:        '#151'
+  started_at:   2026-05-06T22:08Z
+  completed_at: 2026-05-06T22:30Z
+  notes:     PR #151 squash-merged into main (commit 9bc0d7e9). All
+             three sub-features shipped: Sub-feature A (full member
+             profile component with active loans, denda, reservasi,
+             collapsible riwayat), Sub-feature B (auto kunjungan on
+             scan with 5-minute localStorage throttle), Sub-feature C
+             (reservasi wired into existing reservasi_buku table via
+             OpacBookDetailDialog and a "Reservasi Saya" panel inside
+             OpacMemberProfile with cancel buttons). Reservasi schema
+             migration NOT needed — backend already exists in
+             apps/desktop/src-tauri/src/commands/reservasi.rs and
+             reservasiApi facade in apps/desktop/src/lib/reservasi.ts.
+             7 new unit tests added (opacMemberProfile.test.tsx); 542
+             tests pass. CI green (Rust + Lint+Typecheck+Tests).
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    PAUSED
+  item:      FEAT-OPAC-Scan-Locked
+  pr:        null
+  paused_at: 2026-05-06T22:30Z
+  notes:     Pause requested by user ("lanjut pause di 8") — pause
+             before starting item 8 (FEAT-OPAC-Scan-Locked). Items
+             1-7 are all DONE. Items 8-13 (top-6 polish) and item 14
+             (release) are still OPEN. To resume, paste the v1.1.0
+             master prompt into a fresh Devin session and it will
+             pick up from this PROGRESS.md row (PAUSED -> claim ->
+             implement).
+             Pickup hint: read .devin/handoff/v1.1.0/BUGS.md section
+             "FEAT-OPAC-Scan-Locked". Spec is small (~45 min): if
+             member != null and the user presses "Scan KTA Saya",
+             intercept with a confirmation dialog
+             "Anggota lain masih login: <nama>" with [Logout & Scan]
+             [Batal] buttons. Touches OpacApp.tsx + OpacHomePage.tsx.
