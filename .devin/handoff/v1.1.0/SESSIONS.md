@@ -310,3 +310,21 @@ Serves as the "who did what when" for cross-session debugging.
   notes:     Add TableSkeleton + CardSkeleton; wire into Anggota/
              Buku/Peminjaman/Pengembalian list pages and OPAC home/
              search grids. Honor prefers-reduced-motion.
+
+- session_id: devin-81dbfdf5cf0a4377a2612b1ac3922053
+  status:    COMPLETED
+  item:      A2-SkeletonScreens
+  pr:        154
+  started_at:   2026-05-06T22:57Z
+  completed_at: 2026-05-06T23:05Z
+  notes:     Added TableSkeleton + CardSkeleton (motion-reduce
+             aware, aria-busy). Refactored DataTable loading
+             branch to render 8 skeleton rows so all tables
+             using DataTable (Anggota/Buku/Peminjaman/Stocktake/
+             Audit Log/Reservasi/Wishlist/Sirkulasi etc.)
+             benefit. OpacHomePage + OpacSearchPage now render
+             CardSkeleton. PengembalianPage search panel renders
+             5 skeleton list-items on first load. 9 new tests.
+             All 5 gates green; PR #154 merged via PAT (sha
+             2ce70436). 10/14 items DONE — C1, D1, D5, E1,
+             RELEASE remaining. Continuing to C1-LaporanEksekutifPDF.
