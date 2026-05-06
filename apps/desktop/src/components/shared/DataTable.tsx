@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ArrowDownAZ, ArrowUpAZ, ChevronsUpDown } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -9,6 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+
+const SKELETON_WIDTHS = ['w-32', 'w-48', 'w-24', 'w-40', 'w-20'] as const;
+const DEFAULT_SKELETON_ROWS = 8;
 
 export interface DataTableColumn<T> {
   key: string;
@@ -108,11 +112,25 @@ export function DataTable<T>({
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
-                Memuat…
-              </TableCell>
-            </TableRow>
+            Array.from({ length: DEFAULT_SKELETON_ROWS }).map((_, r) => (
+              <TableRow
+                key={`skeleton-${r}`}
+                aria-busy="true"
+                aria-hidden="true"
+                data-testid="data-table-skeleton-row"
+              >
+                {columns.map((col, ci) => (
+                  <TableCell key={col.key} className={col.cellClassName}>
+                    <Skeleton
+                      className={cn(
+                        'h-4 motion-reduce:animate-none',
+                        SKELETON_WIDTHS[ci % SKELETON_WIDTHS.length],
+                      )}
+                    />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
           ) : rows.length === 0 ? (
             <TableRow>
               <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">

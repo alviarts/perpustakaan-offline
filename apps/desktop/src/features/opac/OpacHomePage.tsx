@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BookOpen, ChevronLeft, ChevronRight, ScanLine, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CardSkeleton } from '@/components/shared/CardSkeleton';
 import { OpacBookCard } from './OpacBookCard';
 import { OpacBookDetailDialog } from './OpacBookDetailDialog';
 import { bukuApi, type Buku } from '@/lib/buku';
@@ -123,7 +124,10 @@ export function OpacHomePage({ onSearch, onScanKta, libraryName, member, onReser
           )}
         </div>
         {loading ? (
-          <p className="text-sm text-muted-foreground">{t('search.loading')}</p>
+          <CardSkeleton
+            count={PAGE_SIZE}
+            data-testid="opac-home-card-skeleton"
+          />
         ) : books.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('search.empty')}</p>
         ) : (
