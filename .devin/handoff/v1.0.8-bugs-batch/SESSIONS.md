@@ -317,3 +317,34 @@ Each entry is a markdown section with frontmatter-like fields:
 - summary:
   - New: `lib/scanner/overlay.ts` (ROI math + corner brackets), `lib/scanner/preprocess.ts` (grayscale, contrast, applyPreprocess + MANUAL_RETRY_VARIANTS), `lib/scanner/decoder.ts` (multi-format hints + decodeWithRetry + imageDataToBitmap), `features/sirkulasi/ScannerOverlay.tsx` (visual aiming guide).
   - Modified: `useBarcodeScanner.ts` (adds decodeOnce, torchSupported, torchOn, toggleTorch; widens hint set including DATA_MATRIX), `SirkulasiPage.tsx` (renders overlay + Scan Sekarang + torch buttons), `i18n/{id,en}/sirkulasi.json` (9 new keys), `tailwind.config.ts` (scanner-line keyframe).
+
+## Session devin-f10a64e2bf1643febf5c99f96b707373 — claim FEAT-27 (PR H)
+
+- session_id: devin-f10a64e2bf1643febf5c99f96b707373
+- item_id: FEAT-27 (PR H — OPAC public-mode)
+- started_at: 2026-05-06T13:30:00Z
+- status: STARTED
+- branch: TBD (will create devin/1778075000-pr-h-opac-public-mode from main)
+- notes: User explicitly requested speculative claim despite FEAT-26 (#133) still
+  IN_PR. Per BUGS.md FEAT-27 line 751: "Kalau FEAT-26 partial / not ready, OPAC
+  ship dengan mode 'same-device only' — fallback yang valid." So same-device-only
+  OPAC is in-scope without depending on Sheets sync.
+- plan:
+  - Tauri: new `commands/app_mode.rs` with get/set/unlock; persist `desktop.app_mode`
+    setting (admin | public). Boot logic in lib.rs reads setting and applies window
+    properties (fullscreen + decorations=false + alwaysOnTop in public mode).
+  - Frontend: route in main.tsx based on app_mode → renders OpacApp or normal admin.
+  - New feature folder `features/opac/`:
+    - OpacApp.tsx (root, route layer)
+    - OpacHomePage.tsx (search bar + filter chips + scan KTA button)
+    - OpacSearchResults.tsx (grid of book cards)
+    - OpacBookDetail.tsx (full metadata + reservasi/wishlist stubs)
+    - OpacKtaScanFlow.tsx (uses existing useBarcodeScanner)
+    - OpacAdminUnlockButton.tsx (small lock icon → password prompt)
+    - useOpacIdleReset.ts (2-min idle timer)
+  - Settings: new AksesModePage with radio admin/public + confirm dialog → reload.
+  - Reservasi/Wishlist buttons: stub for now (FEAT-18, FEAT-22 not yet merged on main),
+    rendered with TODO badges if API not available.
+  - i18n: new `opac` namespace (id + en parity).
+  - Tests: app_mode round-trip, OPAC routing, idle reset hook, admin unlock flow.
+- pickup: if pause: branch devin/1778075000-pr-h-opac-public-mode + draft PR (TBD).
