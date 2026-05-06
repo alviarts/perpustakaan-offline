@@ -98,3 +98,21 @@ Serves as the "who did what when" for cross-session debugging.
              href / loading combinations. Local gates clean (523
              tests, +4 new). CI green. Squash-merged via PAT
              (commit fd587a8).
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    COMPLETED
+  item:      FEAT-Dashboard-Quotes-2min
+  pr:        '#148'
+  started_at:   2026-05-06T21:32Z
+  completed_at: 2026-05-06T21:48Z
+  notes:     Lowered QUOTE_ROTATE_MS from 5 min to 2 min per user
+             feedback. Refactor: extracted rotation state machine to
+             a useQuoteRotation hook (apps/desktop/src/features/dashboard/
+             useQuoteRotation.ts) with re-entrant-safe advance() guarded
+             by a leave-timeout ref. Hook returns { quoteIndex,
+             quoteLeaving, advance } and is fully unit-tested with
+             vitest fake timers. Added a ghost ChevronRight icon-button
+             next to the quote that calls advance(); same animation
+             phases as the auto-rotate. Added i18n key dashboard:quote.next
+             (id+en). Local gates clean (529 tests, +6 new). CI green.
+             Squash-merged via PAT (commit 698eb65).
