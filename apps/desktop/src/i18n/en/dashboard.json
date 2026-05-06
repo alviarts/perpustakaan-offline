@@ -39,5 +39,42 @@
     "subtitle": "{{count}} book(s) not yet returned",
     "unitDays": "days",
     "viewAll": "View all in Loans →"
+  },
+  "dow": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  },
+  "trend": {
+    "title": "Loan Trend",
+    "subtitle": "Borrowing activity over time",
+    "windowLabel": "Select period",
+    "drilldown": "View detailed report",
+    "windows": {
+      "days7": "7 days",
+      "days30": "30 days",
+      "months6": "6 months",
+      "year1": "1 year"
+    }
+  },
+  "heatmap": {
+    "title": "Popular Hours",
+    "subtitle": "Loans per hour (last 6 weeks)",
+    "tooltip": "{{day}} · {{hour}}:00 — {{count}} loans"
+  },
+  "insights": {
+    "topBuku": "Top book this month",
+    "topBukuSubline": "{{count}}× borrowed",
+    "topPeminjam": "Most active borrower",
+    "avgLoans": "Avg loans / member",
+    "avgLoansSubline": "Loans per active member",
+    "avgDuration": "Avg loan duration",
+    "avgDurationSubline": "Based on returned items",
+    "daysValue": "{{value}} days",
+    "empty": "No data yet"
   }
 }
