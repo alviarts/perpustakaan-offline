@@ -13,6 +13,73 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-05-06
+
+### Added
+
+- **KTA: 10 desain template baru (total ~20)** — preset library sekarang
+  kaver gaya formal, modern, vibrant, dan bertema sekolah. Editor live
+  preview otomatis menyesuaikan field per template. (FEAT-16, #127)
+- **Peminjaman: perpanjangan otomatis 1-klik** — tombol "Perpanjang" di
+  detail peminjaman tambah jatuh tempo via aturan global, log audit
+  per-perpanjangan, dan hormati batas maksimum yang dikonfigurasi di
+  Aturan Peminjaman. (FEAT-17, #128)
+- **Buku: reservasi/booking saat dipinjam** — anggota bisa antri waiting
+  list buku yang sedang dipinjam. Saat eksemplar kembali, slot
+  reservasi tertua dipromosikan otomatis dan operator dapat notifikasi
+  di dashboard. (FEAT-18, #128)
+- **Anggota: bulk import dari Excel/CSV** — wizard upload + auto-detect
+  header + preview + validasi NIS unik. Mode "Perbarui anggota yang
+  sudah ada" baru memungkinkan re-import overwrite tanpa menghapus
+  field yang dibiarkan kosong di spreadsheet (COALESCE-protected
+  UPDATE). Hasil panel sekarang punya 4 metrik: Ditambahkan,
+  Diperbarui, Dilewati, Error. (FEAT-19, #129)
+- **Buku: bulk import via ISBN** — paste daftar ISBN, aplikasi resolve
+  metadata via Open Library lalu Google Books (~1 req/sec throttle),
+  preview hasil per-baris dengan kode buku auto-suggest yang bisa
+  dioverride sebelum disimpan ke katalog. (FEAT-20, #129)
+- **Anggota: cetak Surat Bebas Pustaka (SBP)** — auto-generate PDF saat
+  anggota eligible (tidak ada peminjaman aktif, tidak ada denda
+  outstanding). Template editable di pengaturan. (FEAT-21, #130)
+- **Wishlist anggota: request pengadaan buku** — anggota submit wishlist
+  via OPAC; admin punya queue review dengan upvote count, transition
+  state machine (pending → disetujui → acquired), dan link otomatis ke
+  buku saat sudah masuk katalog. (FEAT-22, #130)
+- **Stocktake/Opname mode** — sesi opname terisolasi: scan barcode
+  eksemplar batch (camera atau hand-scanner), real-time tally
+  found/missing, export laporan PDF + CSV, audit log per sesi.
+  (FEAT-23, #131)
+- **Backup: cloud target (rclone) + AES-256 encrypted + history audit** —
+  schedule backup ke remote rclone (Google Drive, S3, dll) dengan
+  enkripsi AES-256-GCM. History panel surface 50 backup terakhir +
+  size + status, decrypt langsung dari UI dengan password. (FEAT-24,
+  #132)
+- **Dashboard: trend chart + heatmap + insights cards** — grafik
+  peminjaman 30/90/365 hari, heatmap kalender aktivitas, dan kartu
+  insight (top kategori, top anggota, buku populer minggu ini).
+  (FEAT-25, #134)
+- **Sinkronisasi: Google Sheets bidirectional sync MVP (anggota)** —
+  hubungkan service-account JSON, pilih spreadsheet target, lalu push
+  / pull anggota dua-arah dengan konflik resolution last-write-wins +
+  audit log per-sinkronisasi. Foundation untuk sync entitas lain di
+  rilis berikutnya. (FEAT-26, #133)
+- **OPAC: public mode + kiosk lock** — toggle Pengaturan baru
+  mengaktifkan halaman OPAC tanpa login (search-only) dan kunci kiosk
+  full-screen yang reset idle setelah 60 detik. Admin bisa unlock dari
+  shortcut keyboard + password. (FEAT-27, #136)
+- **Sirkulasi: scanner overlay + ROI decode + multi-format + manual scan** —
+  overlay frame guide di webcam, decode hanya region of interest
+  (lebih cepat + akurat), dukungan EAN-13/Code128/QR sekaligus, dan
+  fallback input manual saat kamera tidak tersedia. (FEAT-28, #135)
+
+### Fixed
+
+- **KTA PDF export: foto anggota gepeng (stretch ke aspect ratio slot)** —
+  rendering smart-fit 2-layer baru: outer container = slot ratio, inner
+  image = `object-fit: cover` dengan center crop sehingga foto KTA
+  selalu tampil proporsional sambil tetap mengisi slot template.
+  (BUG-19, #127)
+
 ## [1.0.7] - 2026-05-05
 
 ### Added
