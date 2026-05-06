@@ -3,9 +3,69 @@
 > **Audience:** the user (`@alviarts`) and the next Devin session that
 > picks up the v1.1.0 batch.
 >
-> **Purpose:** ship v1.1.0 with the eight items listed in `PROGRESS.md`
+> **Purpose:** ship v1.1.0 with the 14 items listed in `PROGRESS.md`
 > and tag the release the same way v1.0.10 / v1.0.11 / v1.0.12 were
 > shipped (push tag → `release-v2` workflow → installer + GitHub release).
+
+---
+
+## **CURRENT PICKUP STATE — read this first** (updated 2026-05-06T23:50Z)
+
+**11 of 14 items shipped. 1 paused mid-flight (D1, draft PR #156). 2 OPEN. RELEASE pending.**
+
+| # | id | status | PR |
+|---|----|--------|-----|
+| 1–7 | initial 7 items (BUG-Pengembalian-DendaDup … FEAT-OPAC-PostScanProfile) | DONE | #145–#151 |
+| 8 | FEAT-OPAC-Scan-Locked | DONE | #152 |
+| 9 | A1-CommandPalette | DONE | #153 |
+| 10 | A2-SkeletonScreens | DONE | #154 |
+| 11 | C1-LaporanEksekutifPDF | DONE | #155 |
+| **12** | **D1-SystemHealthWidget** | **PAUSED — DRAFT** | **#156 ([devin/1778110600-feat-system-health](https://github.com/alviarts/perpustakaan-offline/pull/156))** |
+| 13 | D5-SandboxDemoMode | OPEN | — |
+| 14 | E1-OPACBukuPilihan | OPEN | — |
+| 15 | RELEASE 1.1.0 | OPEN | — |
+
+### Immediate next steps (start here, in order)
+
+1. **Finish D1 (already drafted, gates green)**
+   - Pull `devin/1778110600-feat-system-health` (the draft PR #156 branch).
+   - The implementation is FUNCTIONALLY COMPLETE: backend RPC
+     `dashboard_system_health` + front-end `SystemHealthCard.tsx` +
+     `dashboardApi.systemHealth()` + i18n keys + 7 unit tests + DashboardPage
+     wiring. Last WIP commit ran `pnpm typecheck`, `pnpm lint`, `pnpm i18n:lint`,
+     `pnpm test` (579/579), `pnpm build`, and `cargo check` — all green.
+   - Wait for CI on #156 via `git pr_checks`. Iterate any failures.
+   - Flip draft → ready: `curl PATCH /repos/alviarts/perpustakaan-offline/pulls/156`
+     with `{"draft": false}` using `Bearer $GITHUB_PAT_ALVIARTS`.
+   - Squash-merge via PAT (see `WORKFLOW.md` "Merge").
+   - Back on `devin/1778099608-v110-handoff`: PROGRESS.md D1 row
+     `PAUSED:* → DONE`, fill `completed_at`. Append SESSIONS.md COMPLETED.
+2. **Claim D5-SandboxDemoMode** (no deps) — spec at `BUGS.md` line 932.
+3. **Claim E1-OPACBukuPilihan** (no deps) — spec at `BUGS.md` line 998.
+4. **RELEASE 1.1.0** — bump to `1.1.0` in:
+   - `apps/desktop/package.json`
+   - `apps/desktop/src-tauri/Cargo.toml`
+   - `apps/desktop/src-tauri/Cargo.lock` (perpustakaan-desktop entry)
+   - `apps/desktop/src-tauri/tauri.conf.json`
+   Append `## [1.1.0] — 2026-05-XX` to `CHANGELOG.md` summarising all 14
+   items. Open `chore(release): v1.1.0` PR, wait CI, squash, tag `v1.1.0`,
+   push tag via PAT URL. The `release-v2` workflow auto-builds installers
+   + publishes the GitHub Release.
+
+### Environment notes (important — saves you time)
+
+- **System packages required for Rust check** (`apt-get install -y
+  pkg-config libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev`).
+  The previous Devin had to install these mid-session. They might
+  already be cached in your snapshot — run `pkg-config --version`
+  to verify.
+- **Rust toolchain**: stable (`rustup default stable`). The pinned
+  `dlopen2_derive 0.4.1` in `Cargo.lock` keeps the build green on
+  Rust < 1.85; do NOT bump it back unless you confirm CI uses
+  ≥ 1.85.
+- **PAT**: `GITHUB_PAT_ALVIARTS` is org-scoped and saved. If absent,
+  request via `secrets` tool with `should_save=true`,
+  `save_scope=org`, `secret_name=GITHUB_PAT_ALVIARTS`.
 
 ---
 
