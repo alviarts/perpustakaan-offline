@@ -45,7 +45,14 @@
   },
   "session": {
     "scanLabel": "Scan / Ketik Kode Eksemplar",
-    "scanPlaceholder": "Pindai barcode atau ketik kode...",
+    "scanPlaceholder": "Ketik atau scan barcode (hand-scanner USB) lalu Enter...",
+    "openCamera": "Buka Kamera",
+    "closeCamera": "Tutup Kamera",
+    "cameraOverlay": "Arahkan barcode eksemplar ke dalam kotak",
+    "cameraScanning": "Memindai…",
+    "cameraStarting": "Membuka kamera…",
+    "cameraOff": "Kamera belum aktif",
+    "cameraUnnamed": "Kamera tanpa nama",
     "counter": "Total: {{total}} | Sudah scan: {{ditemukan}} ({{percent}}%)",
     "missing": "Hilang: {{missing}}",
     "tabs": {

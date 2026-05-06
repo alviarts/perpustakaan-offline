@@ -1,10 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ClipboardList, Plus, RefreshCw, Trash2, FileDown } from 'lucide-react';
+import {
+  ArrowLeft,
+  Camera,
+  CameraOff,
+  ClipboardList,
+  FileDown,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Video,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useBarcodeScanner } from '@/features/sirkulasi/useBarcodeScanner';
+import { ScannerOverlay } from '@/features/sirkulasi/ScannerOverlay';
 import {
   Dialog,
   DialogContent,
@@ -277,6 +289,7 @@ export function StocktakePage() {
     const [scanInput, setScanInput] = useState('');
     const [scanning, setScanning] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [cameraOpen, setCameraOpen] = useState(false);
     const scanRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -324,33 +337,70 @@ export function StocktakePage() {
       if (session?.status === 'berlangsung') scanRef.current?.focus();
     }, [session?.status, refreshKey]);
 
+    const submitKode = useCallback(
+      async (rawKode: string) => {
+        const kode = rawKode.trim();
+        if (!kode) return;
+        setScanning(true);
+        try {
+          const result = await stocktakeApi.scan({ sessionId, kode });
+          setSession(result.session);
+          setScanInput('');
+          setRefreshKey((k) => k + 1);
+          showToast({
+            title: result.alreadyScanned
+              ? t('stocktake:session.alreadyScannedToast', { kode })
+              : t('stocktake:session.scannedToast', { kode }),
+          });
+        } catch (err) {
+          showToast({
+            variant: 'destructive',
+            title: t('stocktake:session.scanError', {
+              message: formatTauriError(err),
+            }),
+          });
+        } finally {
+          setScanning(false);
+          // Only steal focus back to the input when the camera is closed —
+          // otherwise a Bluetooth/USB scanner racing with continuous video
+          // decode would dump its keystrokes into the wrong target.
+          if (!cameraOpen) scanRef.current?.focus();
+        }
+      },
+      [sessionId, cameraOpen],
+    );
+
+    const cameraScanner = useBarcodeScanner({
+      onDecode: (text) => {
+        void submitKode(text);
+      },
+      cooldownMs: 1500,
+    });
+
     async function handleScan(e: React.FormEvent) {
       e.preventDefault();
-      const kode = scanInput.trim();
-      if (!kode) return;
-      setScanning(true);
-      try {
-        const result = await stocktakeApi.scan({ sessionId, kode });
-        setSession(result.session);
-        setScanInput('');
-        setRefreshKey((k) => k + 1);
-        showToast({
-          title: result.alreadyScanned
-            ? t('stocktake:session.alreadyScannedToast', { kode })
-            : t('stocktake:session.scannedToast', { kode }),
-        });
-      } catch (err) {
-        showToast({
-          variant: 'destructive',
-          title: t('stocktake:session.scanError', {
-            message: formatTauriError(err),
-          }),
-        });
-      } finally {
-        setScanning(false);
-        scanRef.current?.focus();
-      }
+      await submitKode(scanInput);
     }
+
+    async function toggleCamera() {
+      if (cameraOpen) {
+        cameraScanner.stop();
+        setCameraOpen(false);
+        scanRef.current?.focus();
+        return;
+      }
+      setCameraOpen(true);
+      await cameraScanner.start();
+    }
+
+    useEffect(() => {
+      // Release the camera when the session view unmounts so the next
+      // page load doesn't hold the webcam hostage.
+      return () => {
+        cameraScanner.stop();
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     async function handleFinish(status: 'selesai' | 'dibatalkan') {
       const confirmKey =
@@ -498,7 +548,31 @@ export function StocktakePage() {
         {session.status === 'berlangsung' && (
           <Card>
             <CardContent className="flex flex-col gap-2 py-4">
-              <Label>{t('stocktake:session.scanLabel')}</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label>{t('stocktake:session.scanLabel')}</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={cameraOpen ? 'default' : 'outline'}
+                  onClick={() => {
+                    void toggleCamera();
+                  }}
+                  disabled={cameraScanner.starting}
+                  data-testid="stocktake-camera-toggle"
+                >
+                  {cameraOpen ? (
+                    <>
+                      <CameraOff className="mr-1 h-4 w-4" />
+                      {t('stocktake:session.closeCamera')}
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="mr-1 h-4 w-4" />
+                      {t('stocktake:session.openCamera')}
+                    </>
+                  )}
+                </Button>
+              </div>
               <form onSubmit={handleScan} className="flex gap-2">
                 <Input
                   ref={scanRef}
@@ -512,6 +586,60 @@ export function StocktakePage() {
                   {t('stocktake:actions.scan')}
                 </Button>
               </form>
+              {cameraOpen && (
+                <div className="mt-2 space-y-2">
+                  <div className="relative aspect-video overflow-hidden rounded-md border bg-black/90">
+                    <video
+                      ref={cameraScanner.videoRef}
+                      className="h-full w-full object-cover"
+                      muted
+                      playsInline
+                    />
+                    {cameraScanner.active && (
+                      <ScannerOverlay
+                        label={t('stocktake:session.cameraOverlay')}
+                        busy={scanning}
+                        busyLabel={
+                          scanning
+                            ? t('stocktake:session.cameraScanning')
+                            : undefined
+                        }
+                      />
+                    )}
+                    {!cameraScanner.active && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 text-white">
+                        <Video className="h-10 w-10 opacity-70" />
+                        <p className="text-sm">
+                          {cameraScanner.starting
+                            ? t('stocktake:session.cameraStarting')
+                            : t('stocktake:session.cameraOff')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {cameraScanner.error && (
+                    <p
+                      className="text-xs text-destructive"
+                      data-testid="stocktake-camera-error"
+                    >
+                      {cameraScanner.error}
+                    </p>
+                  )}
+                  {cameraScanner.devices.length > 1 && (
+                    <select
+                      className="w-full rounded-md border bg-background px-2 py-1 text-xs"
+                      value={cameraScanner.selectedDeviceId ?? ''}
+                      onChange={(e) => cameraScanner.selectDevice(e.target.value)}
+                    >
+                      {cameraScanner.devices.map((d) => (
+                        <option key={d.deviceId} value={d.deviceId}>
+                          {d.label || t('stocktake:session.cameraUnnamed')}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

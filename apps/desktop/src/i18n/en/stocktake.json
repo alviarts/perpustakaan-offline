@@ -45,7 +45,14 @@
   },
   "session": {
     "scanLabel": "Scan / Enter Eksemplar Code",
-    "scanPlaceholder": "Scan barcode or type code...",
+    "scanPlaceholder": "Type or scan barcode (USB hand-scanner) then press Enter...",
+    "openCamera": "Open Camera",
+    "closeCamera": "Close Camera",
+    "cameraOverlay": "Aim eksemplar barcode into the box",
+    "cameraScanning": "Scanning…",
+    "cameraStarting": "Opening camera…",
+    "cameraOff": "Camera not active",
+    "cameraUnnamed": "Unnamed camera",
     "counter": "Total: {{total}} | Scanned: {{ditemukan}} ({{percent}}%)",
     "missing": "Missing: {{missing}}",
     "tabs": {

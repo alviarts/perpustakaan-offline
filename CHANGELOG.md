@@ -13,6 +13,39 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.10] - 2026-05-06
+
+### Fixed
+
+- **Stocktake: tombol kamera barcode scan tersembunyi** — input scan
+  Stocktake sebelumnya hanya menerima ketikan / hand-scanner USB
+  meskipun placeholder bilang "Pindai barcode atau ketik kode…".
+  Sekarang ada tombol **Buka Kamera** di sebelah label scan yang
+  membuka webcam preview dengan ROI overlay (mirip halaman Sirkulasi).
+  Decode kontinyu (cooldown 1.5 detik) langsung mendaftarkan eksemplar
+  ke sesi opname yang berjalan. Hand-scanner USB / ketik manual tetap
+  bisa dipakai paralel; placeholder copy juga diperjelas. (#141)
+- **Webcam barcode scan susah baca Code-128 yang jelas** (BUG-22) —
+  decoder kontinyu sebelumnya membaca seluruh frame (dengan latar +
+  judul buku ikut diproses) tanpa preprocessing, sehingga sering
+  miss meski barcode sudah pas di kotak ROI. Sekarang loop kontinyu
+  meng-crop frame ke ROI lebih dulu (sama seperti tombol "Scan
+  Sekarang"), dan rotasi varian preprocess `normal → contrast →
+  grayscale` per tick (~10 fps). Kamera juga diminta `focusMode:
+  continuous`, `whiteBalanceMode: continuous`, `exposureMode:
+  continuous` lewat `applyConstraints` supaya tidak kunci fokus di
+  frame kosong sebelum bukunya diangkat. Resolusi default naik dari
+  720p → 1080p (fallback 720p). (#141)
+
+### Changed
+
+- Camera + scanner di Stocktake otomatis dilepas saat halaman sesi
+  ditutup, supaya webcam tidak "di-pegang" untuk halaman lain. (#141)
+- `useBarcodeScanner` continuous-decode loop sekarang pakai canvas +
+  `decodeWithRetry` daripada `BrowserMultiFormatReader.decodeFromConstraints`.
+  Manfaat: ROI crop, preprocessing, dan kontrol cooldown sama persis
+  dengan path "Scan Sekarang" — satu code path untuk dua mode. (#141)
+
 ## [1.0.9] - 2026-05-06
 
 Collected fixes + sheets sync expansion. Released as a single rolled-up

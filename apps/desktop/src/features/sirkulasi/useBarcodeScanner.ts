@@ -20,15 +20,30 @@
  *   browsers/cameras that expose a `torch` track capability.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser';
-import { type Result } from '@zxing/library';
 import { computeRoi } from '@/lib/scanner/overlay';
 import {
-  buildDecodeHints,
   createImageDataReader,
   decodeWithRetry,
   type DecodedResult,
 } from '@/lib/scanner/decoder';
+import { type PreprocessVariant } from '@/lib/scanner/preprocess';
+
+/**
+ * Variants tried per continuous-decode tick. We round-robin so each
+ * tick stays cheap (one preprocess + one zxing pass) while still
+ * giving every variant a fair shot within ~300 ms — fast enough that
+ * even a brief barcode hold over the ROI gets at least one of each
+ * preprocess flavour. Order copies `MANUAL_RETRY_VARIANTS` for
+ * symmetry with the manual button. (BUG-22.)
+ */
+const CONTINUOUS_VARIANTS: PreprocessVariant[] = ['normal', 'contrast', 'grayscale'];
+
+/**
+ * Decode loop tick interval in milliseconds. 100 ms = 10 fps decode
+ * rate, plenty for hand-aim and well below the cooldown so we never
+ * deliver the same barcode twice in one steady hold. (BUG-22.)
+ */
+const TICK_MS = 100;
 
 export interface UseBarcodeScannerOptions {
   onDecode: (text: string) => void;
@@ -138,9 +153,10 @@ export function useBarcodeScanner(
 ): UseBarcodeScannerResult {
   const { onDecode, cooldownMs = 1500 } = options;
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const stoppedRef = useRef(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const lastDecodedRef = useRef<{ text: string; at: number } | null>(null);
   // Always read the latest callback inside the decode handler so callers
   // don't have to memoise it on every render.
@@ -160,12 +176,31 @@ export function useBarcodeScanner(
 
   /** Stop and release the active camera, if any. */
   const stop = useCallback(() => {
-    controlsRef.current?.stop();
-    controlsRef.current = null;
-    // controls.stop() releases the tracks zxing owns, but if we held a
-    // separate reference (for torch) clear it so React doesn't think
-    // torch is still controllable on a dead track.
+    stoppedRef.current = true;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    const stream = streamRef.current;
+    if (stream) {
+      for (const track of stream.getTracks()) {
+        try {
+          track.stop();
+        } catch {
+          // Already stopped — ignore.
+        }
+      }
+    }
     streamRef.current = null;
+    const video = videoRef.current;
+    if (video) {
+      video.srcObject = null;
+      try {
+        video.pause();
+      } catch {
+        // Pause may throw on some browsers if the video already errored.
+      }
+    }
     setActive(false);
     setTorchSupported(false);
     setTorchOn(false);
@@ -193,55 +228,75 @@ export function useBarcodeScanner(
           : cams[0]?.deviceId ?? null;
       setSelectedDeviceId(preferred);
 
-      if (!readerRef.current) {
-        readerRef.current = new BrowserMultiFormatReader(buildDecodeHints());
-      }
-      const reader = readerRef.current;
       const video = videoRef.current;
       if (!video) {
         throw new Error('Video element belum siap');
       }
 
-      // Ask the browser for a higher-resolution stream than the zxing
-      // default (which falls back to roughly 640×480 on most webcams).
-      // Code-128 barcodes printed at A4-label scale are too small for
-      // 480p to decode reliably (BUG-18). 1280×720 doubles the linear
-      // pixel budget. The browser is free to fall back to the next-best
-      // size if 720p is not available — `ideal` is a soft constraint.
-      const videoConstraints: MediaTrackConstraints = preferred
-        ? {
-            deviceId: { exact: preferred },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          }
-        : {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          };
+      // Try 1080p first — the higher pixel budget pulls dense Code-128
+      // labels into focus on cheap webcams. Fall back to 720p if the
+      // device can't deliver 1080p (`OverconstrainedError`). zxing's
+      // own default tops out around 480p which proved too coarse for
+      // BUG-18 / BUG-22.
+      const buildConstraints = (w: number, h: number): MediaTrackConstraints => {
+        const base: MediaTrackConstraints = preferred
+          ? { deviceId: { exact: preferred } }
+          : { facingMode: { ideal: 'environment' } };
+        return {
+          ...base,
+          width: { ideal: w },
+          height: { ideal: h },
+          frameRate: { ideal: 30 },
+        };
+      };
 
-      controlsRef.current = await reader.decodeFromConstraints(
-        { audio: false, video: videoConstraints },
-        video,
-        (result: Result | undefined, err) => {
-          if (result) {
-            const text = result.getText();
-            const now = performance.now();
-            const last = lastDecodedRef.current;
-            if (last && last.text === text && now - last.at < cooldownMs) {
-              return;
-            }
-            lastDecodedRef.current = { text, at: now };
-            onDecodeRef.current(text);
-            return;
-          }
-          // zxing fires a NotFoundException on every frame without a
-          // detection. Filtering it keeps the console quiet.
-          if (err && err.name !== 'NotFoundException') {
-            // Surface fatal errors only.
-          }
-        },
-      );
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: buildConstraints(1920, 1080),
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: buildConstraints(1280, 720),
+        });
+      }
+
+      streamRef.current = stream;
+      video.srcObject = stream;
+      video.muted = true;
+      video.playsInline = true;
+      try {
+        await video.play();
+      } catch {
+        // Autoplay policies may reject — the stream still works once a
+        // user gesture toggles `video.play()`. Don't fail start().
+      }
+
+      // Ask the camera for continuous autofocus, white-balance, and
+      // exposure where supported. These are advanced constraints —
+      // most browsers silently ignore unknown ones, so the try/catch
+      // is a belt-and-braces guard. Without continuous autofocus the
+      // webcam locks on the first frame after permission, which on a
+      // hand-held barcode is usually the empty desk before the book
+      // arrives — hence the BUG-22 reports of "jelas tapi tidak baca".
+      const track = stream.getVideoTracks()[0];
+      if (track) {
+        try {
+          await track.applyConstraints({
+            advanced: [
+              { focusMode: 'continuous' } as MediaTrackConstraintSet,
+              { whiteBalanceMode: 'continuous' } as MediaTrackConstraintSet,
+              { exposureMode: 'continuous' } as MediaTrackConstraintSet,
+            ],
+          } as MediaTrackConstraints);
+        } catch {
+          // Capability not supported on this camera/browser — ignore.
+        }
+        setTorchSupported(trackHasTorch(track));
+      }
+      setTorchOn(false);
 
       // Refresh device labels (often available only after permission).
       try {
@@ -251,17 +306,75 @@ export function useBarcodeScanner(
         // ignore secondary enumeration errors
       }
 
-      // After zxing has wired the stream into the video element, the
-      // `srcObject` is the live MediaStream — use it to detect torch
-      // capability and to apply the torch constraint when the user
-      // toggles it.
-      const stream = (video.srcObject as MediaStream | null) ?? null;
-      streamRef.current = stream;
-      const track = stream?.getVideoTracks()[0];
-      setTorchSupported(track ? trackHasTorch(track) : false);
-      setTorchOn(false);
+      // Reusable image-data reader — the same one re-used across every
+      // tick to avoid alloc churn and to inherit zxing's binarizer
+      // cache for adjacent frames.
+      const imageReader = createImageDataReader();
+      if (!canvasRef.current) {
+        canvasRef.current = document.createElement('canvas');
+      }
+      const canvas = canvasRef.current;
 
+      stoppedRef.current = false;
       setActive(true);
+
+      let lastTickAt = 0;
+      let variantIdx = 0;
+      const tick = (now: DOMHighResTimeStamp) => {
+        if (stoppedRef.current) return;
+        if (now - lastTickAt >= TICK_MS) {
+          lastTickAt = now;
+          const w = video.videoWidth;
+          const h = video.videoHeight;
+          if (w > 0 && h > 0 && video.readyState >= 2) {
+            const roi = computeRoi(w, h);
+            if (roi.width > 0 && roi.height > 0) {
+              canvas.width = roi.width;
+              canvas.height = roi.height;
+              const ctx = canvas.getContext('2d', {
+                willReadFrequently: true,
+              });
+              if (ctx) {
+                try {
+                  ctx.drawImage(
+                    video,
+                    roi.x,
+                    roi.y,
+                    roi.width,
+                    roi.height,
+                    0,
+                    0,
+                    roi.width,
+                    roi.height,
+                  );
+                  const imageData = ctx.getImageData(0, 0, roi.width, roi.height);
+                  const variant = CONTINUOUS_VARIANTS[variantIdx] ?? 'normal';
+                  variantIdx = (variantIdx + 1) % CONTINUOUS_VARIANTS.length;
+                  const hit = decodeWithRetry(imageReader, imageData, [variant]);
+                  if (hit) {
+                    const text = hit.text;
+                    const at = performance.now();
+                    const last = lastDecodedRef.current;
+                    if (
+                      !last ||
+                      last.text !== text ||
+                      at - last.at >= cooldownMs
+                    ) {
+                      lastDecodedRef.current = { text, at };
+                      onDecodeRef.current(text);
+                    }
+                  }
+                } catch {
+                  // drawImage / getImageData can throw if the frame is
+                  // not yet ready — skip the tick and try again.
+                }
+              }
+            }
+          }
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
@@ -330,8 +443,22 @@ export function useBarcodeScanner(
   // Always release on unmount.
   useEffect(() => {
     return () => {
-      controlsRef.current?.stop();
-      controlsRef.current = null;
+      stoppedRef.current = true;
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      const stream = streamRef.current;
+      if (stream) {
+        for (const track of stream.getTracks()) {
+          try {
+            track.stop();
+          } catch {
+            // ignore
+          }
+        }
+      }
+      streamRef.current = null;
     };
   }, []);
 
