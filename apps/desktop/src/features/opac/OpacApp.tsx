@@ -5,6 +5,7 @@ import { OpacSearchPage } from './OpacSearchPage';
 import { OpacAdminUnlockButton } from './OpacAdminUnlockButton';
 import { OpacKtaScanFlow } from './OpacKtaScanFlow';
 import { OpacMemberProfile } from './OpacMemberProfile';
+import { OpacScanLockedDialog } from './OpacScanLockedDialog';
 import { useOpacIdleReset } from './useOpacIdleReset';
 import { settingsApi } from '@/lib/settings';
 import { loginRequest, isTauri } from '@/lib/auth';
@@ -89,6 +90,7 @@ export function OpacApp({
   const { showToast } = useToast();
   const [view, setView] = useState<View>({ kind: 'home' });
   const [scanOpen, setScanOpen] = useState(false);
+  const [scanLockedOpen, setScanLockedOpen] = useState(false);
   const [member, setMember] = useState<Anggota | null>(null);
 
   const goHome = useCallback(() => {
@@ -97,9 +99,25 @@ export function OpacApp({
 
   useOpacIdleReset(() => {
     setScanOpen(false);
+    setScanLockedOpen(false);
     setMember(null);
     setView({ kind: 'home' });
   });
+
+  const handleScanKtaRequest = useCallback((): void => {
+    if (member) {
+      setScanLockedOpen(true);
+    } else {
+      setScanOpen(true);
+    }
+  }, [member]);
+
+  const handleLogoutAndScan = useCallback((): void => {
+    setMember(null);
+    setView({ kind: 'home' });
+    setScanLockedOpen(false);
+    setScanOpen(true);
+  }, []);
 
   useEffect(() => {
     if (!isTauri() || typeof window === 'undefined') return undefined;
@@ -218,6 +236,7 @@ export function OpacApp({
           member={member}
           onLogout={handleLogout}
           onSearchBooks={() => setView({ kind: 'search', query: '' })}
+          onScanKta={handleScanKtaRequest}
         />
       ) : view.kind === 'search' ? (
         <OpacSearchPage
@@ -232,7 +251,7 @@ export function OpacApp({
         <OpacHomePage
           libraryName={libraryName}
           onSearch={(q) => setView({ kind: 'search', query: q })}
-          onScanKta={() => setScanOpen(true)}
+          onScanKta={handleScanKtaRequest}
           member={member}
           onReserve={(b) => {
             void handleReserveBook(b);
@@ -243,6 +262,12 @@ export function OpacApp({
         open={scanOpen}
         onOpenChange={setScanOpen}
         onMemberAuthenticated={handleMemberAuthenticated}
+      />
+      <OpacScanLockedDialog
+        open={scanLockedOpen}
+        onOpenChange={setScanLockedOpen}
+        memberName={member?.nama ?? ''}
+        onLogoutAndScan={handleLogoutAndScan}
       />
       <OpacAdminUnlockButton
         onVerify={verifyAdmin}
