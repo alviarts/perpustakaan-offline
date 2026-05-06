@@ -144,7 +144,7 @@ export function WishlistAdminPage(): React.ReactElement {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl space-y-6 p-6 md:p-8" data-testid="wishlist-admin-page">
+    <div className="flex flex-col gap-6 p-6 md:p-8" data-testid="wishlist-admin-page">
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold">

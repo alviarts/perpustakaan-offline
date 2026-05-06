@@ -659,12 +659,6 @@ function SinkronisasiGuide(): JSX.Element {
         </div>
       </div>
 
-      <p className="mt-4 rounded border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-200">
-        {t(`${base}.devNote`, {
-          defaultValue:
-            'Catatan: PR ini meng-cover push & pull untuk tabel Anggota. Tabel lain (buku, eksemplar, peminjaman, …) menyusul di rilis selanjutnya.',
-        })}
-      </p>
     </section>
   );
 }

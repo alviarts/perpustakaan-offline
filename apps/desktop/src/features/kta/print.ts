@@ -160,8 +160,12 @@ function renderCardsGrid(
         fieldHtml(f, r.anggota, identity, r.qrUrl, r.fotoUrl, ttdUrl, layout.widthMm),
       )
       .join('');
+    const bg = layout.background ?? '#ffffff';
+    const bgStyle = bg.startsWith('data:image/')
+      ? `background:#fff url(${bg}) center/cover no-repeat;`
+      : `background:${bg};`;
     cards.push(
-      `<div class="kta-card" style="width:${widthPx}px;height:${heightPx}px;background:${layout.background ?? '#ffffff'};">${fields}</div>`,
+      `<div class="kta-card" style="width:${widthPx}px;height:${heightPx}px;${bgStyle}">${fields}</div>`,
     );
   }
   return `<div class="grid">${cards.join('')}</div>`;

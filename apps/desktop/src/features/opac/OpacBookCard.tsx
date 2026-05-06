@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ export interface OpacBookCardProps {
 export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element {
   const { t } = useTranslation('opac');
   const available = buku.jumlahTersedia > 0;
+  const [imgError, setImgError] = useState(false);
 
   return (
     <Card
@@ -29,12 +31,13 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
       data-testid="opac-book-card"
     >
       <div className="relative flex h-40 items-center justify-center bg-muted">
-        {buku.coverPath ? (
+        {buku.coverPath && !imgError ? (
           <img
             src={buku.coverPath}
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -56,9 +59,9 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
         {buku.pengarang ? (
           <p className="line-clamp-1 text-xs text-muted-foreground">{buku.pengarang}</p>
         ) : null}
-        {buku.rak ? (
-          <p className="text-xs text-muted-foreground">{t('card.rak', { kode: buku.rak })}</p>
-        ) : null}
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
+          <span>{t('card.stock', { tersedia: buku.jumlahTersedia, total: buku.jumlahEksemplar })}</span>
+        </div>
       </CardContent>
     </Card>
   );

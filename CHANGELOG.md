@@ -13,6 +13,64 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.0.9] - 2026-05-06
+
+Collected fixes + sheets sync expansion. Released as a single rolled-up
+follow-up to 1.0.8 covering bug reports against the OPAC, KTA editor,
+list-page layouts, and FEAT-26 sheets sync scope.
+
+### Added
+
+- **Sheets sync expansion (FEAT-26)** — `Pengaturan → Sinkronisasi Google
+  Sheets` now covers `buku`, `eksemplar`, dan `peminjaman` di samping
+  `anggota`. Pull menjalankan urutan topologis (anggota → buku →
+  eksemplar → peminjaman) sehingga foreign-key target selalu ada
+  sebelum baris turunan tiba. Mapper terpisah per tabel dengan
+  last-write-wins on `updated_at`. (#140)
+- **OPAC: katalog penuh + statistik per kartu** — landing page OPAC
+  sekarang menampilkan seluruh koleksi (paginated, 24 per halaman, urut
+  judul) di samping pencarian. Tiap kartu menambah badge stok
+  `Tersedia/Total` dan fallback grafis untuk cover yang gagal dimuat.
+  (#140)
+- **Pengembalian: tombol denda preset cepat** — di bawah input "Bayar
+  Denda" sekarang ada 3 tombol pilih cepat Rp 5.000 / Rp 10.000 /
+  Rp 15.000 untuk skenario denda umum. (#140)
+- **KTA: layer reorder per field** — daftar field di editor template
+  KTA sekarang punya tombol panah atas/bawah untuk mengatur urutan
+  rendering (z-order). Persisted di layout JSON sebagai array order.
+  (#140)
+- **KTA: import background JPG/PNG** — tombol "Upload Background" di
+  editor template menerima file `.jpg`/`.png`/`.webp` ≤ 2 MB.
+  Background di-render sebagai layer paling bawah; field foto/QR/teks
+  tetap di atasnya. Sisi Depan dan Belakang punya background mandiri.
+  Backend PDF (`jsPDF.addImage`) dan print HTML mendukung sumber yang
+  sama. (#140)
+
+### Fixed
+
+- **buku_import: eksemplar tidak ter-seed otomatis** — saat impor CSV
+  buku via `Pengaturan → Impor Massal`, baris eksemplar sebanyak
+  `jumlah_eksemplar` sekarang otomatis dibuat. Migration backfill juga
+  menambal eksemplar untuk buku lama yang sebelumnya tertinggal. (#140)
+- **stocktake `u.full_name`** — query stocktake yang merujuk kolom
+  `users.full_name` (nama kolom lama dari migrasi 1.0.7) di-perbaiki ke
+  `users.nama_lengkap`. (#139)
+- **OPAC: cover gambar rusak menampilkan ikon broken** — sekarang fallback
+  ke placeholder buku + label "Tidak ada cover". (#140)
+- **KTA preview vs cetak: radius "Dekorasi (Kotak)" tidak konsisten** —
+  preview dulu menggambar `border-radius` dengan satuan CSS `mm`
+  (absolut), sementara PDF menggambar mm fisik. Sekarang preview pakai
+  `cqi` (% inline-size) sehingga proporsinya sama di semua skala. (#140)
+
+### Changed
+
+- **Layout list responsif penuh-lebar** — halaman Anggota, Buku, dan
+  Wishlist tidak lagi dibatasi `max-w-7xl`/`max-w-6xl`; konten meluas
+  mengisi viewport seperti Dashboard, baik di window 1024px maupun
+  fullscreen 1920px+. (#140)
+- **Sinkronisasi page: hilangkan notice "menyusul di rilis selanjutnya"**
+  karena scope sudah lengkap untuk 4 tabel master. (#140)
+
 ## [1.0.8] - 2026-05-06
 
 ### Added

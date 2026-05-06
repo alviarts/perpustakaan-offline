@@ -229,7 +229,7 @@ fn urlencode(s: &str) -> String {
             | b'.'
             | b'~'
             | b'/' => out.push(*b as char),
-            other => out.push_str(&format!("%{:02X}", other)),
+            other => out.push_str(&format!("%{other:02X}")),
         }
     }
     out

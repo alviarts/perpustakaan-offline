@@ -255,6 +255,19 @@ async function drawTtdField(
 
 function drawCardBackground(doc: jsPDF, rect: CardRect, layoutBg: string | undefined): void {
   if (!layoutBg) return;
+  if (layoutBg.startsWith('data:image/')) {
+    const fmt = layoutBg.startsWith('data:image/png')
+      ? 'PNG'
+      : layoutBg.startsWith('data:image/jpeg') || layoutBg.startsWith('data:image/jpg')
+        ? 'JPEG'
+        : 'PNG';
+    try {
+      doc.addImage(layoutBg, fmt, rect.x, rect.y, rect.width, rect.height);
+    } catch (err) {
+      console.warn('kta pdf: failed to embed background image', err);
+    }
+    return;
+  }
   if (layoutBg.toLowerCase() === '#ffffff' || layoutBg.toLowerCase() === '#fff') return;
   const rgb = parseHexRgb(layoutBg);
   if (!rgb) return;

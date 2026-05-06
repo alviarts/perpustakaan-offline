@@ -527,6 +527,13 @@ pub fn buku_import(
         .db
         .lock()
         .map_err(|e| AppError::Internal(e.to_string()))?;
+    buku_import_into_conn(&mut conn, &items)
+}
+
+pub fn buku_import_into_conn(
+    conn: &mut rusqlite::Connection,
+    items: &[BukuImportItem],
+) -> AppResult<BukuImportResult> {
     let tx = conn.transaction()?;
     let mut inserted = 0;
     let mut skipped = 0;
@@ -554,12 +561,13 @@ pub fn buku_import(
             continue;
         }
         let jumlah = item.jumlah_eksemplar.unwrap_or(1).max(0);
+        let kode_buku = item.kode_buku.trim();
         tx.execute(
             "INSERT INTO buku (kode_buku, judul, pengarang, penerbit, tahun_terbit, kode_ddc,
                 kategori, isbn, jumlah_eksemplar, jumlah_tersedia, bahasa)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9, ?10)",
             params![
-                item.kode_buku.trim(),
+                kode_buku,
                 item.judul.trim(),
                 item.pengarang,
                 item.penerbit,
@@ -571,6 +579,20 @@ pub fn buku_import(
                 item.bahasa,
             ],
         )?;
+        let buku_id = tx.last_insert_rowid();
+        // Seed one eksemplar per copy, mirroring `buku_create_inner` so imported
+        // books are immediately printable / borrowable. Without this, downstream
+        // flows that iterate `eksemplar` (cetak label, peminjaman) treat the
+        // imported buku as having zero copies even though `jumlah_eksemplar`
+        // says otherwise.
+        for n in 1..=jumlah {
+            let kode_eksemplar = format!("{kode_buku}-{n:02}");
+            tx.execute(
+                "INSERT INTO eksemplar (buku_id, kode_eksemplar, status)
+                 VALUES (?1, ?2, 'tersedia')",
+                params![buku_id, kode_eksemplar],
+            )?;
+        }
         inserted += 1;
     }
     tx.commit()?;
@@ -704,5 +726,79 @@ mod tests {
             .unwrap();
         assert_eq!(total_buku, 1);
         assert_eq!(total_eksemplar, 1);
+    }
+
+    fn import_item(kode: &str, judul: &str, jumlah: Option<i64>) -> BukuImportItem {
+        BukuImportItem {
+            kode_buku: kode.into(),
+            judul: judul.into(),
+            jumlah_eksemplar: jumlah,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn buku_import_seeds_eksemplar_per_copy() {
+        // Regression for v1.0.8 FEAT-20 ISBN bulk import: imported buku must
+        // immediately have eksemplar rows so cetak label / peminjaman work
+        // without waiting on a manual eksemplar-add step.
+        let mut conn = setup_db();
+        let result = buku_import_into_conn(
+            &mut conn,
+            &[
+                import_item("B-IMP-1", "Buku Import 1", Some(3)),
+                import_item("B-IMP-2", "Buku Import 2", None), // defaults to 1
+            ],
+        )
+        .expect("import");
+        assert_eq!(result.inserted, 2);
+        assert_eq!(result.skipped, 0);
+
+        let id1: i64 = conn
+            .query_row(
+                "SELECT id FROM buku WHERE kode_buku = ?1",
+                params!["B-IMP-1"],
+                |r| r.get(0),
+            )
+            .unwrap();
+        let id2: i64 = conn
+            .query_row(
+                "SELECT id FROM buku WHERE kode_buku = ?1",
+                params!["B-IMP-2"],
+                |r| r.get(0),
+            )
+            .unwrap();
+
+        assert_eq!(
+            list_kode_eksemplar(&conn, id1),
+            vec!["B-IMP-1-01", "B-IMP-1-02", "B-IMP-1-03"]
+        );
+        assert_eq!(list_kode_eksemplar(&conn, id2), vec!["B-IMP-2-01"]);
+
+        let tersedia: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM eksemplar WHERE status = 'tersedia'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(tersedia, 4);
+    }
+
+    #[test]
+    fn buku_import_handles_zero_jumlah() {
+        let mut conn = setup_db();
+        let result =
+            buku_import_into_conn(&mut conn, &[import_item("B-EMPTY", "Katalog Saja", Some(0))])
+                .expect("import");
+        assert_eq!(result.inserted, 1);
+        let id: i64 = conn
+            .query_row(
+                "SELECT id FROM buku WHERE kode_buku = ?1",
+                params!["B-EMPTY"],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count_eksemplar(&conn, id), 0);
     }
 }

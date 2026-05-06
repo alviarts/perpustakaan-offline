@@ -18,6 +18,7 @@ import { DEFAULT_LOAN_RULES, settingsApi, type LoanRules } from '@/lib/settings'
  * into "Rp 1.500 / Rp 3.000 / Rp 4.500" automatically.
  */
 const DENDA_QUICK_MULTIPLIERS: readonly number[] = [1, 2, 3];
+const DENDA_FIXED_PRESETS: readonly number[] = [5000, 10000, 15000];
 
 function formatRupiah(value: number): string {
   return value.toLocaleString('id-ID');
@@ -328,6 +329,19 @@ export function PengembalianPage() {
                               </Button>
                             );
                           })}
+                          {DENDA_FIXED_PRESETS.map((value) => (
+                            <Button
+                              key={`preset-${value}`}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setBayar(String(value))}
+                              data-testid={`pengembalian-bayar-preset-${value}`}
+                            >
+                              Rp {formatRupiah(value)}
+                            </Button>
+                          ))}
                         </div>
                       </div>
                       <div className="flex items-end">

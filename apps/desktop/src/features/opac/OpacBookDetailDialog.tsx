@@ -35,10 +35,12 @@ export function OpacBookDetailDialog({
   const [detail, setDetail] = useState<BukuDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coverError, setCoverError] = useState(false);
 
   useEffect(() => {
     if (!open || !buku) {
       setDetail(null);
+      setCoverError(false);
       return;
     }
     let cancelled = false;
@@ -80,11 +82,12 @@ export function OpacBookDetailDialog({
 
         <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
           <div className="flex h-56 items-center justify-center rounded-md bg-muted">
-            {display.coverPath ? (
+            {display.coverPath && !coverError ? (
               <img
                 src={display.coverPath}
                 alt={display.judul}
                 className="h-full w-full rounded-md object-cover"
+                onError={() => setCoverError(true)}
               />
             ) : (
               <BookOpen className="h-12 w-12 text-muted-foreground" aria-hidden="true" />

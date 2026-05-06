@@ -24,7 +24,8 @@
     "available": "Available",
     "borrowed": "Checked out",
     "rak": "Shelf {{kode}}",
-    "noCover": "No cover"
+    "noCover": "No cover",
+    "stock": "{{tersedia}}/{{total}} copies"
   },
   "detail": {
     "title": "Book Details",

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, ScanLine, Search } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, ScanLine, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { OpacBookCard } from './OpacBookCard';
@@ -13,37 +13,44 @@ export interface OpacHomePageProps {
   libraryName?: string;
 }
 
-const FEATURED_LIMIT = 8;
+const PAGE_SIZE = 24;
 
 export function OpacHomePage({ onSearch, onScanKta, libraryName }: OpacHomePageProps): JSX.Element {
   const { t } = useTranslation('opac');
   const [query, setQuery] = useState('');
-  const [featured, setFeatured] = useState<Buku[]>([]);
+  const [books, setBooks] = useState<Buku[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Buku | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const fetchPage = useCallback((pageNum: number) => {
+    setLoading(true);
     bukuApi
-      .list({ limit: FEATURED_LIMIT, offset: 0, sortBy: 'tanggalInput', sortDir: 'desc' })
+      .list({ limit: PAGE_SIZE, offset: pageNum * PAGE_SIZE, sortBy: 'judul', sortDir: 'asc' })
       .then((res) => {
-        if (!cancelled) setFeatured(res.items);
+        setBooks(res.items);
+        setTotal(res.total);
       })
       .catch(() => {
-        // ignore - home page degrades gracefully without featured row
+        setBooks([]);
+        setTotal(0);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    fetchPage(page);
+  }, [page, fetchPage]);
 
   const handleSubmit = (event: React.FormEvent): void => {
     event.preventDefault();
     onSearch(query);
   };
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="flex h-full flex-col">
@@ -81,16 +88,44 @@ export function OpacHomePage({ onSearch, onScanKta, libraryName }: OpacHomePageP
       </section>
 
       <section className="flex-1 overflow-auto px-6 pb-6 pt-8">
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-          <BookOpen className="h-4 w-4" /> {t('home.browse')}
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <BookOpen className="h-4 w-4" /> {t('home.browse')}
+            {total > 0 && <span className="font-normal">({total})</span>}
+          </h2>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                {page + 1}/{totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
         {loading ? (
           <p className="text-sm text-muted-foreground">{t('search.loading')}</p>
-        ) : featured.length === 0 ? (
+        ) : books.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('search.empty')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-            {featured.map((b) => (
+            {books.map((b) => (
               <OpacBookCard key={b.id} buku={b} onClick={setSelected} />
             ))}
           </div>
