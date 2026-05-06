@@ -18,7 +18,7 @@ treats locks older than 24 h as stale and may take over.
 | id                              | summary                                                  | depends_on | status | pr  | started_at | completed_at |
 |---------------------------------|----------------------------------------------------------|------------|--------|-----|------------|--------------|
 | BUG-Pengembalian-DendaDup       | Dedupe denda quick-button presets                        | —          | DONE   | #145 | 2026-05-06 | 2026-05-06   |
-| FEAT-Peminjaman-DendaInline     | Inline Bayar Denda + presets at PeminjamanDetail         | —          | OPEN   |     |            |              |
+| FEAT-Peminjaman-DendaInline     | Inline Bayar Denda + presets at PeminjamanDetail         | —          | IN_PROGRESS_BY_devin-c6e882bf432b47a0bd0340b111941348:2026-05-06T21:08Z | | 2026-05-06 |              |
 | FEAT-Dashboard-Clickable-KPI    | KpiCard + InsightCard become clickable links             | —          | OPEN   |     |            |              |
 | FEAT-Dashboard-Quotes-2min      | Quote rotate every 2 min + manual next button            | —          | OPEN   |     |            |              |
 | FEAT-Quotes-Library             | +30 perpustakaan/literasi quotes appended                | —          | OPEN   |     |            |              |

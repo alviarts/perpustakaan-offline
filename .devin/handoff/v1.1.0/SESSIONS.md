@@ -58,3 +58,18 @@ Serves as the "who did what when" for cross-session debugging.
              scope summary table from 8 → 14 items + parallelism notes.
              Scope-expansion-only commit; no code changes. Resumed claim
              flow on FEAT-Peminjaman-DendaInline next.
+
+- session_id: devin-c6e882bf432b47a0bd0340b111941348
+  status:    STARTED
+  item:      FEAT-Peminjaman-DendaInline
+  pr:        -
+  started_at:   2026-05-06T21:08Z
+  notes:     Claiming next OPEN item. Plan: import dendaQuickPresets
+             helper from #145 into PeminjamanDetail, add loanRules
+             fetch + dendaQuickButtons useMemo, render preset row under
+             existing peminjaman-bayar input with testids
+             peminjaman-bayar-quick + peminjaman-bayar-quick-{N}x +
+             peminjaman-bayar-quick-fixed-{value}. Add new test file
+             apps/desktop/tests/unit/peminjamanDetailDendaPresets.test.tsx.
+             Only render preset row when activeItems.length > 0 (already
+             gated).
