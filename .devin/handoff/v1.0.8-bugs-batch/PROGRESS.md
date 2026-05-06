@@ -26,7 +26,7 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 | FEAT-24 | E        | Backup enhancement: tambah cloud target (Drive/Dropbox) + history list            | LOW      | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T08:35:00Z | —   | —            | —          |
 | FEAT-25 | F        | Dashboard analytics extended: chart trend mingguan/bulanan + heatmap waktu pinjam | LOW      | OPEN   | —   | —            | —          |
 | FEAT-28 | J        | Sirkulasi scanner: overlay aiming + ROI decode + preprocessing + multi-decoder    | HIGH     | OPEN   | —   | —            | —          |
-| FEAT-26 | G        | Google Sheets bidirectional sync (push+pull delta + scheduler + conflict resolve) | HIGH     | IN_PROGRESS_BY_devin-4923982bb2494e4bb0d28d50d93540d9:2026-05-05T17:05:00Z | —   | —            | —          |
+| FEAT-26 | G        | Google Sheets bidirectional sync (push+pull delta + scheduler + conflict resolve) | HIGH     | IN_PR  | #133 | —            | —          |
 | FEAT-27 | H        | OPAC public-mode: kiosk fullscreen, dual-UI, scan KTA optional, admin-pwd unlock  | HIGH     | OPEN   | —   | —            | FEAT-26    |
 
 ## Phase legend
