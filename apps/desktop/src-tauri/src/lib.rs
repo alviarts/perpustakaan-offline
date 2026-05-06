@@ -237,6 +237,11 @@ pub fn run() {
             commands::wishlist::wishlist_update_status,
             commands::wishlist::wishlist_upvote,
             commands::wishlist::wishlist_delete,
+            commands::sync::sync_test_connection,
+            commands::sync::sync_push_now,
+            commands::sync::sync_pull_now,
+            commands::sync::sync_status,
+            commands::sync::sync_save_service_account,
         ])
         .on_window_event(|window, event| {
             // BUG-011: intercept the X-button on the main window and
