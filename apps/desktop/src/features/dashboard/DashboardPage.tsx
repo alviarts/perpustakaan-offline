@@ -9,6 +9,7 @@ import {
   UserPlus,
   Sparkles,
   Quote,
+  ChevronRight,
   TrendingUp,
   Trophy,
   Timer,
@@ -24,7 +25,8 @@ import { ChartLine } from '@/components/shared/ChartLine';
 import { Heatmap } from '@/components/shared/Heatmap';
 import { LiveClock } from '@/components/shared/LiveClock';
 import { OverduePanel } from '@/features/dashboard/OverduePanel';
-import { getQuoteByIndex, pickNextQuoteIndex, quoteIndexForDate } from '@/lib/dailyQuote';
+import { getQuoteByIndex } from '@/lib/dailyQuote';
+import { useQuoteRotation } from '@/features/dashboard/useQuoteRotation';
 import { formatTauriError } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import {
@@ -57,19 +59,6 @@ interface DashboardData {
   heatmap: HeatCell[];
   insights: DashboardInsights;
 }
-
-/**
- * How long the dashboard quote-of-the-day stays on screen before rotating
- * to a new pick (FEAT-11). 5 minutes is short enough to feel alive but long
- * enough that users reading the screen aren't distracted.
- */
-const QUOTE_ROTATE_MS = 5 * 60 * 1000;
-
-/**
- * Duration of the leave (fade-out + slide-up) phase. Matches the duration
- * of the corresponding `slide-up` keyframe so leave/enter feel symmetric.
- */
-const QUOTE_LEAVE_MS = 300;
 
 export function DashboardPage() {
   const { t } = useTranslation(['dashboard', 'common']);
@@ -144,32 +133,12 @@ export function DashboardPage() {
     data.kpi.totalBuku === 0 &&
     data.kpi.bukuDipinjam === 0;
 
-  // Quote-of-the-day rotation (FEAT-11). Initial index is deterministic per
-  // calendar day (matches the pre-rotation behavior so reload-day-1 always
-  // shows the same first quote). Every QUOTE_ROTATE_MS we trigger a leave
-  // animation, swap the index, then mount the new quote with the
-  // `slide-up` keyframe via `key={quoteIndex}`.
-  const [quoteIndex, setQuoteIndex] = useState(() => quoteIndexForDate(new Date()));
-  const [quoteLeaving, setQuoteLeaving] = useState(false);
-
-  useEffect(() => {
-    let leaveTimer: ReturnType<typeof setTimeout> | null = null;
-    const rotateTimer = setInterval(() => {
-      setQuoteLeaving(true);
-      leaveTimer = setTimeout(() => {
-        // setState updater form is required: the interval closure captures
-        // the original quoteIndex but we want to rotate from whichever
-        // index is current right now.
-        setQuoteIndex((prev) => pickNextQuoteIndex(prev));
-        setQuoteLeaving(false);
-      }, QUOTE_LEAVE_MS);
-    }, QUOTE_ROTATE_MS);
-    return () => {
-      clearInterval(rotateTimer);
-      if (leaveTimer !== null) clearTimeout(leaveTimer);
-    };
-  }, []);
-
+  // Quote-of-the-day rotation (FEAT-Dashboard-Quotes-2min). Initial index
+  // is deterministic per calendar day so reload-day-1 always shows the
+  // same first quote. The hook auto-advances every QUOTE_ROTATE_MS via a
+  // slide-up leave animation, and exposes `advance` so the manual
+  // "next" button runs through the same animation phases.
+  const { quoteIndex, quoteLeaving, advance: advanceQuote } = useQuoteRotation();
   const dailyQuote = getQuoteByIndex(quoteIndex);
 
   // Trend datapoints rendered into the line chart. Daily windows show "DD/MM"
@@ -262,7 +231,7 @@ export function DashboardPage() {
           <div
             key={quoteIndex}
             className={cn(
-              'flex flex-col gap-1',
+              'flex min-w-0 flex-1 flex-col gap-1',
               quoteLeaving
                 ? '-translate-y-2 opacity-0 transition-all duration-300 ease-out'
                 : 'motion-safe:animate-slide-up',
@@ -275,6 +244,17 @@ export function DashboardPage() {
             </p>
             <p className="text-xs text-muted-foreground">— {dailyQuote.author}</p>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="ml-auto h-7 w-7 flex-shrink-0"
+            onClick={advanceQuote}
+            data-testid="daily-quote-next"
+            aria-label={t('dashboard:quote.next', { defaultValue: 'Quote selanjutnya' })}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </CardContent>
       </Card>
 
