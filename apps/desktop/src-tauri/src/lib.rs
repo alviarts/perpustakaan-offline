@@ -222,6 +222,14 @@ pub fn run() {
             commands::assets::assets_refit_anggota_photos,
             commands::user_profile::user_profile_get,
             commands::user_profile::user_profile_update,
+            commands::surat::surat_check_eligibility,
+            commands::surat::surat_generate,
+            commands::surat::surat_log_list,
+            commands::wishlist::wishlist_create,
+            commands::wishlist::wishlist_list,
+            commands::wishlist::wishlist_update_status,
+            commands::wishlist::wishlist_upvote,
+            commands::wishlist::wishlist_delete,
         ])
         .on_window_event(|window, event| {
             // BUG-011: intercept the X-button on the main window and

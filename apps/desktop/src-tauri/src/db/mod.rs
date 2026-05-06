@@ -31,13 +31,58 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(KTA_SQL)?;
     conn.execute_batch(LABEL_BUKU_SQL)?;
     conn.execute_batch(BACKUP_HISTORY_SQL)?;
+    conn.execute_batch(SURAT_SQL)?;
+    conn.execute_batch(WISHLIST_SQL)?;
     apply_additive_migrations(conn)?;
     seed_master_data(conn)?;
     seed_kta_default_template(conn)?;
     seed_label_buku_default_template(conn)?;
+    crate::commands::surat::seed_default_surat_settings(conn)?;
     log::info!("schema migrations applied (idempotent)");
     Ok(())
 }
+
+/// Surat keterangan bebas pustaka log (FEAT-21). Each row is one printed
+/// surat; deletion is intentionally not exposed via a Tauri command so the
+/// audit trail of nomor_surat → anggota assignments is preserved.
+const SURAT_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS surat_log (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    anggota_id    INTEGER NOT NULL,
+    nomor_surat   TEXT    NOT NULL UNIQUE,
+    tanggal_cetak TEXT    NOT NULL DEFAULT (date('now')),
+    pdf_path      TEXT,
+    petugas_id    INTEGER,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (anggota_id) REFERENCES anggota(id) ON DELETE CASCADE,
+    FOREIGN KEY (petugas_id) REFERENCES users(id)   ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_surat_log_anggota ON surat_log(anggota_id);
+CREATE INDEX IF NOT EXISTS idx_surat_log_tanggal ON surat_log(tanggal_cetak);
+"#;
+
+/// Wishlist anggota / request pengadaan buku (FEAT-22). Status enum is
+/// validated server-side in `commands::wishlist::is_valid_transition`.
+const WISHLIST_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS wishlist_buku (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    anggota_id    INTEGER NOT NULL,
+    judul         TEXT    NOT NULL,
+    pengarang     TEXT,
+    isbn          TEXT,
+    alasan        TEXT,
+    status        TEXT    NOT NULL DEFAULT 'pending',
+    catatan_admin TEXT,
+    buku_id       INTEGER,
+    upvote_count  INTEGER NOT NULL DEFAULT 1,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (anggota_id) REFERENCES anggota(id) ON DELETE CASCADE,
+    FOREIGN KEY (buku_id)    REFERENCES buku(id)    ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_wishlist_status ON wishlist_buku(status);
+CREATE INDEX IF NOT EXISTS idx_wishlist_anggota ON wishlist_buku(anggota_id);
+"#;
 
 const KTA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS kta_templates (
