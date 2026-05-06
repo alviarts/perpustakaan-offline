@@ -14,8 +14,8 @@ Single source of truth for which item is next. Companion to [`BUGS.md`](./BUGS.m
 
 | id      | pr_group | title                                                                              | severity | status | pr  | completed_at | depends_on |
 | ------- | -------- | ---------------------------------------------------------------------------------- | -------- | ------ | --- | ------------ | ---------- |
-| BUG-19  | A        | KTA PDF export: foto gepeng (stretch ke aspect ratio slot, tidak preserve)        | HIGH     | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T08:00:00Z | #127 (draft) | —            | —          |
-| FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | IN_PROGRESS_BY_devin-6b5acc6f8e4a4e778d85e9e626fccb1a:2026-05-06T08:00:00Z | #127 (draft) | —            | —          |
+| BUG-19  | A        | KTA PDF export: foto gepeng (stretch ke aspect ratio slot, tidak preserve)        | HIGH     | IN_PR  | #127 | —            | —          |
+| FEAT-16 | A        | KTA: tambah 10 desain template baru (total ~20)                                    | MEDIUM   | IN_PR  | #127 | —            | —          |
 | FEAT-17 | B        | Peminjaman: perpanjangan otomatis (1-klik extend, max N× configurable)            | HIGH     | IN_PR  | #128 | —            | —          |
 | FEAT-18 | B        | Buku: reservasi/booking (antrian saat buku sedang dipinjam)                       | MEDIUM   | IN_PR  | #128 | —            | —          |
 | FEAT-19 | C        | Anggota: bulk import dari Excel/CSV (template + validasi NIS unik)                | HIGH     | IN_PR  | #129 (draft) | —            | —          |

@@ -214,3 +214,15 @@ Each entry is a markdown section with frontmatter-like fields:
 - notes: User instructed to finish items bertahap (step-by-step) without skipping.
   Resuming PR A's PAUSED state per WORKFLOW.md "Pause protocol" — pickup
   instructions in PR #127 description. Only FEAT-16 remains (BUG-19 done).
+
+## Session devin-6b5acc6f8e4a4e778d85e9e626fccb1a — PR A (FEAT-16) ready
+
+- session_id: devin-6b5acc6f8e4a4e778d85e9e626fccb1a
+- item_id: BUG-19 + FEAT-16 (PR A — resumed PAUSED)
+- branch: devin/1778013996-pr-a-kta-foto-fit-and-presets
+- pr: #127 (ready-for-review)
+- pr_opened_at: 2026-05-06T08:08:00Z
+- status: PR_OPEN
+- notes: 10 KTA preset baru ditambah ke `KTA_PRESETS` (total 20). Local
+  gates clean (typecheck/lint/i18n:lint/test=282/build/cargo check). CI
+  green (Rust + Node lint+typecheck+test). Awaiting user merge.
