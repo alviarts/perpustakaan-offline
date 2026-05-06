@@ -10,15 +10,7 @@ import { useToast } from '@/components/ui/toast-manager';
 import { calculateDenda, peminjamanApi, type PeminjamanDetail, type PeminjamanRow } from '@/lib/peminjaman';
 import { formatTauriError } from '@/lib/errors';
 import { DEFAULT_LOAN_RULES, settingsApi, type LoanRules } from '@/lib/settings';
-
-/**
- * Multipliers for the denda quick-input buttons (FEAT-08 in the v1.0.7
- * batch). The label and value derive from the live `dendaPerHari`
- * setting, so changing Aturan Peminjaman to e.g. 1500 turns the buttons
- * into "Rp 1.500 / Rp 3.000 / Rp 4.500" automatically.
- */
-const DENDA_QUICK_MULTIPLIERS: readonly number[] = [1, 2, 3];
-const DENDA_FIXED_PRESETS: readonly number[] = [5000, 10000, 15000];
+import { dendaQuickPresets } from '@/lib/dendaPresets';
 
 function formatRupiah(value: number): string {
   return value.toLocaleString('id-ID');
@@ -112,6 +104,11 @@ export function PengembalianPage() {
       loanRules.dendaPerHari,
     );
   }, [detail, loanRules.dendaPerHari]);
+
+  const dendaQuickButtons = useMemo(
+    () => dendaQuickPresets(loanRules.dendaPerHari),
+    [loanRules.dendaPerHari],
+  );
 
   function toggle(itemId: number): void {
     const next = new Set(selected);
@@ -310,38 +307,28 @@ export function PengembalianPage() {
                           className="mt-2 flex flex-wrap gap-1.5"
                           data-testid="pengembalian-bayar-quick"
                         >
-                          {DENDA_QUICK_MULTIPLIERS.map((mult) => {
-                            const value = loanRules.dendaPerHari * mult;
+                          {dendaQuickButtons.map((preset) => {
+                            const testid =
+                              preset.kind === 'mult'
+                                ? `pengembalian-bayar-quick-${preset.mult}x`
+                                : `pengembalian-bayar-quick-fixed-${preset.value}`;
                             return (
                               <Button
-                                key={mult}
+                                key={testid}
                                 type="button"
                                 variant="outline"
                                 size="sm"
                                 className="h-7 px-2 text-xs"
-                                onClick={() => setBayar(String(value))}
-                                data-testid={`pengembalian-bayar-quick-${mult}x`}
+                                onClick={() => setBayar(String(preset.value))}
+                                data-testid={testid}
                               >
                                 {t('peminjaman:pengembalian.bayarQuick', {
                                   defaultValue: 'Rp {{value}}',
-                                  value: formatRupiah(value),
+                                  value: formatRupiah(preset.value),
                                 })}
                               </Button>
                             );
                           })}
-                          {DENDA_FIXED_PRESETS.map((value) => (
-                            <Button
-                              key={`preset-${value}`}
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => setBayar(String(value))}
-                              data-testid={`pengembalian-bayar-preset-${value}`}
-                            >
-                              Rp {formatRupiah(value)}
-                            </Button>
-                          ))}
                         </div>
                       </div>
                       <div className="flex items-end">
