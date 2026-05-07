@@ -499,3 +499,18 @@ Serves as the "who did what when" for cross-session debugging.
     Flipped draft->ready via GraphQL, squash-merged via PAT.
     Merge SHA on main: 9c94b0f8.
 
+
+- session_id: devin-517330f5c5b7452a9af5095bc9de321b
+  status:    STARTED
+  item:      E1-OPACBukuPilihan
+  started_at: 2026-05-07T00:30Z
+  branch:    devin/1778113523-feat-buku-pilihan
+  notes: |
+    Claimed E1 right after merging D5 #157. Spec at BUGS.md line 998:
+    new buku_pilihan table + RPCs (list_active, pin, unpin, reorder)
+    capped at 5 active pins. Admin page accessible from BukuList
+    "Atur Pilihan OPAC" button. OPAC home renders carousel above
+    grid only when >=1 pin active; auto-rotate every 5s with
+    pause-on-hover, manual arrows, dot indicators, keyboard nav,
+    prefers-reduced-motion compliant.
+
