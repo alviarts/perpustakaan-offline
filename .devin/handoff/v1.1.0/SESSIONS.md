@@ -514,3 +514,61 @@ Serves as the "who did what when" for cross-session debugging.
     pause-on-hover, manual arrows, dot indicators, keyboard nav,
     prefers-reduced-motion compliant.
 
+
+- session_id: devin-517330f5c5b7452a9af5095bc9de321b
+  status:    COMPLETED
+  item:      E1-OPACBukuPilihan
+  pr:        "#158"
+  started_at:   2026-05-07T00:30Z
+  completed_at: 2026-05-07T00:50Z
+  branch:    devin/1778113523-feat-buku-pilihan
+  merge_sha: a7e62303
+  notes: |
+    Implemented + shipped E1 in one pass right after D5.
+
+    Backend:
+    - New `buku_pilihan` table (additive, FK to buku ON DELETE
+      CASCADE) added under `db::run_migrations`.
+    - 4 RPCs in `commands/buku_pilihan.rs`:
+        buku_pilihan_list_active (filters expired pins, JOIN onto
+          buku for full slide payload),
+        buku_pilihan_pin (validates existence + cap, UPSERT on
+          buku_id so re-pinning refreshes label/expires),
+        buku_pilihan_unpin (idempotent),
+        buku_pilihan_reorder (transactional position rewrite).
+    - MAX_ACTIVE_PINS = 5 enforced in `pin` via `count_active_pins`.
+
+    Frontend:
+    - `lib/bukuPilihan.ts`: typed RPC wrapper + dev-browser mock
+      that mirrors backend semantics (cap rejection + expiry
+      filter). `__makeMockBukuPilihanApi()` exported for fresh
+      per-test stores.
+    - `OpacFeaturedCarousel.tsx`: auto-rotate every 5s, pause on
+      hover/focus, prefers-reduced-motion compliant, keyboard nav
+      (Arrow Left/Right + Enter), arrow buttons, dot indicators.
+    - `OpacHomePage.tsx`: fetches active pins on mount and renders
+      carousel above grid only when >=1 pin.
+    - `BukuPilihanAdminPage.tsx`: status panel (X/5), reorder via
+      up/down arrows, search + label + pin, unpin. Toast feedback.
+    - `routes/_authed/buku/buku-pilihan.tsx`: new file route.
+    - `BukuList.tsx`: "Atur Pilihan OPAC" button (Star icon).
+    - i18n: full id/en parity for `buku:pilihan.*` (admin) and
+      `opac:home.featured*` (carousel).
+
+    Tests:
+    - `tests/unit/opacFeaturedCarousel.test.tsx`: 7 tests (null-on-
+      empty, dot count, auto-rotate after 5s, hover pause, reduced-
+      motion disables rotate, arrow wrap, click-onSelect).
+    - `tests/unit/bukuPilihanApi.test.ts`: 4 tests (expired filter,
+      cap rejection, reorder persistence, unpin frees a slot).
+    - Rust unit tests in `commands/buku_pilihan.rs`: 4 tests
+      (migration creates table, expired filter, cap counting,
+      next_position advancement).
+
+    Local gates green: typecheck, lint, i18n:lint, pnpm test
+    592/592 (+11 from baseline 581), build, cargo check, cargo
+    clippy -D warnings, cargo test buku_pilihan 4/4.
+
+    CI green on both jobs. Flipped draft->ready via GraphQL,
+    squash-merged via PAT. Merge SHA on main: a7e62303.
+

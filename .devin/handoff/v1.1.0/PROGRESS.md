@@ -30,7 +30,7 @@ treats locks older than 24 h as stale and may take over.
 | C1-LaporanEksekutifPDF          | One-click executive monthly report PDF                   | —          | DONE | #155 | 2026-05-06 | 2026-05-06 |
 | D1-SystemHealthWidget           | Dashboard card: DB size, backups, reservasi, version     | —          | DONE   | #156 | 2026-05-06 | 2026-05-06   |
 | D5-SandboxDemoMode              | Toggle to switch app to a sandboxed demo DB              | —          | DONE   | #157 | 2026-05-07 | 2026-05-07   |
-| E1-OPACBukuPilihan              | OPAC featured-books carousel (admin-pinned, auto-rotate) | —          | IN_PROGRESS_BY_devin-517330f5c5b7452a9af5095bc9de321b:2026-05-07T00:30Z | | 2026-05-07 |              |
+| E1-OPACBukuPilihan              | OPAC featured-books carousel (admin-pinned, auto-rotate) | —          | DONE   | #158 | 2026-05-07 | 2026-05-07   |
 | RELEASE                         | Bump versions to 1.1.0, push tag, publish release        | (all above) | OPEN   |     |            |              |
 
 ---
