@@ -13,6 +13,7 @@ import {
   BookText,
   BookOpen,
   Monitor,
+  FlaskConical,
 } from 'lucide-react';
 
 /**
@@ -166,6 +167,22 @@ export const SECTIONS: SectionDef[] = [
     i18nKey: 'aksesMode',
     Icon: Monitor,
     keywords: ['akses mode', 'mode akses', 'opac', 'public', 'kios', 'kiosk', 'admin', 'fullscreen'],
+  },
+  {
+    id: 'sandbox',
+    to: '/settings/sandbox',
+    i18nKey: 'sandbox',
+    Icon: FlaskConical,
+    keywords: [
+      'sandbox',
+      'mode demo',
+      'demo mode',
+      'demo',
+      'training',
+      'pelatihan',
+      'simulasi',
+      'safe mode',
+    ],
   },
 ];
 

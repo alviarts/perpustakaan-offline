@@ -318,6 +318,27 @@
       "feedback": {
         "saved": "Access mode saved. Reloading…"
       }
+    },
+    "sandbox": {
+      "label": "Demo Mode",
+      "summary": "Run the app against a separate sandbox database — handy for training without touching real data.",
+      "activeTitle": "Demo mode active",
+      "inactiveTitle": "Demo mode inactive",
+      "activeDescription": "The app is currently writing to a separate demo database. Automatic backups are skipped while demo mode is active.",
+      "inactiveDescription": "Turning on demo mode copies the live database to demo.db and reloads the app. Subsequent changes never touch the live data.",
+      "enable": "Enable demo mode",
+      "disable": "Back to live mode",
+      "activeDb": "Active DB",
+      "prodDb": "Live DB",
+      "demoDb": "Demo DB",
+      "bannerMessage": "Demo mode active — changes don't touch the live data.",
+      "confirmEnableTitle": "Enable demo mode?",
+      "confirmEnableDescription": "The live database will be copied to demo.db. The app will reload and subsequent changes will never touch the live data.",
+      "confirmDisableTitle": "Disable demo mode?",
+      "confirmDisableDescription": "The demo database will be archived and the app returns to the live data after reload.",
+      "enabledToast": "Demo mode active. Reloading…",
+      "disabledToast": "Demo mode disabled. Reloading…",
+      "error": "Failed to toggle demo mode"
     }
   }
 }

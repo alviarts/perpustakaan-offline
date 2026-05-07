@@ -29,6 +29,7 @@ import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota
 import { Route as AuthedSettingsTentangRouteImport } from './routes/_authed/settings/tentang'
 import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/settings/tampilan'
 import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
+import { Route as AuthedSettingsSandboxRouteImport } from './routes/_authed/settings/sandbox'
 import { Route as AuthedSettingsMasterDataRouteImport } from './routes/_authed/settings/master-data'
 import { Route as AuthedSettingsManualRouteImport } from './routes/_authed/settings/manual'
 import { Route as AuthedSettingsLabelBukuRouteImport } from './routes/_authed/settings/label-buku'
@@ -156,6 +157,11 @@ const AuthedSettingsSinkronisasiRoute =
     path: '/sinkronisasi',
     getParentRoute: () => AuthedSettingsRoute,
   } as any)
+const AuthedSettingsSandboxRoute = AuthedSettingsSandboxRouteImport.update({
+  id: '/sandbox',
+  path: '/sandbox',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
 const AuthedSettingsMasterDataRoute =
   AuthedSettingsMasterDataRouteImport.update({
     id: '/master-data',
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/settings/label-buku': typeof AuthedSettingsLabelBukuRoute
   '/settings/manual': typeof AuthedSettingsManualRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
+  '/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/settings/label-buku': typeof AuthedSettingsLabelBukuRoute
   '/settings/manual': typeof AuthedSettingsManualRoute
   '/settings/master-data': typeof AuthedSettingsMasterDataRoute
+  '/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/_authed/settings/label-buku': typeof AuthedSettingsLabelBukuRoute
   '/_authed/settings/manual': typeof AuthedSettingsManualRoute
   '/_authed/settings/master-data': typeof AuthedSettingsMasterDataRoute
+  '/_authed/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/_authed/settings/tampilan': typeof AuthedSettingsTampilanRoute
   '/_authed/settings/tentang': typeof AuthedSettingsTentangRoute
@@ -468,6 +477,7 @@ export interface FileRouteTypes {
     | '/settings/label-buku'
     | '/settings/manual'
     | '/settings/master-data'
+    | '/settings/sandbox'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
     | '/settings/tentang'
@@ -513,6 +523,7 @@ export interface FileRouteTypes {
     | '/settings/label-buku'
     | '/settings/manual'
     | '/settings/master-data'
+    | '/settings/sandbox'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
     | '/settings/tentang'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/label-buku'
     | '/_authed/settings/manual'
     | '/_authed/settings/master-data'
+    | '/_authed/settings/sandbox'
     | '/_authed/settings/sinkronisasi'
     | '/_authed/settings/tampilan'
     | '/_authed/settings/tentang'
@@ -720,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/sinkronisasi'
       fullPath: '/settings/sinkronisasi'
       preLoaderRoute: typeof AuthedSettingsSinkronisasiRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/sandbox': {
+      id: '/_authed/settings/sandbox'
+      path: '/sandbox'
+      fullPath: '/settings/sandbox'
+      preLoaderRoute: typeof AuthedSettingsSandboxRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/settings/master-data': {
@@ -944,6 +963,7 @@ interface AuthedSettingsRouteChildren {
   AuthedSettingsLabelBukuRoute: typeof AuthedSettingsLabelBukuRoute
   AuthedSettingsManualRoute: typeof AuthedSettingsManualRoute
   AuthedSettingsMasterDataRoute: typeof AuthedSettingsMasterDataRoute
+  AuthedSettingsSandboxRoute: typeof AuthedSettingsSandboxRoute
   AuthedSettingsSinkronisasiRoute: typeof AuthedSettingsSinkronisasiRoute
   AuthedSettingsTampilanRoute: typeof AuthedSettingsTampilanRoute
   AuthedSettingsTentangRoute: typeof AuthedSettingsTentangRoute
@@ -963,6 +983,7 @@ const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsLabelBukuRoute: AuthedSettingsLabelBukuRoute,
   AuthedSettingsManualRoute: AuthedSettingsManualRoute,
   AuthedSettingsMasterDataRoute: AuthedSettingsMasterDataRoute,
+  AuthedSettingsSandboxRoute: AuthedSettingsSandboxRoute,
   AuthedSettingsSinkronisasiRoute: AuthedSettingsSinkronisasiRoute,
   AuthedSettingsTampilanRoute: AuthedSettingsTampilanRoute,
   AuthedSettingsTentangRoute: AuthedSettingsTentangRoute,
