@@ -12,7 +12,8 @@
     "emptyFiltered": "No books match the current filters.",
     "showing": "Showing {{from}}–{{to}} of {{total}}",
     "loadingDetail": "Loading detail…",
-    "importIsbn": "Import via ISBN"
+    "importIsbn": "Import via ISBN",
+    "aturPilihan": "Manage OPAC Featured"
   },
   "columns": {
     "kode": "Code",
@@ -120,5 +121,24 @@
     "nothingToImport": "Nothing to import",
     "import": "Import {{count}} books",
     "importFailedTitle": "Failed to save books"
+  },
+  "pilihan": {
+    "title": "Manage OPAC featured books",
+    "subtitle": "Pin up to {{n}} books to appear on the OPAC home carousel. Reorder with the arrow buttons.",
+    "activeHeading": "Active picks ({{n}}/{{max}})",
+    "searchHeading": "Add a featured book",
+    "searchPlaceholder": "Search title / author / ISBN…",
+    "searchHint": "Type a query and press Search.",
+    "labelPlaceholder": "Optional label (e.g. \"Literacy Month\")",
+    "empty": "No featured books yet. Search and pin one below.",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "alreadyPinned": "Already pinned",
+    "pinSaved": "\"{{judul}}\" added to featured books",
+    "capTitle": "Maximum {{n}} active featured books",
+    "capDescription": "Unpin an existing one before adding a new pick.",
+    "error": "Save failed"
   }
 }

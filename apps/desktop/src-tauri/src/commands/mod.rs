@@ -6,6 +6,7 @@ pub mod backup_extra;
 pub mod backup_runner;
 pub mod buku;
 pub mod buku_isbn;
+pub mod buku_pilihan;
 pub mod close_behavior;
 pub mod dashboard;
 pub mod export;

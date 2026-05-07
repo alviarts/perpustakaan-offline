@@ -90,6 +90,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(WISHLIST_SQL)?;
     conn.execute_batch(SYNC_SQL)?;
     conn.execute_batch(SANDBOX_AUDIT_SQL)?;
+    conn.execute_batch(BUKU_PILIHAN_SQL)?;
     apply_additive_migrations(conn)?;
     backfill_missing_eksemplar(conn)?;
     seed_master_data(conn)?;
@@ -183,6 +184,23 @@ CREATE TABLE IF NOT EXISTS sandbox_audit_log (
     note      TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_sandbox_audit_ts ON sandbox_audit_log(ts DESC);
+"#;
+
+/// E1-OPACBukuPilihan — admin-pinned "buku pilihan" carousel feed for the
+/// OPAC home page. Capped to 5 active pins by the RPC layer; an `expires_at`
+/// timestamp lets curated promotions auto-retire (e.g. "tema bulan literasi"
+/// rolls off when the month ends). `position` controls render order.
+const BUKU_PILIHAN_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS buku_pilihan (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    buku_id     INTEGER NOT NULL UNIQUE,
+    position    INTEGER NOT NULL DEFAULT 0,
+    pinned_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    label       TEXT,
+    expires_at  TEXT,
+    FOREIGN KEY (buku_id) REFERENCES buku(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_buku_pilihan_position ON buku_pilihan(position ASC);
 "#;
 
 const KTA_SQL: &str = r#"

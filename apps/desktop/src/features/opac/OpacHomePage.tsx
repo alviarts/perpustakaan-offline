@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { CardSkeleton } from '@/components/shared/CardSkeleton';
 import { OpacBookCard } from './OpacBookCard';
 import { OpacBookDetailDialog } from './OpacBookDetailDialog';
+import { OpacFeaturedCarousel } from './OpacFeaturedCarousel';
 import { bukuApi, type Buku } from '@/lib/buku';
+import { bukuPilihanApi, type BukuPilihanSlide } from '@/lib/bukuPilihan';
 import type { Anggota } from '@/lib/anggota';
 
 export interface OpacHomePageProps {
@@ -27,6 +29,22 @@ export function OpacHomePage({ onSearch, onScanKta, libraryName, member, onReser
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Buku | null>(null);
+  const [featured, setFeatured] = useState<BukuPilihanSlide[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    bukuPilihanApi
+      .listActive()
+      .then((rows) => {
+        if (!cancelled) setFeatured(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setFeatured([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fetchPage = useCallback((pageNum: number) => {
     setLoading(true);
@@ -90,6 +108,10 @@ export function OpacHomePage({ onSearch, onScanKta, libraryName, member, onReser
           {t('home.scanKtaSubtitle')}
         </p>
       </section>
+
+      {featured.length > 0 && (
+        <OpacFeaturedCarousel slides={featured} onSelect={setSelected} />
+      )}
 
       <section className="flex-1 overflow-auto px-6 pb-6 pt-8">
         <div className="mb-3 flex items-center justify-between">

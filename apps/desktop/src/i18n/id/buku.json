@@ -12,7 +12,8 @@
     "emptyFiltered": "Tidak ada buku yang cocok dengan filter.",
     "showing": "Menampilkan {{from}}–{{to}} dari {{total}}",
     "loadingDetail": "Memuat detail…",
-    "importIsbn": "Impor via ISBN"
+    "importIsbn": "Impor via ISBN",
+    "aturPilihan": "Atur Pilihan OPAC"
   },
   "columns": {
     "kode": "Kode",
@@ -120,5 +121,24 @@
     "nothingToImport": "Tidak ada baris yang siap diimpor",
     "import": "Impor {{count}} buku",
     "importFailedTitle": "Gagal menyimpan buku"
+  },
+  "pilihan": {
+    "title": "Atur Buku Pilihan OPAC",
+    "subtitle": "Pin hingga {{n}} buku untuk muncul di carousel halaman OPAC. Atur urutan dengan tombol panah.",
+    "activeHeading": "Pilihan aktif ({{n}}/{{max}})",
+    "searchHeading": "Tambah buku pilihan",
+    "searchPlaceholder": "Cari judul / pengarang / ISBN…",
+    "searchHint": "Ketik kata kunci dan tekan Cari.",
+    "labelPlaceholder": "Label opsional (mis. \"Bulan Literasi\")",
+    "empty": "Belum ada buku pilihan. Cari dan pin buku di bawah.",
+    "pin": "Pin",
+    "unpin": "Lepas pin",
+    "moveUp": "Naikkan",
+    "moveDown": "Turunkan",
+    "alreadyPinned": "Sudah dipilih",
+    "pinSaved": "\"{{judul}}\" ditambahkan ke buku pilihan",
+    "capTitle": "Maksimum {{n}} buku pilihan aktif",
+    "capDescription": "Lepas pin lama dulu sebelum menambah yang baru.",
+    "error": "Gagal menyimpan"
   }
 }
