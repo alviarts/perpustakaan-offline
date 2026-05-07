@@ -9,6 +9,16 @@
     "dipinjam": "Buku Dipinjam",
     "eksemplarSubline": "{{value}} eksemplar"
   },
+  "systemHealth": {
+    "title": "Sistem & Backup",
+    "dbSize": "Ukuran database",
+    "lastBackup": "Backup terakhir",
+    "nextBackup": "Backup berikutnya",
+    "scheduleAuto": "Lihat jadwal",
+    "pendingReservasi": "Reservasi menunggu",
+    "version": "Versi aplikasi",
+    "updateAvailable": "Update tersedia"
+  },
   "chart": {
     "ddc": {
       "title": "Distribusi Klasifikasi DDC",

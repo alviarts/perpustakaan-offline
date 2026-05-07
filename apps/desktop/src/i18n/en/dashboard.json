@@ -3,6 +3,16 @@
   "greeting": "Hello, {{name}}",
   "refreshed": "Real-time",
   "loadError": "Failed to load data: {{msg}}",
+  "systemHealth": {
+    "title": "System & Backup",
+    "dbSize": "Database size",
+    "lastBackup": "Last backup",
+    "nextBackup": "Next backup",
+    "scheduleAuto": "View schedule",
+    "pendingReservasi": "Pending reservations",
+    "version": "App version",
+    "updateAvailable": "Update available"
+  },
   "kpi": {
     "anggota": "Total Members",
     "buku": "Total Books",
