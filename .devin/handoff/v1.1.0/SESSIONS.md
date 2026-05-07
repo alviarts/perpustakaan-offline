@@ -425,3 +425,17 @@ Serves as the "who did what when" for cross-session debugging.
     pnpm test 585/585, build OK. CI green on both jobs after push.
     Flipped draft -> ready via GraphQL mutation; squash-merged via
     PAT. Merge SHA on main: 631b9544.
+
+- session_id: devin-517330f5c5b7452a9af5095bc9de321b
+  status:    STARTED
+  item:      D5-SandboxDemoMode
+  started_at: 2026-05-07T00:10Z
+  branch:    devin/<ts>-feat-sandbox-mode (TBD on push)
+  notes: |
+    Claimed D5 right after merging D1 #156. Spec at BUGS.md line 932:
+    Settings toggle to copy current DB to demo.db, switch app handle
+    to demo, reload caches, show yellow SandboxBanner. Touches
+    backend (state.rs holding active DB, sandbox.rs cmd, lib.rs
+    register), frontend (sandbox.ts wrapper, SandboxPage,
+    SandboxBanner, sections.ts entry), i18n parity, schema migration
+    runner reuse, audit log to separate sandbox log.
