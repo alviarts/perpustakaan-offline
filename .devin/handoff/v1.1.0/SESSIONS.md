@@ -439,3 +439,63 @@ Serves as the "who did what when" for cross-session debugging.
     register), frontend (sandbox.ts wrapper, SandboxPage,
     SandboxBanner, sections.ts entry), i18n parity, schema migration
     runner reuse, audit log to separate sandbox log.
+
+- session_id: devin-517330f5c5b7452a9af5095bc9de321b
+  status:    COMPLETED
+  item:      D5-SandboxDemoMode
+  pr:        "#157"
+  started_at:   2026-05-07T00:10Z
+  completed_at: 2026-05-07T00:25Z
+  branch:    devin/1778112161-feat-sandbox-mode
+  merge_sha: 9c94b0f8
+  notes: |
+    Implemented + shipped D5 in one pass.
+
+    Backend (apps/desktop/src-tauri):
+    - Added `AppState.sandbox_mode: Mutex<bool>` mirroring the
+      on-disk flag for fast hot-path checks.
+    - `db/mod.rs`: prod_db_path / demo_db_path / sandbox_flag_path
+      / read_sandbox_flag / write_sandbox_flag helpers.
+      `resolve_db_path` now picks demo.db when the flag is on, so
+      existing callers (dashboard system-health, manual backup)
+      keep working without modification.
+    - `commands/sandbox.rs`: 3 RPCs (sandbox_status, sandbox_enable,
+      sandbox_disable). Enable copies prod -> demo, runs migrations
+      + seed on demo, swaps state.db, persists flag, appends
+      `enable` audit row. Disable reopens prod, archives demo.db
+      to <app_data>/demo-archive/<ts>.db (best-effort), clears
+      flag, appends `disable` audit row.
+    - New table `sandbox_audit_log` (CHECK action IN enable|disable)
+      lives in production DB so toggle history survives demo wipes.
+    - `commands/backup_runner::tick` short-circuits when
+      sandbox_mode is true so cron auto-backups never target demo.
+
+    Frontend:
+    - `lib/sandbox.ts`: typed RPC wrapper with dev-browser mock.
+    - `components/layout/SandboxBanner.tsx`: yellow global banner
+      mounted above AppShell Header. Disable button reloads on
+      success.
+    - `features/settings/SandboxPage.tsx`: status panel + DB-path
+      diagnostics + ConfirmDialog-gated enable/disable.
+    - `routes/_authed/settings/sandbox.tsx`: file route.
+    - `features/settings/sections.ts`: sandbox SectionDef
+      (FlaskConical icon).
+    - i18n: full id/en parity for `settings:sections.sandbox.*`.
+
+    Tests:
+    - `tests/unit/sandboxBanner.test.tsx`: 4 tests (hidden when
+      inactive, visible+button when active, click disable+reload,
+      status() rejection treated as inactive).
+    - Rust unit tests in `commands/sandbox.rs`: 3 tests (audit
+      table created by migrations, CHECK constraint rejects bad
+      action, file-level enable/disable roundtrip preserves prod
+      while demo is mutated).
+
+    Local gates green: typecheck, lint, i18n:lint, pnpm test
+    581/581 (4 new sandbox-banner), build, cargo check, cargo
+    clippy -D warnings, cargo test sandbox 3/3.
+
+    CI green on both jobs (Rust check + Lint+Typecheck+Unit Test).
+    Flipped draft->ready via GraphQL, squash-merged via PAT.
+    Merge SHA on main: 9c94b0f8.
+

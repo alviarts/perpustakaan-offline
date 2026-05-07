@@ -29,7 +29,7 @@ treats locks older than 24 h as stale and may take over.
 | A2-SkeletonScreens              | Replace spinners with skeleton placeholders in tables    | —          | DONE | #154 | 2026-05-06 | 2026-05-06 |
 | C1-LaporanEksekutifPDF          | One-click executive monthly report PDF                   | —          | DONE | #155 | 2026-05-06 | 2026-05-06 |
 | D1-SystemHealthWidget           | Dashboard card: DB size, backups, reservasi, version     | —          | DONE   | #156 | 2026-05-06 | 2026-05-06   |
-| D5-SandboxDemoMode              | Toggle to switch app to a sandboxed demo DB              | —          | IN_PROGRESS_BY_devin-517330f5c5b7452a9af5095bc9de321b:2026-05-07T00:10Z | | 2026-05-07 |              |
+| D5-SandboxDemoMode              | Toggle to switch app to a sandboxed demo DB              | —          | DONE   | #157 | 2026-05-07 | 2026-05-07   |
 | E1-OPACBukuPilihan              | OPAC featured-books carousel (admin-pinned, auto-rotate) | —          | OPEN   |     |            |              |
 | RELEASE                         | Bump versions to 1.1.0, push tag, publish release        | (all above) | OPEN   |     |            |              |
 
