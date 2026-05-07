@@ -13,6 +13,106 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-06
+
+Rilis fitur besar: 14 item baru — quality-of-life sirkulasi, OPAC interaktif
+penuh, dashboard sehat, dan **Mode Demo (Sandbox)** untuk pelatihan tanpa
+risiko ke data produksi. Semua perubahan offline-first, no network calls.
+
+### Added
+
+- **Inline Bayar Denda di PeminjamanDetail (#146)** — preset row 1×/2×/3×
+  `dendaPerHari` + tiga preset tetap (Rp 5.000 / 10.000 / 15.000) langsung di
+  atas input bayar, sama persis dengan `PengembalianPage`. Logika dedup
+  diekstrak ke helper `dendaPresets.ts` agar tidak ada copy-paste.
+- **Dashboard KPI cards clickable (#147)** — Total Anggota / Total Buku /
+  Buku Dipinjam navigasi langsung ke `/anggota`, `/buku`,
+  `/peminjaman?status=aktif`. Insight "Buku Terlaris bulan ini" + "Peminjam
+  Teraktif" navigasi ke halaman detail entitas. Card statis (rata-rata)
+  tetap non-clickable.
+- **Quote rotasi 2 menit + manual next (#148)** — `QUOTE_ROTATE_MS` turun
+  dari 5 menit → 2 menit, ditambah tombol `ChevronRight` untuk advance manual
+  tanpa menunggu timer. Animasi slide-up tetap.
+- **+30 quotes perpustakaan (#149)** — `quotes.json` ditambah 30 entri
+  spesifik tentang buku / literasi / perpustakaan dari penulis Indonesia
+  (Pram, Kartini, Hamka, Habibie) dan internasional (Borges, Sagan,
+  Calvino).
+- **Sirkulasi: search dropdown anggota + buku (#150)** — komponen
+  `ScanSearchInput` (combobox) menggantikan input scan polos di
+  `SirkulasiPage`. Ketik 3+ karakter (alpha) → dropdown muncul dengan
+  section Anggota + section Buku (buku hanya muncul mode pinjam +
+  anggota terpilih). USB hand-scanner burst tetap diteruskan langsung
+  ke handler scan tanpa membuka dropdown.
+- **OPAC post-scan profile (#151)** — setelah scan KTA muncul panel
+  full-screen `OpacMemberProfile` berisi avatar + identitas, peminjaman
+  aktif (badge `aktif`/`terlambat`), denda outstanding, riwayat 10
+  pinjaman terakhir, dan section reservasi. Setiap scan otomatis
+  menulis row `kunjungan` (deduplikasi 5 menit).
+- **OPAC scan-locked dialog (#152)** — saat `member` masih ter-set,
+  klik "Scan KTA Saya" mendapat dialog konfirmasi (`Anggota lain masih
+  login: <nama>` + tombol `Logout & Scan` / `Batal`) sebelum membuka
+  scan flow.
+- **Command palette (Ctrl/Cmd+K) lengkap (#153)** — `GlobalSearchDialog`
+  diperluas dari pure data-search jadi command palette penuh: 8+ aksi
+  cepat (Backup Sekarang, Cetak Laporan Bulanan, Tambah Anggota,
+  Tambah Buku, Toggle Tema, Toggle Mode Demo, Buka OPAC, Logout) +
+  6+ rute (Dashboard, Anggota, Buku, Peminjaman, Pengembalian,
+  Pengaturan, dst). Empty query tetap menampilkan `Aksi Cepat` +
+  `Halaman` tanpa membutuhkan ketikan.
+- **Skeleton screens (#154)** — komponen `TableSkeleton` (untuk
+  AnggotaListPage, BukuListPage, PeminjamanListPage,
+  PengembalianPage results panel) + `CardSkeleton` (untuk OPAC home
+  & search grid) menggantikan spinner. Hormati
+  `prefers-reduced-motion`, `aria-busy="true"` untuk screen reader.
+- **Laporan Eksekutif PDF (#155)** — tombol "Cetak Laporan Eksekutif"
+  di halaman Laporan menghasilkan PDF 3-halaman: cover + KPI summary,
+  charts (peminjaman per minggu, top 5 buku, top 5 anggota), action
+  items otomatis (denda > 50k, reservasi tertumpuk). Date-range picker
+  default = bulan berjalan. Operasi sepenuhnya offline (font + chart
+  bundled).
+- **Dashboard System Health card (#156)** — card baru di bawah KPI grid
+  menampilkan ukuran DB (KB/MB), backup terakhir (relatif),
+  backup berikutnya, jumlah reservasi tertunda (badge hijau saat 0,
+  oranye saat > 0), versi aplikasi + pill "Update tersedia". Click
+  baris navigasi: backup → Settings → Backup, reservasi → /reservasi.
+- **Mode Demo / Sandbox (#157)** — toggle di Pengaturan → Mode Demo
+  yang menukar app ke `perpustakaan-v2-demo.db` (auto-copy dari prod
+  pada enable). Banner kuning persisten saat aktif. Semua tulis di
+  mode demo terisolasi dari prod DB. Saat dinonaktifkan, demo DB
+  diarsipkan ke `demo-archive/<ts>.db`. Backup scheduler skip otomatis
+  saat sandbox aktif. Berguna untuk pelatihan petugas baru / demo
+  sekolah lain tanpa risiko menyentuh data asli.
+- **OPAC Buku Pilihan (carousel curated) (#158)** — admin pin sampai 5
+  buku featured dari halaman baru `/buku/buku-pilihan` (akses via
+  tombol "Atur Pilihan OPAC" di Buku list). OPAC home menampilkan
+  carousel auto-rotate 5s di atas grid katalog, pause-on-hover,
+  arrow + dot navigation, keyboard accessible (←/→ + Enter), respect
+  `prefers-reduced-motion`. Carousel tidak tampil sama sekali saat 0
+  pin aktif (tidak ada placeholder kosong). Cap 5 pin di-enforce di
+  client + server.
+
+### Fixed
+
+- **Detail Pengembalian: 6 tombol denda dengan nilai duplikat (#145)** —
+  saat `dendaPerHari = 5000`, preset multiplier (`5_000 / 10_000 / 15_000`)
+  dan preset tetap (`5_000 / 10_000 / 15_000`) bertumpuk → 6 tombol dengan
+  3 nilai duplikat. Sekarang dedup via `useMemo` set; saat collide hanya
+  3 tombol unique yang render. Dengan `dendaPerHari = 2000`, ke-6 tombol
+  unik (`2.000 / 4.000 / 6.000 / 5.000 / 10.000 / 15.000`).
+
+### Schema changes
+
+- Table baru `buku_pilihan` (FK ke `buku.id` ON DELETE CASCADE) untuk
+  E1-OPACBukuPilihan. Migration additif, idempotent.
+- Flag file `<app_data>/sandbox.flag` untuk persistensi state Mode
+  Demo lintas restart. Tidak menyentuh schema produksi.
+
+### Dependencies
+
+- Tidak ada upgrade dependency mayor di v1.1.0 — semua fitur
+  diimplementasi pakai dependency yang sudah ada (lucide-react,
+  pdf-lib, recharts, dst).
+
 ## [1.0.12] - 2026-05-06
 
 ### Fixed
