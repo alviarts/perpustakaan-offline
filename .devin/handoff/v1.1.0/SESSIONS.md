@@ -395,3 +395,33 @@ Serves as the "who did what when" for cross-session debugging.
          (apps/desktop/package.json, apps/desktop/src-tauri/Cargo.toml,
           apps/desktop/src-tauri/Cargo.lock, apps/desktop/src-tauri/tauri.conf.json),
          update CHANGELOG, open release PR, squash, tag v1.1.0, push.
+
+- session_id: devin-517330f5c5b7452a9af5095bc9de321b
+  status:    COMPLETED
+  item:      D1-SystemHealthWidget
+  pr:        https://github.com/alviarts/perpustakaan-offline/pull/156 (merged)
+  branch:    devin/1778110600-feat-system-health
+  started_at:    2026-05-07T00:00Z
+  completed_at:  2026-05-07T00:08Z
+  notes: |
+    Took over the paused D1 from devin-81dbfdf5cf0a4377a2612b1ac3922053.
+    The previous WIP pause commit referenced SystemHealthCard.tsx +
+    systemHealthCard.test.tsx in its message but failed to git-add
+    them, so DashboardPage.tsx imported a missing module and CI
+    failed (TS2307 in both Lint+Typecheck+Unit-Test and Rust check —
+    the Rust job builds the frontend first to seed dist/).
+
+    Fix `e83ce82`: recreated both files matching the spec in BUGS.md
+    D1 + the i18n keys + dashboard.ts SystemHealth interface that
+    were already on the branch. Component renders 5 rows (DB size,
+    last backup relative, next backup absolute, pending reservasi
+    with emerald/amber tone toggle at 0/>0, version + optional
+    "Update tersedia" pill). Backup rows route to /settings/backup,
+    reservasi row to /reservasi. formatBytes / formatRelative are
+    exported pure helpers. 8 unit tests added (the previous Devin
+    claimed 7 — the extra one is the error-state fallback).
+
+    Local gates after fix: typecheck OK, lint OK, i18n:lint OK,
+    pnpm test 585/585, build OK. CI green on both jobs after push.
+    Flipped draft -> ready via GraphQL mutation; squash-merged via
+    PAT. Merge SHA on main: 631b9544.

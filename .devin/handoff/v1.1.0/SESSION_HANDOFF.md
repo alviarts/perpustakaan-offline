@@ -9,9 +9,9 @@
 
 ---
 
-## **CURRENT PICKUP STATE — read this first** (updated 2026-05-06T23:50Z)
+## **CURRENT PICKUP STATE — read this first** (updated 2026-05-07T00:05Z)
 
-**11 of 14 items shipped. 1 paused mid-flight (D1, draft PR #156). 2 OPEN. RELEASE pending.**
+**12 of 14 items shipped. 2 OPEN (D5, E1). RELEASE pending.**
 
 | # | id | status | PR |
 |---|----|--------|-----|
@@ -20,29 +20,16 @@
 | 9 | A1-CommandPalette | DONE | #153 |
 | 10 | A2-SkeletonScreens | DONE | #154 |
 | 11 | C1-LaporanEksekutifPDF | DONE | #155 |
-| **12** | **D1-SystemHealthWidget** | **PAUSED — DRAFT** | **#156 ([devin/1778110600-feat-system-health](https://github.com/alviarts/perpustakaan-offline/pull/156))** |
-| 13 | D5-SandboxDemoMode | OPEN | — |
-| 14 | E1-OPACBukuPilihan | OPEN | — |
+| 12 | D1-SystemHealthWidget | DONE | #156 |
+| **13** | **D5-SandboxDemoMode** | **OPEN — claim next** | — |
+| **14** | **E1-OPACBukuPilihan** | **OPEN** | — |
 | 15 | RELEASE 1.1.0 | OPEN | — |
 
 ### Immediate next steps (start here, in order)
 
-1. **Finish D1 (already drafted, gates green)**
-   - Pull `devin/1778110600-feat-system-health` (the draft PR #156 branch).
-   - The implementation is FUNCTIONALLY COMPLETE: backend RPC
-     `dashboard_system_health` + front-end `SystemHealthCard.tsx` +
-     `dashboardApi.systemHealth()` + i18n keys + 7 unit tests + DashboardPage
-     wiring. Last WIP commit ran `pnpm typecheck`, `pnpm lint`, `pnpm i18n:lint`,
-     `pnpm test` (579/579), `pnpm build`, and `cargo check` — all green.
-   - Wait for CI on #156 via `git pr_checks`. Iterate any failures.
-   - Flip draft → ready: `curl PATCH /repos/alviarts/perpustakaan-offline/pulls/156`
-     with `{"draft": false}` using `Bearer $GITHUB_PAT_ALVIARTS`.
-   - Squash-merge via PAT (see `WORKFLOW.md` "Merge").
-   - Back on `devin/1778099608-v110-handoff`: PROGRESS.md D1 row
-     `PAUSED:* → DONE`, fill `completed_at`. Append SESSIONS.md COMPLETED.
-2. **Claim D5-SandboxDemoMode** (no deps) — spec at `BUGS.md` line 932.
-3. **Claim E1-OPACBukuPilihan** (no deps) — spec at `BUGS.md` line 998.
-4. **RELEASE 1.1.0** — bump to `1.1.0` in:
+1. **Claim D5-SandboxDemoMode** (no deps) — spec at `BUGS.md` line 932.
+2. **Claim E1-OPACBukuPilihan** (no deps) — spec at `BUGS.md` line 998.
+3. **RELEASE 1.1.0** — bump to `1.1.0` in:
    - `apps/desktop/package.json`
    - `apps/desktop/src-tauri/Cargo.toml`
    - `apps/desktop/src-tauri/Cargo.lock` (perpustakaan-desktop entry)
