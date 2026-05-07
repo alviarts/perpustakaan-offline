@@ -238,6 +238,18 @@ pub fn spawn_backup_scheduler(app: &tauri::AppHandle) {
 
 fn tick(app: &tauri::AppHandle) -> AppResult<()> {
     let state: tauri::State<'_, AppState> = app.state::<AppState>();
+    // D5-SandboxDemoMode — never auto-back-up the demo DB. Manual backups
+    // from the Settings page still target the active connection, but the
+    // cron-driven auto-backup short-circuits here so demo data stays out
+    // of the regular cloud target.
+    if state
+        .sandbox_mode
+        .lock()
+        .map(|g| *g)
+        .unwrap_or(false)
+    {
+        return Ok(());
+    }
     let backup_dir = resolve_default_backup_dir(app)?;
     let db_src = crate::db::resolve_db_path(app)?;
     let did_run = run_tick_once(&state, &backup_dir, &db_src, Local::now())?;

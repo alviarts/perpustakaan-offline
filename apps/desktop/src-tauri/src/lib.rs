@@ -16,6 +16,10 @@ pub struct AppState {
     pub db: Mutex<rusqlite::Connection>,
     pub current_user: Mutex<Option<commands::auth::SessionUser>>,
     pub remember_token: Mutex<Option<String>>,
+    /// D5-SandboxDemoMode — `true` when the active `db` connection points
+    /// at `demo.db`. Mirrors the on-disk `sandbox.flag` so RPC handlers
+    /// can branch without re-reading the file on every call.
+    pub sandbox_mode: Mutex<bool>,
 }
 
 const MAIN_WINDOW_LABEL: &str = "main";
@@ -39,8 +43,28 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let db_path = db::resolve_db_path(app.handle())?;
-            log::info!("opening sqlite db at {}", db_path.display());
+            // D5: ensure the production DB is migrated even when we boot
+            // straight into sandbox mode, so the audit log and prod schema
+            // stay current. Sandbox mode persists across restarts via the
+            // `sandbox.flag` file, so on next launch we mount `demo.db` if
+            // the flag is still present.
+            let prod_path = db::prod_db_path(app.handle())?;
+            {
+                let prod_conn = db::open_connection(&prod_path)?;
+                db::run_migrations(&prod_conn)?;
+                db::seed_default_admin(&prod_conn)?;
+            }
+            let sandbox_active = db::read_sandbox_flag(app.handle());
+            let db_path = if sandbox_active {
+                db::demo_db_path(app.handle())?
+            } else {
+                prod_path.clone()
+            };
+            log::info!(
+                "opening sqlite db at {} (sandbox={})",
+                db_path.display(),
+                sandbox_active
+            );
             let conn = db::open_connection(&db_path)?;
             db::run_migrations(&conn)?;
             db::seed_default_admin(&conn)?;
@@ -48,6 +72,7 @@ pub fn run() {
                 db: Mutex::new(conn),
                 current_user: Mutex::new(None),
                 remember_token: Mutex::new(None),
+                sandbox_mode: Mutex::new(sandbox_active),
             });
 
             // BUG-011: build the system tray once at setup. The tray is
@@ -167,6 +192,9 @@ pub fn run() {
             commands::dashboard::dashboard_heatmap,
             commands::dashboard::dashboard_insights,
             commands::dashboard::dashboard_system_health,
+            commands::sandbox::sandbox_status,
+            commands::sandbox::sandbox_enable,
+            commands::sandbox::sandbox_disable,
             commands::laporan::laporan_grafik,
             commands::laporan::laporan_top_peminjam,
             commands::laporan::laporan_top_buku,

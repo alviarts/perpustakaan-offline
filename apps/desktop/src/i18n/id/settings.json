@@ -318,6 +318,27 @@
       "feedback": {
         "saved": "Mode akses tersimpan. Memuat ulang…"
       }
+    },
+    "sandbox": {
+      "label": "Mode Demo",
+      "summary": "Aktifkan mode latihan: aplikasi memakai database demo terpisah, data asli aman.",
+      "activeTitle": "Mode Demo aktif",
+      "inactiveTitle": "Mode Demo nonaktif",
+      "activeDescription": "Aplikasi sedang menyentuh database demo terpisah. Backup otomatis dilewati selama mode demo aktif.",
+      "inactiveDescription": "Mengaktifkan mode demo akan menyalin database asli ke demo.db lalu memuat ulang aplikasi. Perubahan berikutnya tidak akan menyentuh data asli.",
+      "enable": "Aktifkan Mode Demo",
+      "disable": "Kembali ke Mode Asli",
+      "activeDb": "DB aktif",
+      "prodDb": "DB asli",
+      "demoDb": "DB demo",
+      "bannerMessage": "Mode Demo aktif — perubahan tidak menyentuh data asli.",
+      "confirmEnableTitle": "Aktifkan Mode Demo?",
+      "confirmEnableDescription": "Database asli akan disalin ke demo.db. Aplikasi akan dimuat ulang dan semua perubahan berikutnya tidak menyentuh data asli.",
+      "confirmDisableTitle": "Nonaktifkan Mode Demo?",
+      "confirmDisableDescription": "Database demo akan diarsipkan dan aplikasi kembali ke data asli setelah memuat ulang.",
+      "enabledToast": "Mode Demo aktif. Memuat ulang…",
+      "disabledToast": "Mode Demo dinonaktifkan. Memuat ulang…",
+      "error": "Gagal mengubah Mode Demo"
     }
   }
 }

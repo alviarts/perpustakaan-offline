@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { SandboxBanner } from './SandboxBanner';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -55,6 +56,7 @@ export function AppShell() {
     <div className="flex h-full min-h-0 min-w-[800px] overflow-hidden bg-background text-foreground">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
+        <SandboxBanner />
         <Header />
         <main className="flex-1 overflow-y-auto" data-testid="app-main">
           <Outlet />

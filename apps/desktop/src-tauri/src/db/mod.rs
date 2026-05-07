@@ -9,13 +9,68 @@ const SCHEMA_SQL: &str = include_str!("schema.sql");
 const DEFAULT_ADMIN_USERNAME: &str = "admin";
 const DEFAULT_ADMIN_PASSWORD: &str = "admin123";
 
-pub fn resolve_db_path(app: &AppHandle) -> AppResult<PathBuf> {
+pub fn app_data_dir(app: &AppHandle) -> AppResult<PathBuf> {
     let dir = app
         .path()
         .app_data_dir()
         .map_err(|e| AppError::Internal(format!("app_data_dir: {e}")))?;
     std::fs::create_dir_all(&dir)?;
-    Ok(dir.join("perpustakaan-v2.db"))
+    Ok(dir)
+}
+
+/// Production database path. Always returns the real DB file regardless of
+/// whether sandbox mode is currently active — used by the sandbox toggle
+/// (to seed `demo.db`) and by the audit log writer (so toggle history is
+/// preserved across sandbox enables/disables).
+pub fn prod_db_path(app: &AppHandle) -> AppResult<PathBuf> {
+    Ok(app_data_dir(app)?.join("perpustakaan-v2.db"))
+}
+
+/// Sandbox / demo database path (D5-SandboxDemoMode).
+pub fn demo_db_path(app: &AppHandle) -> AppResult<PathBuf> {
+    Ok(app_data_dir(app)?.join("perpustakaan-v2-demo.db"))
+}
+
+/// Path of the persisted sandbox-active flag. The presence of the file
+/// (with content `"1"`) means sandbox mode should be re-enabled on next
+/// startup. We use a separate plain file rather than the `settings` table
+/// so sandbox state is decoupled from whichever DB is currently mounted.
+pub fn sandbox_flag_path(app: &AppHandle) -> AppResult<PathBuf> {
+    Ok(app_data_dir(app)?.join("sandbox.flag"))
+}
+
+/// Read the persisted sandbox flag. Defaults to `false` if the file is
+/// missing or unreadable so a clean install always boots into prod mode.
+pub fn read_sandbox_flag(app: &AppHandle) -> bool {
+    let Ok(path) = sandbox_flag_path(app) else {
+        return false;
+    };
+    matches!(std::fs::read_to_string(&path), Ok(s) if s.trim() == "1")
+}
+
+/// Persist the sandbox flag to disk. Writes `"1"` when on, removes the file
+/// when off so a fresh install never accidentally inherits sandbox mode
+/// from a stale file.
+pub fn write_sandbox_flag(app: &AppHandle, on: bool) -> AppResult<()> {
+    let path = sandbox_flag_path(app)?;
+    if on {
+        std::fs::write(&path, "1")?;
+    } else if path.exists() {
+        std::fs::remove_file(&path)?;
+    }
+    Ok(())
+}
+
+/// Resolve the DB path to mount at startup. Picks `demo.db` when the
+/// sandbox flag is set, the production DB otherwise. Existing callers
+/// (dashboard system-health, manual backup, scheduler) keep working without
+/// modification.
+pub fn resolve_db_path(app: &AppHandle) -> AppResult<PathBuf> {
+    if read_sandbox_flag(app) {
+        demo_db_path(app)
+    } else {
+        prod_db_path(app)
+    }
 }
 
 pub fn open_connection(path: &Path) -> AppResult<Connection> {
@@ -34,6 +89,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SURAT_SQL)?;
     conn.execute_batch(WISHLIST_SQL)?;
     conn.execute_batch(SYNC_SQL)?;
+    conn.execute_batch(SANDBOX_AUDIT_SQL)?;
     apply_additive_migrations(conn)?;
     backfill_missing_eksemplar(conn)?;
     seed_master_data(conn)?;
@@ -115,6 +171,19 @@ CREATE TABLE IF NOT EXISTS sync_log (
 CREATE INDEX IF NOT EXISTS idx_sync_log_ts ON sync_log(ts DESC);
 "#;
 
+/// D5-SandboxDemoMode — append-only log of sandbox toggles. Lives in the
+/// production DB (never in the demo copy) so toggle history is preserved
+/// across `enable_sandbox` overwrites of `demo.db`.
+const SANDBOX_AUDIT_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS sandbox_audit_log (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts        TEXT NOT NULL DEFAULT (datetime('now')),
+    action    TEXT NOT NULL CHECK (action IN ('enable','disable')),
+    user_id   INTEGER,
+    note      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sandbox_audit_ts ON sandbox_audit_log(ts DESC);
+"#;
 
 const KTA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS kta_templates (

@@ -20,6 +20,7 @@ pub mod laporan;
 pub mod master_data;
 pub mod peminjaman;
 pub mod reservasi;
+pub mod sandbox;
 pub mod settings;
 pub mod stocktake;
 pub mod surat;
