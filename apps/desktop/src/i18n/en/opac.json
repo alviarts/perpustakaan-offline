@@ -12,7 +12,13 @@
     "semua": "All",
     "ketersediaan": "Availability",
     "available": "Available",
-    "borrowed": "Checked out"
+    "borrowed": "Checked out",
+    "featuredHeading": "Featured Books",
+    "featuredLabel": "Featured books carousel",
+    "featuredOpen": "View details for \"{{judul}}\"",
+    "featuredPrev": "Previous",
+    "featuredNext": "Next",
+    "featuredGoto": "Slide {{n}}"
   },
   "search": {
     "results": "{{count}} results",

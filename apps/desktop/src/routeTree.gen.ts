@@ -52,6 +52,7 @@ import { Route as AuthedLaporanEksekutifRouteImport } from './routes/_authed/lap
 import { Route as AuthedLaporanBackupRouteImport } from './routes/_authed/laporan/backup'
 import { Route as AuthedBukuNewRouteImport } from './routes/_authed/buku/new'
 import { Route as AuthedBukuCetakLabelRouteImport } from './routes/_authed/buku/cetak-label'
+import { Route as AuthedBukuBukuPilihanRouteImport } from './routes/_authed/buku/buku-pilihan'
 import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
 import { Route as AuthedAnggotaCetakKtaRouteImport } from './routes/_authed/anggota/cetak-kta'
@@ -275,6 +276,11 @@ const AuthedBukuCetakLabelRoute = AuthedBukuCetakLabelRouteImport.update({
   path: '/buku/cetak-label',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedBukuBukuPilihanRoute = AuthedBukuBukuPilihanRouteImport.update({
+  id: '/buku/buku-pilihan',
+  path: '/buku/buku-pilihan',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedBukuIdRoute = AuthedBukuIdRouteImport.update({
   id: '/buku/$id',
   path: '/buku/$id',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
+  '/buku/buku-pilihan': typeof AuthedBukuBukuPilihanRoute
   '/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/buku/new': typeof AuthedBukuNewRoute
   '/laporan/backup': typeof AuthedLaporanBackupRoute
@@ -355,6 +362,7 @@ export interface FileRoutesByTo {
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
   '/buku/$id': typeof AuthedBukuIdRoute
+  '/buku/buku-pilihan': typeof AuthedBukuBukuPilihanRoute
   '/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/buku/new': typeof AuthedBukuNewRoute
   '/laporan/backup': typeof AuthedLaporanBackupRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/_authed/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
   '/_authed/buku/$id': typeof AuthedBukuIdRoute
+  '/_authed/buku/buku-pilihan': typeof AuthedBukuBukuPilihanRoute
   '/_authed/buku/cetak-label': typeof AuthedBukuCetakLabelRoute
   '/_authed/buku/new': typeof AuthedBukuNewRoute
   '/_authed/laporan/backup': typeof AuthedLaporanBackupRoute
@@ -455,6 +464,7 @@ export interface FileRouteTypes {
     | '/anggota/cetak-kta'
     | '/anggota/new'
     | '/buku/$id'
+    | '/buku/buku-pilihan'
     | '/buku/cetak-label'
     | '/buku/new'
     | '/laporan/backup'
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/anggota/cetak-kta'
     | '/anggota/new'
     | '/buku/$id'
+    | '/buku/buku-pilihan'
     | '/buku/cetak-label'
     | '/buku/new'
     | '/laporan/backup'
@@ -550,6 +561,7 @@ export interface FileRouteTypes {
     | '/_authed/anggota/cetak-kta'
     | '/_authed/anggota/new'
     | '/_authed/buku/$id'
+    | '/_authed/buku/buku-pilihan'
     | '/_authed/buku/cetak-label'
     | '/_authed/buku/new'
     | '/_authed/laporan/backup'
@@ -895,6 +907,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBukuCetakLabelRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/buku/buku-pilihan': {
+      id: '/_authed/buku/buku-pilihan'
+      path: '/buku/buku-pilihan'
+      fullPath: '/buku/buku-pilihan'
+      preLoaderRoute: typeof AuthedBukuBukuPilihanRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/buku/$id': {
       id: '/_authed/buku/$id'
       path: '/buku/$id'
@@ -1005,6 +1024,7 @@ interface AuthedRouteChildren {
   AuthedAnggotaCetakKtaRoute: typeof AuthedAnggotaCetakKtaRoute
   AuthedAnggotaNewRoute: typeof AuthedAnggotaNewRoute
   AuthedBukuIdRoute: typeof AuthedBukuIdRoute
+  AuthedBukuBukuPilihanRoute: typeof AuthedBukuBukuPilihanRoute
   AuthedBukuCetakLabelRoute: typeof AuthedBukuCetakLabelRoute
   AuthedBukuNewRoute: typeof AuthedBukuNewRoute
   AuthedPeminjamanIdRoute: typeof AuthedPeminjamanIdRoute
@@ -1028,6 +1048,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAnggotaCetakKtaRoute: AuthedAnggotaCetakKtaRoute,
   AuthedAnggotaNewRoute: AuthedAnggotaNewRoute,
   AuthedBukuIdRoute: AuthedBukuIdRoute,
+  AuthedBukuBukuPilihanRoute: AuthedBukuBukuPilihanRoute,
   AuthedBukuCetakLabelRoute: AuthedBukuCetakLabelRoute,
   AuthedBukuNewRoute: AuthedBukuNewRoute,
   AuthedPeminjamanIdRoute: AuthedPeminjamanIdRoute,

@@ -12,7 +12,13 @@
     "semua": "Semua",
     "ketersediaan": "Ketersediaan",
     "available": "Tersedia",
-    "borrowed": "Dipinjam"
+    "borrowed": "Dipinjam",
+    "featuredHeading": "Buku Pilihan",
+    "featuredLabel": "Carousel buku pilihan",
+    "featuredOpen": "Lihat detail \"{{judul}}\"",
+    "featuredPrev": "Sebelumnya",
+    "featuredNext": "Berikutnya",
+    "featuredGoto": "Slide {{n}}"
   },
   "search": {
     "results": "{{count}} hasil",

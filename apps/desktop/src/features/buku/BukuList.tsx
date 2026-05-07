@@ -12,6 +12,7 @@ import {
   Printer,
   ScanLine,
   Search,
+  Star,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -222,6 +223,12 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
             <Link to="/buku/cetak-label">
               <Printer className="mr-2 h-4 w-4" />
               {t('label-buku:menu.cetak', { defaultValue: 'Cetak Label' })}
+            </Link>
+          </Button>
+          <Button variant="outline" asChild data-testid="buku-pilihan-opac">
+            <Link to="/buku/buku-pilihan">
+              <Star className="mr-2 h-4 w-4" />
+              {t('buku:list.aturPilihan', { defaultValue: 'Atur Pilihan OPAC' })}
             </Link>
           </Button>
           <Button asChild data-testid="buku-add">
