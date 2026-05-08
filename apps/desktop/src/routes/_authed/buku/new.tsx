@@ -92,7 +92,10 @@ function NewBukuRoute() {
         onCancel={() => void navigate({ to: '/buku' })}
         onSubmit={async (values) => {
           try {
-            await bukuApi.create(toBukuInput(values));
+            const input = toBukuInput(values);
+            console.log('Creating buku with data:', input);
+            console.log('Cover path:', input.coverPath);
+            await bukuApi.create(input);
             showToast({ title: t('buku:feedback.createSuccess') });
             void navigate({ to: '/buku' });
           } catch (err) {
