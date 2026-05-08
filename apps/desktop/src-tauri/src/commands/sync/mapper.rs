@@ -18,6 +18,7 @@ use crate::error::{AppError, AppResult};
 /// stringly typed and we'd rather lose nothing than juggle types here.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AnggotaRow {
+    pub id: i64,
     pub kode_anggota: String,
     pub nama: String,
     pub jenis_kelamin: String,
@@ -35,9 +36,11 @@ pub struct AnggotaRow {
     pub updated_at: String,
 }
 
-/// Header order for the `Anggota` sheet tab. Putting `kode_anggota` first
-/// makes the sheet readable even when zoomed out (operator scans by code).
+/// Header order for the `Anggota` sheet tab. `id` first so mobile app can
+/// resolve KTA QR codes (format: "member:<id>"). Then `kode_anggota` for
+/// human readability.
 pub const ANGGOTA_HEADER: &[&str] = &[
+    "id",
     "kode_anggota",
     "nama",
     "jenis_kelamin",
@@ -62,6 +65,7 @@ impl AnggotaRow {
     /// column order. Used by push.
     pub fn to_cells(&self) -> Vec<String> {
         vec![
+            self.id.to_string(),
             self.kode_anggota.clone(),
             self.nama.clone(),
             self.jenis_kelamin.clone(),
@@ -85,21 +89,22 @@ impl AnggotaRow {
     pub fn from_cells(cells: &[String]) -> AnggotaRow {
         let pick = |i: usize| cells.get(i).cloned().unwrap_or_default();
         AnggotaRow {
-            kode_anggota: pick(0),
-            nama: pick(1),
-            jenis_kelamin: pick(2),
-            kelas: pick(3),
-            jurusan: pick(4),
-            tempat_lahir: pick(5),
-            tanggal_lahir: pick(6),
-            no_telp: pick(7),
-            email: pick(8),
-            alamat: pick(9),
-            agama: pick(10),
-            aktif: pick(11),
-            catatan: pick(12),
-            created_at: pick(13),
-            updated_at: pick(14),
+            id: pick(0).parse::<i64>().unwrap_or(0),
+            kode_anggota: pick(1),
+            nama: pick(2),
+            jenis_kelamin: pick(3),
+            kelas: pick(4),
+            jurusan: pick(5),
+            tempat_lahir: pick(6),
+            tanggal_lahir: pick(7),
+            no_telp: pick(8),
+            email: pick(9),
+            alamat: pick(10),
+            agama: pick(11),
+            aktif: pick(12),
+            catatan: pick(13),
+            created_at: pick(14),
+            updated_at: pick(15),
         }
     }
 }
@@ -108,7 +113,8 @@ impl AnggotaRow {
 /// for stable diffs across pushes.
 pub fn read_all_anggota(conn: &Connection) -> AppResult<Vec<AnggotaRow>> {
     let mut stmt = conn.prepare(
-        "SELECT kode_anggota,
+        "SELECT id,
+                kode_anggota,
                 nama,
                 COALESCE(jenis_kelamin,''),
                 COALESCE(kelas,''),
@@ -128,21 +134,22 @@ pub fn read_all_anggota(conn: &Connection) -> AppResult<Vec<AnggotaRow>> {
     )?;
     let rows = stmt.query_map([], |row| {
         Ok(AnggotaRow {
-            kode_anggota: row.get(0)?,
-            nama: row.get(1)?,
-            jenis_kelamin: row.get(2)?,
-            kelas: row.get(3)?,
-            jurusan: row.get(4)?,
-            tempat_lahir: row.get(5)?,
-            tanggal_lahir: row.get(6)?,
-            no_telp: row.get(7)?,
-            email: row.get(8)?,
-            alamat: row.get(9)?,
-            agama: row.get(10)?,
-            aktif: row.get(11)?,
-            catatan: row.get(12)?,
-            created_at: row.get(13)?,
-            updated_at: row.get(14)?,
+            id: row.get(0)?,
+            kode_anggota: row.get(1)?,
+            nama: row.get(2)?,
+            jenis_kelamin: row.get(3)?,
+            kelas: row.get(4)?,
+            jurusan: row.get(5)?,
+            tempat_lahir: row.get(6)?,
+            tanggal_lahir: row.get(7)?,
+            no_telp: row.get(8)?,
+            email: row.get(9)?,
+            alamat: row.get(10)?,
+            agama: row.get(11)?,
+            aktif: row.get(12)?,
+            catatan: row.get(13)?,
+            created_at: row.get(14)?,
+            updated_at: row.get(15)?,
         })
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
@@ -845,6 +852,7 @@ mod tests {
 
     fn fixture_row() -> AnggotaRow {
         AnggotaRow {
+            id: 1,
             kode_anggota: "A0001".into(),
             nama: "Budi Santoso".into(),
             jenis_kelamin: "L".into(),

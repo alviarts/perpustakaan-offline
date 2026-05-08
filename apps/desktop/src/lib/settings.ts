@@ -381,6 +381,10 @@ export interface SettingsApi {
   pushSyncNow(): Promise<SyncRunResult[]>;
   pullSyncNow(): Promise<SyncRunResult[]>;
   getSyncStatus(): Promise<SyncStatusSnapshot>;
+  syncFullNow(): Promise<SyncRunResult[]>;
+  generateMobileQr(): Promise<string>;
+  exportMobileQr(bytes: Uint8Array): Promise<{ filename: string; absPath: string; dirAbsPath: string }>;
+  openExportsFolder(): Promise<string>;
 
   listUsers(): Promise<UserRecord[]>;
   createUser(payload: UserInput): Promise<UserRecord>;
@@ -573,6 +577,19 @@ const mockApi: SettingsApi = {
       states: [],
       log: [],
     };
+  },
+  async syncFullNow() {
+    return [{ direction: 'pull', rows_changed: 0, status: 'noop', message: 'mock' },
+            { direction: 'push', rows_changed: 0, status: 'noop', message: 'mock' }];
+  },
+  async generateMobileQr() {
+    return JSON.stringify({ v: 1, lib: 'Mock Library', sid: 'mock-spreadsheet-id', sa: '{}' });
+  },
+  async exportMobileQr(_bytes) {
+    return { filename: 'qr-mock.png', absPath: '/tmp/qr-mock.png', dirAbsPath: '/tmp' };
+  },
+  async openExportsFolder() {
+    return '/tmp';
   },
 
   async listUsers() {
@@ -835,9 +852,28 @@ const tauriApi: SettingsApi = {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<SyncRunResult[]>('sync_pull_now');
   },
+  async syncFullNow() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<SyncRunResult[]>('sync_full_now');
+  },
   async getSyncStatus() {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<SyncStatusSnapshot>('sync_status');
+  },
+  async generateMobileQr() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<string>('sync_generate_mobile_qr');
+  },
+  async exportMobileQr(bytes) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<{ filename: string; absPath: string; dirAbsPath: string }>(
+      'sync_export_mobile_qr',
+      { bytes: Array.from(bytes) },
+    );
+  },
+  async openExportsFolder() {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<string>('kta_open_exports_folder');
   },
 
   async listUsers() {
@@ -915,6 +951,10 @@ export const settingsApi: SettingsApi = {
   pushSyncNow: () => rpc().pushSyncNow(),
   pullSyncNow: () => rpc().pullSyncNow(),
   getSyncStatus: () => rpc().getSyncStatus(),
+  syncFullNow: () => rpc().syncFullNow(),
+  generateMobileQr: () => rpc().generateMobileQr(),
+  exportMobileQr: (bytes: Uint8Array) => rpc().exportMobileQr(bytes),
+  openExportsFolder: () => rpc().openExportsFolder(),
   listUsers: () => rpc().listUsers(),
   createUser: (payload) => rpc().createUser(payload),
   updateUser: (id, payload) => rpc().updateUser(id, payload),

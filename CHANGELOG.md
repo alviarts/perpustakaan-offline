@@ -13,6 +13,43 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-08
+
+Rilis besar: **Aplikasi Android untuk siswa** + integrasi QR code untuk
+menghubungkan HP ke perpustakaan tanpa konfigurasi manual.
+
+### Added
+
+- **Aplikasi Android "Perpustakaan Nusantara"** (`apps/mobile/`)
+  - Katalog buku: cari, filter kategori, lihat detail + ketersediaan eksemplar
+  - Scan KTA: kamera HP scan barcode/QR pada kartu anggota → identifikasi otomatis
+  - Profil anggota: pinjaman aktif, sisa hari jatuh tempo, denda belum bayar, riwayat
+  - Reservasi buku: pesan buku yang sedang dipinjam orang lain (write ke Google Sheets)
+  - Wishlist: request pengadaan buku baru ke admin (write ke Google Sheets)
+  - Kunjungan otomatis: auto-log kunjungan saat scan KTA
+  - Notifikasi lokal: pengingat H-2 dan H-1 jatuh tempo peminjaman (WorkManager)
+  - Setup zero-config: scan QR dari dinding perpustakaan → langsung terhubung
+  - Offline cache: Room database menyimpan data terakhir, app tetap bisa browse offline
+  - Material 3 theming dengan dynamic color support
+  - Tech stack: Kotlin, Jetpack Compose, Hilt DI, CameraX + ML Kit, Room, DataStore
+
+- **Desktop: Hubungkan HP Siswa** (Pengaturan → Sinkronisasi)
+  - Generate QR code berisi konfigurasi perpustakaan (spreadsheet ID + Service Account)
+  - Simpan QR ke folder exports/ sebagai PNG
+  - Buka folder exports/ di File Explorer
+  - Cetak poster QR (layout A4 rapi dengan instruksi 3 langkah untuk siswa)
+  - Tauri command: `sync_generate_mobile_qr`, `sync_export_mobile_qr`
+
+- **CI/CD: GitHub Actions workflow untuk Android** (`.github/workflows/android-build.yml`)
+  - Auto-build debug APK pada push ke main
+  - Auto-build + sign release APK pada tag push (`v*`)
+  - APK otomatis di-attach ke GitHub Release bersama installer Windows
+
+### Infrastructure
+
+- Android project scaffold di `apps/mobile/` (Gradle 8.11, AGP 8.7, Kotlin 2.1, Compose BOM 2024.12)
+- Monorepo tetap kompatibel: `apps/mobile` berdiri sendiri, tidak mengganggu `apps/desktop`
+
 ## [1.1.0] - 2026-05-06
 
 Rilis fitur besar: 14 item baru — quality-of-life sirkulasi, OPAC interaktif

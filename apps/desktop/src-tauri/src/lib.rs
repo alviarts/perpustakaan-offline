@@ -122,6 +122,10 @@ pub fn run() {
             // <app_data_dir>/backups/. No-op if the schedule is disabled.
             commands::backup_runner::spawn_backup_scheduler(app.handle());
 
+            // Auto-sync scheduler: ticks every 60s, pushes data to Google
+            // Sheets if sync.auto.enabled=1 and interval has elapsed.
+            commands::sync_runner::spawn_sync_scheduler(app.handle());
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -276,7 +280,10 @@ pub fn run() {
             commands::sync::sync_push_now,
             commands::sync::sync_pull_now,
             commands::sync::sync_status,
+            commands::sync::sync_full_now,
             commands::sync::sync_save_service_account,
+            commands::sync::sync_generate_mobile_qr,
+            commands::sync::sync_export_mobile_qr,
         ])
         .on_window_event(|window, event| {
             // BUG-011: intercept the X-button on the main window and

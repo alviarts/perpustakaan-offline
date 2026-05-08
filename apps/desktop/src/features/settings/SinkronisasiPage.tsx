@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownToLine, ArrowUpFromLine, ExternalLink, RotateCw } from 'lucide-react';
+import QRCode from 'qrcode';
+import { ArrowDownToLine, ArrowUpFromLine, ExternalLink, QrCode, RotateCw, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast-manager';
@@ -35,6 +36,7 @@ export function SinkronisasiPage(): JSX.Element {
   const [testing, setTesting] = React.useState(false);
   const [pushing, setPushing] = React.useState(false);
   const [pulling, setPulling] = React.useState(false);
+  const [showRestartBanner, setShowRestartBanner] = React.useState(false);
 
   const refresh = React.useCallback(async () => {
     const [next, snap] = await Promise.all([
@@ -54,6 +56,10 @@ export function SinkronisasiPage(): JSX.Element {
     try {
       await settingsApi.saveSyncConfig(cfg);
       await refresh();
+      // Show restart banner if sync is now fully configured
+      if (cfg.enabled && cfg.spreadsheetId.trim().length > 0) {
+        setShowRestartBanner(true);
+      }
     } finally {
       setSaving(false);
     }
@@ -76,6 +82,8 @@ export function SinkronisasiPage(): JSX.Element {
           defaultValue: 'Service Account JSON disimpan.',
         }),
       });
+      // Show restart banner so auto-sync scheduler picks up the new SA
+      setShowRestartBanner(true);
     } catch (e) {
       showToast({
         title: t('sections.sinkronisasi.toast.saSaveError', {
@@ -186,6 +194,34 @@ export function SinkronisasiPage(): JSX.Element {
     }
   };
 
+  const [syncing, setSyncing] = React.useState(false);
+
+  const handleSyncFull = async (): Promise<void> => {
+    setSyncing(true);
+    try {
+      const results = await settingsApi.syncFullNow();
+      const pulled = results
+        .filter((r) => r.direction === 'pull' && r.status === 'ok')
+        .reduce((acc, r) => acc + r.rows_changed, 0);
+      const pushed = results
+        .filter((r) => r.direction === 'push' && r.status === 'ok')
+        .reduce((acc, r) => acc + r.rows_changed, 0);
+      showToast({
+        title: 'Sync selesai!',
+        description: `Pull: ${pulled} baris dari HP • Push: ${pushed} baris ke Sheets`,
+      });
+      await refresh();
+    } catch (e) {
+      showToast({
+        title: 'Sync gagal',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const ready = cfg.serviceAccountConfigured && cfg.spreadsheetId.trim().length > 0;
 
   return (
@@ -195,6 +231,49 @@ export function SinkronisasiPage(): JSX.Element {
       onReset={handleReset}
       saving={saving}
     >
+      {showRestartBanner ? (
+        <div className="mb-4 flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <RotateCw className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-primary">
+              {t('sections.sinkronisasi.restart.title', {
+                defaultValue: 'Restart aplikasi diperlukan',
+              })}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t('sections.sinkronisasi.restart.description', {
+                defaultValue:
+                  'Service Account berhasil disimpan. Klik "Restart Sekarang" agar sinkronisasi otomatis dapat terkoneksi dengan baik ke Google Sheets. Atau tutup dan buka ulang aplikasi secara manual.',
+              })}
+            </p>
+            <div className="mt-3 flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  // Reload the app window — this reinitializes the frontend
+                  // and the Tauri backend sync scheduler will pick up the new SA
+                  // on its next tick (within 60 seconds)
+                  window.location.reload();
+                }}
+              >
+                {t('sections.sinkronisasi.restart.button', {
+                  defaultValue: 'Restart Sekarang',
+                })}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowRestartBanner(false)}
+              >
+                {t('sections.sinkronisasi.restart.later', {
+                  defaultValue: 'Nanti',
+                })}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
@@ -234,6 +313,23 @@ export function SinkronisasiPage(): JSX.Element {
         />
       </FieldRow>
 
+      {/* Main sync button — pull first then push */}
+      {ready && cfg.enabled ? (
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSyncFull}
+            disabled={syncing}
+            className="gap-2"
+          >
+            <RotateCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Sedang sync...' : 'Sync Sekarang'}
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Pull data dari HP → Push data ke Sheets
+          </span>
+        </div>
+      ) : null}
+
       <SyncActions
         ready={ready && cfg.enabled}
         testing={testing}
@@ -245,7 +341,11 @@ export function SinkronisasiPage(): JSX.Element {
         onRefresh={refresh}
       />
 
+      {ready && cfg.enabled ? <AutoSyncSection /> : null}
+
       {status ? <SyncStatusPanel status={status} /> : null}
+
+      {ready && cfg.enabled ? <MobileQrSection /> : null}
 
       <SinkronisasiGuide />
     </SettingsSection>
@@ -520,6 +620,406 @@ function SyncLogItem({ entry }: { entry: SyncLogEntry }): JSX.Element {
         {entry.message ? <span className="text-muted-foreground"> — {entry.message}</span> : null}
       </div>
     </li>
+  );
+}
+
+/**
+ * Auto-sync toggle + interval selector.
+ * When enabled, the Rust backend pushes data to Sheets every N minutes automatically.
+ */
+function AutoSyncSection(): JSX.Element {
+  const { t } = useTranslation('settings');
+  const { showToast } = useToast();
+  const [autoEnabled, setAutoEnabled] = React.useState(false);
+  const [interval, setInterval] = React.useState(5);
+  const [lastRun, setLastRun] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    void loadAutoSyncSettings();
+  }, []);
+
+  const loadAutoSyncSettings = async (): Promise<void> => {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const rows = await invoke<Record<string, string>>('settings_get_many', {
+        keys: ['sync.auto.enabled', 'sync.auto.interval', 'sync.auto.last_run'],
+      });
+      setAutoEnabled(rows['sync.auto.enabled'] === '1');
+      setInterval(parseInt(rows['sync.auto.interval'] || '5', 10) || 5);
+      setLastRun(rows['sync.auto.last_run'] || '');
+    } catch {
+      // settings may not exist yet
+    }
+  };
+
+  const handleSave = async (): Promise<void> => {
+    setSaving(true);
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('settings_set_many', {
+        entries: {
+          'sync.auto.enabled': autoEnabled ? '1' : '0',
+          'sync.auto.interval': String(interval),
+        },
+      });
+      showToast({
+        title: autoEnabled
+          ? `Auto-sync aktif: setiap ${interval} menit`
+          : 'Auto-sync dinonaktifkan',
+      });
+    } catch (e) {
+      showToast({
+        title: 'Gagal menyimpan pengaturan auto-sync',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="rounded-md border border-border bg-muted/30 p-4">
+      <h3 className="text-base font-semibold">
+        {t('sections.sinkronisasi.auto.title', { defaultValue: 'Sinkronisasi Otomatis' })}
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {t('sections.sinkronisasi.auto.description', {
+          defaultValue:
+            'Aktifkan untuk push data ke Google Sheets secara otomatis setiap beberapa menit. Data di HP siswa akan selalu up-to-date.',
+        })}
+      </p>
+
+      <div className="mt-3 space-y-3">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={autoEnabled}
+            onChange={(e) => setAutoEnabled(e.target.checked)}
+          />
+          {t('sections.sinkronisasi.auto.enable', { defaultValue: 'Aktifkan auto-sync' })}
+        </label>
+
+        {autoEnabled ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Interval:</span>
+            <select
+              value={interval}
+              onChange={(e) => setInterval(Number(e.target.value))}
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+            >
+              <option value={1}>1 menit</option>
+              <option value={2}>2 menit</option>
+              <option value={3}>3 menit</option>
+              <option value={5}>5 menit</option>
+              <option value={10}>10 menit</option>
+              <option value={15}>15 menit</option>
+              <option value={30}>30 menit</option>
+              <option value={60}>60 menit</option>
+            </select>
+          </div>
+        ) : null}
+
+        <Button onClick={handleSave} disabled={saving} size="sm" variant="outline">
+          {saving ? 'Menyimpan...' : 'Simpan Pengaturan Auto-Sync'}
+        </Button>
+
+        {lastRun ? (
+          <p className="text-xs text-muted-foreground">
+            Terakhir sync otomatis: {lastRun}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * "Hubungkan HP Siswa" section — generates a QR code that students scan
+ * with the Perpustakaan Nusantara mobile app to auto-connect to this
+ * library's Google Sheets data.
+ *
+ * The QR contains a JSON payload with:
+ * - v: format version
+ * - lib: library display name
+ * - sid: spreadsheet ID
+ * - sa: Service Account JSON (full key)
+ *
+ * Features:
+ * - Generate QR Code
+ * - Simpan ke folder exports/ (PNG) + Buka Folder
+ * - Cetak poster QR (popup HTML dengan layout poster rapi)
+ */
+function MobileQrSection(): JSX.Element {
+  const { t } = useTranslation('settings');
+  const { showToast } = useToast();
+  const [qrDataUrl, setQrDataUrl] = React.useState<string | null>(null);
+  const [libraryName, setLibraryName] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [savedPath, setSavedPath] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleGenerate = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    setSavedPath(null);
+    try {
+      const payload = await settingsApi.generateMobileQr();
+      const parsed = JSON.parse(payload);
+      setLibraryName(parsed.lib || 'Perpustakaan');
+
+      const dataUrl = await QRCode.toDataURL(payload, {
+        errorCorrectionLevel: 'L', // L for large payloads (SA JSON is big)
+        margin: 2,
+        width: 400,
+        color: { dark: '#0D7377', light: '#FFFFFF' },
+      });
+      setQrDataUrl(dataUrl);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Gagal generate QR';
+      setError(msg);
+      showToast({ title: msg, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Save QR PNG to exports/ folder */
+  const handleSave = async (): Promise<void> => {
+    if (!qrDataUrl) return;
+    setSaving(true);
+    try {
+      // Convert data URL to bytes
+      const base64 = qrDataUrl.split(',')[1];
+      const binaryStr = atob(base64!);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+
+      const result = await settingsApi.exportMobileQr(bytes);
+      setSavedPath(result.dirAbsPath);
+      showToast({
+        title: 'QR disimpan',
+        description: `File: ${result.filename}`,
+      });
+    } catch (e) {
+      showToast({
+        title: 'Gagal menyimpan QR',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /** Open exports folder in OS file manager */
+  const handleOpenFolder = async (): Promise<void> => {
+    try {
+      await settingsApi.openExportsFolder();
+    } catch (e) {
+      showToast({
+        title: 'Gagal membuka folder',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  /** Print a poster-style QR page */
+  // ── Poster Editor State ──
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [posterTitle, setPosterTitle] = React.useState(libraryName || 'Perpustakaan Nusantara');
+  const posterSubtitle = 'Scan untuk akses katalog dari HP';
+  const posterColor = '#0D7377';
+  const posterStep1 = 'Install app Perpustakaan Nusantara di HP';
+  const posterStep2 = 'Buka app, pilih "Hubungkan ke Perpustakaan"';
+  const posterStep3 = 'Arahkan kamera HP ke QR code di atas';
+  const posterFooter = 'Perpustakaan Nusantara';
+
+  // Update poster title when library name loads
+  React.useEffect(() => {
+    if (libraryName) setPosterTitle(libraryName);
+  }, [libraryName]);
+
+  const handleExportPosterPdf = async (): Promise<void> => {
+    if (!qrDataUrl) return;
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = 210;
+      const centerX = pageW / 2;
+
+      // Title
+      doc.setFontSize(28);
+      doc.setTextColor(posterColor);
+      doc.text(posterTitle, centerX, 40, { align: 'center' });
+
+      // Subtitle
+      doc.setFontSize(14);
+      doc.setTextColor('#666666');
+      doc.text(posterSubtitle, centerX, 52, { align: 'center' });
+
+      // QR Code image
+      const qrSize = 80;
+      const qrX = centerX - qrSize / 2;
+      doc.setDrawColor(posterColor);
+      doc.setLineWidth(1);
+      doc.roundedRect(qrX - 5, 60, qrSize + 10, qrSize + 10, 4, 4, 'S');
+      doc.addImage(qrDataUrl, 'PNG', qrX, 65, qrSize, qrSize);
+
+      // Instructions
+      const stepsY = 160;
+      const steps = [posterStep1, posterStep2, posterStep3];
+      doc.setFontSize(12);
+      steps.forEach((step, i) => {
+        const y = stepsY + i * 16;
+        // Circle number
+        doc.setFillColor(posterColor);
+        doc.circle(35, y - 2, 5, 'F');
+        doc.setTextColor('#FFFFFF');
+        doc.setFontSize(11);
+        doc.text(`${i + 1}`, 35, y, { align: 'center' });
+        // Step text
+        doc.setTextColor('#333333');
+        doc.setFontSize(12);
+        doc.text(step, 45, y);
+      });
+
+      // Footer
+      doc.setFontSize(9);
+      doc.setTextColor('#999999');
+      doc.text(posterFooter, centerX, 280, { align: 'center' });
+
+      // Save via Tauri export
+      const pdfBytes = doc.output('arraybuffer');
+      const uint8 = new Uint8Array(pdfBytes);
+      // Use the same export mechanism but save as poster PDF
+      const result = await settingsApi.exportMobileQr(uint8);
+      showToast({
+        title: 'Poster QR disimpan sebagai PDF',
+        description: `File: ${result.filename}`,
+      });
+      setSavedPath(result.dirAbsPath);
+    } catch (e) {
+      showToast({
+        title: 'Gagal export poster',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <section className="rounded-md border border-border bg-muted/30 p-4">
+      <div className="flex items-center gap-2">
+        <Smartphone className="h-5 w-5 text-primary" />
+        <h3 className="text-base font-semibold">
+          {t('sections.sinkronisasi.mobile.title', {
+            defaultValue: 'Hubungkan HP Siswa',
+          })}
+        </h3>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {t('sections.sinkronisasi.mobile.description', {
+          defaultValue:
+            'Generate QR code untuk ditempel di dinding perpustakaan. Siswa scan QR ini dengan app Perpustakaan Nusantara di HP untuk langsung terhubung — tanpa input manual.',
+        })}
+      </p>
+
+      <div className="mt-4 flex flex-col items-center gap-4">
+        {!qrDataUrl ? (
+          <Button onClick={handleGenerate} disabled={loading} variant="outline" className="gap-2">
+            <QrCode className="h-4 w-4" />
+            {loading
+              ? t('sections.sinkronisasi.mobile.generating', { defaultValue: 'Generating...' })
+              : t('sections.sinkronisasi.mobile.generate', { defaultValue: 'Generate QR Code' })}
+          </Button>
+        ) : (
+          <>
+            <div className="rounded-lg border border-border bg-white p-4">
+              <img
+                src={qrDataUrl}
+                alt="QR Code untuk HP siswa"
+                className="h-[300px] w-[300px]"
+              />
+            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              {t('sections.sinkronisasi.mobile.instruction', {
+                defaultValue:
+                  'Simpan QR ini lalu cetak dan tempel di dinding perpustakaan.',
+              })}
+            </p>
+
+            {/* Action buttons — row 1: Simpan + Buka Folder */}
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSave}
+                disabled={saving}
+                className="gap-1.5"
+              >
+                <ArrowDownToLine className="h-3.5 w-3.5" />
+                {saving
+                  ? 'Menyimpan...'
+                  : t('sections.sinkronisasi.mobile.save', { defaultValue: 'Simpan ke Folder' })}
+              </Button>
+              {savedPath ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenFolder}
+                  className="gap-1.5"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {t('sections.sinkronisasi.mobile.openFolder', { defaultValue: 'Buka Folder' })}
+                </Button>
+              ) : null}
+            </div>
+
+            {/* Action buttons — row 2: Cetak Poster + Generate Ulang */}
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPosterPdf}
+                className="gap-1.5"
+              >
+                <QrCode className="h-3.5 w-3.5" />
+                {t('sections.sinkronisasi.mobile.print', { defaultValue: 'Cetak Poster QR (PDF)' })}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setQrDataUrl(null);
+                  setSavedPath(null);
+                }}
+              >
+                {t('sections.sinkronisasi.mobile.regenerate', { defaultValue: 'Generate Ulang' })}
+              </Button>
+            </div>
+          </>
+        )}
+        {error ? (
+          <p className="text-sm text-destructive">{error}</p>
+        ) : null}
+      </div>
+
+      <div className="mt-4 rounded-md bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+        <strong>
+          {t('sections.sinkronisasi.mobile.securityTitle', { defaultValue: 'Keamanan:' })}
+        </strong>{' '}
+        {t('sections.sinkronisasi.mobile.securityNote', {
+          defaultValue:
+            'QR ini berisi kredensial Service Account. Jangan share ke luar lingkungan sekolah. Siswa yang scan QR ini bisa membaca dan menulis data perpustakaan di Google Sheets.',
+        })}
+      </div>
+    </section>
   );
 }
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Book icon centered in adaptive icon safe zone -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,30H36c-2.2,0 -4,1.8 -4,4v40c0,2.2 1.8,4 4,4h36c2.2,0 4,-1.8 4,-4V34c0,-2.2 -1.8,-4 -4,-4zM36,34h12.5v20l-6.25,-3.75L36,54V34z" />
+</vector>

@@ -1,14 +1,15 @@
-# Perpustakaan Nusantara
+# Perpustakaan Nusantara — PC + HP
 
-> **Aplikasi manajemen perpustakaan offline-first untuk sekolah & madrasah Indonesia.**
-> Berjalan di Windows, Linux, dan macOS. Semua data tersimpan lokal di SQLite.
-> Tanpa langganan, tanpa server, tanpa internet.
+> **Aplikasi manajemen perpustakaan untuk sekolah & madrasah Indonesia.**
+> Desktop (Windows) + Android app untuk siswa. Sinkronisasi via Google Sheets.
+> Tanpa langganan, tanpa server khusus.
 
 [![Latest release](https://img.shields.io/github/v/release/alviarts/perpustakaan-offline?label=release)](https://github.com/alviarts/perpustakaan-offline/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![CI v2](https://github.com/alviarts/perpustakaan-offline/actions/workflows/ci-v2.yml/badge.svg?branch=main)](https://github.com/alviarts/perpustakaan-offline/actions/workflows/ci-v2.yml)
 
-📥 **[Download installer terbaru →](https://github.com/alviarts/perpustakaan-offline/releases/latest)**
+📥 **[Download installer PC →](https://github.com/alviarts/perpustakaan-offline/releases/latest)**
+📱 **[Download APK Android →](https://github.com/alviarts/perpustakaan-offline/releases/latest)**
 📖 **[Manual pengguna lengkap →](docs/manual.md)**
 
 ---
