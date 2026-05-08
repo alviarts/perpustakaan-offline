@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { bukuApi, type Buku, type BukuDetail } from '@/lib/buku';
+import { assetsApi } from '@/lib/assets';
 
 export interface OpacBookDetailDialogProps {
   buku: Buku | null;
@@ -36,11 +37,13 @@ export function OpacBookDetailDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
+  const [resolvedCoverPath, setResolvedCoverPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !buku) {
       setDetail(null);
       setCoverError(false);
+      setResolvedCoverPath(null);
       return;
     }
     let cancelled = false;
@@ -65,6 +68,29 @@ export function OpacBookDetailDialog({
     };
   }, [open, buku]);
 
+  // Resolve cover path
+  useEffect(() => {
+    const display = detail?.buku ?? buku;
+    if (!display?.coverPath) {
+      setResolvedCoverPath(null);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const absPath = await assetsApi.resolve(display.coverPath!);
+        if (!cancelled) setResolvedCoverPath(absPath);
+      } catch {
+        if (!cancelled) setResolvedCoverPath(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detail, buku]);
+
   if (!buku) return <></>;
 
   const display = detail?.buku ?? buku;
@@ -82,15 +108,16 @@ export function OpacBookDetailDialog({
 
         <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
           <div className="flex h-56 items-center justify-center rounded-md bg-muted">
-            {display.coverPath && !coverError ? (
+            {resolvedCoverPath && !coverError ? (
               <img
-                src={`asset://localhost/${encodeURI(display.coverPath.replace(/\\/g, '/'))}`}
+                src={`asset://localhost/${encodeURI(resolvedCoverPath.replace(/\\/g, '/'))}`}
                 alt={display.judul}
                 className="h-full w-full rounded-md object-cover"
                 onError={(e) => {
                   console.error('Cover load error:', {
                     coverPath: display.coverPath,
-                    src: `asset://localhost/${encodeURI(display.coverPath.replace(/\\/g, '/'))}`,
+                    resolvedPath: resolvedCoverPath,
+                    src: `asset://localhost/${encodeURI(resolvedCoverPath.replace(/\\/g, '/'))}`,
                     error: e,
                   });
                   setCoverError(true);

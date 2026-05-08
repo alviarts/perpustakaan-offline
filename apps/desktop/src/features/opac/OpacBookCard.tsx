@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { Buku } from '@/lib/buku';
+import { assetsApi } from '@/lib/assets';
 
 export interface OpacBookCardProps {
   buku: Buku;
@@ -15,6 +16,29 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
   const { t } = useTranslation('opac');
   const available = buku.jumlahTersedia > 0;
   const [imgError, setImgError] = useState(false);
+  const [resolvedPath, setResolvedPath] = useState<string | null>(null);
+
+  // Resolve cover path (relative → absolute)
+  useEffect(() => {
+    if (!buku.coverPath) {
+      setResolvedPath(null);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const absPath = await assetsApi.resolve(buku.coverPath!);
+        if (!cancelled) setResolvedPath(absPath);
+      } catch {
+        if (!cancelled) setResolvedPath(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [buku.coverPath]);
 
   return (
     <Card
@@ -31,16 +55,17 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
       data-testid="opac-book-card"
     >
       <div className="relative flex h-40 items-center justify-center bg-muted">
-        {buku.coverPath && !imgError ? (
+        {resolvedPath && !imgError ? (
           <img
-            src={`asset://localhost/${encodeURI(buku.coverPath.replace(/\\/g, '/'))}`}
+            src={`asset://localhost/${encodeURI(resolvedPath.replace(/\\/g, '/'))}`}
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
             onError={(e) => {
               console.error('Cover card error:', {
                 coverPath: buku.coverPath,
-                src: `asset://localhost/${encodeURI(buku.coverPath.replace(/\\/g, '/'))}`,
+                resolvedPath,
+                src: `asset://localhost/${encodeURI(resolvedPath.replace(/\\/g, '/'))}`,
               });
               setImgError(true);
             }}
