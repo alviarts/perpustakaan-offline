@@ -60,19 +60,22 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
       data-testid="opac-book-card"
     >
       <div className="relative flex h-40 items-center justify-center bg-muted">
-        {resolvedPath && !imgError ? (
+        {buku.coverPath && resolvedPath && !imgError ? (
           <img
             src={`asset://localhost/${encodeURI(resolvedPath.replace(/\\/g, '/'))}`}
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
             onError={(e) => {
-              console.error('Cover card error:', {
+              console.error('[OpacBookCard] Cover load error:', {
                 coverPath: buku.coverPath,
                 resolvedPath,
                 src: `asset://localhost/${encodeURI(resolvedPath.replace(/\\/g, '/'))}`,
               });
               setImgError(true);
+            }}
+            onLoad={() => {
+              console.log('[OpacBookCard] Cover loaded successfully!', resolvedPath);
             }}
           />
         ) : (
