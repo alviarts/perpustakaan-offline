@@ -236,20 +236,6 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           <p className="text-sm text-muted-foreground">{t('buku:subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* Tutorial buttons - only show for fresh install */}
-          {isFreshInstall && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setShowTutorial(true);
-              }}
-              title="Replay ISBN Tutorial"
-            >
-              <BookOpenText className="mr-2 h-4 w-4" />
-              Tutorial ISBN
-            </Button>
-          )}
           <Button variant="outline" onClick={() => setImportOpen(true)} data-testid="buku-import">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('buku:list.import')}
