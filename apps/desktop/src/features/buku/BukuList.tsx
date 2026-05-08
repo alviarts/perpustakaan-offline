@@ -245,18 +245,35 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           <p className="text-sm text-muted-foreground">{t('buku:subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              localStorage.removeItem('isbn-tutorial-completed');
-              setShowTutorial(true);
-            }}
-            title="Replay ISBN Tutorial"
-          >
-            <BookOpenText className="mr-2 h-4 w-4" />
-            Tutorial ISBN
-          </Button>
+          {/* DEV: Tutorial buttons - remove in production */}
+          {import.meta.env.DEV && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem('isbn-tutorial-completed');
+                  window.location.reload();
+                }}
+                title="Clear tutorial & reload (simulate first-time user)"
+              >
+                <BookOpenText className="mr-2 h-4 w-4" />
+                Reset Tutorial
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem('isbn-tutorial-completed');
+                  setShowTutorial(true);
+                }}
+                title="Replay ISBN Tutorial"
+              >
+                <BookOpenText className="mr-2 h-4 w-4" />
+                Replay Tutorial
+              </Button>
+            </>
+          )}
           <Button variant="outline" onClick={() => setImportOpen(true)} data-testid="buku-import">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('buku:list.import')}
