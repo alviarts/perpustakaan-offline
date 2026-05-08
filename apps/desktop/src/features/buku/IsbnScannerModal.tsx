@@ -179,12 +179,27 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Import Buku via ISBN
           </h2>
-          <button
-            onClick={handleClose}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Reset Tutorial Button - only show for fresh install */}
+            {!localStorage.getItem('isbn-tutorial-completed') && (
+              <button
+                onClick={() => {
+                  localStorage.removeItem('isbn-tutorial-completed');
+                  window.location.reload();
+                }}
+                className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Reset tutorial dan reload halaman"
+              >
+                Reset Tutorial
+              </button>
+            )}
+            <button
+              onClick={handleClose}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

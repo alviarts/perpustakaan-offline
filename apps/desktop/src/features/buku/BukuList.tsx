@@ -81,17 +81,8 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
   // Tutorial state
   const [showTutorial, setShowTutorial] = useState(false);
   
-  // Check if user has seen tutorial before
-  useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem('isbn-tutorial-completed');
-    if (!hasSeenTutorial) {
-      // Show tutorial after a short delay (let UI render first)
-      const timer = setTimeout(() => {
-        setShowTutorial(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+  // Check if this is fresh install (for showing tutorial buttons)
+  const isFreshInstall = !localStorage.getItem('isbn-tutorial-completed');
 
   // Initialize tutorial
   const { startTour } = useIsbnTutorial({
@@ -99,7 +90,7 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
     onComplete: () => {
       localStorage.setItem('isbn-tutorial-completed', 'true');
       setShowTutorial(false);
-      // Auto-open ISBN scanner after tutorial
+      // Auto-open ISBN scanner after tutorial complete
       setIsbnImportOpen(true);
     },
     onSkip: () => {
@@ -245,38 +236,34 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           <p className="text-sm text-muted-foreground">{t('buku:subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* Tutorial buttons - always visible for testing */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              localStorage.removeItem('isbn-tutorial-completed');
-              window.location.reload();
-            }}
-            title="Clear tutorial & reload (simulate first-time user)"
-          >
-            <BookOpenText className="mr-2 h-4 w-4" />
-            Reset Tutorial
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              localStorage.removeItem('isbn-tutorial-completed');
-              setShowTutorial(true);
-            }}
-            title="Replay ISBN Tutorial"
-          >
-            <BookOpenText className="mr-2 h-4 w-4" />
-            Replay Tutorial
-          </Button>
+          {/* Tutorial buttons - only show for fresh install */}
+          {isFreshInstall && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowTutorial(true);
+              }}
+              title="Replay ISBN Tutorial"
+            >
+              <BookOpenText className="mr-2 h-4 w-4" />
+              Tutorial ISBN
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setImportOpen(true)} data-testid="buku-import">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('buku:list.import')}
           </Button>
           <Button
             variant="outline"
-            onClick={() => setIsbnImportOpen(true)}
+            onClick={() => {
+              // Trigger tutorial for fresh install, otherwise just open modal
+              if (isFreshInstall && !localStorage.getItem('isbn-tutorial-completed')) {
+                setShowTutorial(true);
+              } else {
+                setIsbnImportOpen(true);
+              }
+            }}
             data-testid="buku-import-isbn"
             data-tour="isbn-import-button"
           >
