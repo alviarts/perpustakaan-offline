@@ -57,12 +57,17 @@ export function LabelBukuPreview({
       style={{
         width: widthPx,
         height: heightPx,
+        minWidth: widthPx,
+        minHeight: heightPx,
+        maxWidth: widthPx,
+        maxHeight: heightPx,
         position: 'relative',
         background: layout.background ?? '#ffffff',
         border: '1px solid #cbd5e1',
         borderRadius: 6,
         overflow: 'hidden',
         boxShadow: '0 4px 18px rgba(15, 23, 42, 0.12)',
+        flexShrink: 0,
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onSelectField?.(null);
