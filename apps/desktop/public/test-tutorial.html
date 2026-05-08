@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISBN Tutorial - Test Instructions</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 40px;
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    .section h2 {
+      color: #667eea;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .step {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    
+    .step h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    
+    code {
+      background: #2d3748;
+      color: #68d391;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    
+    .code-block {
+      background: #2d3748;
+      color: #68d391;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      line-height: 1.5;
+    }
+    
+    .button {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    
+    .button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .button-secondary {
+      background: #48bb78;
+    }
+    
+    .button-secondary:hover {
+      background: #38a169;
+    }
+    
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .checklist li {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      position: relative;
+      padding-left: 40px;
+    }
+    
+    .checklist li:before {
+      content: '☐';
+      position: absolute;
+      left: 12px;
+      font-size: 1.5em;
+      color: #667eea;
+    }
+    
+    .alert {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      border-left-color: #28a745;
+    }
+    
+    .alert-info {
+      background: #d1ecf1;
+      border-left-color: #17a2b8;
+    }
+    
+    .commands {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .commands h4 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    
+    .commands ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .commands li {
+      padding: 8px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .commands li:last-child {
+      border-bottom: none;
+    }
+    
+    .footer {
+      background: #f8f9fa;
+      padding: 30px;
+      text-align: center;
+      color: #666;
+    }
+    
+    .emoji {
+      font-size: 1.5em;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><span class="emoji">🎓</span>ISBN Tutorial Test Guide</h1>
+      <p>Panduan lengkap untuk test Interactive Tutorial</p>
+    </div>
+    
+    <div class="content">
+      <!-- Quick Start -->
+      <div class="section">
+        <h2><span class="emoji">🚀</span>Quick Start</h2>
+        <div class="alert alert-info">
+          <strong>App sudah running!</strong> Jika belum, jalankan: <code>pnpm tauri:dev</code>
+        </div>
+        
+        <div class="step">
+          <h3><span class="step-number">1</span>Buka Aplikasi</h3>
+          <p>Aplikasi Perpustakaan sudah terbuka di desktop kamu (Tauri window)</p>
+        </div>
+        
+        <div class="step">
+          <h3><span class="step-number">2</span>Login & Navigate</h3>
+          <p>Login dengan credentials default, lalu klik menu <strong>"Buku"</strong> di sidebar</p>
+        </div>
+        
+        <div class="step">
+          <h3><span class="step-number">3</span>Buka DevTools</h3>
+          <p>Tekan <code>F12</code> atau <code>Ctrl+Shift+I</code> untuk buka DevTools</p>
+        </div>
+        
+        <div class="step">
+          <h3><span class="step-number">4</span>Clear localStorage</h3>
+          <p>Di Console tab, ketik:</p>
+          <div class="code-block">localStorage.removeItem('isbn-tutorial-completed')</div>
+          <p>Lalu refresh page: <code>F5</code> atau <code>Ctrl+R</code></p>
+        </div>
+        
+        <div class="step">
+          <h3><span class="step-number">5</span>Tutorial Muncul!</h3>
+          <p>Tunggu 1 detik, tutorial modal akan muncul otomatis dengan welcome screen</p>
+        </div>
+      </div>
+      
+      <!-- Automated Test -->
+      <div class="section">
+        <h2><span class="emoji">🧪</span>Automated Test Script</h2>
+        <p>Untuk test otomatis, copy-paste script ini di DevTools Console:</p>
+        
+        <div class="commands">
+          <h4>Load Test Script:</h4>
+          <div class="code-block">
+// Copy-paste entire content from:
+// apps/desktop/public/test-tutorial.js
+
+// Or load from file:
+fetch('/test-tutorial.js')
+  .then(r => r.text())
+  .then(eval);
+          </div>
+        </div>
+        
+        <div class="commands">
+          <h4>Available Commands:</h4>
+          <ul>
+            <li><code>testIsbnTutorial()</code> - Run full test suite</li>
+            <li><code>resetTutorial()</code> - Clear localStorage & reload</li>
+            <li><code>showTutorial()</code> - Force show tutorial</li>
+            <li><code>checkTutorialStatus()</code> - Check current state</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Manual Test Checklist -->
+      <div class="section">
+        <h2><span class="emoji">✅</span>Manual Test Checklist</h2>
+        <ul class="checklist">
+          <li>Tutorial muncul otomatis setelah clear localStorage & refresh</li>
+          <li>Modal overlay (background gelap) muncul</li>
+          <li>Welcome screen dengan title "🎉 Fitur Baru: ISBN Scanner"</li>
+          <li>Button "Skip Tutorial" dan "Mulai" ada</li>
+          <li>Klik "Mulai" → navigate ke step 2</li>
+          <li>Arrow pointer ke tombol "Impor via ISBN" (highlight)</li>
+          <li>Bisa klik "Kembali" untuk previous step</li>
+          <li>Bisa klik "Lanjut" untuk next step</li>
+          <li>Total 7 steps (Welcome → Button → Modes → Preview → Auto-fill → Tips → Finish)</li>
+          <li>Klik "Mulai Scan" di step terakhir → ISBN Scanner modal auto-open</li>
+          <li>localStorage set: <code>isbn-tutorial-completed = 'true'</code></li>
+          <li>Tombol "Tutorial ISBN" ada di halaman Buku</li>
+          <li>Klik "Tutorial ISBN" → tutorial replay dari awal</li>
+          <li>Setelah complete, refresh page → tutorial tidak muncul lagi</li>
+          <li>Styling bagus (smooth animations, modern design)</li>
+        </ul>
+      </div>
+      
+      <!-- Expected Behavior -->
+      <div class="section">
+        <h2><span class="emoji">🎯</span>Expected Behavior</h2>
+        
+        <div class="step">
+          <h3>First-Time User Flow</h3>
+          <ol>
+            <li>User buka halaman Buku (pertama kali)</li>
+            <li>Delay 1 detik</li>
+            <li>Tutorial modal muncul otomatis</li>
+            <li>User follow 7 steps atau skip</li>
+            <li>localStorage set: <code>isbn-tutorial-completed = 'true'</code></li>
+            <li>Jika complete → ISBN Scanner auto-open</li>
+          </ol>
+        </div>
+        
+        <div class="step">
+          <h3>Returning User Flow</h3>
+          <ol>
+            <li>User buka halaman Buku</li>
+            <li>Tutorial tidak muncul (sudah pernah complete)</li>
+            <li>Tombol "Tutorial ISBN" tersedia untuk replay</li>
+          </ol>
+        </div>
+      </div>
+      
+      <!-- Troubleshooting -->
+      <div class="section">
+        <h2><span class="emoji">🐛</span>Troubleshooting</h2>
+        
+        <div class="step">
+          <h3>Tutorial tidak muncul?</h3>
+          <p>Check di Console:</p>
+          <div class="code-block">
+// Check localStorage
+localStorage.getItem('isbn-tutorial-completed')
+// Should return: null (belum complete) atau 'true' (sudah complete)
+
+// Force clear
+localStorage.clear()
+location.reload()
+          </div>
+        </div>
+        
+        <div class="step">
+          <h3>Error di Console?</h3>
+          <p>Screenshot error message dan check:</p>
+          <ul>
+            <li>Apakah Shepherd.js loaded? Check Network tab</li>
+            <li>Apakah CSS loaded? Check Elements tab</li>
+            <li>Apakah ada conflict dengan library lain?</li>
+          </ul>
+        </div>
+        
+        <div class="step">
+          <h3>Button tidak ter-highlight?</h3>
+          <p>Check di Console:</p>
+          <div class="code-block">
+document.querySelector('[data-tour="isbn-import-button"]')
+// Should return: &lt;button&gt; element
+          </div>
+        </div>
+      </div>
+      
+      <!-- Success Criteria -->
+      <div class="section">
+        <h2><span class="emoji">🎉</span>Success Criteria</h2>
+        <div class="alert alert-success">
+          <strong>Tutorial dianggap berhasil jika:</strong>
+          <ul style="margin-top: 10px; padding-left: 20px;">
+            <li>✅ Modal muncul otomatis untuk first-time user</li>
+            <li>✅ Semua 7 steps bisa di-navigate</li>
+            <li>✅ Target element ter-highlight dengan arrow</li>
+            <li>✅ Bisa skip atau complete tutorial</li>
+            <li>✅ localStorage persistence bekerja</li>
+            <li>✅ Replay button berfungsi</li>
+            <li>✅ Auto-open ISBN Scanner setelah complete</li>
+            <li>✅ Styling smooth & responsive</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Next Steps -->
+      <div class="section">
+        <h2><span class="emoji">📝</span>Next Steps</h2>
+        <p>Setelah test berhasil:</p>
+        <ol style="padding-left: 20px; margin-top: 15px;">
+          <li>Record GIF demo (follow <code>docs/SCREENTOGIF_GUIDE.md</code>)</li>
+          <li>Update documentation dengan screenshots</li>
+          <li>Create PR ke main branch</li>
+          <li>Share tutorial dengan users</li>
+        </ol>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p><strong>📚 Documentation:</strong></p>
+      <p>
+        <a href="../docs/INTERACTIVE_TUTORIAL.md" class="button" style="margin: 10px;">Technical Docs</a>
+        <a href="../docs/SCREENTOGIF_GUIDE.md" class="button button-secondary" style="margin: 10px;">GIF Recording Guide</a>
+      </p>
+      <p style="margin-top: 20px; color: #999;">
+        Perpustakaan Nusantara v1.3.0 - Interactive Tutorial Feature
+      </p>
+    </div>
+  </div>
+</body>
+</html>
