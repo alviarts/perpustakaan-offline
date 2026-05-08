@@ -87,7 +87,17 @@ export function OpacBookDetailDialog({
                 src={`asset://localhost/${display.coverPath}`}
                 alt={display.judul}
                 className="h-full w-full rounded-md object-cover"
-                onError={() => setCoverError(true)}
+                onError={(e) => {
+                  console.error('Cover load error:', {
+                    coverPath: display.coverPath,
+                    src: `asset://localhost/${display.coverPath}`,
+                    error: e,
+                  });
+                  setCoverError(true);
+                }}
+                onLoad={() => {
+                  console.log('Cover loaded successfully:', display.coverPath);
+                }}
               />
             ) : (
               <BookOpen className="h-12 w-12 text-muted-foreground" aria-hidden="true" />

@@ -37,7 +37,13 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
-            onError={() => setImgError(true)}
+            onError={(e) => {
+              console.error('Cover card error:', {
+                coverPath: buku.coverPath,
+                src: `asset://localhost/${buku.coverPath}`,
+              });
+              setImgError(true);
+            }}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
