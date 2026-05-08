@@ -84,7 +84,7 @@ export function OpacBookDetailDialog({
           <div className="flex h-56 items-center justify-center rounded-md bg-muted">
             {display.coverPath && !coverError ? (
               <img
-                src={display.coverPath}
+                src={`asset://localhost/${display.coverPath}`}
                 alt={display.judul}
                 className="h-full w-full rounded-md object-cover"
                 onError={() => setCoverError(true)}

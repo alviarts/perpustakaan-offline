@@ -144,7 +144,7 @@ export function OpacFeaturedCarousel({
           <div className="h-40 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted sm:h-48 sm:w-36">
             {slide.buku.coverPath ? (
               <img
-                src={slide.buku.coverPath}
+                src={`asset://localhost/${slide.buku.coverPath}`}
                 alt=""
                 className="h-full w-full object-cover"
                 draggable={false}

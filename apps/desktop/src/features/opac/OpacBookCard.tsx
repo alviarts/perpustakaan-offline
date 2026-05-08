@@ -33,7 +33,7 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
       <div className="relative flex h-40 items-center justify-center bg-muted">
         {buku.coverPath && !imgError ? (
           <img
-            src={buku.coverPath}
+            src={`asset://localhost/${buku.coverPath}`}
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
