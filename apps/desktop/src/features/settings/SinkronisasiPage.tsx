@@ -831,7 +831,6 @@ function MobileQrSection(): JSX.Element {
 
   /** Print a poster-style QR page */
   // ── Poster Editor State ──
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [posterTitle, setPosterTitle] = React.useState(libraryName || 'Perpustakaan Nusantara');
   const posterSubtitle = 'Scan untuk akses katalog dari HP';
   const posterColor = '#0D7377';
