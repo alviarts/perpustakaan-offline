@@ -30,7 +30,7 @@ import { bukuApi, type Buku, type BukuDetail } from '@/lib/buku';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { useToast } from '@/components/ui/toast-manager';
 import { ImportBukuDialog } from './ImportBukuDialog';
-import { IsbnImportDialog } from './IsbnImportDialog';
+import { IsbnScannerModal } from './IsbnScannerModal';
 
 const PAGE_SIZE = 20;
 
@@ -352,11 +352,22 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           void reload();
         }}
       />
-      <IsbnImportDialog
-        open={isbnImportOpen}
-        onOpenChange={setIsbnImportOpen}
-        onImported={() => {
-          void reload();
+      <IsbnScannerModal
+        isOpen={isbnImportOpen}
+        onClose={() => setIsbnImportOpen(false)}
+        onBookFound={(metadata, coverPath) => {
+          // Navigate to new book form with pre-filled data
+          void navigate({
+            to: '/buku/new',
+            search: {
+              isbn: metadata.isbn,
+              judul: metadata.title,
+              pengarang: metadata.authors.join(', '),
+              penerbit: metadata.publisher || undefined,
+              tahun: metadata.published_date ? parseInt(metadata.published_date.substring(0, 4)) : undefined,
+              coverPath: coverPath || undefined,
+            },
+          });
         }}
       />
     </div>

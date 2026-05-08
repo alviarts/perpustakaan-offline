@@ -1,6 +1,8 @@
 mod commands;
 mod db;
 mod error;
+mod services;
+mod utils;
 
 use std::sync::Mutex;
 
@@ -157,6 +159,14 @@ pub fn run() {
             commands::buku::buku_import,
             commands::buku_isbn::buku_isbn_lookup_batch,
             commands::buku_isbn::buku_isbn_fetch_cover,
+            // New ISBN scanner commands
+            commands::isbn::validate_isbn,
+            commands::isbn::convert_isbn10_to_isbn13,
+            commands::isbn::convert_isbn13_to_isbn10,
+            commands::isbn::lookup_book_by_isbn,
+            commands::isbn::lookup_and_download_cover,
+            commands::isbn::get_cover_path,
+            commands::isbn::delete_cover,
             commands::buku::eksemplar_create,
             commands::buku::eksemplar_delete,
             commands::master_data::master_list,
