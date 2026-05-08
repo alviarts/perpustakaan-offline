@@ -3,6 +3,20 @@
 ## Overview
 Import buku otomatis via ISBN dengan webcam scanner atau input manual. Mendukung lookup metadata dari berbagai sumber.
 
+## 🎓 Interactive Tutorial
+
+**First-time users**: Tutorial interaktif akan otomatis muncul saat pertama kali membuka halaman Buku. Tutorial ini akan memandu kamu step-by-step cara menggunakan ISBN Scanner.
+
+**Replay tutorial**: Klik tombol **"Tutorial ISBN"** di halaman Buku untuk menonton ulang tutorial.
+
+## 🎥 Video Tutorial
+
+Untuk panduan visual, lihat animated GIF demo di bawah (coming soon):
+- **Scan Barcode**: Demo scan barcode dengan webcam
+- **Input Manual**: Demo input ISBN manual
+
+> **Note**: Untuk membuat GIF tutorial sendiri, lihat panduan lengkap di [SCREENTOGIF_GUIDE.md](./SCREENTOGIF_GUIDE.md)
+
 ## Sumber Data (Cascade Fallback)
 1. **Google Books API** (primary) - buku internasional & Indonesia
 2. **Open Library API** (fallback) - unlimited requests
