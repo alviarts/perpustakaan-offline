@@ -84,13 +84,13 @@ export function OpacBookDetailDialog({
           <div className="flex h-56 items-center justify-center rounded-md bg-muted">
             {display.coverPath && !coverError ? (
               <img
-                src={`asset://localhost/${display.coverPath}`}
+                src={`asset://localhost/${display.coverPath.replace(/\\/g, '/')}`}
                 alt={display.judul}
                 className="h-full w-full rounded-md object-cover"
                 onError={(e) => {
                   console.error('Cover load error:', {
                     coverPath: display.coverPath,
-                    src: `asset://localhost/${display.coverPath}`,
+                    src: `asset://localhost/${display.coverPath.replace(/\\/g, '/')}`,
                     error: e,
                   });
                   setCoverError(true);
