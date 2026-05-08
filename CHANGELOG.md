@@ -13,6 +13,79 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.3.0] - TBD
+
+Fitur baru: **Import Buku via ISBN dengan Webcam Scanner** + lookup metadata otomatis dari berbagai sumber.
+
+### Added
+
+- **ISBN Scanner dengan Webcam** (`IsbnScannerModal.tsx`)
+  - Scan barcode ISBN menggunakan webcam (library: `@zxing/library`)
+  - Mode fallback: input manual ISBN jika kamera tidak tersedia
+  - Support ISBN-10 dan ISBN-13 (auto-convert)
+  - Preview metadata lengkap: judul, pengarang, penerbit, tahun, deskripsi, kategori, cover
+  - Auto-fill form buku setelah lookup berhasil
+  - UI: modal popup dengan toggle Scan/Manual, loading state, error handling
+
+- **ISBN Lookup Service dengan Cascade Fallback** (`services/isbn_lookup.rs`)
+  - **Google Books API** (primary source)
+    - Support API key untuk rate limit lebih tinggi (1000 req/day)
+    - Set environment variable: `GOOGLE_BOOKS_API_KEY=your_key`
+    - Tanpa key: ~100 requests/day
+  - **Open Library API** (fallback, unlimited requests)
+  - **Gramedia Scraping** (buku Indonesia)
+    - Multiple selector fallbacks untuk resilience
+    - User-Agent header untuk avoid bot detection
+  - **Tokopedia Scraping** (buku Indonesia dari marketplace)
+  - **Shopee Scraping** (buku Indonesia, mungkin tidak bekerja karena anti-bot)
+  - Auto-cascade: coba sumber satu per satu sampai dapat data
+
+- **ISBN Utilities** (`utils/isbn.rs`)
+  - Validasi ISBN-10 dan ISBN-13 dengan checksum
+  - Normalisasi ISBN (hapus hyphen, spasi, uppercase)
+  - Konversi ISBN-10 ↔ ISBN-13
+  - Auto-detect ISBN type
+
+- **Cover Image Downloader** (`services/cover_downloader.rs`)
+  - Download cover dari URL (Google Books, Open Library, dll)
+  - Auto-convert ke JPEG (compressed untuk hemat storage)
+  - Simpan di `AppData/covers/{ISBN}.jpg`
+  - Skip download jika file sudah ada
+  - Get/delete cover functions
+
+- **Tauri Commands untuk ISBN** (`commands/isbn.rs`)
+  - `validate_isbn` - validasi & normalize ISBN
+  - `convert_isbn10_to_isbn13` / `convert_isbn13_to_isbn10`
+  - `lookup_book_by_isbn` - lookup metadata saja
+  - `lookup_and_download_cover` - lookup + download cover
+  - `get_cover_path` / `delete_cover`
+
+- **Documentation** (`docs/ISBN_SCANNER.md`)
+  - Cara pakai lengkap dengan screenshot
+  - Test ISBNs untuk testing (internasional & Indonesia)
+  - Google Books API key setup guide
+  - Troubleshooting guide
+  - Technical details (backend + frontend)
+
+### Changed
+
+- **Halaman Buku**: Tombol "Impor via ISBN" sekarang membuka modal scanner baru (menggantikan `IsbnImportDialog` lama)
+- **Form Buku Baru**: Support pre-fill data dari ISBN scanner via URL search params
+
+### Dependencies
+
+- **Rust**: `rqrr@0.8` (barcode decoder), `scraper@0.20` (HTML scraping), `regex@1.11` (ISBN validation)
+- **Frontend**: `@zxing/library`, `@zxing/browser` (barcode scanner)
+
+### Notes
+
+- Gramedia/Tokopedia/Shopee scraping mungkin tidak selalu bekerja karena:
+  - Website pakai JavaScript rendering (scraping HTML statis tidak dapat data)
+  - Anti-bot protection bisa block request
+  - Struktur HTML bisa berubah sewaktu-waktu
+- Google Books & Open Library sudah cukup reliable untuk mayoritas buku
+- Untuk buku lokal Indonesia yang tidak ada di database internasional, input manual tetap diperlukan
+
 ## [1.2.0] - 2026-05-08
 
 Rilis besar: **Aplikasi Android untuk siswa** + integrasi QR code untuk
