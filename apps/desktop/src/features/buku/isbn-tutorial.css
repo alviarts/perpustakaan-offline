@@ -19,8 +19,21 @@
   border: 1px solid #374151;
 }
 
+.shepherd-content {
+  background: transparent;
+}
+
+.dark .shepherd-content {
+  background: transparent;
+}
+
 .shepherd-header {
   padding: 16px 16px 0;
+  background: transparent;
+}
+
+.dark .shepherd-header {
+  background: transparent;
 }
 
 .shepherd-title {
