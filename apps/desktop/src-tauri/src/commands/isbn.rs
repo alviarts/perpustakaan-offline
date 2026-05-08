@@ -43,6 +43,7 @@ pub fn lookup_book_by_isbn(isbn: String) -> Result<BookMetadata, AppError> {
 /// Lookup book and download cover image
 #[tauri::command]
 pub fn lookup_and_download_cover(
+    app: AppHandle,
     isbn: String,
     _state: State<'_, AppState>,
 ) -> Result<(BookMetadata, Option<String>), AppError> {
@@ -55,13 +56,21 @@ pub fn lookup_and_download_cover(
     
     // Download cover if available
     let cover_path = if let Some(ref cover_url) = metadata.cover_url {
-        // Get covers directory (app data dir / covers)
-        let app_data_dir = directories::ProjectDirs::from("id", "alviarts", "perpustakaan")
-            .ok_or_else(|| AppError::Internal("Failed to get app data directory".to_string()))?;
-        let covers_dir = app_data_dir.data_dir().join("covers");
+        // Use app_data_dir from AppHandle (consistent with assets_save)
+        let app_data_dir = app.path().app_data_dir()
+            .map_err(|e| AppError::Internal(format!("Failed to get app data directory: {}", e)))?;
+        
+        // Save to uploads/buku/ directory (consistent with manual upload)
+        let covers_dir = app_data_dir.join("uploads").join("buku");
         
         match cover_downloader::download_cover(cover_url, &normalized_isbn, &covers_dir) {
-            Ok(path) => Some(path.to_string_lossy().to_string()),
+            Ok(abs_path) => {
+                // Convert absolute path to relative path (uploads/buku/ISBN.jpg)
+                let filename = abs_path.file_name()
+                    .and_then(|n| n.to_str())
+                    .ok_or_else(|| AppError::Internal("Invalid filename".to_string()))?;
+                Some(format!("uploads/buku/{}", filename))
+            }
             Err(e) => {
                 log::warn!("Failed to download cover for ISBN {}: {}", normalized_isbn, e);
                 None
