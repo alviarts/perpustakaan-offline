@@ -12,6 +12,13 @@
   z-index: 9999;
 }
 
+/* Dark mode support */
+.dark .shepherd-element {
+  background: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid #374151;
+}
+
 .shepherd-header {
   padding: 16px 16px 0;
 }
@@ -23,11 +30,19 @@
   margin: 0;
 }
 
+.dark .shepherd-title {
+  color: #f9fafb;
+}
+
 .shepherd-text {
   padding: 16px;
   font-size: 14px;
   line-height: 1.6;
   color: #4a4a4a;
+}
+
+.dark .shepherd-text {
+  color: #d1d5db;
 }
 
 .shepherd-text p {
@@ -50,6 +65,10 @@
 .shepherd-text strong {
   color: #2563eb;
   font-weight: 600;
+}
+
+.dark .shepherd-text strong {
+  color: #60a5fa;
 }
 
 .shepherd-footer {
@@ -89,6 +108,16 @@
   border-color: #9ca3af;
 }
 
+.dark .shepherd-button-secondary {
+  color: #9ca3af;
+  border-color: #4b5563;
+}
+
+.dark .shepherd-button-secondary:hover {
+  background: #374151;
+  border-color: #6b7280;
+}
+
 .shepherd-cancel-icon {
   position: absolute;
   top: 12px;
@@ -102,6 +131,14 @@
 
 .shepherd-cancel-icon:hover {
   color: #4b5563;
+}
+
+.dark .shepherd-cancel-icon {
+  color: #6b7280;
+}
+
+.dark .shepherd-cancel-icon:hover {
+  color: #d1d5db;
 }
 
 /* Modal overlay */
@@ -134,6 +171,23 @@
   border-right-color: white;
 }
 
+/* Dark mode arrows */
+.dark .shepherd-element[data-popper-placement^='top'] .shepherd-arrow {
+  border-top-color: #1f2937;
+}
+
+.dark .shepherd-element[data-popper-placement^='bottom'] .shepherd-arrow {
+  border-bottom-color: #1f2937;
+}
+
+.dark .shepherd-element[data-popper-placement^='left'] .shepherd-arrow {
+  border-left-color: #1f2937;
+}
+
+.dark .shepherd-element[data-popper-placement^='right'] .shepherd-arrow {
+  border-right-color: #1f2937;
+}
+
 /* Progress indicator */
 .shepherd-progress {
   background: #e5e7eb;
@@ -143,10 +197,18 @@
   overflow: hidden;
 }
 
+.dark .shepherd-progress {
+  background: #374151;
+}
+
 .shepherd-progress-bar {
   background: #2563eb;
   height: 100%;
   transition: width 0.3s ease;
+}
+
+.dark .shepherd-progress-bar {
+  background: #60a5fa;
 }
 
 /* Highlight target element */
