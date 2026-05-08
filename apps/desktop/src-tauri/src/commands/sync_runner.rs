@@ -167,10 +167,10 @@ fn run_sync_tick(app: &tauri::AppHandle) -> AppResult<()> {
 
         // Push all tables
         for (tab, header, read_fn) in [
-            (ANGGOTA_TAB, &ANGGOTA_HEADER[..], "anggota" as &str),
-            (BUKU_TAB, &BUKU_HEADER[..], "buku"),
-            (EKSEMPLAR_TAB, &EKSEMPLAR_HEADER[..], "eksemplar"),
-            (PEMINJAMAN_TAB, &PEMINJAMAN_HEADER[..], "peminjaman"),
+            (ANGGOTA_TAB, &ANGGOTA_HEADER, "anggota" as &str),
+            (BUKU_TAB, &BUKU_HEADER, "buku"),
+            (EKSEMPLAR_TAB, &EKSEMPLAR_HEADER, "eksemplar"),
+            (PEMINJAMAN_TAB, &PEMINJAMAN_HEADER, "peminjaman"),
         ] {
             let rows_data = {
                 let conn = state.db.lock()
