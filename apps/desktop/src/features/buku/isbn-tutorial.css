@@ -14,26 +14,40 @@
 
 /* Dark mode support */
 .dark .shepherd-element {
-  background: #1f2937;
+  background: #1f2937 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   border: 1px solid #374151;
 }
 
+/* Force all child elements to have transparent background in dark mode */
+.dark .shepherd-element * {
+  background-color: transparent !important;
+}
+
+/* Except buttons */
+.dark .shepherd-element .shepherd-button:not(.shepherd-button-secondary) {
+  background: #2563eb !important;
+}
+
+.dark .shepherd-element .shepherd-button-secondary {
+  background: transparent !important;
+}
+
 .shepherd-content {
-  background: transparent;
+  background: transparent !important;
 }
 
 .dark .shepherd-content {
-  background: transparent;
+  background: transparent !important;
 }
 
 .shepherd-header {
   padding: 16px 16px 0;
-  background: transparent;
+  background: transparent !important;
 }
 
 .dark .shepherd-header {
-  background: transparent;
+  background: transparent !important;
 }
 
 .shepherd-title {
