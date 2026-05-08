@@ -17,6 +17,9 @@ export function useIsbnTutorial(options: UseIsbnTutorialOptions = {}) {
   useEffect(() => {
     if (!enabled) return;
 
+    // Check if dark mode is active
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
     // Initialize tour
     const tour = new Shepherd.Tour({
       useModalOverlay: true,
@@ -24,7 +27,7 @@ export function useIsbnTutorial(options: UseIsbnTutorialOptions = {}) {
         cancelIcon: {
           enabled: true,
         },
-        classes: 'shepherd-theme-custom',
+        classes: isDarkMode ? 'shepherd-theme-custom dark' : 'shepherd-theme-custom',
         scrollTo: { behavior: 'smooth', block: 'center' },
       },
     });
@@ -202,6 +205,16 @@ export function useIsbnTutorial(options: UseIsbnTutorialOptions = {}) {
 
     tour.on('cancel', () => {
       onSkip?.();
+    });
+
+    // Add dark mode class to shepherd element when step shows
+    tour.on('show', () => {
+      if (isDarkMode) {
+        const shepherdElement = document.querySelector('.shepherd-element');
+        if (shepherdElement) {
+          shepherdElement.classList.add('dark');
+        }
+      }
     });
 
     tourRef.current = tour;
