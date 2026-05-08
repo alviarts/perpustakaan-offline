@@ -33,14 +33,14 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
       <div className="relative flex h-40 items-center justify-center bg-muted">
         {buku.coverPath && !imgError ? (
           <img
-            src={`asset://localhost/${buku.coverPath}`}
+            src={`asset://localhost/${encodeURI(buku.coverPath.replace(/\\/g, '/'))}`}
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
             onError={(e) => {
               console.error('Cover card error:', {
                 coverPath: buku.coverPath,
-                src: `asset://localhost/${buku.coverPath}`,
+                src: `asset://localhost/${encodeURI(buku.coverPath.replace(/\\/g, '/'))}`,
               });
               setImgError(true);
             }}
