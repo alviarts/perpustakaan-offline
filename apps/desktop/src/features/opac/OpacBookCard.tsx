@@ -20,6 +20,8 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
 
   // Resolve cover path (relative → absolute)
   useEffect(() => {
+    console.log('[OpacBookCard] buku:', buku.judul, 'coverPath:', buku.coverPath);
+    
     if (!buku.coverPath) {
       setResolvedPath(null);
       return;
@@ -28,9 +30,12 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
     let cancelled = false;
     void (async () => {
       try {
+        console.log('[OpacBookCard] Resolving path:', buku.coverPath);
         const absPath = await assetsApi.resolve(buku.coverPath!);
+        console.log('[OpacBookCard] Resolved to:', absPath);
         if (!cancelled) setResolvedPath(absPath);
-      } catch {
+      } catch (err) {
+        console.error('[OpacBookCard] Resolve error:', err);
         if (!cancelled) setResolvedPath(null);
       }
     })();
