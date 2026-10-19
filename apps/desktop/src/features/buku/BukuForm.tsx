@@ -14,7 +14,7 @@ import type { MasterItem } from '@/lib/masterData';
 import { cn } from '@/lib/utils';
 
 interface BukuFormProps {
-  initial?: Buku | null;
+  initial?: Partial<Buku> | null;
   onSubmit: (values: BukuFormValues) => Promise<void>;
   onCancel: () => void;
   onDelete?: () => void;
@@ -24,7 +24,7 @@ interface BukuFormProps {
   bahasaOptions: MasterItem[];
 }
 
-function toFormValues(initial: Buku | null | undefined): BukuFormValues {
+function toFormValues(initial: Partial<Buku> | null | undefined): BukuFormValues {
   return {
     kodeBuku: initial?.kodeBuku ?? '',
     judul: initial?.judul ?? '',

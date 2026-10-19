@@ -31,6 +31,7 @@ import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { useToast } from '@/components/ui/toast-manager';
 import { ImportBukuDialog } from './ImportBukuDialog';
 import { IsbnScannerModal } from './IsbnScannerModal';
+import { useIsbnTutorial } from './useIsbnTutorial';
 
 const PAGE_SIZE = 20;
 
@@ -76,6 +77,34 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
   const [isbnImportOpen, setIsbnImportOpen] = useState(false);
   const [detail, setDetail] = useState<BukuDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Tutorial state
+  const [showTutorial, setShowTutorial] = useState(false);
+  
+  // Check if this is fresh install (for showing tutorial buttons)
+  const isFreshInstall = !localStorage.getItem('isbn-tutorial-completed');
+
+  // Initialize tutorial
+  const { startTour } = useIsbnTutorial({
+    enabled: showTutorial,
+    onComplete: () => {
+      localStorage.setItem('isbn-tutorial-completed', 'true');
+      setShowTutorial(false);
+      // Auto-open ISBN scanner after tutorial complete
+      setIsbnImportOpen(true);
+    },
+    onSkip: () => {
+      localStorage.setItem('isbn-tutorial-completed', 'true');
+      setShowTutorial(false);
+    },
+  });
+
+  // Start tutorial when enabled
+  useEffect(() => {
+    if (showTutorial) {
+      startTour();
+    }
+  }, [showTutorial, startTour]);
 
   const page = Math.max(1, search.page ?? 1);
   const offset = (page - 1) * PAGE_SIZE;
@@ -213,8 +242,16 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           </Button>
           <Button
             variant="outline"
-            onClick={() => setIsbnImportOpen(true)}
+            onClick={() => {
+              // Trigger tutorial for fresh install, otherwise just open modal
+              if (isFreshInstall && !localStorage.getItem('isbn-tutorial-completed')) {
+                setShowTutorial(true);
+              } else {
+                setIsbnImportOpen(true);
+              }
+            }}
             data-testid="buku-import-isbn"
+            data-tour="isbn-import-button"
           >
             <ScanLine className="mr-2 h-4 w-4" />
             {t('buku:list.importIsbn', { defaultValue: 'Impor via ISBN' })}

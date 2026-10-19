@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { bukuApi, type Buku, type BukuDetail } from '@/lib/buku';
+import { assetsApi } from '@/lib/assets';
 
 export interface OpacBookDetailDialogProps {
   buku: Buku | null;
@@ -36,11 +37,13 @@ export function OpacBookDetailDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !buku) {
       setDetail(null);
       setCoverError(false);
+      setCoverUrl(null);
       return;
     }
     let cancelled = false;
@@ -65,6 +68,32 @@ export function OpacBookDetailDialog({
     };
   }, [open, buku]);
 
+  // Resolve the stored cover path to a renderable data URL. `readDataUrl`
+  // handles both relative (`uploads/buku/...`) and legacy absolute paths and
+  // bypasses the asset:// protocol scope matcher, which is unreliable on
+  // Windows. Mirrors the approach used by `useUserAvatar`.
+  useEffect(() => {
+    const display = detail?.buku ?? buku;
+    setCoverUrl(null);
+    setCoverError(false);
+
+    if (!display?.coverPath) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await assetsApi.readDataUrl(display.coverPath!);
+        if (!cancelled) setCoverUrl(data || null);
+      } catch {
+        if (!cancelled) setCoverUrl(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detail, buku]);
+
   if (!buku) return <></>;
 
   const display = detail?.buku ?? buku;
@@ -82,9 +111,9 @@ export function OpacBookDetailDialog({
 
         <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
           <div className="flex h-56 items-center justify-center rounded-md bg-muted">
-            {display.coverPath && !coverError ? (
+            {coverUrl && !coverError ? (
               <img
-                src={display.coverPath}
+                src={coverUrl}
                 alt={display.judul}
                 className="h-full w-full rounded-md object-cover"
                 onError={() => setCoverError(true)}

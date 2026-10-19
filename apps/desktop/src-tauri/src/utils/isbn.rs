@@ -1,4 +1,4 @@
-/// ISBN utilities: validation, normalization, ISBN-10 ↔ ISBN-13 conversion
+//! ISBN utilities: validation, normalization, ISBN-10 ↔ ISBN-13 conversion
 
 /// Normalize ISBN: remove hyphens, spaces, and convert to uppercase
 pub fn normalize_isbn(isbn: &str) -> String {

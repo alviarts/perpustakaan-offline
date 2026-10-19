@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BukuForm } from '@/features/buku/BukuForm';
-import { bukuApi } from '@/lib/buku';
+import { bukuApi, type Buku } from '@/lib/buku';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { toBukuInput } from '@/features/buku/schema';
 import { useToast } from '@/components/ui/toast-manager';
@@ -43,7 +43,7 @@ function NewBukuRoute() {
   }, []);
 
   // Prepare initial values from ISBN scanner
-  const initialFromIsbn = search.isbn ? {
+  const initialFromIsbn: Partial<Buku> | null = search.isbn ? {
     isbn: search.isbn,
     judul: search.judul || '',
     pengarang: search.pengarang || '',
@@ -60,7 +60,7 @@ function NewBukuRoute() {
     bahasa: '',
     deskripsi: '',
     rak: '',
-  } as any : null;
+  } : null;
 
   return (
     <div className="container mx-auto max-w-3xl xl:max-w-5xl 2xl:max-w-7xl p-6 md:p-8">

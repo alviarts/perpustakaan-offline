@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { invoke } from '@tauri-apps/api/core';
 import { X, Camera, Loader2, BookOpen, User, Building2, Calendar, Hash } from 'lucide-react';
+import { assetsApi } from '@/lib/assets';
 
 interface BookMetadata {
   isbn: string;
@@ -15,6 +16,30 @@ interface BookMetadata {
   language: string | null;
   cover_url: string | null;
   source: string;
+  price?: string | null;
+  source_url?: string | null;
+}
+
+/** Friendly label for the source key returned by the Rust lookup engine. */
+function sourceLabel(source: string): string {
+  const map: Record<string, string> = {
+    perpusnas: 'Perpusnas (Registry ISBN Indonesia)',
+    google_books: 'Google Books',
+    google_books_html: 'Google Books',
+    open_library: 'Open Library',
+    onesearch: 'Onesearch.id',
+    crossref: 'Crossref',
+    archive_org: 'archive.org',
+    libris: 'LIBRIS (Swedia)',
+    k10plus: 'K10plus (Jerman)',
+    ndl: 'NDL Search (Jepang)',
+    periplus: 'Periplus',
+    belbuk: 'Belbuk',
+    deepublish: 'Deepublish Store',
+    abebooks: 'AbeBooks',
+    inventaire: 'Inventaire.io',
+  };
+  return map[source] ?? source;
 }
 
 interface IsbnScannerModalProps {
@@ -31,8 +56,31 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
   const [error, setError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<BookMetadata | null>(null);
   const [coverPath, setCoverPath] = useState<string | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
+
+  // Render the freshly-downloaded local cover via a data URL. The `asset://`
+  // protocol needs an absolute path and is unreliable on Windows, so we read
+  // the bytes directly (same approach as useUserAvatar / OPAC covers).
+  useEffect(() => {
+    setCoverPreviewUrl(null);
+    if (!coverPath) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await assetsApi.readDataUrl(coverPath);
+        if (!cancelled) setCoverPreviewUrl(data || null);
+      } catch {
+        if (!cancelled) setCoverPreviewUrl(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverPath]);
 
   // Initialize barcode scanner
   useEffect(() => {
@@ -70,26 +118,19 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         await codeReader.decodeFromVideoDevice(
           selectedDeviceId,
           videoRef.current,
-          async (result, error) => {
-            if (result) {
-              const isbn = result.getText();
-              console.log('ISBN detected:', isbn);
-              
-              // Stop scanning
-              codeReader.reset();
-              setIsScanning(false);
+          async (result) => {
+            if (!result) return;
+            const isbn = result.getText();
 
-              // Lookup book
-              await lookupIsbn(isbn);
-            }
+            // Stop scanning
+            codeReader.reset();
+            setIsScanning(false);
 
-            if (error && !(error instanceof NotFoundException)) {
-              console.error('Scanner error:', error);
-            }
+            // Lookup book
+            await lookupIsbn(isbn);
           }
         );
-      } catch (err) {
-        console.error('Failed to start scanner:', err);
+      } catch {
         setError('Gagal mengakses kamera. Gunakan input manual.');
         setScanMode('manual');
         setIsScanning(false);
@@ -114,11 +155,9 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
 
     try {
       // Validate ISBN first
-      const [normalizedIsbn, isbnType] = await invoke<[string, string]>('validate_isbn', {
+      const [normalizedIsbn] = await invoke<[string, string]>('validate_isbn', {
         isbnInput: isbn,
       });
-
-      console.log(`Valid ${isbnType}: ${normalizedIsbn}`);
 
       // Lookup and download cover
       const [bookMetadata, localCoverPath] = await invoke<[BookMetadata, string | null]>(
@@ -126,12 +165,10 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         { isbn: normalizedIsbn }
       );
 
-      console.log('Book found:', bookMetadata);
       setMetadata(bookMetadata);
       setCoverPath(localCoverPath);
-    } catch (err: any) {
-      console.error('ISBN lookup error:', err);
-      setError(err.message || 'Buku tidak ditemukan untuk ISBN ini');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Buku tidak ditemukan untuk ISBN ini');
     } finally {
       setIsLoading(false);
     }
@@ -179,12 +216,25 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Import Buku via ISBN
           </h2>
-          <button
-            onClick={handleClose}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Reset Tutorial Button - always show in dev mode */}
+            <button
+              onClick={() => {
+                localStorage.removeItem('isbn-tutorial-completed');
+                window.location.reload();
+              }}
+              className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Reset tutorial dan reload halaman"
+            >
+              Reset Tutorial
+            </button>
+            <button
+              onClick={handleClose}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -293,10 +343,11 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
           {metadata && (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 space-y-4">
               <div className="flex items-start gap-4">
-                {/* Cover Image */}
-                {coverPath ? (
+                {/* Cover Image — prefer the freshly-downloaded local file
+                    (rendered as a data URL), fall back to the remote thumb. */}
+                {coverPreviewUrl ? (
                   <img
-                    src={`asset://localhost/${coverPath}`}
+                    src={coverPreviewUrl}
                     alt={metadata.title}
                     className="w-32 h-48 object-cover rounded-lg shadow-md"
                   />
@@ -384,10 +435,15 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
                     </div>
                   )}
 
-                  <div className="pt-2">
+                  <div className="space-y-0.5 pt-2">
                     <p className="text-xs text-gray-400">
-                      Sumber: {metadata.source === 'google_books' ? 'Google Books' : metadata.source === 'open_library' ? 'Open Library' : 'Gramedia'}
+                      Sumber: {sourceLabel(metadata.source)}
                     </p>
+                    {metadata.price && (
+                      <p className="text-xs text-gray-400">
+                        Harga referensi: {metadata.price}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

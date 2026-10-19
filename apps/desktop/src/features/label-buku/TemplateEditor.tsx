@@ -81,15 +81,17 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="rounded-lg border border-border bg-muted/40 p-6 flex items-center justify-center">
-        <LabelBukuPreview
-          layout={layout}
-          buku={preview.buku}
-          identity={preview.identity}
-          selectedFieldId={selectedId}
-          onSelectField={setSelectedId}
-          scale={2.4}
-        />
+      <div className="rounded-lg border border-border bg-muted/40 p-6">
+        <div className="flex items-center justify-center w-full h-full min-h-[300px]">
+          <LabelBukuPreview
+            layout={layout}
+            buku={preview.buku}
+            identity={preview.identity}
+            selectedFieldId={selectedId}
+            onSelectField={setSelectedId}
+            scale={2.4}
+          />
+        </div>
       </div>
 
       <div className="space-y-4">

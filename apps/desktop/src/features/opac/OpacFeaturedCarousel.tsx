@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Buku } from '@/lib/buku';
 import type { BukuPilihanSlide } from '@/lib/bukuPilihan';
+import { assetsApi } from '@/lib/assets';
 
 const ROTATE_INTERVAL_MS = 5000;
 
@@ -52,9 +53,32 @@ export function OpacFeaturedCarousel({
   const reducedMotion = usePrefersReducedMotion(reducedMotionOverride);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const total = slides.length;
+  const activeCoverPath = slides[index]?.buku.coverPath ?? null;
+
+  // Resolve the active slide's cover to a renderable data URL. See
+  // `useUserAvatar` for the rationale behind `readDataUrl` over `asset://`.
+  useEffect(() => {
+    setCoverUrl(null);
+    if (!activeCoverPath) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await assetsApi.readDataUrl(activeCoverPath);
+        if (!cancelled) setCoverUrl(data || null);
+      } catch {
+        if (!cancelled) setCoverUrl(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCoverPath]);
 
   const advance = useCallback((delta: number) => {
     setIndex((i) => (((i + delta) % Math.max(total, 1)) + Math.max(total, 1)) % Math.max(total, 1));
@@ -142,9 +166,9 @@ export function OpacFeaturedCarousel({
           })}
         >
           <div className="h-40 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted sm:h-48 sm:w-36">
-            {slide.buku.coverPath ? (
+            {coverUrl ? (
               <img
-                src={slide.buku.coverPath}
+                src={coverUrl}
                 alt=""
                 className="h-full w-full object-cover"
                 draggable={false}
