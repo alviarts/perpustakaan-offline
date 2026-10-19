@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { invoke } from '@tauri-apps/api/core';
 import { X, Camera, Loader2, BookOpen, User, Building2, Calendar, Hash } from 'lucide-react';
 
@@ -70,26 +70,19 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         await codeReader.decodeFromVideoDevice(
           selectedDeviceId,
           videoRef.current,
-          async (result, error) => {
-            if (result) {
-              const isbn = result.getText();
-              console.log('ISBN detected:', isbn);
-              
-              // Stop scanning
-              codeReader.reset();
-              setIsScanning(false);
+          async (result) => {
+            if (!result) return;
+            const isbn = result.getText();
 
-              // Lookup book
-              await lookupIsbn(isbn);
-            }
+            // Stop scanning
+            codeReader.reset();
+            setIsScanning(false);
 
-            if (error && !(error instanceof NotFoundException)) {
-              console.error('Scanner error:', error);
-            }
+            // Lookup book
+            await lookupIsbn(isbn);
           }
         );
-      } catch (err) {
-        console.error('Failed to start scanner:', err);
+      } catch {
         setError('Gagal mengakses kamera. Gunakan input manual.');
         setScanMode('manual');
         setIsScanning(false);
@@ -114,11 +107,9 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
 
     try {
       // Validate ISBN first
-      const [normalizedIsbn, isbnType] = await invoke<[string, string]>('validate_isbn', {
+      const [normalizedIsbn] = await invoke<[string, string]>('validate_isbn', {
         isbnInput: isbn,
       });
-
-      console.log(`Valid ${isbnType}: ${normalizedIsbn}`);
 
       // Lookup and download cover
       const [bookMetadata, localCoverPath] = await invoke<[BookMetadata, string | null]>(
@@ -126,12 +117,10 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         { isbn: normalizedIsbn }
       );
 
-      console.log('Book found:', bookMetadata);
       setMetadata(bookMetadata);
       setCoverPath(localCoverPath);
-    } catch (err: any) {
-      console.error('ISBN lookup error:', err);
-      setError(err.message || 'Buku tidak ditemukan untuk ISBN ini');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Buku tidak ditemukan untuk ISBN ini');
     } finally {
       setIsLoading(false);
     }

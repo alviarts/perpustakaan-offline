@@ -5,7 +5,6 @@ use crate::AppState;
 use crate::utils::isbn;
 use crate::services::isbn_lookup::{self, BookMetadata};
 use crate::services::cover_downloader;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Validate and normalize ISBN
 #[tauri::command]

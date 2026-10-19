@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -16,27 +16,25 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
   const { t } = useTranslation('opac');
   const available = buku.jumlahTersedia > 0;
   const [imgError, setImgError] = useState(false);
-  const [resolvedPath, setResolvedPath] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
-  // Resolve cover path (relative → absolute)
+  // Resolve the stored cover path to a renderable data URL. `readDataUrl`
+  // handles both relative (`uploads/buku/...`) and legacy absolute paths and
+  // bypasses the asset:// protocol scope matcher, which is unreliable on
+  // Windows. Mirrors the approach used by `useUserAvatar`.
   useEffect(() => {
-    console.log('[OpacBookCard] buku:', buku.judul, 'coverPath:', buku.coverPath);
-    
-    if (!buku.coverPath) {
-      setResolvedPath(null);
-      return;
-    }
+    setCoverUrl(null);
+    setImgError(false);
+
+    if (!buku.coverPath) return;
 
     let cancelled = false;
     void (async () => {
       try {
-        console.log('[OpacBookCard] Resolving path:', buku.coverPath);
-        const absPath = await assetsApi.resolve(buku.coverPath!);
-        console.log('[OpacBookCard] Resolved to:', absPath);
-        if (!cancelled) setResolvedPath(absPath);
-      } catch (err) {
-        console.error('[OpacBookCard] Resolve error:', err);
-        if (!cancelled) setResolvedPath(null);
+        const data = await assetsApi.readDataUrl(buku.coverPath!);
+        if (!cancelled) setCoverUrl(data || null);
+      } catch {
+        if (!cancelled) setCoverUrl(null);
       }
     })();
 
@@ -60,23 +58,13 @@ export function OpacBookCard({ buku, onClick }: OpacBookCardProps): JSX.Element 
       data-testid="opac-book-card"
     >
       <div className="relative flex h-40 items-center justify-center bg-muted">
-        {buku.coverPath && resolvedPath && !imgError ? (
+        {coverUrl && !imgError ? (
           <img
-            src={`asset://localhost/${encodeURI(resolvedPath.replace(/\\/g, '/'))}`}
+            src={coverUrl}
             alt={buku.judul}
             className="h-full w-full object-cover"
             loading="lazy"
-            onError={(e) => {
-              console.error('[OpacBookCard] Cover load error:', {
-                coverPath: buku.coverPath,
-                resolvedPath,
-                src: `asset://localhost/${encodeURI(resolvedPath.replace(/\\/g, '/'))}`,
-              });
-              setImgError(true);
-            }}
-            onLoad={() => {
-              console.log('[OpacBookCard] Cover loaded successfully!', resolvedPath);
-            }}
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
