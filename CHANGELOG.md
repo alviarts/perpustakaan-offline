@@ -13,7 +13,7 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
-## [1.3.0] - TBD
+## [1.3.0] - 2026-10-20
 
 Fitur baru: **Import Buku via ISBN dengan Webcam Scanner** + lookup metadata otomatis dari berbagai sumber.
 
@@ -27,18 +27,19 @@ Fitur baru: **Import Buku via ISBN dengan Webcam Scanner** + lookup metadata oto
   - Auto-fill form buku setelah lookup berhasil
   - UI: modal popup dengan toggle Scan/Manual, loading state, error handling
 
-- **ISBN Lookup Service dengan Cascade Fallback** (`services/isbn_lookup.rs`)
-  - **Google Books API** (primary source)
-    - Support API key untuk rate limit lebih tinggi (1000 req/day)
-    - Set environment variable: `GOOGLE_BOOKS_API_KEY=your_key`
-    - Tanpa key: ~100 requests/day
-  - **Open Library API** (fallback, unlimited requests)
-  - **Gramedia Scraping** (buku Indonesia)
-    - Multiple selector fallbacks untuk resilience
-    - User-Agent header untuk avoid bot detection
-  - **Tokopedia Scraping** (buku Indonesia dari marketplace)
-  - **Shopee Scraping** (buku Indonesia, mungkin tidak bekerja karena anti-bot)
-  - Auto-cascade: coba sumber satu per satu sampai dapat data
+- **ISBN Lookup Service — Multi-Source Paralel** (`services/isbn_lookup.rs`)
+  - ~15 sumber keyless di-query **bersamaan** (`std::thread::scope`), lalu
+    kandidat digabung dengan skor kualitas (katalog otoritatif menang; field
+    kosong diisi dari kandidat lain)
+  - **Katalog**: Perpusnas (registry ISBN Indonesia), Google Books (+ HTML
+    fallback saat kuota habis), Open Library, Onesearch.id, Crossref,
+    archive.org, LIBRIS, K10plus, NDL Japan, Inventaire.io
+  - **Toko buku** (pelengkap + harga referensi): Periplus, Belbuk,
+    Deepublish Store, AbeBooks
+  - Support `GOOGLE_BOOKS_API_KEY` untuk rate limit lebih tinggi
+  - Dibuang: Gramedia/Shopee/isbnsearch — terbukti SPA di balik Cloudflare,
+    tidak terbaca lewat HTTP biasa (riset `scrape-demo`)
+  - Cover fallback: `covers.openlibrary.org/b/isbn/<isbn>-L.jpg`
 
 - **ISBN Utilities** (`utils/isbn.rs`)
   - Validasi ISBN-10 dan ISBN-13 dengan checksum
@@ -49,9 +50,15 @@ Fitur baru: **Import Buku via ISBN dengan Webcam Scanner** + lookup metadata oto
 - **Cover Image Downloader** (`services/cover_downloader.rs`)
   - Download cover dari URL (Google Books, Open Library, dll)
   - Auto-convert ke JPEG (compressed untuk hemat storage)
-  - Simpan di `AppData/covers/{ISBN}.jpg`
+  - Simpan di `AppData/uploads/buku/` sebagai **path relatif** (konsisten
+    dengan upload manual) sehingga terbaca oleh OPAC
   - Skip download jika file sudah ada
   - Get/delete cover functions
+
+- **Interactive Tutorial ISBN Scanner** (`useIsbnTutorial.ts` + `isbn-tutorial.css`)
+  - Guided tour 7 langkah dengan Shepherd.js (auto-trigger first-time user)
+  - Tombol "Reset Tutorial" di modal scanner
+  - Dukungan light & dark mode
 
 - **Tauri Commands untuk ISBN** (`commands/isbn.rs`)
   - `validate_isbn` - validasi & normalize ISBN
@@ -71,20 +78,27 @@ Fitur baru: **Import Buku via ISBN dengan Webcam Scanner** + lookup metadata oto
 
 - **Halaman Buku**: Tombol "Impor via ISBN" sekarang membuka modal scanner baru (menggantikan `IsbnImportDialog` lama)
 - **Form Buku Baru**: Support pre-fill data dari ISBN scanner via URL search params
+- **Preview scanner**: Cover dirender via `readDataUrl` (data URL) dan menampilkan label sumber + harga referensi
+
+### Fixed
+
+- **OPAC — cover buku tidak muncul**: cover (upload manual & hasil scan ISBN)
+  sekarang dirender lewat `assetsApi.readDataUrl` (data URL), andal di Windows;
+  sebelumnya `asset://` gagal karena path relatif/spasi
+- **Tutorial dark mode**: seluruh elemen modal tutorial kini mengikuti tema gelap
 
 ### Dependencies
 
 - **Rust**: `rqrr@0.8` (barcode decoder), `scraper@0.20` (HTML scraping), `regex@1.11` (ISBN validation)
-- **Frontend**: `@zxing/library`, `@zxing/browser` (barcode scanner)
+- **Frontend**: `@zxing/library`, `@zxing/browser` (barcode scanner), `shepherd.js` (tutorial)
 
 ### Notes
 
-- Gramedia/Tokopedia/Shopee scraping mungkin tidak selalu bekerja karena:
-  - Website pakai JavaScript rendering (scraping HTML statis tidak dapat data)
-  - Anti-bot protection bisa block request
-  - Struktur HTML bisa berubah sewaktu-waktu
-- Google Books & Open Library sudah cukup reliable untuk mayoritas buku
-- Untuk buku lokal Indonesia yang tidak ada di database internasional, input manual tetap diperlukan
+- Semua sumber lookup bersifat keyless; hanya buku yang benar-benar tidak ada
+  di ~15 sumber yang perlu diinput manual
+- Buku lokal Indonesia paling akurat via **Perpusnas** (registry ISBN resmi)
+- Google Books tanpa API key dibatasi kuota harian bersama; set
+  `GOOGLE_BOOKS_API_KEY` untuk 1.000 req/hari
 
 ## [1.2.0] - 2026-05-08
 
