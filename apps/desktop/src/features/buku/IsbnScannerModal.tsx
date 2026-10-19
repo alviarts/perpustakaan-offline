@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/library';
 import { invoke } from '@tauri-apps/api/core';
 import { X, Camera, Loader2, BookOpen, User, Building2, Calendar, Hash } from 'lucide-react';
+import { assetsApi } from '@/lib/assets';
 
 interface BookMetadata {
   isbn: string;
@@ -15,6 +16,30 @@ interface BookMetadata {
   language: string | null;
   cover_url: string | null;
   source: string;
+  price?: string | null;
+  source_url?: string | null;
+}
+
+/** Friendly label for the source key returned by the Rust lookup engine. */
+function sourceLabel(source: string): string {
+  const map: Record<string, string> = {
+    perpusnas: 'Perpusnas (Registry ISBN Indonesia)',
+    google_books: 'Google Books',
+    google_books_html: 'Google Books',
+    open_library: 'Open Library',
+    onesearch: 'Onesearch.id',
+    crossref: 'Crossref',
+    archive_org: 'archive.org',
+    libris: 'LIBRIS (Swedia)',
+    k10plus: 'K10plus (Jerman)',
+    ndl: 'NDL Search (Jepang)',
+    periplus: 'Periplus',
+    belbuk: 'Belbuk',
+    deepublish: 'Deepublish Store',
+    abebooks: 'AbeBooks',
+    inventaire: 'Inventaire.io',
+  };
+  return map[source] ?? source;
 }
 
 interface IsbnScannerModalProps {
@@ -31,8 +56,31 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
   const [error, setError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<BookMetadata | null>(null);
   const [coverPath, setCoverPath] = useState<string | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
+
+  // Render the freshly-downloaded local cover via a data URL. The `asset://`
+  // protocol needs an absolute path and is unreliable on Windows, so we read
+  // the bytes directly (same approach as useUserAvatar / OPAC covers).
+  useEffect(() => {
+    setCoverPreviewUrl(null);
+    if (!coverPath) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await assetsApi.readDataUrl(coverPath);
+        if (!cancelled) setCoverPreviewUrl(data || null);
+      } catch {
+        if (!cancelled) setCoverPreviewUrl(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverPath]);
 
   // Initialize barcode scanner
   useEffect(() => {
@@ -295,10 +343,11 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
           {metadata && (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 space-y-4">
               <div className="flex items-start gap-4">
-                {/* Cover Image */}
-                {coverPath ? (
+                {/* Cover Image — prefer the freshly-downloaded local file
+                    (rendered as a data URL), fall back to the remote thumb. */}
+                {coverPreviewUrl ? (
                   <img
-                    src={`asset://localhost/${coverPath}`}
+                    src={coverPreviewUrl}
                     alt={metadata.title}
                     className="w-32 h-48 object-cover rounded-lg shadow-md"
                   />
@@ -386,10 +435,15 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
                     </div>
                   )}
 
-                  <div className="pt-2">
+                  <div className="space-y-0.5 pt-2">
                     <p className="text-xs text-gray-400">
-                      Sumber: {metadata.source === 'google_books' ? 'Google Books' : metadata.source === 'open_library' ? 'Open Library' : 'Gramedia'}
+                      Sumber: {sourceLabel(metadata.source)}
                     </p>
+                    {metadata.price && (
+                      <p className="text-xs text-gray-400">
+                        Harga referensi: {metadata.price}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

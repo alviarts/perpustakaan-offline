@@ -1,7 +1,7 @@
 mod commands;
 mod db;
 mod error;
-mod services;
+pub mod services;
 mod utils;
 
 use std::sync::Mutex;
