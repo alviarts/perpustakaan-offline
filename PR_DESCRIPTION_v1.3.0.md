@@ -13,27 +13,19 @@ Fitur baru untuk **import buku otomatis via ISBN** dengan webcam scanner atau in
 - ✅ **Metadata Preview**: Tampilkan judul, pengarang, penerbit, tahun, deskripsi, kategori, cover
 - ✅ **Auto-fill Form**: Klik "Gunakan Data Ini" → form buku ter-isi otomatis
 
-### 2. Multi-Source Lookup (Cascade Fallback)
-1. **Google Books API** (primary)
-   - Buku internasional & Indonesia
-   - Support API key: `GOOGLE_BOOKS_API_KEY` env var
-   - Rate limit: 1000 req/day (dengan key) atau ~100 req/day (tanpa key)
+### 2. Multi-Source Lookup (Paralel, ~15 sumber keyless)
+Semua sumber di-query **bersamaan**, lalu kandidat digabung dengan skor
+kualitas (katalog otoritatif menang; field kosong diisi dari kandidat lain).
 
-2. **Open Library API** (fallback)
-   - Unlimited requests
-   - Database lengkap dari Archive.org
+**Katalog:** Perpusnas (registry ISBN Indonesia), Google Books (+HTML
+fallback), Open Library, Onesearch.id, Crossref, archive.org, LIBRIS,
+K10plus, NDL Japan, Inventaire.io.
 
-3. **Gramedia Scraping** (buku Indonesia)
-   - Multiple selector fallbacks
-   - User-Agent header untuk avoid bot detection
+**Toko buku (pelengkap + harga referensi):** Periplus, Belbuk,
+Deepublish Store, AbeBooks.
 
-4. **Tokopedia Scraping** (buku Indonesia)
-   - Scraping marketplace
-   - Extract dari product listing
-
-5. **Shopee Scraping** (buku Indonesia)
-   - Fallback terakhir
-   - Mungkin tidak bekerja karena anti-bot
+Dibuang: Gramedia/Shopee/isbnsearch (terbukti SPA di balik Cloudflare — tidak
+terbaca lewat HTTP biasa). Pendekatan diadaptasi dari riset `scrape-demo`.
 
 ### 3. ISBN Utilities
 - ✅ Validasi ISBN-10 & ISBN-13 dengan checksum
@@ -44,8 +36,9 @@ Fitur baru untuk **import buku otomatis via ISBN** dengan webcam scanner atau in
 ### 4. Cover Image Downloader
 - ✅ Download cover dari URL
 - ✅ Auto-convert ke JPEG (compressed)
-- ✅ Simpan di `AppData/covers/{ISBN}.jpg`
+- ✅ Simpan di `AppData/uploads/buku/` (path **relatif**, konsisten dengan upload manual)
 - ✅ Skip jika sudah ada
+- ✅ Preview di modal & OPAC dirender via `readDataUrl` (data URL) — andal di Windows
 
 ## 📸 Screenshots
 
@@ -65,13 +58,13 @@ Fitur baru untuk **import buku otomatis via ISBN** dengan webcam scanner atau in
 
 ### Test ISBNs:
 
-**International**:
-- `9780306406157` - English book (Google Books)
-- `0306406152` - ISBN-10 format (auto-convert)
+**Indonesia** (→ Perpusnas):
+- `9786233463034` - Filosofi Teras (Henry Manampiring)
+- `9786022916628` - Laskar Pelangi original story (Andrea Hirata)
 
-**Indonesian**:
-- `9786020633176` - Laskar Pelangi (Andrea Hirata)
-- `9786024246945` - Bumi (Tere Liye)
+**Internasional** (→ Open Library / Google Books):
+- `9780306406157` - Error-correction coding for digital communications
+- `0306406152` - ISBN-10 format (auto-convert ke ISBN-13)
 
 ### Manual Testing Steps:
 1. Build app: `pnpm tauri:dev`
