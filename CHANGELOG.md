@@ -22,13 +22,19 @@ back to GitHub's auto-generated release notes.
 - **Cover + Call Number saat memilih buku** di daftar buku.
 - **Reset Pengaturan Kamera** — saat kamera scanner tidak muncul/izin ditolak,
   muncul notifikasi + tombol untuk mengizinkan ulang kamera.
+- **DDC dipetakan lebih tajam** — ratusan kata kunci (ID/EN) kini menunjuk ke
+  subdivisi spesifik: jaringan → 004.6, basis data → 005.74, AI → 006.3,
+  fikih → 297.4, hadis → 297.2, ekonomi → 330, hukum → 340, psikologi → 150,
+  matematika → 510, kedokteran → 610, akuntansi → 657, film → 791,
+  sejarah Indonesia → 959.8, dan banyak lagi.
+- **Master DDC diperluas** ±90 subdivisi tambahan (total ±170 kelas).
 
 ### Fixed
 
 - Import via ISBN kini juga menyinkronkan **deskripsi** dan **harga referensi**
   ke form buku.
 - **DDC lebih tajam berbasis bahasa**: fiksi Inggris → 823 (bukan 813), Jerman
-  → 830, Amerika → 810, Indonesia → 813.
+  → 830, Amerika → 810, Indonesia → 813 (default bila bahasa tak diketahui).
 
 ## [1.3.2] - 2026-10-22
 

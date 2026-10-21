@@ -58,43 +58,130 @@ interface KeywordRule {
   prefer?: string;
 }
 
-/** Keyword → DDC class (Indonesian + English terms). Order matters: the more
- *  specific rules must come before the generic "seni" one. */
+/** Keyword → DDC class (Indonesian + English terms). Order matters: the most
+ *  specific rules come first so they win over the generic ones. */
 const KEYWORD_RULES: readonly KeywordRule[] = [
-  { re: /ilustrasi|illustration|ilustrator|illustrator/i, cls: '700', label: 'ilustrasi', prefer: '741' },
+  // 000 — komputer, perpustakaan, media
+  { re: /jaringan komputer|computer network|networking/i, cls: '000', label: 'jaringan komputer', prefer: '004.6' },
+  { re: /internet|website|web|html|css/i, cls: '000', label: 'internet/web', prefer: '004.678' },
+  { re: /basis data|database|sql/i, cls: '000', label: 'basis data', prefer: '005.74' },
+  { re: /kecerdasan buatan|artificial intelligence|\bai\b|machine learning/i, cls: '000', label: 'kecerdasan buatan', prefer: '006.3' },
+  { re: /multimedia|audio visual/i, cls: '000', label: 'multimedia', prefer: '006.7' },
+  { re: /sistem operasi|operating system/i, cls: '000', label: 'sistem operasi', prefer: '005.4' },
+  { re: /aplikasi|perangkat lunak|software/i, cls: '000', label: 'perangkat lunak', prefer: '005.3' },
+  { re: /pemrograman|programming|coding|pemrogram/i, cls: '000', label: 'pemrograman', prefer: '005.1' },
+  { re: /komputer|computer/i, cls: '000', label: 'komputer', prefer: '004' },
+  { re: /perpustakaan|librar/i, cls: '000', label: 'perpustakaan', prefer: '020' },
+  { re: /literasi|membaca|reading/i, cls: '000', label: 'literasi', prefer: '028' },
+  { re: /ensiklopedia|encyclopedia/i, cls: '000', label: 'ensiklopedia', prefer: '030' },
+  { re: /jurnalisme|jurnalistik|media|journalism/i, cls: '000', label: 'jurnalisme', prefer: '070' },
+  { re: /organisasi|asosiasi|association/i, cls: '000', label: 'organisasi', prefer: '060' },
+
+  // 100 — filsafat & psikologi
+  { re: /psikologi perkembangan|developmental psycholog/i, cls: '100', label: 'psikologi perkembangan', prefer: '155' },
+  { re: /kecerdasan|proses mental|mental process|cognitive/i, cls: '100', label: 'proses mental', prefer: '153' },
+  { re: /psikologi terapan|applied psycholog/i, cls: '100', label: 'psikologi terapan', prefer: '158' },
+  { re: /psikolog|psycholog/i, cls: '100', label: 'psikologi', prefer: '150' },
+  { re: /logika|logic/i, cls: '100', label: 'logika', prefer: '160' },
+  { re: /etika|ethics|moral/i, cls: '100', label: 'etika', prefer: '170' },
+  { re: /metafisika|metaphysic/i, cls: '100', label: 'metafisika', prefer: '110' },
+  { re: /epistemologi|epistemolog/i, cls: '100', label: 'epistemologi', prefer: '120' },
+  { re: /filsafat|philosoph/i, cls: '100', label: 'filsafat', prefer: '100' },
+
+  // 200 — agama
+  { re: /qur'?an|al-?qur'?an|quran/i, cls: '200', label: 'Al-Qur\'an', prefer: '297.1' },
+  { re: /hadis|hadith/i, cls: '200', label: 'hadis', prefer: '297.2' },
+  { re: /tauhid|aqidah|akidah|creed/i, cls: '200', label: 'aqidah/tauhid', prefer: '297.3' },
+  { re: /fikih|fiqh|syariah/i, cls: '200', label: 'fikih', prefer: '297.4' },
+  { re: /akhlak|tasawuf|sufi/i, cls: '200', label: 'akhlak/tasawuf', prefer: '297.5' },
+  { re: /dakwah|da'?wah/i, cls: '200', label: 'dakwah', prefer: '297.7' },
+  { re: /alkitab|bibel|bible|kristen|christian/i, cls: '200', label: 'kristen', prefer: '220' },
+  { re: /islam|muslim|religion|agama|teologi|theolog/i, cls: '200', label: 'agama', prefer: '200' },
+
+  // 300 — ilmu sosial
+  { re: /sosiologi|antropologi|sociolog|anthropolog/i, cls: '300', label: 'sosiologi', prefer: '301' },
+  { re: /budaya|kebudayaan|culture|adat/i, cls: '300', label: 'budaya', prefer: '306' },
+  { re: /statistik|statistic/i, cls: '300', label: 'statistik', prefer: '310' },
+  { re: /politik|politic/i, cls: '300', label: 'politik', prefer: '320' },
+  { re: /ekonomi|econom/i, cls: '300', label: 'ekonomi', prefer: '330' },
+  { re: /hukum|law|legal/i, cls: '300', label: 'hukum', prefer: '340' },
+  { re: /administrasi publik|public administration/i, cls: '300', label: 'administrasi publik', prefer: '350' },
+  { re: /pendidikan|education/i, cls: '300', label: 'pendidikan', prefer: '370' },
+  { re: /perdagangan|komunikasi|commerce|communication/i, cls: '300', label: 'perdagangan', prefer: '380' },
+  { re: /folklor|cerita rakyat|folklore/i, cls: '300', label: 'folklor', prefer: '398' },
+  { re: /sosial|masyarakat|society|social/i, cls: '300', label: 'ilmu sosial', prefer: '300' },
+
+  // 400 — bahasa
+  { re: /kamus|dictionary/i, cls: '400', label: 'kamus', prefer: '413' },
+  { re: /tata bahasa|grammar/i, cls: '400', label: 'tata bahasa', prefer: '415' },
+  { re: /linguistik|linguistic/i, cls: '400', label: 'linguistik', prefer: '410' },
+  { re: /bahasa inggris|english/i, cls: '400', label: 'bahasa Inggris', prefer: '420' },
+  { re: /bahasa jerman|german/i, cls: '400', label: 'bahasa Jerman', prefer: '430' },
+  { re: /bahasa prancis|french/i, cls: '400', label: 'bahasa Prancis', prefer: '440' },
+  { re: /bahasa|language/i, cls: '400', label: 'bahasa', prefer: '400' },
+
+  // 500 — sains
+  { re: /aljabar|algebra/i, cls: '500', label: 'aljabar', prefer: '512' },
+  { re: /geometri|geometry/i, cls: '500', label: 'geometri', prefer: '516' },
+  { re: /kalkulus|calculus|analisis matematika/i, cls: '500', label: 'kalkulus', prefer: '515' },
+  { re: /probabilitas|probability/i, cls: '500', label: 'probabilitas', prefer: '519' },
+  { re: /matematika|math/i, cls: '500', label: 'matematika', prefer: '510' },
+  { re: /astronomi|astronomy/i, cls: '500', label: 'astronomi', prefer: '520' },
+  { re: /fisika|physic/i, cls: '500', label: 'fisika', prefer: '530' },
+  { re: /kimia|chemistr/i, cls: '500', label: 'kimia', prefer: '540' },
+  { re: /ilmu bumi|geologi|geolog|earth science/i, cls: '500', label: 'ilmu bumi', prefer: '550' },
+  { re: /tumbuhan|botani|botany|plant/i, cls: '500', label: 'tumbuhan', prefer: '580' },
+  { re: /hewan|zoologi|zoolog|animal/i, cls: '500', label: 'hewan', prefer: '590' },
+  { re: /biologi|biolog/i, cls: '500', label: 'biologi', prefer: '570' },
+  { re: /sains|science/i, cls: '500', label: 'sains', prefer: '500' },
+
+  // 600 — teknologi
+  { re: /anatomi|anatomy/i, cls: '600', label: 'anatomi', prefer: '611' },
+  { re: /fisiologi|physiolog/i, cls: '600', label: 'fisiologi', prefer: '612' },
+  { re: /penyakit|disease/i, cls: '600', label: 'penyakit', prefer: '616' },
+  { re: /farmakologi|obat|pharmacolog|medicine/i, cls: '600', label: 'farmakologi', prefer: '615' },
+  { re: /gizi|makanan|minuman|nutrition|food/i, cls: '600', label: 'makanan & gizi', prefer: '641' },
+  { re: /kedokteran|kesehatan|medis|medical|health/i, cls: '600', label: 'kedokteran', prefer: '610' },
+  { re: /teknik mesin|teknik elektro|mechanical|electrical/i, cls: '600', label: 'teknik mesin/elektro', prefer: '621' },
+  { re: /teknik sipil|civil engineering/i, cls: '600', label: 'teknik sipil', prefer: '624' },
+  { re: /pertanian|agricultur/i, cls: '600', label: 'pertanian', prefer: '630' },
+  { re: /peternakan|livestock/i, cls: '600', label: 'peternakan', prefer: '636' },
+  { re: /perikanan|fisher/i, cls: '600', label: 'perikanan', prefer: '639' },
+  { re: /akuntansi|accounting/i, cls: '600', label: 'akuntansi', prefer: '657' },
+  { re: /manajemen|management/i, cls: '600', label: 'manajemen', prefer: '650' },
+  { re: /pemasaran|iklan|marketing|advertis/i, cls: '600', label: 'pemasaran', prefer: '659' },
+  { re: /konstruksi|construction/i, cls: '600', label: 'konstruksi', prefer: '690' },
+  { re: /teknologi|teknik|engineering|technology/i, cls: '600', label: 'teknologi', prefer: '600' },
+
+  // 700 — seni & olahraga
+  { re: /ilustrasi|illustration|ilustrator|illustrator/i, cls: '700', label: 'ilustrasi', prefer: '741.4' },
   { re: /komik|kartun|karikatur|manga|comic|cartoon/i, cls: '700', label: 'komik/kartun', prefer: '741.5' },
-  {
-    re: /desain grafis|graphic design|poster|seni grafis|ilustrasi buku/i,
-    cls: '700',
-    label: 'desain grafis',
-    prefer: '741.6',
-  },
+  { re: /desain grafis|graphic design|poster|seni grafis|ilustrasi buku/i, cls: '700', label: 'desain grafis', prefer: '741.6' },
   { re: /menggambar|drawing/i, cls: '700', label: 'menggambar', prefer: '741' },
   { re: /fotografi|photograph/i, cls: '700', label: 'fotografi', prefer: '770' },
   { re: /musik|music/i, cls: '700', label: 'musik', prefer: '780' },
+  { re: /film|sinema|pertunjukan|cinema/i, cls: '700', label: 'film & pertunjukan', prefer: '791' },
+  { re: /teater|theater|drama/i, cls: '700', label: 'teater', prefer: '792' },
   { re: /olahraga|sport|atletik|athletic/i, cls: '700', label: 'olahraga', prefer: '796' },
+  { re: /arsitektur|architecture/i, cls: '700', label: 'arsitektur', prefer: '720' },
+  { re: /seni|art|hiburan|rekreasi|craft|kerajinan/i, cls: '700', label: 'seni', prefer: '700' },
+
+  // 800 — sastra (subdivisi dipilih per bahasa di `sastraTarget`)
+  { re: /puisi|sajak|poetry|poem/i, cls: '800', label: 'puisi', prefer: '808' },
   { re: /fiksi|novel|cerpen|cerita|sastra|fiction/i, cls: '800', label: 'fiksi/sastra' },
-  { re: /agama|islam|quran|qur'an|hadis|fikih|tauhid|teologi|religion/i, cls: '200', label: 'agama' },
-  { re: /filsafat|psikolog|philosoph|psycholog/i, cls: '100', label: 'filsafat/psikologi' },
-  {
-    re: /sosial|ekonomi|hukum|politik|pendidikan|masyarakat|society|social|econom|law|politic|education/i,
-    cls: '300',
-    label: 'ilmu sosial',
-  },
-  { re: /bahasa|linguistik|language|english|grammar|kamus/i, cls: '400', label: 'bahasa' },
-  {
-    re: /sains|fisika|kimia|biologi|matematika|science|physic|chemistr|biolog|math/i,
-    cls: '500',
-    label: 'sains',
-  },
-  {
-    re: /komputer|pemrograman|programming|computer|kedokteran|medis|pertanian|teknologi|teknik|engineering/i,
-    cls: '600',
-    label: 'teknologi',
-  },
-  { re: /seni|art|hiburan|rekreasi/i, cls: '700', label: 'seni' },
-  { re: /sejarah|geografi|biografi|history|geograph|travel|wisata/i, cls: '900', label: 'sejarah/geografi' },
-  { re: /referensi|umum|ensiklopedia|reference|general|karya umum/i, cls: '000', label: 'karya umum' },
+
+  // 900 — sejarah & geografi
+  { re: /sejarah indonesia|indonesian history/i, cls: '900', label: 'sejarah Indonesia', prefer: '959.8' },
+  { re: /sejarah eropa|european history/i, cls: '900', label: 'sejarah Eropa', prefer: '940' },
+  { re: /sejarah asia|asian history/i, cls: '900', label: 'sejarah Asia', prefer: '950' },
+  { re: /atlas|peta|map/i, cls: '900', label: 'atlas', prefer: '912' },
+  { re: /geografi|perjalanan|travel|geograph/i, cls: '900', label: 'geografi', prefer: '910' },
+  { re: /biografi|biography/i, cls: '900', label: 'biografi', prefer: '920' },
+  { re: /sejarah dunia|world history/i, cls: '900', label: 'sejarah dunia', prefer: '909' },
+  { re: /sejarah|history/i, cls: '900', label: 'sejarah', prefer: '900' },
+
+  // Generic fallbacks
+  { re: /referensi|umum|reference|general|karya umum/i, cls: '000', label: 'karya umum', prefer: '000' },
 ];
 
 function norm(s: string | null | undefined): string {
@@ -131,7 +218,8 @@ function langCode(language?: string | null): string | null {
 /**
  * Pick the literature subdivision for fiction. The library follows the
  * Indonesian convention where **813 = Sastra Indonesia**, so an English novel
- * must go to 823 (not 813), German to 830, and American to 810.
+ * must go to 823 (not 813), German to 830, and American to 810. When the
+ * language is unknown we default to 813 (Indonesian library convention).
  */
 function sastraTarget(blob: string, lang: string | null): string | null {
   if (/(amerika|american)/.test(blob)) return '810';
@@ -149,8 +237,8 @@ function sastraTarget(blob: string, lang: string | null): string | null {
     default:
       break;
   }
-  if (/(indonesia|nusantara)/.test(blob)) return '813';
-  return null;
+  // Unknown language: default to the Indonesian literature class.
+  return '813';
 }
 
 /** Score how well a DDC row matches the book; higher is better. */
