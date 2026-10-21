@@ -21,6 +21,8 @@ const DDC: DdcEntry[] = [
   { kode: '796', nama: 'Olahraga & Permainan Atletik' },
   { kode: '800', nama: 'Sastra' },
   { kode: '813', nama: 'Sastra Indonesia (Fiksi Indonesia)' },
+  { kode: '823', nama: 'Fiksi Inggris' },
+  { kode: '830', nama: 'Sastra Jerman' },
   { kode: '900', nama: 'Sejarah & Geografi' },
 ];
 
@@ -45,7 +47,7 @@ describe('generateCatalog', () => {
     });
     expect(result.kodeDdc).toBe('813');
     expect(result.callNumber).toBe('813 HIR l');
-    expect(result.kodeBuku).toBe('813 HIR l');
+    expect(result.kodeBuku).toBe('813-HIRL-01');
     expect(result.rak).toBe('RAK 813');
   });
 
@@ -67,7 +69,7 @@ describe('generateCatalog', () => {
 
   it('makes the book code unique against the collection', () => {
     const existing: ExistingBook[] = [
-      { kodeBuku: '813 HIR l', kodeDdc: '813', rak: 'RAK B' },
+      { kodeBuku: '813-HIRL-01', kodeDdc: '813', rak: 'RAK B' },
     ];
     const result = generateCatalog({
       judul: 'Laskar Pelangi',
@@ -77,7 +79,45 @@ describe('generateCatalog', () => {
       existing,
     });
     expect(result.callNumber).toBe('813 HIR l');
-    expect(result.kodeBuku).toBe('813 HIR l 2');
+    expect(result.kodeBuku).toBe('813-HIRL-02');
+  });
+
+  it('uses 823 for English fiction, not 813', () => {
+    const result = generateCatalog({
+      judul: 'The Secret Garden',
+      pengarang: 'Frances Hodgson Burnett',
+      subjects: ['Fiction', 'English literature'],
+      language: 'en',
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(result.kodeDdc).toBe('823');
+    expect(result.kodeBuku).toMatch(/^823-BUR[A-Z]?-\d{2}$/);
+    expect(result.kodeBuku).not.toContain(' ');
+  });
+
+  it('keeps 813 for Indonesian fiction', () => {
+    const result = generateCatalog({
+      judul: 'Laskar Pelangi',
+      pengarang: 'Andrea Hirata',
+      subjects: ['Fiksi Indonesia'],
+      language: 'id',
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(result.kodeDdc).toBe('813');
+  });
+
+  it('produces a scan-safe code (A-Z, 0-9 and dash only)', () => {
+    const result = generateCatalog({
+      judul: 'Ilustrasi Buku Anak',
+      pengarang: 'Rina Wijaya',
+      subjects: ['Ilustrasi'],
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(result.kodeBuku).toMatch(/^[A-Z0-9-]+$/);
+    expect(result.kodeBuku).toMatch(/-\d{2}$/);
   });
 
   it('uses ISBN subjects to pick the class when kategori is empty', () => {

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { formatTauriError } from '@/lib/errors';
 import {
+  BookOpen,
   BookOpenText,
   ChevronLeft,
   ChevronRight,
@@ -28,12 +29,88 @@ import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { bukuApi, type Buku, type BukuDetail } from '@/lib/buku';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
+import { assetsApi } from '@/lib/assets';
+import { hurufJudul, kodePengarang } from '@/lib/labelBuku';
 import { useToast } from '@/components/ui/toast-manager';
 import { ImportBukuDialog } from './ImportBukuDialog';
 import { IsbnScannerModal } from './IsbnScannerModal';
 import { useIsbnTutorial } from './useIsbnTutorial';
 
 const PAGE_SIZE = 20;
+
+/** Human-readable call number: `DDC KODE_PENGARANG hurufJudul` (e.g. 813 HIR l). */
+function callNumberOf(buku: Buku): string {
+  return [buku.kodeDdc || '000', kodePengarang(buku.pengarang ?? ''), hurufJudul(buku.judul)]
+    .filter(Boolean)
+    .join(' ');
+}
+
+/** Book cover rendered from the stored path via a data URL (Windows-safe). */
+function BookCover({
+  coverPath,
+  alt,
+  className,
+}: {
+  coverPath?: string | null;
+  alt: string;
+  className?: string;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setUrl(null);
+    setFailed(false);
+    if (!coverPath) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await assetsApi.readDataUrl(coverPath);
+        if (!cancelled) setUrl(data || null);
+      } catch {
+        if (!cancelled) setUrl(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverPath]);
+
+  if (url && !failed) {
+    return (
+      <img
+        src={url}
+        alt={alt}
+        className={className}
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`flex items-center justify-center bg-muted text-muted-foreground ${className ?? ''}`}
+      data-testid="buku-cover-placeholder"
+    >
+      <BookOpen className="h-8 w-8" aria-hidden />
+    </div>
+  );
+}
+
+/** "Rp 258.000" / "258000" → 258000. Returns undefined when unparseable. */
+function parseHargaReferensi(price?: string | null): number | undefined {
+  if (!price) return undefined;
+  const digits = price.replace(/[^\d.,]/g, '');
+  if (!digits) return undefined;
+  // IDR reference prices carry no cents in our sources, so treat '.' and ','
+  // purely as thousand separators.
+  const normalized = digits.replace(/[.,]/g, '');
+  const n = Number(normalized);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
 
 interface BukuListSearch {
   q?: string;
@@ -403,6 +480,9 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
               penerbit: metadata.publisher || undefined,
               tahun: metadata.published_date ? parseInt(metadata.published_date.substring(0, 4)) : undefined,
               coverPath: coverPath || undefined,
+              deskripsi: metadata.description || undefined,
+              harga: parseHargaReferensi(metadata.price) ?? undefined,
+              language: metadata.language || undefined,
               subjects: metadata.categories.length
                 ? metadata.categories.join(',')
                 : undefined,
@@ -448,12 +528,23 @@ function BukuDetailPanel({ detail, isLoading, onEdit }: BukuDetailPanelProps) {
   return (
     <div className="space-y-4 rounded-md border bg-card p-5" data-testid="buku-detail">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-mono text-muted-foreground">{buku.kodeBuku}</p>
-          <h2 className="text-lg font-semibold leading-tight">{buku.judul}</h2>
-          {buku.pengarang && (
-            <p className="text-sm text-muted-foreground">{buku.pengarang}</p>
-          )}
+        <div className="flex min-w-0 items-start gap-3">
+          <BookCover
+            coverPath={buku.coverPath}
+            alt={buku.judul}
+            className="h-28 w-20 shrink-0 rounded-md object-cover shadow-sm"
+          />
+          <div className="min-w-0">
+            <p className="text-xs font-mono text-muted-foreground">{buku.kodeBuku}</p>
+            <h2 className="text-lg font-semibold leading-tight">{buku.judul}</h2>
+            {buku.pengarang && (
+              <p className="text-sm text-muted-foreground">{buku.pengarang}</p>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground" data-testid="buku-call-number">
+              Call number:{' '}
+              <span className="font-mono text-foreground">{callNumberOf(buku)}</span>
+            </p>
+          </div>
         </div>
         <Button size="sm" variant="outline" onClick={() => onEdit(buku.id)} data-testid="buku-detail-edit">
           <Pencil className="mr-1 h-3 w-3" />
@@ -465,6 +556,10 @@ function BukuDetailPanel({ detail, isLoading, onEdit }: BukuDetailPanelProps) {
         <DT label={t('buku:detail.kategori')} value={buku.kategori} />
         <DT label={t('buku:detail.bahasa')} value={buku.bahasa} />
         <DT label={t('buku:detail.kodeDdc')} value={buku.kodeDdc} />
+        <DT
+          label={t('buku:detail.callNumber', { defaultValue: 'Call Number' })}
+          value={callNumberOf(buku)}
+        />
         <DT label={t('buku:detail.tahunTerbit')} value={buku.tahunTerbit?.toString()} />
         <DT label={t('buku:detail.penerbit')} value={buku.penerbit} />
         <DT label={t('buku:detail.isbn')} value={buku.isbn} />

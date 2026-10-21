@@ -13,6 +13,23 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+### Added
+
+- **Kode buku scannable + Call Number** — kode buku kini berstruktur
+  `DDC-PENGARANG+HURUF-NN` (mis. `813-HIRL-01`) sehingga aman dicetak sebagai
+  barcode/QR dan dipindai; Call Number manusiawi (`813 HIR l`) ditampilkan di
+  detail buku dan label punggung.
+- **Cover + Call Number saat memilih buku** di daftar buku.
+- **Reset Pengaturan Kamera** — saat kamera scanner tidak muncul/izin ditolak,
+  muncul notifikasi + tombol untuk mengizinkan ulang kamera.
+
+### Fixed
+
+- Import via ISBN kini juga menyinkronkan **deskripsi** dan **harga referensi**
+  ke form buku.
+- **DDC lebih tajam berbasis bahasa**: fiksi Inggris → 823 (bukan 813), Jerman
+  → 830, Amerika → 810, Indonesia → 813.
+
 ## [1.3.2] - 2026-10-22
 
 ### Added

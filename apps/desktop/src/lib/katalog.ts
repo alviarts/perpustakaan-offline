@@ -33,6 +33,8 @@ export interface CatalogInput {
   kategori?: string | null;
   /** Subject tags from the ISBN lookup (may be empty). */
   subjects?: string[];
+  /** Book language from the ISBN lookup / form (e.g. "id", "en", "Indonesia"). */
+  language?: string | null;
   ddcList: DdcEntry[];
   existing: ExistingBook[];
   /** When editing, exclude the book's current kode from uniqueness checks. */
@@ -114,8 +116,50 @@ function keywordClass(text: string): KeywordRule | null {
   return null;
 }
 
+/** Normalise a free-form language field to a short code ("Indonesia" → "id"). */
+function langCode(language?: string | null): string | null {
+  const v = norm(language);
+  if (!v) return null;
+  if (/(^|\b)(english|inggris|en|eng)(\b|$)/.test(v)) return 'en';
+  if (/(^|\b)(indonesia|indonesian|ind|id)(\b|$)/.test(v)) return 'id';
+  if (/(^|\b)(de|ger|german|jerman|deutsch)(\b|$)/.test(v)) return 'de';
+  if (/(^|\b)(fr|fre|french|prancis)(\b|$)/.test(v)) return 'fr';
+  if (/(^|\b)(ar|ara|arab|arabic)(\b|$)/.test(v)) return 'ar';
+  return null;
+}
+
+/**
+ * Pick the literature subdivision for fiction. The library follows the
+ * Indonesian convention where **813 = Sastra Indonesia**, so an English novel
+ * must go to 823 (not 813), German to 830, and American to 810.
+ */
+function sastraTarget(blob: string, lang: string | null): string | null {
+  if (/(amerika|american)/.test(blob)) return '810';
+  switch (lang) {
+    case 'id':
+      return '813';
+    case 'en':
+      return '823';
+    case 'de':
+      return '830';
+    case 'fr':
+      return '840';
+    case 'ar':
+      return '892';
+    default:
+      break;
+  }
+  if (/(indonesia|nusantara)/.test(blob)) return '813';
+  return null;
+}
+
 /** Score how well a DDC row matches the book; higher is better. */
-function scoreDdc(entry: DdcEntry, blob: string, hint: KeywordRule | null): number {
+function scoreDdc(
+  entry: DdcEntry,
+  blob: string,
+  hint: KeywordRule | null,
+  lang: string | null,
+): number {
   let score = 0;
   const words = norm(entry.nama)
     .split(/[^a-z0-9]+/)
@@ -136,14 +180,17 @@ function scoreDdc(entry: DdcEntry, blob: string, hint: KeywordRule | null): numb
     if (hint.prefer && entry.kode.startsWith(hint.prefer)) score += 7;
   }
   if (blob.includes(norm(entry.kode))) score += 3;
-  // Indonesian fiction/sastra is conventionally shelved at 813 ("Sastra
-  // Indonesia") rather than the generic 800, so prefer that subdivision.
-  if (
-    /(fiksi|sastra|novel|cerita|cerpen|fiction)/.test(blob) &&
-    /indonesia/.test(norm(entry.nama))
-  ) {
-    score += 8;
+
+  // Fiction/sastra: choose the literature class by language, and make the
+  // generic 800 lose to the matching country-specific subdivision.
+  if (/(fiksi|sastra|novel|cerita|cerpen|fiction)/.test(blob)) {
+    const target = sastraTarget(blob, lang);
+    if (target) {
+      if (entry.kode.startsWith(target)) score += 9;
+      if (entry.kode === '800') score -= 4;
+    }
   }
+
   score += entry.kode.length * 0.01;
   return score;
 }
@@ -183,19 +230,21 @@ function pickRak(kodeDdc: string, existing: ExistingBook[]): { rak: string; lear
   return { rak: cls ? `RAK ${cls}` : 'RAK 000', learned: false };
 }
 
-/** Append " 2", " 3", … until the code is unique. */
-function uniqueKode(base: string, existing: ExistingBook[], exclude?: string | null): string {
+/**
+ * Append a 2-digit serial (`-01`, `-02`, …) until the code is unique.
+ * Only `[A-Z0-9-]` is used so the value is safe for a CODE128 barcode/scan.
+ */
+function nextSerialCode(base: string, existing: ExistingBook[], exclude?: string | null): string {
   const taken = new Set(
     existing
       .map((b) => norm(b.kodeBuku))
       .filter((k) => k && k !== norm(exclude)),
   );
-  if (!taken.has(norm(base))) return base;
-  for (let i = 2; i <= 99; i += 1) {
-    const candidate = `${base} ${i}`;
+  for (let i = 1; i <= 999; i += 1) {
+    const candidate = `${base}-${String(i).padStart(2, '0')}`;
     if (!taken.has(norm(candidate))) return candidate;
   }
-  return `${base} ${Date.now().toString().slice(-3)}`;
+  return `${base}-${Date.now().toString().slice(-3)}`;
 }
 
 /**
@@ -203,10 +252,11 @@ function uniqueKode(base: string, existing: ExistingBook[], exclude?: string | n
  * Never returns a DDC code that is absent from `ddcList`.
  */
 export function generateCatalog(input: CatalogInput): CatalogResult {
-  const { judul, pengarang, kategori, subjects = [], ddcList, existing } = input;
+  const { judul, pengarang, kategori, subjects = [], language, ddcList, existing } = input;
 
   const blob = norm([kategori ?? '', subjects.join(' '), judul].filter(Boolean).join(' '));
   const hinted = keywordClass(blob);
+  const lang = langCode(language);
 
   // Learn from the collection: if books with the same kategori already use a
   // DDC code, strongly prefer it so new books stay consistent.
@@ -222,19 +272,21 @@ export function generateCatalog(input: CatalogInput): CatalogResult {
   let chosen: DdcEntry | null = null;
   let bestScore = 0;
   for (const entry of ddcList) {
-    let score = scoreDdc(entry, blob, hinted);
+    let score = scoreDdc(entry, blob, hinted, lang);
     if (learnedDdc && entry.kode === learnedDdc) score += 20;
     if (score > bestScore) {
       bestScore = score;
       chosen = entry;
     }
   }
-  // Fallbacks: preferred subdivision, then main class, then "000"/first.
+  // Fallbacks: preferred subdivision, sastra target, main class, then "000".
   if (!chosen && hinted) {
+    const target = /(fiksi|sastra|novel|cerita|cerpen|fiction)/.test(blob)
+      ? sastraTarget(blob, lang)
+      : null;
     chosen =
-      (hinted.prefer
-        ? ddcList.find((e) => e.kode.startsWith(hinted.prefer!))
-        : undefined) ??
+      (hinted.prefer ? ddcList.find((e) => e.kode.startsWith(hinted.prefer!)) : undefined) ??
+      (target ? ddcList.find((e) => e.kode.startsWith(target)) : undefined) ??
       ddcList.find((e) => mainClass(e.kode) === hinted.cls) ??
       null;
   }
@@ -245,10 +297,16 @@ export function generateCatalog(input: CatalogInput): CatalogResult {
   const kodeDdc = chosen?.kode ?? '';
   const { rak, learned } = pickRak(kodeDdc, existing);
 
-  const callNumber = [kodeDdc || '000', kodePengarang(pengarang), hurufJudul(judul)]
-    .filter(Boolean)
-    .join(' ');
-  const kodeBuku = uniqueKode(callNumber, existing, input.excludeKodeBuku);
+  // Human-readable call number for the spine label, e.g. "813 HIR l".
+  const author = kodePengarang(pengarang);
+  const titleLetter = hurufJudul(judul);
+  const callNumber = [kodeDdc || '000', author, titleLetter].filter(Boolean).join(' ');
+
+  // Scannable inventory code: only A-Z, 0-9 and '-', safe for CODE128,
+  // e.g. "813-HIRL-01", "7415-COMK-01", "005133-PYTB-01".
+  const ddcPart = (kodeDdc || '000').replace(/[^0-9A-Za-z]/g, '');
+  const baseKode = `${ddcPart}-${author}${titleLetter.toUpperCase()}`;
+  const kodeBuku = nextSerialCode(baseKode, existing, input.excludeKodeBuku);
 
   const reasonParts: string[] = [];
   if (chosen) {
@@ -261,7 +319,7 @@ export function generateCatalog(input: CatalogInput): CatalogResult {
     reasonParts.push('DDC belum tersedia di master');
   }
   reasonParts.push(learned ? `rak ${rak} dari data yang ada` : `rak ${rak} (default kelas)`);
-  if (kodeBuku !== callNumber) reasonParts.push(`kode dibuat unik: ${kodeBuku}`);
+  reasonParts.push(`kode ${kodeBuku}`);
 
   return { kodeDdc, rak, callNumber, kodeBuku, reason: reasonParts.join('; ') };
 }

@@ -6,6 +6,7 @@ import { Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Autocomplete, type AutocompleteOption } from '@/components/shared/Autocomplete';
 import { FilePickerInput } from '@/components/shared/FilePickerInput';
@@ -133,6 +134,7 @@ export function BukuForm({
       judul: values.judul,
       pengarang: values.pengarang ?? '',
       kategori: values.kategori,
+      language: values.bahasa,
       subjects: autoFill.subjects,
       ddcList: ddcOptions.map((d) => ({ kode: d.kode ?? d.nama, nama: d.nama })),
       existing: autoFill.existing,
@@ -322,7 +324,7 @@ export function BukuForm({
             <Input {...register('rak')} />
           </Field>
           <Field label={t('buku:fields.deskripsi')} className="md:col-span-2">
-            <Input {...register('deskripsi')} />
+            <Textarea rows={4} data-testid="field-deskripsi" {...register('deskripsi')} />
           </Field>
           <Field
             label={t('buku:fields.coverPath')}
