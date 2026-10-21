@@ -13,6 +13,8 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-10-22
+
 ### Added
 
 - **Auto-generate kode buku / DDC / rak / call number** — tombol **Isi Otomatis**
