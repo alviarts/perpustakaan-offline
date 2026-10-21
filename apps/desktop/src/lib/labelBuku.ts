@@ -17,6 +17,9 @@ export type LabelBukuFieldKind =
   | 'penerbit'
   | 'tahun'
   | 'kodeDdc'
+  | 'rak'
+  | 'kodePengarang'
+  | 'hurufJudul'
   | 'barcode'
   | 'qr'
   | 'rect';
@@ -315,6 +318,7 @@ export interface BukuSample {
   penerbit: string;
   tahun: string;
   kodeDdc: string;
+  rak: string;
 }
 
 export function defaultBukuSample(): BukuSample {
@@ -326,5 +330,35 @@ export function defaultBukuSample(): BukuSample {
     penerbit: 'Lentera Dipantara',
     tahun: '2005',
     kodeDdc: '899.221',
+    rak: 'A1',
   };
+}
+
+/**
+ * Cutter-style author code: first three letters of the author's last name.
+ * Strips translator/role notes after `;` or `,` (e.g. "Andrea Hirata ;
+ * penyunting, ..." → "HIR"). Falls back to "XXX" when no letters remain.
+ */
+export function kodePengarang(pengarang: string): string {
+  const cleaned = (pengarang ?? '').split(/[;,]/)[0]!.trim();
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  const surname = parts.length > 0 ? parts[parts.length - 1]! : '';
+  const letters = surname.toUpperCase().replace(/[^A-Z]/g, '');
+  return letters.slice(0, 3) || 'XXX';
+}
+
+/** First letter of the title, lowercased (e.g. "Laskar Pelangi" → "l"). */
+export function hurufJudul(judul: string): string {
+  const match = (judul ?? '').match(/[A-Za-z]/);
+  return match ? match[0].toLowerCase() : '-';
+}
+
+/**
+ * Display a shelf location prefixed with "RAK" unless the value already
+ * starts with it. "A1" → "RAK A1"; "RAK B" → "RAK B"; empty → "-".
+ */
+export function rakLabel(rak: string): string {
+  const v = (rak ?? '').trim();
+  if (!v) return '-';
+  return /^rak\b/i.test(v) ? v : `RAK ${v}`;
 }

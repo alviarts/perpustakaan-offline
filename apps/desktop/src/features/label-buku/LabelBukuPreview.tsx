@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
 import QRCode from 'qrcode';
-import type { BukuSample, LabelBukuField, LabelBukuLayout } from '@/lib/labelBuku';
+import {
+  hurufJudul,
+  kodePengarang,
+  rakLabel,
+  type BukuSample,
+  type LabelBukuField,
+  type LabelBukuLayout,
+} from '@/lib/labelBuku';
 import type { LibraryIdentity } from '@/stores/identityStore';
 
 const MM_TO_PX = 3.78;
@@ -247,6 +254,12 @@ function resolveFieldText(
       return buku.tahun || '-';
     case 'kodeDdc':
       return buku.kodeDdc || '-';
+    case 'rak':
+      return rakLabel(buku.rak);
+    case 'kodePengarang':
+      return kodePengarang(buku.pengarang);
+    case 'hurufJudul':
+      return hurufJudul(buku.judul);
     default:
       return '';
   }
