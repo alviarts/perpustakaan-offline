@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import JsBarcode from 'jsbarcode';
 import QRCode from 'qrcode';
-import type { LabelBukuField, LabelBukuLayout } from '@/lib/labelBuku';
+import { hurufJudul, kodePengarang, rakLabel, type LabelBukuField, type LabelBukuLayout } from '@/lib/labelBuku';
 import type { LibraryIdentity } from '@/stores/identityStore';
 import type { LabelBukuItem } from './print';
 
@@ -52,6 +52,12 @@ function resolveText(
       return item.tahun;
     case 'kodeDdc':
       return item.kodeDdc;
+    case 'rak':
+      return rakLabel(item.rak);
+    case 'kodePengarang':
+      return kodePengarang(item.pengarang);
+    case 'hurufJudul':
+      return hurufJudul(item.judul);
     default:
       return '';
   }

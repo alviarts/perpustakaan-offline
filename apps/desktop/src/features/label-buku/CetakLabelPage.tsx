@@ -101,6 +101,7 @@ export function CetakLabelPage() {
       penerbit: pick.penerbit ?? '-',
       tahun: pick.tahunTerbit ? String(pick.tahunTerbit) : '-',
       kodeDdc: pick.kodeDdc ?? '-',
+      rak: pick.rak ?? '-',
     };
   }, [selected, buku]);
 
@@ -146,6 +147,7 @@ export function CetakLabelPage() {
             penerbit: book.penerbit ?? '-',
             tahun: book.tahunTerbit ? String(book.tahunTerbit) : '-',
             kodeDdc: book.kodeDdc ?? '-',
+            rak: book.rak ?? '-',
           });
         }
       } catch (e) {

@@ -94,25 +94,33 @@ const standar: LabelBukuLayout = blank([
 // 2. Punggung Buku (spine label) — narrow vertical
 const punggungBuku: LabelBukuLayout = blank(
   [
-    rect('top', 0, 0, 100, 22, '#0f172a'),
-    text('identitas', 'identitas', 4, 3, 92, 16, {
-      fontSize: 8,
+    rect('rak-band', 0, 0, 100, 16, '#1d4ed8', 1),
+    text('rak', 'rak', 4, 1, 92, 14, {
+      fontSize: 11,
       fontWeight: 'bold',
       color: '#ffffff',
       align: 'center',
     }),
-    text('ddc', 'kodeDdc', 4, 26, 92, 14, {
-      fontSize: 16,
+    text('ddc', 'kodeDdc', 4, 18, 92, 16, {
+      fontSize: 18,
       fontWeight: 'bold',
       align: 'center',
     }),
-    text('kode', 'kodeBuku', 4, 44, 92, 10, { fontSize: 9, align: 'center' }),
-    text('kodeek', 'kodeEksemplar', 4, 60, 92, 12, {
-      fontSize: 8,
+    text('koder', 'kodePengarang', 4, 36, 92, 13, {
+      fontSize: 15,
+      fontWeight: 'bold',
+      align: 'center',
+    }),
+    text('huruf', 'hurufJudul', 4, 50, 92, 10, {
+      fontSize: 12,
+      align: 'center',
+    }),
+    text('kodeek', 'kodeEksemplar', 4, 62, 92, 8, {
+      fontSize: 7,
       color: '#475569',
       align: 'center',
     }),
-    barcode('barcode', 4, 76, 92, 22),
+    barcode('barcode', 10, 76, 80, 20),
   ],
   '#ffffff',
   35,
@@ -324,7 +332,8 @@ export const LABEL_BUKU_PRESETS: readonly LabelBukuPreset[] = [
   {
     id: 'punggung-buku',
     nama: 'Punggung Buku',
-    deskripsi: 'Stiker vertikal 35 × 70 mm dengan kode DDC besar untuk punggung rak',
+    deskripsi:
+      'Stiker vertikal 35 × 70 mm: RAK di pita biru atas, lalu DDC + kode pengarang + huruf judul',
     layout: punggungBuku,
   },
   {
