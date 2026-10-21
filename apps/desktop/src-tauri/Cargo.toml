@@ -47,7 +47,7 @@ tokio = { version = "1", features = ["sync"] }
 # FEAT-20 — Bulk import buku via ISBN. ureq provides a small synchronous HTTP
 # client used by the backend to call Open Library + Google Books from inside a
 # blocking Tauri command without dragging tokio into the request path.
-ureq = { version = "2.10", default-features = false, features = ["json", "tls"] }
+ureq = { version = "2.10", default-features = false, features = ["json", "tls", "native-tls"] }
 # ISBN barcode scanner + scraping
 rqrr = "0.8"  # QR/barcode decoder
 scraper = "0.20"  # HTML scraping for Gramedia
