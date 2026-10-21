@@ -13,8 +13,14 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-22
+
 ### Added
 
+- **Label punggung buku: RAK + Call Number** — field baru `Rak`,
+  `Kode Pengarang` (3 huruf / Cutter), dan `Huruf Judul`; preset "Punggung
+  Buku" kini menampilkan RAK di pita warna, lalu DDC, kode pengarang, dan
+  huruf judul.
 - **Sumber ISBN: Perpustakaan Jakarta (JAKLITERA)** — katalog DKI Jakarta;
   mencari via `keyword=<ISBN>` lalu mem-parse halaman detail. Menyediakan
   **cover asli**, sinopsis, subjek, serta penerbit/tahun yang lebih rapi.
