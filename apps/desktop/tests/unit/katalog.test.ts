@@ -4,12 +4,19 @@ import { generateCatalog, mainClass, type DdcEntry, type ExistingBook } from '@/
 const DDC: DdcEntry[] = [
   { kode: '000', nama: 'Karya Umum' },
   { kode: '004', nama: 'Ilmu Komputer' },
+  { kode: '004.6', nama: 'Jaringan Komputer' },
   { kode: '005', nama: 'Pemrograman & Program Komputer' },
+  { kode: '005.74', nama: 'Basis Data' },
   { kode: '100', nama: 'Filsafat & Psikologi' },
+  { kode: '150', nama: 'Psikologi' },
   { kode: '200', nama: 'Agama' },
+  { kode: '297', nama: 'Agama Islam' },
+  { kode: '297.4', nama: 'Fikih' },
   { kode: '300', nama: 'Ilmu Sosial' },
+  { kode: '330', nama: 'Ekonomi' },
   { kode: '400', nama: 'Bahasa' },
   { kode: '500', nama: 'Sains Murni' },
+  { kode: '510', nama: 'Matematika' },
   { kode: '600', nama: 'Teknologi & Sains Terapan' },
   { kode: '700', nama: 'Kesenian, Hiburan, Olahraga' },
   { kode: '741', nama: 'Menggambar & Seni Gambar' },
@@ -24,6 +31,7 @@ const DDC: DdcEntry[] = [
   { kode: '823', nama: 'Fiksi Inggris' },
   { kode: '830', nama: 'Sastra Jerman' },
   { kode: '900', nama: 'Sejarah & Geografi' },
+  { kode: '959.8', nama: 'Sejarah Indonesia' },
 ];
 
 const EMPTY: ExistingBook[] = [];
@@ -198,5 +206,27 @@ describe('generateCatalog', () => {
       existing: EMPTY,
     });
     expect(result.kodeDdc).toBe('741.6');
+  });
+
+  it('maps topics to sharper DDC subdivisions', () => {
+    const cases: Array<{ judul: string; subjects: string[]; expected: string }> = [
+      { judul: 'Jaringan Komputer', subjects: ['Jaringan komputer'], expected: '004.6' },
+      { judul: 'Basis Data MySQL', subjects: ['Basis data', 'database'], expected: '005.74' },
+      { judul: 'Fikih Ibadah', subjects: ['Fikih', 'Agama Islam'], expected: '297.4' },
+      { judul: 'Ekonomi Makro', subjects: ['Ekonomi'], expected: '330' },
+      { judul: 'Matematika Diskrit', subjects: ['Matematika'], expected: '510' },
+      { judul: 'Sejarah Indonesia Modern', subjects: ['Sejarah Indonesia'], expected: '959.8' },
+      { judul: 'Psikologi Remaja', subjects: ['Psikologi'], expected: '150' },
+    ];
+    for (const c of cases) {
+      const r = generateCatalog({
+        judul: c.judul,
+        pengarang: 'Penulis Uji',
+        subjects: c.subjects,
+        ddcList: DDC,
+        existing: EMPTY,
+      });
+      expect(r.kodeDdc, c.judul).toBe(c.expected);
+    }
   });
 });
