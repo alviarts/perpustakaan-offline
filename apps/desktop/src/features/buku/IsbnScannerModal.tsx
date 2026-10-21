@@ -59,6 +59,8 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
   const [coverPath, setCoverPath] = useState<string | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraAttempt, setCameraAttempt] = useState(0);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
   // Render the freshly-downloaded local cover via a data URL. The `asset://`
@@ -94,25 +96,29 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
       try {
         setIsScanning(true);
         setError(null);
+        setCameraError(null);
 
         const videoInputDevices = await codeReader.listVideoInputDevices();
         if (videoInputDevices.length === 0) {
-          setError('Tidak ada kamera yang terdeteksi');
-          setScanMode('manual');
+          setCameraError(
+            'Kamera tidak terdeteksi. Pastikan kamera terpasang dan izin akses kamera diizinkan.',
+          );
+          setIsScanning(false);
           return;
         }
 
         // Use first camera (usually back camera on mobile)
         const firstDevice = videoInputDevices[0];
         if (!firstDevice) {
-          setError('Tidak dapat mengakses kamera');
-          setScanMode('manual');
+          setCameraError('Tidak dapat mengakses kamera. Coba reset pengaturan kamera.');
+          setIsScanning(false);
           return;
         }
         const selectedDeviceId = firstDevice.deviceId;
 
         if (!videoRef.current) {
-          setError('Video element not ready');
+          setCameraError('Kamera belum siap. Coba reset pengaturan kamera.');
+          setIsScanning(false);
           return;
         }
 
@@ -132,8 +138,9 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
           }
         );
       } catch {
-        setError('Gagal mengakses kamera. Gunakan input manual.');
-        setScanMode('manual');
+        setCameraError(
+          'Gagal mengakses kamera (izin ditolak atau kamera sedang dipakai aplikasi lain).',
+        );
         setIsScanning(false);
       }
     };
@@ -145,7 +152,7 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         codeReaderRef.current.reset();
       }
     };
-  }, [isOpen, scanMode]);
+  }, [isOpen, scanMode, cameraAttempt]);
 
   // Lookup ISBN from backend
   const lookupIsbn = async (isbn: string) => {
@@ -201,10 +208,30 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
     setIsScanning(false);
     setManualIsbn('');
     setError(null);
+    setCameraError(null);
     setMetadata(null);
     setCoverPath(null);
     setScanMode('camera');
     onClose();
+  };
+
+  // Re-request camera access and restart the scanner. Useful when the user
+  // accidentally denied the permission or the OS camera setting is off.
+  const handleResetCamera = async () => {
+    setCameraError(null);
+    setIsScanning(false);
+    if (codeReaderRef.current) {
+      codeReaderRef.current.reset();
+      codeReaderRef.current = null;
+    }
+    try {
+      const stream = await navigator.mediaDevices?.getUserMedia({ video: true });
+      stream?.getTracks().forEach((t) => t.stop());
+    } catch {
+      // Still denied — the notice will reappear after the retry.
+    }
+    setScanMode('camera');
+    setCameraAttempt((n) => n + 1);
   };
 
   if (!isOpen) return null;
@@ -288,9 +315,49 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
                   </p>
                 </div>
               )}
+              {cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70 p-6 text-center">
+                  <Camera className="h-10 w-10 text-white/80" />
+                  <p className="max-w-md text-sm text-white">{cameraError}</p>
+                  <p className="max-w-md text-xs text-white/70">
+                    Periksa izin kamera di pengaturan sistem (Windows: Settings → Privacy &amp;
+                    security → Camera), izinkan aplikasi ini, lalu tekan tombol di bawah.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResetCamera}
+                    data-testid="rescan-camera"
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                  >
+                    Reset Pengaturan Kamera
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScanMode('manual')}
+                    className="text-xs text-white/80 underline"
+                  >
+                    Gunakan input manual
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
+              {cameraError && (
+                <div
+                  className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                  data-testid="camera-error-notice"
+                >
+                  <p>{cameraError}</p>
+                  <button
+                    type="button"
+                    onClick={handleResetCamera}
+                    className="mt-2 font-medium text-blue-600 underline dark:text-blue-400"
+                  >
+                    Reset Pengaturan Kamera
+                  </button>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   ISBN (10 atau 13 digit)

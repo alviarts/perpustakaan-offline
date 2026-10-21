@@ -292,7 +292,20 @@ fn blank(isbn: &str, source: &str) -> BookMetadata {    BookMetadata {
 
 fn is_usable(m: &BookMetadata) -> bool {
     let t = m.title.trim();
-    t.len() > 1 && !t.eq_ignore_ascii_case("unknown title")
+    if t.len() <= 1 || t.eq_ignore_ascii_case("unknown title") {
+        return false;
+    }
+    // Guard against site slogans / generic bookstore titles that some
+    // sources return for unknown products.
+    let lower = t.to_lowercase();
+    let junk = [
+        "online bookstore",
+        "toko buku online",
+        "page not found",
+        "404 not found",
+        "google books",
+    ];
+    !junk.iter().any(|j| lower.contains(j))
 }
 
 fn score(m: &BookMetadata) -> i32 {
@@ -818,12 +831,27 @@ fn lookup_periplus(isbn: &str) -> Option<BookMetadata> {
     let url = format!("https://www.periplus.com/p/{isbn}");
     let body = http_get(&url, 14)?;
 
+    // Periplus returns HTTP 200 with its bookstore landing page for unknown
+    // ISBNs, so og:title would be the site slogan. Only accept a real product
+    // page: it must expose a product price and must not be a "not found" page.
+    let price_raw = meta_content(&body, "product:price:amount")?;
+    if body.contains("Page Not Found") || body.contains("404 Not Found") {
+        return None;
+    }
+
+    let title = meta_content(&body, "og:title")?;
+    let title_lower = title.to_lowercase();
+    if title_lower.contains("periplus online bookstore")
+        || title_lower.contains("toko buku online")
+        || title.trim().is_empty()
+    {
+        return None;
+    }
+
     let mut m = blank(isbn, "periplus");
-    m.title = meta_content(&body, "og:title").or_else(|| doc_title(&body))?;
-    if let Some(price) = meta_content(&body, "product:price:amount") {
-        if let Ok(amount) = price.parse::<f64>() {
-            m.price = Some(format!("Rp {}", thousands(amount.round() as i64)));
-        }
+    m.title = title;
+    if let Ok(amount) = price_raw.parse::<f64>() {
+        m.price = Some(format!("Rp {}", thousands(amount.round() as i64)));
     }
     m.source_url = Some(url);
     Some(m)
