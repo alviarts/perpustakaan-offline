@@ -322,7 +322,7 @@ fn seed_master_data(conn: &Connection) -> AppResult<()> {
         .map(|_| ())
     })?;
     seed_bahasa_if_empty(conn)?;
-    seed_ddc_if_empty(conn)?;
+    seed_ddc_defaults(conn)?;
     Ok(())
 }
 
@@ -394,30 +394,148 @@ fn seed_bahasa_if_empty(conn: &Connection) -> AppResult<()> {
 /// Dewey Decimal Classification — 10 main classes (000-900). Indonesian
 /// labels match the conventions used by Indonesian school libraries (BUG-004).
 const DDC_MAIN_CLASSES: &[(&str, &str)] = &[
+    // 000 — Karya Umum
     ("000", "Karya Umum"),
+    ("004", "Ilmu Komputer"),
+    ("005", "Pemrograman & Program Komputer"),
+    ("005.1", "Pemrograman"),
+    ("005.133", "Bahasa Pemrograman (Python, Java, C++, dsb.)"),
+    ("020", "Ilmu Perpustakaan & Informasi"),
+    ("025", "Operasi Perpustakaan"),
+    ("028", "Membaca & Literasi"),
+    // 100 — Filsafat & Psikologi
     ("100", "Filsafat & Psikologi"),
+    ("150", "Psikologi"),
+    ("152", "Psikologi Persepsi"),
+    ("155", "Psikologi Perkembangan"),
+    // 200 — Agama
     ("200", "Agama"),
+    ("297", "Agama Islam"),
+    ("297.1", "Sumber Ajaran Islam (Al-Qur'an)"),
+    ("297.2", "Hadis"),
+    ("297.3", "Aqidah & Tauhid"),
+    ("297.4", "Fikih"),
+    ("297.5", "Akhlak & Tasawuf"),
+    ("297.9", "Sejarah Islam"),
+    // 300 — Ilmu Sosial
     ("300", "Ilmu Sosial"),
+    ("302", "Interaksi Sosial"),
+    ("303", "Proses Sosial"),
+    ("305", "Kelompok Sosial"),
+    ("310", "Statistik"),
+    ("320", "Ilmu Politik"),
+    ("330", "Ekonomi"),
+    ("340", "Hukum"),
+    ("370", "Pendidikan"),
+    ("398", "Folklor & Cerita Rakyat"),
+    // 400 — Bahasa
     ("400", "Bahasa"),
+    ("410", "Linguistik"),
+    ("420", "Bahasa Inggris"),
+    ("425", "Tata Bahasa Inggris"),
+    ("428", "Pemakaian Bahasa Inggris"),
+    ("499", "Bahasa Nusantara"),
+    // 500 — Sains
     ("500", "Sains Murni"),
+    ("510", "Matematika"),
+    ("520", "Astronomi"),
+    ("530", "Fisika"),
+    ("540", "Kimia"),
+    ("550", "Ilmu Bumi"),
+    ("570", "Biologi"),
+    ("580", "Tumbuhan"),
+    ("590", "Hewan"),
+    // 600 — Teknologi
     ("600", "Teknologi & Sains Terapan"),
+    ("610", "Kedokteran & Kesehatan"),
+    ("620", "Teknik"),
+    ("630", "Pertanian"),
+    ("640", "Kesejahteraan Rumah Tangga"),
+    ("650", "Manajemen"),
+    ("658", "Manajemen Umum"),
+    ("670", "Manufaktur"),
+    ("690", "Konstruksi"),
+    // 700 — Seni & Olahraga
     ("700", "Kesenian, Hiburan, Olahraga"),
+    ("730", "Seni Patung"),
+    ("740", "Menggambar & Seni Dekoratif"),
+    ("741", "Menggambar & Seni Gambar"),
+    ("741.4", "Ilustrasi & Ilustrator"),
+    ("741.5", "Kartun, Karikatur & Komik"),
+    ("741.6", "Seni Grafis Komersial (Ilustrasi Buku, Poster, Desain Grafis)"),
+    ("750", "Lukisan"),
+    ("760", "Seni Cetak & Cetakan"),
+    ("770", "Fotografi"),
+    ("780", "Musik"),
+    ("790", "Olahraga & Rekreasi"),
+    ("793", "Permainan Dalam Ruangan"),
+    ("796", "Olahraga & Permainan Atletik"),
+    // 800 — Sastra
     ("800", "Sastra"),
+    ("810", "Sastra Amerika"),
+    ("813", "Sastra Indonesia (Fiksi Indonesia)"),
+    ("813.5", "Fiksi Indonesia"),
+    ("820", "Sastra Inggris"),
+    ("823", "Fiksi Inggris"),
+    ("830", "Sastra Jerman"),
+    ("895", "Sastra Asia"),
+    ("899", "Sastra Nusantara"),
+    ("899.221", "Sastra Indonesia"),
+    // 900 — Sejarah & Geografi
     ("900", "Sejarah & Geografi"),
+    ("909", "Sejarah Dunia"),
+    ("910", "Geografi & Perjalanan"),
+    ("920", "Biografi"),
+    ("930", "Sejarah Dunia Kuno"),
+    ("950", "Sejarah Asia"),
+    ("959", "Sejarah Asia Tenggara"),
+    ("959.8", "Sejarah Indonesia"),
 ];
 
-fn seed_ddc_if_empty(conn: &Connection) -> AppResult<()> {
-    let count: i64 = conn.query_row("SELECT COUNT(*) FROM ddc", [], |row| row.get(0))?;
-    if count > 0 {
-        return Ok(());
+fn ddc_parent(kode: &str) -> Option<String> {
+    // Subdivisions after a decimal point hang off their 3-digit base,
+    // e.g. 741.4 → 741, 813.5 → 813.
+    if let Some((base, _)) = kode.split_once('.') {
+        return if base.len() == 3 {
+            Some(base.to_string())
+        } else {
+            None
+        };
     }
+    // 3-digit classes hang off their main class, e.g. 741 → 700.
+    if kode.len() == 3 {
+        let parent = kode[..1].to_string() + "00";
+        if parent != kode {
+            return Some(parent);
+        }
+    }
+    None
+}
+
+fn ddc_depth(kode: &str) -> i64 {
+    if kode.contains('.') {
+        2
+    } else if ddc_parent(kode).is_some() {
+        1
+    } else {
+        0
+    }
+}
+
+/// Idempotent, additive DDC seeding. Unlike a "seed once when empty" approach
+/// this inserts any missing rows, so existing installations also gain the
+/// newer subdivisions (e.g. 741.4–741.6 for illustration/comics/design).
+fn seed_ddc_defaults(conn: &Connection) -> AppResult<()> {
+    let mut inserted = 0usize;
     for (kode, deskripsi) in DDC_MAIN_CLASSES {
-        conn.execute(
-            "INSERT INTO ddc (kode, deskripsi, parent, depth) VALUES (?1, ?2, NULL, 0)",
-            rusqlite::params![kode, deskripsi],
+        inserted += conn.execute(
+            "INSERT OR IGNORE INTO ddc (kode, deskripsi, parent, depth) VALUES (?1, ?2, ?3, ?4)",
+            rusqlite::params![kode, deskripsi, ddc_parent(kode), ddc_depth(kode)],
         )?;
     }
-    log::info!("seeded {} default DDC main classes", DDC_MAIN_CLASSES.len());
+    if inserted > 0 {
+        log::info!("seeded {inserted} default DDC rows");
+    }
     Ok(())
 }
 
@@ -714,58 +832,86 @@ mod tests {
     }
 
     #[test]
-    fn fresh_install_seeds_ten_ddc_main_classes() {
+    fn fresh_install_seeds_default_ddc_rows() {
         let conn = fresh_conn();
         let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(count, 10);
+        assert_eq!(count as usize, DDC_MAIN_CLASSES.len());
+        // The ten canonical main classes must all be present.
+        for kode in [
+            "000", "100", "200", "300", "400", "500", "600", "700", "800", "900",
+        ] {
+            let n: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM ddc WHERE kode = ?1",
+                    [kode],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            assert_eq!(n, 1, "missing main class {kode}");
+        }
     }
 
     #[test]
-    fn ddc_seed_includes_canonical_kode_and_deskripsi() {
+    fn ddc_seed_includes_canonical_and_subdivision_rows() {
         let conn = fresh_conn();
         let mut stmt = conn
-            .prepare("SELECT kode, deskripsi FROM ddc ORDER BY kode")
+            .prepare("SELECT kode, deskripsi FROM ddc")
             .unwrap();
-        let rows: Vec<(String, String)> = stmt
+        let by_kode: std::collections::HashMap<String, String> = stmt
             .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
             .unwrap()
-            .collect::<rusqlite::Result<Vec<_>>>()
+            .collect::<rusqlite::Result<_>>()
             .unwrap();
-        let kodes: Vec<&str> = rows.iter().map(|(k, _)| k.as_str()).collect();
+        // Main classes.
+        assert_eq!(by_kode.get("000").map(String::as_str), Some("Karya Umum"));
+        assert_eq!(by_kode.get("400").map(String::as_str), Some("Bahasa"));
+        assert_eq!(by_kode.get("900").map(String::as_str), Some("Sejarah & Geografi"));
+        // Subdivisions used by the catalog-code generator.
         assert_eq!(
-            kodes,
-            vec!["000", "100", "200", "300", "400", "500", "600", "700", "800", "900",],
+            by_kode.get("741.4").map(String::as_str),
+            Some("Ilustrasi & Ilustrator")
         );
-        // Spot-check a couple of descriptions to guard against a future
-        // careless edit reordering or rewriting the array.
-        let by_kode: std::collections::HashMap<&str, &str> =
-            rows.iter().map(|(k, d)| (k.as_str(), d.as_str())).collect();
-        assert_eq!(by_kode.get("000").copied(), Some("Karya Umum"));
-        assert_eq!(by_kode.get("400").copied(), Some("Bahasa"));
-        assert_eq!(by_kode.get("900").copied(), Some("Sejarah & Geografi"));
+        assert_eq!(
+            by_kode.get("813").map(String::as_str),
+            Some("Sastra Indonesia (Fiksi Indonesia)")
+        );
+        assert!(by_kode.contains_key("005.133"));
     }
 
     #[test]
-    fn ddc_seed_rows_are_main_classes_at_depth_zero() {
+    fn ddc_seed_main_classes_are_roots_and_subdivisions_have_parents() {
         let conn = fresh_conn();
-        let depths: Vec<i64> = conn
-            .prepare("SELECT depth FROM ddc")
-            .unwrap()
-            .query_map([], |r| r.get::<_, i64>(0))
-            .unwrap()
-            .collect::<rusqlite::Result<Vec<_>>>()
-            .unwrap();
-        assert!(depths.iter().all(|d| *d == 0));
-        let parent_count: i64 = conn
+        // Main classes: depth 0 with no parent.
+        let main_wrong: i64 = conn
             .query_row(
-                "SELECT COUNT(*) FROM ddc WHERE parent IS NOT NULL",
+                "SELECT COUNT(*) FROM ddc \
+                 WHERE kode IN ('000','100','200','300','400','500','600','700','800','900') \
+                   AND (depth != 0 OR parent IS NOT NULL)",
                 [],
                 |r| r.get(0),
             )
             .unwrap();
-        assert_eq!(parent_count, 0);
+        assert_eq!(main_wrong, 0);
+        // Subdivisions: depth > 0 with a parent.
+        let sub_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM ddc WHERE depth > 0 AND parent IS NOT NULL",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert!(sub_count > 0);
+        // 741.4 is a child of 741; 741 is a child of 700.
+        let parent_741_4: String = conn
+            .query_row("SELECT parent FROM ddc WHERE kode = '741.4'", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(parent_741_4, "741");
+        let parent_741: String = conn
+            .query_row("SELECT parent FROM ddc WHERE kode = '741'", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(parent_741, "700");
     }
 
     #[test]
@@ -776,7 +922,7 @@ mod tests {
         let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(count, 10);
+        assert_eq!(count as usize, DDC_MAIN_CLASSES.len());
     }
 
     #[test]
@@ -865,9 +1011,9 @@ mod tests {
     }
 
     #[test]
-    fn ddc_seed_skips_when_user_already_has_rows() {
-        // Simulate a v1.0.0 user who manually inserted DDC entries before
-        // upgrading. Seeding must NOT duplicate or override them.
+    fn ddc_seed_is_additive_and_preserves_user_rows() {
+        // A v1.0.0 user may already have manual DDC entries. Seeding must
+        // keep their custom row and add the missing defaults (no duplicates).
         let conn = fresh_conn();
         conn.execute("DELETE FROM ddc", []).unwrap();
         conn.execute(
@@ -876,15 +1022,15 @@ mod tests {
             [],
         )
         .unwrap();
-        seed_ddc_if_empty(&conn).unwrap();
+        seed_ddc_defaults(&conn).unwrap();
         let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM ddc", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(count, 1);
-        let kode: String = conn
-            .query_row("SELECT kode FROM ddc", [], |r| r.get(0))
+        assert_eq!(count as usize, DDC_MAIN_CLASSES.len() + 1);
+        let custom: i64 = conn
+            .query_row("SELECT COUNT(*) FROM ddc WHERE kode = 'CUSTOM'", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(kode, "CUSTOM");
+        assert_eq!(custom, 1);
     }
 
     fn count_eksemplar_for(conn: &Connection, buku_id: i64) -> i64 {

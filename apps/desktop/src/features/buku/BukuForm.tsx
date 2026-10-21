@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
+import { Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { FilePickerInput } from '@/components/shared/FilePickerInput';
 import { bukuFormSchema, type BukuFormValues } from './schema';
 import type { Buku } from '@/lib/buku';
 import type { MasterItem } from '@/lib/masterData';
+import { generateCatalog, type ExistingBook } from '@/lib/katalog';
 import { cn } from '@/lib/utils';
 
 interface BukuFormProps {
@@ -22,6 +24,17 @@ interface BukuFormProps {
   ddcOptions: MasterItem[];
   kategoriOptions: MasterItem[];
   bahasaOptions: MasterItem[];
+  /**
+   * Enables the "Isi Otomatis" button. `subjects` come from the ISBN lookup,
+   * `existing` is the current collection (used to learn rak + DDC and to keep
+   * the book code unique).
+   */
+  autoFill?: {
+    subjects: string[];
+    existing: ExistingBook[];
+    /** True once `existing` has finished loading (so we can learn from it). */
+    ready?: boolean;
+  };
 }
 
 function toFormValues(initial: Partial<Buku> | null | undefined): BukuFormValues {
@@ -72,13 +85,17 @@ export function BukuForm({
   ddcOptions,
   kategoriOptions,
   bahasaOptions,
+  autoFill,
 }: BukuFormProps) {
   const { t } = useTranslation(['buku', 'common']);
+  const [autoNote, setAutoNote] = useState<string | null>(null);
   const {
     control,
     register,
     handleSubmit,
     reset,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<BukuFormValues>({
     resolver: zodResolver(bukuFormSchema),
@@ -109,6 +126,44 @@ export function BukuForm({
     [bahasaOptions],
   );
 
+  const handleAutoFill = () => {
+    if (!autoFill) return;
+    const values = getValues();
+    const result = generateCatalog({
+      judul: values.judul,
+      pengarang: values.pengarang ?? '',
+      kategori: values.kategori,
+      subjects: autoFill.subjects,
+      ddcList: ddcOptions.map((d) => ({ kode: d.kode ?? d.nama, nama: d.nama })),
+      existing: autoFill.existing,
+      excludeKodeBuku: initial?.kodeBuku ?? null,
+    });
+    if (result.kodeDdc) {
+      setValue('kodeDdc', result.kodeDdc, { shouldDirty: true, shouldValidate: true });
+    }
+    if (result.kodeBuku) {
+      setValue('kodeBuku', result.kodeBuku, { shouldDirty: true, shouldValidate: true });
+    }
+    if (result.rak) {
+      setValue('rak', result.rak, { shouldDirty: true, shouldValidate: true });
+    }
+    setAutoNote(result.reason);
+  };
+
+  // Auto-run once for ISBN imports, as soon as the collection has loaded and
+  // the DDC master is available. Respects any code typed by the user first.
+  const autoApplied = useRef(false);
+  useEffect(() => {
+    if (!autoFill || autoApplied.current) return;
+    if (!initial?.isbn) return;
+    if (autoFill.ready === false) return;
+    if (ddcOptions.length === 0) return;
+    autoApplied.current = true;
+    if ((getValues('kodeBuku') ?? '').trim()) return;
+    handleAutoFill();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFill?.ready, ddcOptions.length, initial?.isbn]);
+
   const renderError = (key: string | undefined): string | null => {
     if (!key) return null;
     const i18nKey = `buku:validation.${key}`;
@@ -125,10 +180,34 @@ export function BukuForm({
       className="space-y-6"
     >
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
           <CardTitle className="text-base">{t('buku:form.newTitle')}</CardTitle>
+          {autoFill && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoFill}
+              data-testid="buku-autofill"
+              title={t('buku:form.autoFillHint', {
+                defaultValue:
+                  'Isi DDC, rak, dan kode buku/call number otomatis dari data buku + database',
+              })}
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              {t('buku:form.autoFill', { defaultValue: 'Isi Otomatis' })}
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
+          {autoNote && (
+            <p
+              className="text-xs text-muted-foreground md:col-span-2"
+              data-testid="buku-autofill-note"
+            >
+              {autoNote}
+            </p>
+          )}
           <Field
             label={t('buku:fields.kodeBuku')}
             error={renderError(errors.kodeBuku?.message as string | undefined)}

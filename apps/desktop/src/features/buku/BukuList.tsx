@@ -403,6 +403,9 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
               penerbit: metadata.publisher || undefined,
               tahun: metadata.published_date ? parseInt(metadata.published_date.substring(0, 4)) : undefined,
               coverPath: coverPath || undefined,
+              subjects: metadata.categories.length
+                ? metadata.categories.join(',')
+                : undefined,
             },
           });
         }}
