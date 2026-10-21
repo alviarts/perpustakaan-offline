@@ -13,6 +13,22 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+### Added
+
+- **Sumber ISBN: Perpustakaan Jakarta (JAKLITERA)** — katalog DKI Jakarta;
+  mencari via `keyword=<ISBN>` lalu mem-parse halaman detail. Menyediakan
+  **cover asli**, sinopsis, subjek, serta penerbit/tahun yang lebih rapi.
+- **Sumber perolehan buku**: pilihan cepat **Hibah** dan **Swadaya** (plus
+  Pembelian, BOS, Sumbangan) pada form buku; teks bebas tetap diperbolehkan.
+
+### Fixed
+
+- **Lookup ISBN**: nama pengarang dari Perpusnas dibersihkan (hanya pengarang
+  utama; catatan penerjemah/penyunting dibuang).
+- **Lookup ISBN**: bahasa tidak lagi terisi "-" atau dipaksa "ja" dari NDL.
+- **Lookup ISBN**: penerbit dari JAKLITERA dirapikan (mis. "Penerbit Buku
+  Kompas, 2022 ; 2023" → "Penerbit Buku Kompas", tahun 2022).
+
 ## [1.3.0] - 2026-10-20
 
 Fitur baru: **Import Buku via ISBN dengan Webcam Scanner** + lookup metadata otomatis dari berbagai sumber.

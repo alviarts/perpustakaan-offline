@@ -42,6 +42,8 @@ pub struct BookMetadata {
 
 const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
                   (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+/// Bare UA accepted by WAF-protected hosts that reject a full Chrome UA.
+const UA_SIMPLE: &str = "Mozilla/5.0";
 const MAILTO: &str = "perpustakaan-nusantara@example.com";
 
 type Source = fn(&str) -> Option<BookMetadata>;
@@ -57,6 +59,7 @@ pub fn lookup_isbn(isbn: &str) -> Result<BookMetadata, AppError> {
 
     let sources: &[(&str, Source)] = &[
         ("perpusnas", lookup_perpusnas),
+        ("jakarta", lookup_jakarta),
         ("google_books", lookup_google_books),
         ("open_library", lookup_open_library),
         ("onesearch", lookup_onesearch),
@@ -106,6 +109,29 @@ fn http_get(url: &str, secs: u64) -> Option<String> {
             "text/html,application/xhtml+xml,application/xml,application/json;q=0.9,*/*;q=0.8",
         )
         .timeout(Duration::from_secs(secs))
+        .call()
+        .ok()?;
+    resp.into_string().ok()
+}
+
+/// HTTPS GET using the platform TLS stack (native-tls / schannel on Windows).
+///
+/// A few hosts (e.g. `perpustakaan.jakarta.go.id`) close the TCP connection
+/// without sending a TLS `close_notify`. rustls treats that as an error, while
+/// the platform stack tolerates it. We therefore build a dedicated agent with
+/// native-tls for those sources, leaving every other source on rustls.
+fn http_get_native(url: &str, secs: u64) -> Option<String> {
+    let connector = ureq::native_tls::TlsConnector::new().ok()?;
+    let agent = ureq::builder()
+        .tls_connector(std::sync::Arc::new(connector))
+        .timeout(Duration::from_secs(secs))
+        .build();
+    // JAKLITERA's WAF drops connections that carry a full Chrome UA; a bare
+    // `Mozilla/5.0` plus `Accept: */*` (what curl sends) is accepted.
+    let resp = agent
+        .get(url)
+        .set("User-Agent", UA_SIMPLE)
+        .set("Accept", "*/*")
         .call()
         .ok()?;
     resp.into_string().ok()
@@ -297,7 +323,7 @@ fn score(m: &BookMetadata) -> i32 {
     }
     s + match m.source.as_str() {
         "perpusnas" => 4,
-        "open_library" | "google_books" => 3,
+        "open_library" | "google_books" | "jakarta" => 3,
         "openalex" | "crossref" | "archive_org" | "libris" | "k10plus" | "ndl" => 2,
         "periplus" | "belbuk" | "deepublish" | "abebooks" | "inventaire" | "google_books_html" => 1,
         _ => 0,
@@ -387,9 +413,17 @@ fn lookup_perpusnas(isbn: &str) -> Option<BookMetadata> {
     m.title = title;
     m.publisher = jstr(pick, "nama_penerbit");
     m.published_date = jstr(pick, "tahun_terbit");
-    // `kepeng` packs author + translator/role notes; keep it verbatim.
+    // `kepeng` packs "author ; translator ; editor". Keep only the primary
+    // author and strip role notes like "(Pengarang)".
     if let Some(a) = jstr(pick, "kepeng").or_else(|| jstr(pick, "pengarang")) {
-        m.authors = vec![a];
+        let primary = a.split(';').next().unwrap_or(&a);
+        let primary = match Regex::new(r"\([^)]*\)") {
+            Ok(re) => squeeze(&re.replace_all(primary, " ")),
+            Err(_) => squeeze(primary),
+        };
+        if !primary.is_empty() {
+            m.authors = vec![primary];
+        }
     }
     m.page_count = pick
         .get("jml_hlm")
@@ -400,6 +434,171 @@ fn lookup_perpusnas(isbn: &str) -> Option<BookMetadata> {
     }
     m.language = Some("id".to_string());
     Some(m)
+}
+
+/// Perpustakaan Jakarta (JAKLITERA / INLIS) — the DKI Jakarta public library
+/// catalogue. There is no ISBN endpoint, so we search by ISBN and follow the
+/// first `book/detail?cn=...` result, then parse the OpenGraph tags plus the
+/// `font-medium` label/value grid (ISBN, Penerbit, Deskripsi Fisik, Subjek,
+/// Bahasa, Call Number).
+fn lookup_jakarta(isbn: &str) -> Option<BookMetadata> {
+    const BASE: &str = "https://perpustakaan.jakarta.go.id";
+
+    let search = http_get_native(&format!("{BASE}/book?keyword={isbn}"), 12)?;
+    let link_re = Regex::new(r#"href="([^"]*book/detail\?cn=[^"]+)""#).ok()?;
+    let raw_href = link_re.captures(&search)?.get(1)?.as_str();
+    let href = unescape_html(raw_href); // &amp; → &
+    let detail_url = if href.starts_with("http") {
+        href
+    } else if href.starts_with('/') {
+        format!("{BASE}{href}")
+    } else {
+        format!("{BASE}/{href}")
+    };
+
+    let body = http_get_native(&detail_url, 14)?;
+
+    let title = meta_content(&body, "og:title")
+        .or_else(|| doc_title(&body).map(|t| t.replace(" - JAKLITERA", "")))
+        .map(|t| t.trim().to_string())
+        .filter(|t| !t.is_empty())?;
+
+    let grid = jakarta_grid(&body);
+    let field = |key: &str| -> Option<String> {
+        grid.iter()
+            .find(|(k, _)| k.eq_ignore_ascii_case(key))
+            .map(|(_, v)| v.clone())
+            .filter(|v| !v.is_empty())
+    };
+
+    // The keyword search is fuzzy — drop results whose ISBN does not match.
+    if let Some(found) = field("ISBN") {
+        let found_clean = clean_isbn(&found);
+        if !found_clean.is_empty() && found_clean != clean_isbn(isbn) {
+            return None;
+        }
+    }
+
+    let mut m = blank(isbn, "jakarta");
+    m.title = title;
+    m.cover_url = meta_content(&body, "og:image");
+    m.description = meta_content(&body, "og:description");
+    m.source_url = Some(detail_url);
+
+    // "Grogol : Pustaka Arafah, 2022" / "Penerbit Buku Kompas, 2022 ; 2023"
+    // → publisher (text before the first year) + the first 4-digit year.
+    if let Some(publine) = field("Penerbit") {
+        let after_place = publine.rsplit(':').next().unwrap_or(&publine).trim();
+        let year = Regex::new(r"\b(1[89]\d{2}|20\d{2})\b")
+            .ok()
+            .and_then(|re| re.find(after_place))
+            .map(|m| m.as_str().to_string());
+        let publisher = match year.as_deref() {
+            Some(y) => {
+                let idx = after_place.find(y).unwrap_or(after_place.len());
+                after_place[..idx]
+                    .trim()
+                    .trim_end_matches([',', ';', ' '])
+                    .to_string()
+            }
+            None => after_place.to_string(),
+        };
+        if !publisher.is_empty() {
+            m.publisher = Some(publisher);
+        }
+        m.published_date = year;
+    }
+
+    if let Some(desc) = field("Deskripsi Fisik") {
+        if let Ok(re) = Regex::new(r"(\d+)\s*halaman") {
+            m.page_count = re
+                .captures(&desc)
+                .and_then(|c| c.get(1))
+                .and_then(|g| g.as_str().parse::<i32>().ok());
+        }
+    }
+
+    if let Some(subjek) = field("Subjek") {
+        m.categories = subjek
+            .split('/')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+    }
+
+    if let Some(bahasa) = field("Bahasa") {
+        let b = bahasa.trim();
+        if !b.is_empty() && b != "-" {
+            m.language = match b.to_lowercase().as_str() {
+                "indonesia" | "indonesian" => Some("id".to_string()),
+                "inggris" | "english" => Some("en".to_string()),
+                _ => Some(b.to_lowercase()),
+            };
+        }
+    }
+
+    // Author lives in an <h4>, e.g.
+    // "<h4 …>Irfan Abu Faris (Pengarang) ; Hadi (Penyunting)</h4>".
+    if let Ok(re) = Regex::new(r"(?s)<h4[^>]*>(.*?)</h4>") {
+        for cap in re.captures_iter(&body) {
+            let text = jakarta_strip(&cap[1]);
+            if !text.to_lowercase().contains("pengarang") {
+                continue;
+            }
+            let parts: Vec<String> = text.split(';').map(|s| s.trim().to_string()).collect();
+            let authors: Vec<String> = parts
+                .iter()
+                .filter(|p| p.to_lowercase().contains("pengarang"))
+                .map(|p| jakarta_strip_role(p))
+                .filter(|s| !s.is_empty())
+                .collect();
+            m.authors = if authors.is_empty() {
+                parts
+                    .iter()
+                    .map(|p| jakarta_strip_role(p))
+                    .filter(|s| !s.is_empty())
+                    .collect()
+            } else {
+                authors
+            };
+            break;
+        }
+    }
+
+    Some(m)
+}
+
+fn jakarta_strip(s: &str) -> String {
+    squeeze(&unescape_html(&strip_tags(s)))
+}
+
+/// Remove library role annotations such as "(Pengarang)" / "(Penyunting)".
+fn jakarta_strip_role(s: &str) -> String {
+    match Regex::new(r"\([^)]*\)") {
+        Ok(re) => squeeze(&re.replace_all(s, " ")),
+        Err(_) => squeeze(s),
+    }
+}
+
+/// Parse the `<span class="font-medium">LABEL</span><span>VALUE</span>` grid
+/// used on JAKLITERA detail pages.
+fn jakarta_grid(body: &str) -> Vec<(String, String)> {
+    let Ok(re) =
+        Regex::new(r#"(?s)<span class="font-medium">\s*(.*?)\s*</span>\s*<span>\s*(.*?)\s*</span>"#)
+    else {
+        return Vec::new();
+    };
+    re.captures_iter(body)
+        .filter_map(|c| {
+            let label = jakarta_strip(c.get(1)?.as_str());
+            let value = jakarta_strip(c.get(2)?.as_str());
+            if label.is_empty() {
+                None
+            } else {
+                Some((label, value))
+            }
+        })
+        .collect()
 }
 
 /// Google Books JSON API. Set `GOOGLE_BOOKS_API_KEY` for a higher daily quota.
@@ -597,7 +796,6 @@ fn lookup_ndl(isbn: &str) -> Option<BookMetadata> {
 
     let mut m = blank(isbn, "ndl");
     m.title = title;
-    m.language = Some("ja".to_string());
     Some(m)
 }
 
@@ -772,5 +970,18 @@ mod tests {
     fn test_lookup_cascade() {
         let result = lookup_isbn("9780306406157").expect("found");
         assert!(!result.title.is_empty());
+    }
+
+    #[test]
+    #[ignore] // Requires internet connection
+    fn test_lookup_jakarta_source() {
+        let m = lookup_jakarta("9786236258255").expect("jakarta hit");
+        assert_eq!(m.source, "jakarta");
+        assert!(!m.title.is_empty());
+        println!(
+            "jakarta: {} | authors={:?} | publisher={:?} | year={:?} | pages={:?} | lang={:?} | cats={:?}",
+            m.title, m.authors, m.publisher, m.published_date, m.page_count, m.language, m.categories
+        );
+        println!("cover={:?} url={:?}", m.cover_url, m.source_url);
     }
 }

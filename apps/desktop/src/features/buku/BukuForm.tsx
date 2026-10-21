@@ -54,6 +54,15 @@ function masterToOptions(items: MasterItem[]): AutocompleteOption[] {
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
+/** Common acquisition sources; free text is still allowed. */
+const SUMBER_OPTIONS: AutocompleteOption[] = [
+  { value: 'Pembelian', label: 'Pembelian' },
+  { value: 'BOS', label: 'BOS' },
+  { value: 'Hibah', label: 'Hibah' },
+  { value: 'Swadaya', label: 'Swadaya' },
+  { value: 'Sumbangan', label: 'Sumbangan' },
+];
+
 export function BukuForm({
   initial,
   onSubmit,
@@ -212,7 +221,20 @@ export function BukuForm({
             />
           </Field>
           <Field label={t('buku:fields.sumber')}>
-            <Input {...register('sumber')} />
+            <Controller
+              control={control}
+              name="sumber"
+              render={({ field }) => (
+                <Autocomplete
+                  data-testid="field-sumber"
+                  options={SUMBER_OPTIONS}
+                  value={field.value || null}
+                  onChange={(v) => field.onChange(v ?? '')}
+                  placeholder={t('buku:fields.sumber')}
+                  allowCustomValue
+                />
+              )}
+            />
           </Field>
           <Field label={t('buku:fields.harga')}>
             <Input type="number" min={0} {...register('harga')} />

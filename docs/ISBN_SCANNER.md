@@ -25,16 +25,17 @@ Semua sumber **keyless** (tanpa API key).
 
 **Katalog otoritatif**
 1. **Perpusnas** — registry ISBN Indonesia (otoritatif untuk buku lokal)
-2. **Google Books** — buku internasional & Indonesia
-3. **Open Library** — katalog global + cover
+2. **Perpustakaan Jakarta (JAKLITERA)** — katalog DKI Jakarta; mencari via `keyword=<ISBN>` lalu mem-parse halaman detail (judul, pengarang, penerbit, tahun, halaman, subjek, sinopsis, **cover asli**)
+3. **Google Books** — buku internasional & Indonesia
+4. **Open Library** — katalog global + cover
 
 **Bibliografis / akademik**
-4. **Onesearch.id** — agregat perpustakaan Indonesia
-5. **Crossref** — buku akademik ber-DOI
-6. **archive.org**, **LIBRIS** (Swedia), **K10plus** (Jerman), **NDL** (Jepang), **Inventaire.io**
+5. **Onesearch.id** — agregat perpustakaan Indonesia
+6. **Crossref** — buku akademik ber-DOI
+7. **archive.org**, **LIBRIS** (Swedia), **K10plus** (Jerman), **NDL** (Jepang), **Inventaire.io**
 
 **Toko buku (pelengkap + harga referensi)**
-7. **Periplus**, **Belbuk**, **Deepublish Store**, **AbeBooks**
+8. **Periplus**, **Belbuk**, **Deepublish Store**, **AbeBooks**
 
 > Catatan: Gramedia, Shopee, dan isbnsearch **tidak dipakai** karena semuanya
 > SPA di balik Cloudflare/bot wall yang tidak bisa dibaca lewat HTTP biasa
@@ -57,7 +58,8 @@ harga referensi bila berasal dari toko buku.
 7. Simpan
 
 ### Test ISBNs:
-- **Indonesia**: `9786233463034` (Filosofi Teras — Henry Manampiring) → Perpusnas
+- **Indonesia**: `9786233463034` (Filosofi Teras — Henry Manampiring) → JAKLITERA
+- **Indonesia**: `9786236258255` (Masya Allah!!! … Ibunda Aisyah) → JAKLITERA
 - **Indonesia**: `9786022916628` (Laskar Pelangi original story — Andrea Hirata) → Perpusnas
 - **Internasional**: `9780306406157` (Error-correction coding...) → Open Library
 - **ISBN-10**: `0306406152` (akan auto-convert ke ISBN-13)
