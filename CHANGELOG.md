@@ -13,6 +13,16 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+### Added
+
+- **Auto-generate kode buku / DDC / rak / call number** — tombol **Isi Otomatis**
+  pada form buku (juga jalan otomatis saat impor via ISBN). DDC dipetakan ke
+  master yang ada (termasuk subdivisi: **741.4** ilustrasi, **741.5** komik,
+  **741.6** desain grafis, dsb.), rak dipelajari dari koleksi, call number =
+  `DDC KODE_PENGARANG hurufJudul`, dan kode buku dibuat unik.
+- **Master DDC diperluas** — seed aditif ±86 kelas (000–900 + subdivisi umum),
+  jadi instalasi lama ikut mendapat subdivisi baru tanpa menimpa data pengguna.
+
 ## [1.3.1] - 2026-10-22
 
 ### Added
