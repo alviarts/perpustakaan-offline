@@ -13,6 +13,8 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-10-22
+
 ### Added
 
 - **Kode buku scannable + Call Number** — kode buku kini berstruktur
