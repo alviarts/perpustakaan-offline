@@ -31,6 +31,7 @@ import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
 import { Route as AuthedAkreditasiIndexRouteImport } from './routes/_authed/akreditasi/index'
 import { Route as AuthedSettingsTentangRouteImport } from './routes/_authed/settings/tentang'
+import { Route as AuthedSettingsTemplateNotaRouteImport } from './routes/_authed/settings/template-nota'
 import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/settings/tampilan'
 import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
 import { Route as AuthedSettingsSandboxRouteImport } from './routes/_authed/settings/sandbox'
@@ -182,6 +183,12 @@ const AuthedSettingsTentangRoute = AuthedSettingsTentangRouteImport.update({
   path: '/tentang',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsTemplateNotaRoute =
+  AuthedSettingsTemplateNotaRouteImport.update({
+    id: '/template-nota',
+    path: '/template-nota',
+    getParentRoute: () => AuthedSettingsRoute,
+  } as any)
 const AuthedSettingsTampilanRoute = AuthedSettingsTampilanRouteImport.update({
   id: '/tampilan',
   path: '/tampilan',
@@ -449,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/settings/template-nota': typeof AuthedSettingsTemplateNotaRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
   '/akreditasi/': typeof AuthedAkreditasiIndexRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
@@ -510,6 +518,7 @@ export interface FileRoutesByTo {
   '/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/settings/template-nota': typeof AuthedSettingsTemplateNotaRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
   '/akreditasi': typeof AuthedAkreditasiIndexRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
@@ -576,6 +585,7 @@ export interface FileRoutesById {
   '/_authed/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/_authed/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/_authed/settings/template-nota': typeof AuthedSettingsTemplateNotaRoute
   '/_authed/settings/tentang': typeof AuthedSettingsTentangRoute
   '/_authed/akreditasi/': typeof AuthedAkreditasiIndexRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
@@ -642,6 +652,7 @@ export interface FileRouteTypes {
     | '/settings/sandbox'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
+    | '/settings/template-nota'
     | '/settings/tentang'
     | '/akreditasi/'
     | '/anggota/'
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/settings/sandbox'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
+    | '/settings/template-nota'
     | '/settings/tentang'
     | '/akreditasi'
     | '/anggota'
@@ -768,6 +780,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/sandbox'
     | '/_authed/settings/sinkronisasi'
     | '/_authed/settings/tampilan'
+    | '/_authed/settings/template-nota'
     | '/_authed/settings/tentang'
     | '/_authed/akreditasi/'
     | '/_authed/anggota/'
@@ -942,6 +955,13 @@ declare module '@tanstack/react-router' {
       path: '/tentang'
       fullPath: '/settings/tentang'
       preLoaderRoute: typeof AuthedSettingsTentangRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/template-nota': {
+      id: '/_authed/settings/template-nota'
+      path: '/template-nota'
+      fullPath: '/settings/template-nota'
+      preLoaderRoute: typeof AuthedSettingsTemplateNotaRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/settings/tampilan': {
@@ -1306,6 +1326,7 @@ interface AuthedSettingsRouteChildren {
   AuthedSettingsSandboxRoute: typeof AuthedSettingsSandboxRoute
   AuthedSettingsSinkronisasiRoute: typeof AuthedSettingsSinkronisasiRoute
   AuthedSettingsTampilanRoute: typeof AuthedSettingsTampilanRoute
+  AuthedSettingsTemplateNotaRoute: typeof AuthedSettingsTemplateNotaRoute
   AuthedSettingsTentangRoute: typeof AuthedSettingsTentangRoute
   AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
 }
@@ -1327,6 +1348,7 @@ const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsSandboxRoute: AuthedSettingsSandboxRoute,
   AuthedSettingsSinkronisasiRoute: AuthedSettingsSinkronisasiRoute,
   AuthedSettingsTampilanRoute: AuthedSettingsTampilanRoute,
+  AuthedSettingsTemplateNotaRoute: AuthedSettingsTemplateNotaRoute,
   AuthedSettingsTentangRoute: AuthedSettingsTentangRoute,
   AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
 }

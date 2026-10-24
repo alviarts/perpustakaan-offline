@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Plus, Printer, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,9 @@ import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { useToast } from '@/components/ui/toast-manager';
 import { peminjamanApi, type PeminjamanRow } from '@/lib/peminjaman';
+import { printNota } from '@/lib/pdf/nota';
+import { loadNotaTemplate } from '@/features/settings/NotaTemplatePage';
+import { useIdentityStore } from '@/stores/identityStore';
 import { PeminjamanQuickStatsBar } from './QuickStats';
 
 const PAGE_SIZE = 20;
@@ -32,6 +35,7 @@ const STATUS_TONE: Record<string, string> = {
 export function PeminjamanList() {
   const { t } = useTranslation(['peminjaman', 'common']);
   const { showToast } = useToast();
+  const identity = useIdentityStore((s) => s.identity);
   const { query, debouncedQuery, setQuery, isPending } = useDebouncedSearch({
     delay: 200,
   });
@@ -41,8 +45,64 @@ export function PeminjamanList() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshKey] = useState(0);
+  const [printing, setPrinting] = useState(false);
 
   const offset = (page - 1) * PAGE_SIZE;
+
+  /**
+   * Cetak nota untuk semua baris pada filter aktif (bukan hanya halaman ini).
+   * Detail item diambil satu per satu karena list hanya memuat ringkasan.
+   */
+  const printManyNota = useCallback(async () => {
+    setPrinting(true);
+    try {
+      const all = await peminjamanApi.list({
+        query: debouncedQuery,
+        status: status === 'all' ? undefined : status,
+        limit: 500,
+        offset: 0,
+      });
+      const rows = all.items ?? [];
+      if (rows.length === 0) return;
+
+      const notaInputs = await Promise.all(
+        rows.map(async (row) => {
+          let items: { judul: string; kode: string; eksemplarKode?: string | null }[] = [];
+          try {
+            const detail = await peminjamanApi.get(row.id);
+            items = detail.items.map((it) => ({
+              judul: it.bukuJudul,
+              kode: it.bukuKode,
+              eksemplarKode: it.eksemplarKode ?? null,
+            }));
+          } catch {
+            items = [{ judul: '-', kode: row.nomorPinjam }];
+          }
+          return {
+            nomor: row.nomorPinjam,
+            anggotaNama: row.anggotaNama,
+            anggotaKode: row.anggotaKode,
+            tanggalPinjam: row.tanggalPinjam,
+            tanggalJatuhTempo: row.tanggalJatuhTempo,
+            totalDenda: row.totalDenda,
+            totalPoin: row.totalPoin,
+            items,
+            identitas: { nama: identity.nama, alamat: identity.alamat },
+          };
+        }),
+      );
+
+      printNota(notaInputs, loadNotaTemplate());
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('peminjaman:feedback.printError', { defaultValue: 'Gagal mencetak nota' }),
+        description: formatTauriError(err),
+      });
+    } finally {
+      setPrinting(false);
+    }
+  }, [debouncedQuery, status, identity.nama, identity.alamat, showToast, t]);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -145,12 +205,31 @@ export function PeminjamanList() {
             {t('peminjaman:subtitle', { defaultValue: 'Kelola aturan peminjaman buku' })}
           </p>
         </div>
-        <Button asChild>
-          <Link to="/peminjaman/new">
-            <Plus className="mr-2 h-4 w-4" />
-            {t('peminjaman:action.create', { defaultValue: 'Pinjam Baru' })}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void printManyNota()}
+            disabled={printing || items.length === 0}
+            data-testid="peminjaman-print-many"
+            title={t('peminjaman:action.printManyHint', {
+              defaultValue: 'Cetak nota untuk semua peminjaman pada hasil filter ini',
+            })}
+          >
+            {printing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Printer className="mr-2 h-4 w-4" />
+            )}
+            {t('peminjaman:action.printMany', { defaultValue: 'Cetak Nota' })}
+          </Button>
+          <Button asChild>
+            <Link to="/peminjaman/new">
+              <Plus className="mr-2 h-4 w-4" />
+              {t('peminjaman:action.create', { defaultValue: 'Pinjam Baru' })}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <PeminjamanQuickStatsBar refreshKey={refreshKey} />
