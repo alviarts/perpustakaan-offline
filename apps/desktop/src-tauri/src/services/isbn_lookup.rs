@@ -613,6 +613,40 @@ fn lookup_jakarta(isbn: &str) -> Option<BookMetadata> {
     Some(m)
 }
 
+/// Extra cover URLs to try, in order, when the primary source lacked one.
+/// Every provider is validated downstream (placeholders are rejected), so this
+/// is simply "best guesses" — the first real image wins.
+pub fn extra_cover_urls(isbn: &str) -> Vec<String> {
+    let mut urls = Vec::new();
+    if let Some(url) = jakarta_cover_url(isbn) {
+        urls.push(url);
+    }
+    // Open Library (returns a tiny placeholder when missing).
+    urls.push(format!("https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg"));
+    // Amazon thumbnail form works for many print ISBNs.
+    urls.push(format!(
+        "https://images-na.ssl-images-amazon.com/images/P/{isbn}.01.LZZZZZZZ.jpg"
+    ));
+    urls
+}
+
+/// Find the JAKLITERA cover (real scans, strong for Indonesian books).
+fn jakarta_cover_url(isbn: &str) -> Option<String> {
+    const BASE: &str = "https://perpustakaan.jakarta.go.id";
+    let search = http_get_native(&format!("{BASE}/book?keyword={isbn}"), 10)?;
+    let link_re = Regex::new(r#"href="([^"]*book/detail\?cn=[^"]+)""#).ok()?;
+    let href = unescape_html(link_re.captures(&search)?.get(1)?.as_str());
+    let detail_url = if href.starts_with("http") {
+        href
+    } else if href.starts_with('/') {
+        format!("{BASE}{href}")
+    } else {
+        format!("{BASE}/{href}")
+    };
+    let body = http_get_native(&detail_url, 12)?;
+    meta_content(&body, "og:image")
+}
+
 fn jakarta_strip(s: &str) -> String {
     squeeze(&unescape_html(&strip_tags(s)))
 }

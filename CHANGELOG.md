@@ -15,6 +15,11 @@ back to GitHub's auto-generated release notes.
 
 ### Added
 
+- **Cover buku selalu diusahakan ada** — saat impor via ISBN, cover dicari
+  berantai sampai ketemu: cover dari sumber → **JAKLITERA** (scan asli) →
+  **Open Library** → **Amazon**. Gambar placeholder (<2 KB / di bawah 40×40 px)
+  ditolak, dan unduhan mencoba ulang dengan User-Agent ringkas + TLS platform
+  agar tidak gagal di situs ber-WAF.
 - **DDC otomatis dari katalog ISBN** — JAKLITERA menyediakan *call number* yang
   memuat DDC asli (mis. `155.25 HEN f`, `A/297.913 IRF m`); kode DDC itu kini
   dipakai **langsung** saat impor via ISBN (heuristik hanya fallback). DDC yang
