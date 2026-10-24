@@ -55,8 +55,8 @@ describe('generateCatalog', () => {
     });
     expect(result.kodeDdc).toBe('813');
     expect(result.callNumber).toBe('813 HIR l');
-    expect(result.kodeBuku).toBe('813-HIRL-01');
-    expect(result.rak).toBe('RAK 813');
+    expect(result.kodeBuku).toBe('813-HIR-L-01-0');
+    expect(result.rak).toBe('0');
   });
 
   it('learns the shelf location from existing books with the same DDC', () => {
@@ -77,7 +77,7 @@ describe('generateCatalog', () => {
 
   it('makes the book code unique against the collection', () => {
     const existing: ExistingBook[] = [
-      { kodeBuku: '813-HIRL-01', kodeDdc: '813', rak: 'RAK B' },
+      { kodeBuku: '813-HIR-L-01-B', kodeDdc: '813', rak: 'RAK B' },
     ];
     const result = generateCatalog({
       judul: 'Laskar Pelangi',
@@ -87,7 +87,7 @@ describe('generateCatalog', () => {
       existing,
     });
     expect(result.callNumber).toBe('813 HIR l');
-    expect(result.kodeBuku).toBe('813-HIRL-02');
+    expect(result.kodeBuku).toBe('813-HIR-L-01-B-01');
   });
 
   it('uses 823 for English fiction, not 813', () => {
@@ -100,7 +100,7 @@ describe('generateCatalog', () => {
       existing: EMPTY,
     });
     expect(result.kodeDdc).toBe('823');
-    expect(result.kodeBuku).toMatch(/^823-BUR[A-Z]?-\d{2}$/);
+    expect(result.kodeBuku).toMatch(/^823-BUR-[A-Z]-\d{2}-[A-Z0-9]+$/);
     expect(result.kodeBuku).not.toContain(' ');
   });
 
@@ -124,8 +124,8 @@ describe('generateCatalog', () => {
       ddcList: DDC,
       existing: EMPTY,
     });
-    expect(result.kodeBuku).toMatch(/^[A-Z0-9-]+$/);
-    expect(result.kodeBuku).toMatch(/-\d{2}$/);
+    expect(result.kodeBuku).toMatch(/^[A-Z0-9.-]+$/);
+    expect(result.kodeBuku).toMatch(/-\d{2}-/);
   });
 
   it('uses ISBN subjects to pick the class when kategori is empty', () => {
@@ -208,8 +208,7 @@ describe('generateCatalog', () => {
     expect(result.kodeDdc).toBe('741.6');
   });
 
-  it('maps topics to sharper DDC subdivisions', () => {
-    const cases: Array<{ judul: string; subjects: string[]; expected: string }> = [
+  it('maps topics to sharper DDC subdivisions', () => {    const cases: Array<{ judul: string; subjects: string[]; expected: string }> = [
       { judul: 'Jaringan Komputer', subjects: ['Jaringan komputer'], expected: '004.6' },
       { judul: 'Basis Data MySQL', subjects: ['Basis data', 'database'], expected: '005.74' },
       { judul: 'Fikih Ibadah', subjects: ['Fikih', 'Agama Islam'], expected: '297.4' },
@@ -228,5 +227,52 @@ describe('generateCatalog', () => {
       });
       expect(r.kodeDdc, c.judul).toBe(c.expected);
     }
+  });
+
+  it('prefers the catalogue DDC (sourceDdc) over heuristics', () => {
+    const r = generateCatalog({
+      judul: 'Filosofi Teras',
+      pengarang: 'Henry Manampiring',
+      subjects: ['Motivasi diri'],
+      sourceDdc: '155.25',
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(r.kodeDdc).toBe('155.25');
+    expect(r.kodeBuku).toBe('155.25-MAN-F-01-0');
+  });
+
+  it('skips leading articles for the title letter', () => {
+    const r = generateCatalog({
+      judul: 'The Secret Garden',
+      pengarang: 'Frances Hodgson Burnett',
+      sourceDdc: '823',
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(r.kodeBuku).toMatch(/^823-BUR-S-\d{2}-/);
+  });
+
+  it('embeds the copy count as two digits', () => {
+    const r = generateCatalog({
+      judul: 'Laskar Pelangi',
+      pengarang: 'Andrea Hirata',
+      sourceDdc: '813',
+      qty: 12,
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(r.kodeBuku).toBe('813-HIR-L-12-0');
+  });
+
+  it('uses 0 for an empty level and 00 for zero copies', () => {
+    const r = generateCatalog({
+      judul: 'Bumi Manusia',
+      pengarang: 'Pramoedya Ananta Toer',
+      sourceDdc: '899.221',
+      ddcList: DDC,
+      existing: EMPTY,
+    });
+    expect(r.kodeBuku).toBe('899.221-TOE-B-01-0');
   });
 });

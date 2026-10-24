@@ -13,6 +13,18 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+### Added
+
+- **DDC otomatis dari katalog ISBN** — JAKLITERA menyediakan *call number* yang
+  memuat DDC asli (mis. `155.25 HEN f`, `A/297.913 IRF m`); kode DDC itu kini
+  dipakai **langsung** saat impor via ISBN (heuristik hanya fallback). DDC yang
+  belum ada di master otomatis ditambahkan sebelum buku disimpan.
+- **Format kode buku baru & auto-update** —
+  `DDC-3HURUF-PENGARANG-HURUFJUDUL-JUMLAH(2 digit)-RAK[-NN]`
+  (mis. `813-HIR-L-02-A`), memperbarui otomatis saat DDC/pengarang/judul/
+  jumlah/rak diubah; huruf judul melewati kata sandang (The/A/Si/Sang);
+  rak kosong → `0`; suffix `-01` hanya bila bentrok.
+
 ## [1.3.3] - 2026-10-22
 
 ### Added

@@ -32,6 +32,11 @@ pub struct BookMetadata {
     pub language: Option<String>,
     pub cover_url: Option<String>,
     pub source: String,
+    /// Dewey class taken verbatim from a catalogue's call number, when the
+    /// source provides one (currently JAKLITERA). This is far more accurate
+    /// than keyword heuristics, so the UI uses it directly.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ddc: Option<String>,
     /// Marketplace price, when a bookstore source answered (informational).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub price: Option<String>,
@@ -273,7 +278,8 @@ fn thousands(n: i64) -> String {
     }
 }
 
-fn blank(isbn: &str, source: &str) -> BookMetadata {    BookMetadata {
+fn blank(isbn: &str, source: &str) -> BookMetadata {
+    BookMetadata {
         isbn: isbn.to_string(),
         title: String::new(),
         authors: Vec::new(),
@@ -285,9 +291,28 @@ fn blank(isbn: &str, source: &str) -> BookMetadata {    BookMetadata {
         language: None,
         cover_url: None,
         source: source.to_string(),
+        ddc: None,
         price: None,
         source_url: None,
     }
+}
+
+/// Extract the Dewey class from a catalogue call number.
+///
+/// Examples: `A/297.913 IRF m` → `297.913`, `155.25 HEN f` → `155.25`,
+/// `155.25 CLE a ; 155.25 JAM a` → `155.25`, `2X3.8 RAS f` → `2X3.8`.
+fn parse_ddc_from_call_number(call: &str) -> Option<String> {
+    let decimal = Regex::new(r"^\d{1,3}(?:\.\d+)?$").ok()?;
+    let islamic = Regex::new(r"(?i)^2X\d+(?:\.\d+)?$").ok()?;
+    for raw in call.split_whitespace() {
+        // "A/297.913" → "297.913"
+        let token = raw.rsplit('/').next().unwrap_or(raw).trim();
+        let token = token.trim_end_matches([';', ',']);
+        if decimal.is_match(token) || islamic.is_match(token) {
+            return Some(token.to_string());
+        }
+    }
+    None
 }
 
 fn is_usable(m: &BookMetadata) -> bool {
@@ -548,6 +573,13 @@ fn lookup_jakarta(isbn: &str) -> Option<BookMetadata> {
                 _ => Some(b.to_lowercase()),
             };
         }
+    }
+
+    // The catalogue's call number embeds the real Dewey class, which is much
+    // more accurate than keyword guessing (e.g. "155.25 HEN f" for Filosofi
+    // Teras, "A/297.913 IRF m" for an Islamic story).
+    if let Some(call_number) = field("Call Number") {
+        m.ddc = parse_ddc_from_call_number(&call_number);
     }
 
     // Author lives in an <h4>, e.g.
@@ -956,6 +988,31 @@ mod tests {
     fn clean_isbn_strips_noise() {
         assert_eq!(clean_isbn("978-602-063-317-6"), "9786020633176");
         assert_eq!(clean_isbn(" 0306406152 "), "0306406152");
+    }
+
+    #[test]
+    fn parse_ddc_from_call_number_handles_catalogue_formats() {
+        assert_eq!(
+            parse_ddc_from_call_number("A/297.913 IRF m").as_deref(),
+            Some("297.913")
+        );
+        assert_eq!(
+            parse_ddc_from_call_number("155.25 HEN f").as_deref(),
+            Some("155.25")
+        );
+        assert_eq!(
+            parse_ddc_from_call_number("155.25 CLE a ; 155.25 JAM a").as_deref(),
+            Some("155.25")
+        );
+        assert_eq!(
+            parse_ddc_from_call_number("2X3.8 RAS f").as_deref(),
+            Some("2X3.8")
+        );
+        assert_eq!(
+            parse_ddc_from_call_number("813 HIR l").as_deref(),
+            Some("813")
+        );
+        assert_eq!(parse_ddc_from_call_number("tanpa angka"), None);
     }
 
     #[test]
