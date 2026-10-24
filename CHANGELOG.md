@@ -11,14 +11,41 @@ The `release-v2` job in `.github/workflows/ci-v2.yml` runs
 as the GitHub Release body. If a tag has no matching section, the workflow falls
 back to GitHub's auto-generated release notes.
 
-## [Unreleased]
+## [1.3.5] - 2026-10-24
 
 ### Added
 
+- **Modul Akreditasi Perpustakaan** — persiapan akreditasi Perpusnas per jenjang
+  (PAUD, SD/MI, SMP/MTs, SMA/SMK/MA/MAK, SLB, dan 3 jenis Perguruan Tinggi):
+  - **Profil & jenjang** — pilih jenjang, NPP, SK pendirian, dan bulan awal
+    tahun ajaran; registry 15 instrumen (SNP + Keputusan Kepala Perpusnas)
+    dengan bobot, jumlah butir, dan ambang predikat.
+  - **Butir penilaian** — katalog butir resmi 14 jenjang (teks, bukti fisik,
+    kriteria skor A–D) dengan pengisian a–d + catatan.
+  - **Skor proyeksi & predikat** — skor berbobot per komponen, nilai 0–100,
+    predikat A/B/C, dan *gap analysis* (prioritas perbaikan).
+  - **Data manual** — tenaga, sarana, dan anggaran 3 tahun.
+  - **Bukti fisik** — checklist dokumen legalitas/POS/laporan + lampiran berkas
+    (dibuka dengan aplikasi OS).
+  - **Buku Bukti** — dokumen PDF lengkap berkop + tanda tangan; dapat
+    **disahkan & diarsipkan** (snapshot *immutable*) lalu dicetak ulang.
+- **Laporan per jenjang: Koleksi, Pemanfaatan, Kinerja** — komposisi koleksi per
+  DDC (3 level), rasio koleksi, sebaran eksemplar; peminjaman per subjek/kategori
+  × bulan, turnover per eksemplar, buku idle & eksemplar rusak/hilang; kunjungan
+  per kelompok × bulan. Semua dapat **ekspor CSV, Excel (.xlsx), dan PDF berkop**.
+- **Preset periode tahun ajaran** (Semester Ganjil/Genap/Tahun Ajaran) pada
+  toolbar laporan.
+- **Kop surat resmi + blok tanda tangan** pada semua PDF laporan (logo, NPSN,
+  NPP) — otomatis dari Identitas Perpustakaan.
 - **Sumber ISBN: Perpustakaan Darul Ilmi (SLiMS/Senayan)** — pencarian via
   ISBN (varian ber-hyphen) lalu mem-parse metadata Dublin Core pada halaman
   detail: judul, pengarang, penerbit, halaman, subjek, bahasa, **DDC asli**
   (`Classification`), dan **cover**.
+
+### Fixed
+
+- **Unit test jsdom** — akar 111 kegagalan test (Web Storage di Node 25)
+  diperbaiki dengan stub `localStorage` in-memory di `tests/unit/setup.ts`.
 
 ## [1.3.4] - 2026-10-24
 
