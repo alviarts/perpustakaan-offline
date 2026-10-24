@@ -26,16 +26,17 @@ Semua sumber **keyless** (tanpa API key).
 **Katalog otoritatif**
 1. **Perpusnas** — registry ISBN Indonesia (otoritatif untuk buku lokal)
 2. **Perpustakaan Jakarta (JAKLITERA)** — katalog DKI Jakarta; mencari via `keyword=<ISBN>` lalu mem-parse halaman detail (judul, pengarang, penerbit, tahun, halaman, subjek, sinopsis, **cover asli**)
-3. **Google Books** — buku internasional & Indonesia
-4. **Open Library** — katalog global + cover
+3. **Perpustakaan Darul Ilmi (SLiMS)** — mencari via `search=search&isbn=<ISBN ber-hyphen>` lalu mem-parse meta Dublin Core (judul, pengarang, penerbit, halaman, subjek, bahasa, **DDC dari kolom Classification/Call Number**, cover)
+4. **Google Books** — buku internasional & Indonesia
+5. **Open Library** — katalog global + cover
 
 **Bibliografis / akademik**
-5. **Onesearch.id** — agregat perpustakaan Indonesia
-6. **Crossref** — buku akademik ber-DOI
-7. **archive.org**, **LIBRIS** (Swedia), **K10plus** (Jerman), **NDL** (Jepang), **Inventaire.io**
+6. **Onesearch.id** — agregat perpustakaan Indonesia
+7. **Crossref** — buku akademik ber-DOI
+8. **archive.org**, **LIBRIS** (Swedia), **K10plus** (Jerman), **NDL** (Jepang), **Inventaire.io**
 
 **Toko buku (pelengkap + harga referensi)**
-8. **Periplus**, **Belbuk**, **Deepublish Store**, **AbeBooks**
+9. **Periplus**, **Belbuk**, **Deepublish Store**, **AbeBooks**
 
 > Catatan: Gramedia, Shopee, dan isbnsearch **tidak dipakai** karena semuanya
 > SPA di balik Cloudflare/bot wall yang tidak bisa dibaca lewat HTTP biasa

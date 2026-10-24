@@ -65,6 +65,7 @@ pub fn lookup_isbn(isbn: &str) -> Result<BookMetadata, AppError> {
     let sources: &[(&str, Source)] = &[
         ("perpusnas", lookup_perpusnas),
         ("jakarta", lookup_jakarta),
+        ("darulilmi", lookup_darulilmi),
         ("google_books", lookup_google_books),
         ("open_library", lookup_open_library),
         ("onesearch", lookup_onesearch),
@@ -361,7 +362,7 @@ fn score(m: &BookMetadata) -> i32 {
     }
     s + match m.source.as_str() {
         "perpusnas" => 4,
-        "open_library" | "google_books" | "jakarta" => 3,
+        "open_library" | "google_books" | "jakarta" | "darulilmi" => 3,
         "openalex" | "crossref" | "archive_org" | "libris" | "k10plus" | "ndl" => 2,
         "periplus" | "belbuk" | "deepublish" | "abebooks" | "inventaire" | "google_books_html" => 1,
         _ => 0,
@@ -613,8 +614,148 @@ fn lookup_jakarta(isbn: &str) -> Option<BookMetadata> {
     Some(m)
 }
 
-/// Extra cover URLs to try, in order, when the primary source lacked one.
-/// Every provider is validated downstream (placeholders are rejected), so this
+/// Perpustakaan Darul Ilmi (SLiMS / Senayan). Its detail pages expose full
+/// Dublin Core metadata (`DC.title`, `DC.creator`, `Classification`, `Call
+/// Number`, …) which is excellent for Indonesian school libraries. Search is
+/// by hyphenated ISBN (`index.php?search=search&isbn=…`), so we try a few
+/// common groupings, then fall back to keyword search.
+fn lookup_darulilmi(isbn: &str) -> Option<BookMetadata> {
+    const BASE: &str = "https://www.perpus-darulilmi.com";
+
+    let id = darulilmi_find_id(isbn)?;
+    let body = http_get_native(&format!("{BASE}/index.php?p=show_detail&id={id}"), 12)?;
+
+    let title = meta_content(&body, "DC.title")?;
+    let mut m = blank(isbn, "darulilmi");
+    m.title = title;
+    m.source_url = Some(format!("{BASE}/index.php?p=show_detail&id={id}"));
+
+    if let Some(ident) = meta_content(&body, "DC.identifier") {
+        // Some records put multiple identifiers; keep the first ISBN-like one.
+        let candidate = ident
+            .split([';', ','])
+            .map(str::trim)
+            .find(|s| clean_isbn(s).len() == 13 || clean_isbn(s).len() == 10);
+        if let Some(found) = candidate {
+            if clean_isbn(found) != clean_isbn(isbn) {
+                // Wrong record — don't trust it.
+                return None;
+            }
+        }
+    }
+
+    if let Some(creator) = meta_content(&body, "DC.creator") {
+        m.authors = creator
+            .split(';')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+    }
+    m.publisher = meta_content(&body, "DC.publisher");
+    m.published_date = meta_content(&body, "DC.date");
+    if let Some(desc) = meta_content(&body, "DC.description") {
+        if desc != "..." && !desc.is_empty() {
+            m.description = Some(desc);
+        }
+    }
+    if let Some(phys) = meta_content(&body, "Physical Description") {
+        if let Ok(re) = Regex::new(r"(\d+)\s*(?:hlm|halaman|p\.)") {
+            m.page_count = re
+                .captures(&phys)
+                .and_then(|c| c.get(1))
+                .and_then(|g| g.as_str().parse::<i32>().ok());
+        }
+    }
+    if let Some(subject) = meta_content(&body, "DC.subject") {
+        m.categories = subject
+            .split(';')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+    }
+    if let Some(lang) = meta_content(&body, "DC.language") {
+        m.language = match lang.to_lowercase().as_str() {
+            "indonesia" | "indonesian" => Some("id".to_string()),
+            "inggris" | "english" => Some("en".to_string()),
+            other => Some(other.to_string()),
+        };
+    }
+    // The catalogue's own Dewey class — authoritative for this record.
+    if let Some(class) = meta_content(&body, "Classification") {
+        let class = class.trim().to_string();
+        if !class.is_empty() {
+            m.ddc = Some(class);
+        }
+    } else if let Some(call) = meta_content(&body, "Call Number") {
+        m.ddc = parse_ddc_from_call_number(&call);
+    }
+    m.cover_url = meta_content(&body, "og:image")
+        .or_else(|| meta_content(&body, "twitter:image"))
+        .map(|u| u.replace("&amp;", "&"))
+        .map(|u| {
+            if u.starts_with("//") {
+                format!("https:{u}")
+            } else if u.starts_with('/') {
+                format!("{BASE}{u}")
+            } else {
+                u
+            }
+        });
+
+    Some(m)
+}
+
+/// Locate a Darul Ilmi record id by ISBN (SLiMS search wants a hyphenated form).
+fn darulilmi_find_id(isbn: &str) -> Option<String> {
+    const BASE: &str = "https://www.perpus-darulilmi.com";
+    let plain = clean_isbn(isbn);
+
+    let id_re = Regex::new(r#"p=show_detail&(?:amp;)?id=(\d+)"#).ok()?;
+    let detail_id = |html: &str| -> Option<String> {
+        id_re.captures(html).map(|c| c[1].to_string())
+    };
+
+    // Hyphenated ISBN variants, then plain keyword search.
+    let mut queries: Vec<String> = hyphen_variants(&plain)
+        .into_iter()
+        .map(|v| format!("{BASE}/index.php?search=search&isbn={v}"))
+        .collect();
+    queries.push(format!("{BASE}/index.php?search=search&keywords={plain}"));
+    queries.push(format!("{BASE}/index.php?keywords={plain}"));
+
+    for url in queries {
+        if let Some(html) = http_get_native(&url, 10) {
+            if let Some(id) = detail_id(&html) {
+                return Some(id);
+            }
+        }
+    }
+    None
+}
+
+/// Common hyphenations for an ISBN-13 payload (helps match SLiMS' stored form).
+fn hyphen_variants(isbn13: &str) -> Vec<String> {
+    let digits: String = isbn13.chars().filter(|c| c.is_ascii_digit()).collect();
+    if digits.len() != 13 {
+        return vec![isbn13.to_string()];
+    }
+    let prefix = &digits[..3]; // 978 / 979
+    let payload = &digits[3..12]; // 9 digits
+    let check = &digits[12..];
+    let mut out = Vec::new();
+    for (a, b, c) in [(3usize, 4usize, 2usize), (3, 2, 4), (2, 4, 2), (2, 3, 4), (4, 4, 1)] {
+        if a + b + c != 9 {
+            continue;
+        }
+        let g1 = &payload[..a];
+        let g2 = &payload[a..a + b];
+        let g3 = &payload[a + b..];
+        out.push(format!("{prefix}-{g1}-{g2}-{g3}-{check}"));
+    }
+    out
+}
+
+/// Extra cover URLs to try, in order, when the primary source lacked one./// Every provider is validated downstream (placeholders are rejected), so this
 /// is simply "best guesses" — the first real image wins.
 pub fn extra_cover_urls(isbn: &str) -> Vec<String> {
     let mut urls = Vec::new();
@@ -1025,6 +1166,14 @@ mod tests {
     }
 
     #[test]
+    fn hyphen_variants_cover_common_groupings() {
+        let v = hyphen_variants("9786021639542");
+        assert!(v.contains(&"978-602-1639-54-2".to_string()));
+        assert!(v.iter().all(|s| clean_isbn(s) == "9786021639542"));
+        assert!(hyphen_variants("123").len() == 1);
+    }
+
+    #[test]
     fn parse_ddc_from_call_number_handles_catalogue_formats() {
         assert_eq!(
             parse_ddc_from_call_number("A/297.913 IRF m").as_deref(),
@@ -1089,6 +1238,19 @@ mod tests {
     fn test_lookup_cascade() {
         let result = lookup_isbn("9780306406157").expect("found");
         assert!(!result.title.is_empty());
+    }
+
+    #[test]
+    #[ignore] // Requires internet connection
+    fn test_lookup_darulilmi_source() {
+        let m = lookup_darulilmi("9786021639542").expect("darulilmi hit");
+        assert_eq!(m.source, "darulilmi");
+        assert!(!m.title.is_empty());
+        println!(
+            "darulilmi: {} | authors={:?} | publisher={:?} | pages={:?} | ddc={:?} | lang={:?} | cats={:?}",
+            m.title, m.authors, m.publisher, m.page_count, m.ddc, m.language, m.categories
+        );
+        println!("cover={:?} url={:?}", m.cover_url, m.source_url);
     }
 
     #[test]
