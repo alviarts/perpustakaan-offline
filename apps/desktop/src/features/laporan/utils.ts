@@ -1,3 +1,5 @@
+import { printHtmlViaIframe } from '@/lib/print';
+
 /** Trigger a download of `content` (UTF-8 string) as a file. */
 export function downloadText(content: string, filename: string, mime: string = 'text/plain'): void {
   const blob = new Blob([content], { type: `${mime};charset=utf-8` });
@@ -11,21 +13,9 @@ export function downloadText(content: string, filename: string, mime: string = '
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** Open a print-ready HTML window using window.print(). */
+/** Open a print-ready HTML document (hidden iframe, no pop-up). */
 export function printHtml(html: string): void {
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => {
-    try {
-      w.print();
-    } catch {
-      // ignore
-    }
-  }, 200);
+  printHtmlViaIframe(html);
 }
 
 export function buildLaporanPdfHtml(opts: {
