@@ -2,6 +2,7 @@ import JsBarcode from 'jsbarcode';
 import QRCode from 'qrcode';
 import { hurufJudul, kodePengarang, rakLabel, type LabelBukuField, type LabelBukuLayout } from '@/lib/labelBuku';
 import type { LibraryIdentity } from '@/stores/identityStore';
+import { printHtmlViaIframe } from '@/lib/print';
 
 const MM_TO_PX = 3.78;
 
@@ -184,20 +185,11 @@ export async function buildLabelBukuPrintHtml(input: LabelBukuPrintInput): Promi
 </head>
 <body>
   <div class="grid">${cards.join('')}</div>
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => window.print(), 200);
-    });
-  </script>
 </body>
 </html>`;
 }
 
-/** Open printable HTML in a new window for OS print dialog. */
+/** Open printable HTML for the OS print dialog (hidden iframe, no pop-up). */
 export function openLabelBukuPrintWindow(html: string): void {
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  printHtmlViaIframe(html);
 }

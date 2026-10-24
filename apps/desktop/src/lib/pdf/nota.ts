@@ -1,10 +1,11 @@
 /**
  * Generate "nota peminjaman" — printed receipt.
  *
- * Uses browser-native `window.print()` against a pop-up document. Avoids extra
- * runtime dependencies (pdf-lib) while still producing a printable artifact
- * that desktop OS can route to default printer or PDF.
+ * Prints via a hidden iframe (`printHtmlDocument`) so it works inside Tauri's
+ * WebView2, which blocks pop-up windows. No extra runtime dependencies.
  */
+
+import { printHtmlDocument } from '@/lib/print';
 
 export interface NotaItem {
   judul: string;
@@ -91,20 +92,6 @@ export function buildNotaHtml(input: NotaInput): string {
 export function generateNotaPdf(input: NotaInput): void {
   if (typeof window === 'undefined') return;
   const html = buildNotaHtml(input);
-  const win = window.open('', '_blank', 'width=720,height=900');
-  if (!win) {
-    throw new Error('Popup diblokir browser. Izinkan popup untuk mencetak nota.');
-  }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  // Trigger print on next tick (after layout/paint).
-  setTimeout(() => {
-    try {
-      win.focus();
-      win.print();
-    } catch {
-      // ignore — user can print manually
-    }
-  }, 200);
+  // Tauri/WebView2 blocks pop-ups, so print through a hidden iframe.
+  printHtmlDocument(html);
 }

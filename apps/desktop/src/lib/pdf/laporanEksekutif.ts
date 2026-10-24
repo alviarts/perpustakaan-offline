@@ -1,3 +1,5 @@
+import { printHtmlDocument } from '@/lib/print';
+
 /**
  * Generate the "Laporan Eksekutif" — monthly executive report for the
  * kepala sekolah meeting (C1-LaporanEksekutifPDF, v1.1.0).
@@ -337,21 +339,8 @@ export function generateLaporanEksekutifPdf(input: LaporanEksekutifInput): Blob 
   const html = buildLaporanEksekutifHtml(input);
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   if (typeof window !== 'undefined') {
-    const win = window.open('', '_blank', 'width=820,height=1100');
-    if (!win) {
-      throw new Error('Popup diblokir browser. Izinkan popup untuk mencetak laporan.');
-    }
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    setTimeout(() => {
-      try {
-        win.focus();
-        win.print();
-      } catch {
-        // ignore — user can print manually
-      }
-    }, 250);
+    // Tauri/WebView2 blocks pop-ups; print through a hidden iframe instead.
+    printHtmlDocument(html);
   }
   return blob;
 }

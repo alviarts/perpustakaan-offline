@@ -3,6 +3,7 @@ import { assetsApi } from '@/lib/assets';
 import type { Anggota } from '@/lib/anggota';
 import { buildQrPayload, type KtaField, type KtaLayout } from '@/lib/kta';
 import type { LibraryIdentity } from '@/stores/identityStore';
+import { printHtmlViaIframe } from '@/lib/print';
 import { resolveKtaFieldText } from './resolveField';
 
 const MM_TO_PX = 3.78;
@@ -230,20 +231,11 @@ export async function buildKtaPrintHtml(input: KtaPrintInput): Promise<string> {
 <body>
   ${frontGrid}
   ${backSection}
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => window.print(), 200);
-    });
-  </script>
 </body>
 </html>`;
 }
 
-/** Open printable HTML in a new window for OS print dialog. */
+/** Open printable HTML for the OS print dialog (hidden iframe, no pop-up). */
 export function openKtaPrintWindow(html: string): void {
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  printHtmlViaIframe(html);
 }
