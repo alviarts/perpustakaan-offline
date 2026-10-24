@@ -24,6 +24,7 @@ const searchSchema = z.object({
   kategori: z.string().optional(),
   subjects: z.string().optional(),
   language: z.string().optional(),
+  ddc: z.string().optional(),
 });
 
 export const Route = createFileRoute('/_authed/buku/new')({
@@ -148,12 +149,22 @@ function NewBukuRoute() {
         ddcOptions={ddc}
         kategoriOptions={kategori}
         bahasaOptions={bahasa}
-        autoFill={{ subjects, existing, ready: existingReady }}
+        autoFill={{ subjects, existing, ready: existingReady, sourceDdc: search.ddc ?? null }}
         submitLabel={t('buku:form.submitCreate')}
         onCancel={() => void navigate({ to: '/buku' })}
         onSubmit={async (values) => {
           try {
-            await bukuApi.create(toBukuInput(values));
+            const input = toBukuInput(values);
+            // The DDC from a catalogue (e.g. JAKLITERA call number) may not be
+            // in the local master yet; `buku.kode_ddc` has a FK, so ensure it
+            // exists first (ignore "already exists").
+            const kodeDdc = input.kodeDdc;
+            if (kodeDdc && !ddc.some((d) => (d.kode ?? d.nama) === kodeDdc)) {
+              await masterDataApi
+                .create('ddc', { kode: kodeDdc, nama: `Klasifikasi ${kodeDdc}` })
+                .catch(() => undefined);
+            }
+            await bukuApi.create(input);
             showToast({ title: t('buku:feedback.createSuccess') });
             void navigate({ to: '/buku' });
           } catch (err) {

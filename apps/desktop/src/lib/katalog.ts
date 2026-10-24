@@ -35,6 +35,15 @@ export interface CatalogInput {
   subjects?: string[];
   /** Book language from the ISBN lookup / form (e.g. "id", "en", "Indonesia"). */
   language?: string | null;
+  /**
+   * DDC taken from the catalogue that produced the ISBN hit (e.g. JAKLITERA's
+   * call number). When present it is used verbatim and beats the heuristics.
+   */
+  sourceDdc?: string | null;
+  /** Number of copies (jumlah eksemplar) — embedded as a 2-digit field. */
+  qty?: number | null;
+  /** Current shelf value from the form; when set it is used for the code. */
+  rak?: string | null;
   ddcList: DdcEntry[];
   existing: ExistingBook[];
   /** When editing, exclude the book's current kode from uniqueness checks. */
@@ -315,7 +324,8 @@ function pickRak(kodeDdc: string, existing: ExistingBook[]): { rak: string; lear
   );
   if (byClass) return { rak: byClass, learned: true };
 
-  return { rak: cls ? `RAK ${cls}` : 'RAK 000', learned: false };
+  // No rak data in the collection: use "0" (spec: empty shelf → 0).
+  return { rak: '0', learned: false };
 }
 
 /**
@@ -328,6 +338,8 @@ function nextSerialCode(base: string, existing: ExistingBook[], exclude?: string
       .map((b) => norm(b.kodeBuku))
       .filter((k) => k && k !== norm(exclude)),
   );
+  // Use the base code as-is; only add a serial when it collides.
+  if (!taken.has(norm(base))) return base;
   for (let i = 1; i <= 999; i += 1) {
     const candidate = `${base}-${String(i).padStart(2, '0')}`;
     if (!taken.has(norm(candidate))) return candidate;
@@ -335,9 +347,59 @@ function nextSerialCode(base: string, existing: ExistingBook[], exclude?: string
   return `${base}-${Date.now().toString().slice(-3)}`;
 }
 
+/** Clean a DDC code: trim + remove spaces; empty → "000". */
+export function normalizeDdc(raw?: string | null): string {
+  const v = (raw ?? '').trim().replace(/\s+/g, '');
+  return v || '000';
+}
+
+const ARTICLES = new Set([
+  'the',
+  'a',
+  'an',
+  'si',
+  'sang',
+  'para',
+  'sebuah',
+  'seorang',
+  'di',
+  'ke',
+]);
+
+/** First meaningful letter of a title (skips articles: The/A/An/Si/Sang/…). */
+export function judulInitial(judul: string): string {
+  const words = (judul ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  for (const w of words) {
+    if (!ARTICLES.has(w)) {
+      return w[0]?.toUpperCase() ?? 'X';
+    }
+  }
+  return words[0]?.[0]?.toUpperCase() ?? 'X';
+}
+
+/** Normalise a shelf code: drop the word RAK and spaces. Empty → "0". */
+export function normalizeRak(raw?: string | null): string {
+  const v = (raw ?? '')
+    .toUpperCase()
+    .replace(/\bRAK\b/g, ' ')
+    .replace(/[^A-Z0-9]/g, '');
+  return v || '0';
+}
+
+function pad2(n: number): string {
+  const v = Math.max(0, Math.min(99, Math.trunc(Number.isFinite(n) ? n : 0)));
+  return String(v).padStart(2, '0');
+}
+
 /**
  * Generate DDC, shelf location, call number and a unique book code.
- * Never returns a DDC code that is absent from `ddcList`.
+ * Never returns a DDC code that is absent from `ddcList` unless `sourceDdc`
+ * (a catalogue-provided class) is supplied — the caller then ensures it
+ * exists in the master table before saving.
  */
 export function generateCatalog(input: CatalogInput): CatalogResult {
   const { judul, pengarang, kategori, subjects = [], language, ddcList, existing } = input;
@@ -382,22 +444,29 @@ export function generateCatalog(input: CatalogInput): CatalogResult {
     chosen = ddcList.find((e) => mainClass(e.kode) === '000') ?? ddcList[0] ?? null;
   }
 
-  const kodeDdc = chosen?.kode ?? '';
-  const { rak, learned } = pickRak(kodeDdc, existing);
+  const kodeDdc = input.sourceDdc ? normalizeDdc(input.sourceDdc) : (chosen?.kode ?? '');
+  const picked = pickRak(kodeDdc, existing);
+  const explicitRak = input.rak?.trim();
+  const rak = explicitRak ? explicitRak : picked.rak;
+  const learned = explicitRak ? false : picked.learned;
+  const rakPart = normalizeRak(rak);
 
   // Human-readable call number for the spine label, e.g. "813 HIR l".
   const author = kodePengarang(pengarang);
-  const titleLetter = hurufJudul(judul);
-  const callNumber = [kodeDdc || '000', author, titleLetter].filter(Boolean).join(' ');
+  const callNumber = [kodeDdc || '000', author, hurufJudul(judul)].filter(Boolean).join(' ');
 
-  // Scannable inventory code: only A-Z, 0-9 and '-', safe for CODE128,
-  // e.g. "813-HIRL-01", "7415-COMK-01", "005133-PYTB-01".
-  const ddcPart = (kodeDdc || '000').replace(/[^0-9A-Za-z]/g, '');
-  const baseKode = `${ddcPart}-${author}${titleLetter.toUpperCase()}`;
+  // Scannable inventory code: DDC-3AUTHOR-TITLE-COPIES-RAK, e.g.
+  // "813-HIR-L-02-A", "741.5-SAN-K-01-B", "000-XXX-X-00-0".
+  const ddcPart = (kodeDdc || '000').replace(/[^0-9A-Za-z.]/g, '') || '000';
+  const titleLetter = judulInitial(judul);
+  const copies = pad2(input.qty ?? 1);
+  const baseKode = `${ddcPart}-${author}-${titleLetter}-${copies}-${rakPart}`;
   const kodeBuku = nextSerialCode(baseKode, existing, input.excludeKodeBuku);
 
   const reasonParts: string[] = [];
-  if (chosen) {
+  if (input.sourceDdc) {
+    reasonParts.push(`DDC ${kodeDdc} dari katalog sumber`);
+  } else if (chosen) {
     reasonParts.push(
       hinted && mainClass(chosen.kode) === hinted.cls
         ? `DDC ${chosen.kode} (${chosen.nama}) dari ${hinted.label}`

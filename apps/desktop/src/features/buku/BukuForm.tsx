@@ -35,6 +35,8 @@ interface BukuFormProps {
     existing: ExistingBook[];
     /** True once `existing` has finished loading (so we can learn from it). */
     ready?: boolean;
+    /** DDC provided by the catalogue that answered the ISBN lookup. */
+    sourceDdc?: string | null;
   };
 }
 
@@ -97,6 +99,7 @@ export function BukuForm({
     reset,
     setValue,
     getValues,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<BukuFormValues>({
     resolver: zodResolver(bukuFormSchema),
@@ -127,7 +130,7 @@ export function BukuForm({
     [bahasaOptions],
   );
 
-  const handleAutoFill = () => {
+  const handleAutoFill = (alsoSetDdcAndRak = true) => {
     if (!autoFill) return;
     const values = getValues();
     const result = generateCatalog({
@@ -135,18 +138,21 @@ export function BukuForm({
       pengarang: values.pengarang ?? '',
       kategori: values.kategori,
       language: values.bahasa,
+      sourceDdc: values.kodeDdc || autoFill.sourceDdc || null,
+      qty: Number(values.jumlahEksemplar) || 0,
+      rak: alsoSetDdcAndRak ? null : values.rak,
       subjects: autoFill.subjects,
       ddcList: ddcOptions.map((d) => ({ kode: d.kode ?? d.nama, nama: d.nama })),
       existing: autoFill.existing,
       excludeKodeBuku: initial?.kodeBuku ?? null,
     });
-    if (result.kodeDdc) {
+    if (alsoSetDdcAndRak && result.kodeDdc) {
       setValue('kodeDdc', result.kodeDdc, { shouldDirty: true, shouldValidate: true });
     }
     if (result.kodeBuku) {
       setValue('kodeBuku', result.kodeBuku, { shouldDirty: true, shouldValidate: true });
     }
-    if (result.rak) {
+    if (alsoSetDdcAndRak && result.rak) {
       setValue('rak', result.rak, { shouldDirty: true, shouldValidate: true });
     }
     setAutoNote(result.reason);
@@ -165,6 +171,50 @@ export function BukuForm({
     handleAutoFill();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFill?.ready, ddcOptions.length, initial?.isbn]);
+
+  // Keep the book code in sync while the user edits the source fields. Stops
+  // as soon as the user types a code manually (press "Isi Otomatis" to resume).
+  const manualKode = useRef(false);
+  const watchedDdc = watch('kodeDdc');
+  const watchedPengarang = watch('pengarang');
+  const watchedJudul = watch('judul');
+  const watchedQty = watch('jumlahEksemplar');
+  const watchedRak = watch('rak');
+  const watchedKategori = watch('kategori');
+  const watchedBahasa = watch('bahasa');
+
+  useEffect(() => {
+    if (!autoFill || manualKode.current) return;
+    if (autoFill.ready === false) return;
+    const result = generateCatalog({
+      judul: watchedJudul ?? '',
+      pengarang: watchedPengarang ?? '',
+      kategori: watchedKategori,
+      language: watchedBahasa,
+      sourceDdc: watchedDdc || autoFill.sourceDdc || null,
+      qty: Number(watchedQty) || 0,
+      rak: watchedRak,
+      subjects: autoFill.subjects,
+      ddcList: ddcOptions.map((d) => ({ kode: d.kode ?? d.nama, nama: d.nama })),
+      existing: autoFill.existing,
+      excludeKodeBuku: initial?.kodeBuku ?? null,
+    });
+    if (result.kodeBuku) {
+      setValue('kodeBuku', result.kodeBuku, { shouldValidate: true });
+    }
+    setAutoNote(result.reason);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    watchedDdc,
+    watchedPengarang,
+    watchedJudul,
+    watchedQty,
+    watchedRak,
+    watchedKategori,
+    watchedBahasa,
+    autoFill?.ready,
+    ddcOptions.length,
+  ]);
 
   const renderError = (key: string | undefined): string | null => {
     if (!key) return null;
@@ -189,7 +239,10 @@ export function BukuForm({
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleAutoFill}
+              onClick={() => {
+                manualKode.current = false;
+                handleAutoFill();
+              }}
               data-testid="buku-autofill"
               title={t('buku:form.autoFillHint', {
                 defaultValue:
@@ -219,7 +272,11 @@ export function BukuForm({
               data-testid="field-kodeBuku"
               placeholder={t('buku:fields.kodeBukuPlaceholder')}
               autoFocus={!initial}
-              {...register('kodeBuku')}
+              {...register('kodeBuku', {
+                onChange: () => {
+                  manualKode.current = true;
+                },
+              })}
             />
           </Field>
           <Field

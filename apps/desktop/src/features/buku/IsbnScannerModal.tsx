@@ -16,6 +16,7 @@ interface BookMetadata {
   language: string | null;
   cover_url: string | null;
   source: string;
+  ddc?: string | null;
   price?: string | null;
   source_url?: string | null;
 }

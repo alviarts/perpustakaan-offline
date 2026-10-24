@@ -483,6 +483,7 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
               deskripsi: metadata.description || undefined,
               harga: parseHargaReferensi(metadata.price) ?? undefined,
               language: metadata.language || undefined,
+              ddc: metadata.ddc || undefined,
               subjects: metadata.categories.length
                 ? metadata.categories.join(',')
                 : undefined,
