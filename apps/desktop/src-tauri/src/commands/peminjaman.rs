@@ -412,6 +412,72 @@ fn next_nomor_pinjam(conn: &rusqlite::Connection) -> AppResult<String> {
     Ok(format!("{prefix}{next:04}"))
 }
 
+/// Create a peminjaman (header + one item) for a single book inside an
+/// existing transaction. Mirrors the core of `peminjaman_create_inner` so
+/// callers such as the reservation pick-up flow don't need a nested
+/// transaction (SQLite does not support those).
+pub(crate) fn create_peminjaman_in_tx(
+    tx: &rusqlite::Connection,
+    anggota_id: i64,
+    buku_id: i64,
+    catatan: Option<&str>,
+) -> AppResult<i64> {
+    let lama = setting_int(tx, "transaksi.lama_pinjam_hari", DEFAULT_LAMA_PINJAM_HARI).clamp(1, 365);
+    let tgl_pinjam = chrono::Local::now().date_naive();
+    let tgl_jt = tgl_pinjam + chrono::Duration::days(lama);
+    let nomor = next_nomor_pinjam(tx)?;
+
+    tx.execute(
+        "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, \
+         tanggal_jatuh_tempo, status, catatan) \
+         VALUES (?1, ?2, ?3, ?4, 'dipinjam', ?5)",
+        params![
+            nomor,
+            anggota_id,
+            tgl_pinjam.format("%Y-%m-%d").to_string(),
+            tgl_jt.format("%Y-%m-%d").to_string(),
+            catatan,
+        ],
+    )?;
+    let peminjaman_id = tx.last_insert_rowid();
+
+    let eks: Option<i64> = tx
+        .query_row(
+            "SELECT id FROM eksemplar WHERE buku_id = ?1 AND status = 'tersedia' \
+             ORDER BY id ASC LIMIT 1",
+            params![buku_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let eksemplar_id = eks.ok_or_else(|| {
+        AppError::Validation(format!(
+            "tidak ada eksemplar tersedia untuk buku id={buku_id}"
+        ))
+    })?;
+
+    tx.execute(
+        "INSERT INTO peminjaman_item (peminjaman_id, buku_id, eksemplar_id, status) \
+         VALUES (?1, ?2, ?3, 'dipinjam')",
+        params![peminjaman_id, buku_id, eksemplar_id],
+    )?;
+    tx.execute(
+        "UPDATE eksemplar SET status = 'dipinjam', updated_at = datetime('now') WHERE id = ?1",
+        params![eksemplar_id],
+    )?;
+    tx.execute(
+        "UPDATE buku SET jumlah_tersedia = MAX(jumlah_tersedia - 1, 0), \
+         updated_at = datetime('now') WHERE id = ?1",
+        params![buku_id],
+    )?;
+    tx.execute(
+        "INSERT INTO kunjungan (anggota_id, sumber, keperluan) \
+         VALUES (?1, 'peminjaman', 'Peminjaman buku')",
+        params![anggota_id],
+    )?;
+
+    Ok(peminjaman_id)
+}
+
 fn map_peminjaman_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<PeminjamanRow> {
     Ok(PeminjamanRow {
         id: row.get("id")?,

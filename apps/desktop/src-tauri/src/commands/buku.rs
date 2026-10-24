@@ -560,40 +560,72 @@ pub fn buku_import_into_conn(
             skipped += 1;
             continue;
         }
-        let jumlah = item.jumlah_eksemplar.unwrap_or(1).max(0);
-        let kode_buku = item.kode_buku.trim();
-        tx.execute(
-            "INSERT INTO buku (kode_buku, judul, pengarang, penerbit, tahun_terbit, kode_ddc,
-                kategori, isbn, jumlah_eksemplar, jumlah_tersedia, bahasa)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9, ?10)",
-            params![
-                kode_buku,
-                item.judul.trim(),
-                item.pengarang,
-                item.penerbit,
-                item.tahun_terbit,
-                item.kode_ddc,
-                item.kategori,
-                item.isbn,
-                jumlah,
-                item.bahasa,
-            ],
-        )?;
-        let buku_id = tx.last_insert_rowid();
-        // Seed one eksemplar per copy, mirroring `buku_create_inner` so imported
-        // books are immediately printable / borrowable. Without this, downstream
-        // flows that iterate `eksemplar` (cetak label, peminjaman) treat the
-        // imported buku as having zero copies even though `jumlah_eksemplar`
-        // says otherwise.
-        for n in 1..=jumlah {
-            let kode_eksemplar = format!("{kode_buku}-{n:02}");
+        // Isolate each row so a single bad record can't abort the whole import.
+        tx.execute_batch("SAVEPOINT import_row")?;
+        let row_result = (|| -> AppResult<()> {
+            // `kode_ddc` is a FK to `ddc(kode)`. Exporters rarely ship a DDC
+            // master, so create the missing code instead of failing with
+            // "FOREIGN KEY constraint failed".
+            let kode_ddc = item
+                .kode_ddc
+                .as_deref()
+                .map(str::trim)
+                .filter(|s| !s.is_empty());
+            if let Some(kode) = kode_ddc {
+                tx.execute(
+                    "INSERT OR IGNORE INTO ddc (kode, deskripsi, parent, depth) \
+                     VALUES (?1, ?2, NULL, 0)",
+                    params![kode, format!("Klasifikasi {kode}")],
+                )?;
+            }
+
+            let jumlah = item.jumlah_eksemplar.unwrap_or(1).max(0);
+            let kode_buku = item.kode_buku.trim();
             tx.execute(
-                "INSERT INTO eksemplar (buku_id, kode_eksemplar, status)
-                 VALUES (?1, ?2, 'tersedia')",
-                params![buku_id, kode_eksemplar],
+                "INSERT INTO buku (kode_buku, judul, pengarang, penerbit, tahun_terbit, kode_ddc,
+                    kategori, isbn, jumlah_eksemplar, jumlah_tersedia, bahasa)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9, ?10)",
+                params![
+                    kode_buku,
+                    item.judul.trim(),
+                    item.pengarang,
+                    item.penerbit,
+                    item.tahun_terbit,
+                    kode_ddc,
+                    item.kategori,
+                    item.isbn,
+                    jumlah,
+                    item.bahasa,
+                ],
             )?;
+            let buku_id = tx.last_insert_rowid();
+            // Seed one eksemplar per copy, mirroring `buku_create_inner` so
+            // imported books are immediately printable / borrowable.
+            for n in 1..=jumlah {
+                let kode_eksemplar = format!("{kode_buku}-{n:02}");
+                tx.execute(
+                    "INSERT INTO eksemplar (buku_id, kode_eksemplar, status)
+                     VALUES (?1, ?2, 'tersedia')",
+                    params![buku_id, kode_eksemplar],
+                )?;
+            }
+            Ok(())
+        })();
+
+        match row_result {
+            Ok(()) => {
+                tx.execute_batch("RELEASE import_row")?;
+                inserted += 1;
+            }
+            Err(e) => {
+                tx.execute_batch("ROLLBACK TO import_row; RELEASE import_row")?;
+                errors.push(BukuImportError {
+                    row: idx + 1,
+                    message: e.to_string(),
+                });
+                skipped += 1;
+            }
         }
-        inserted += 1;
     }
     tx.commit()?;
     Ok(BukuImportResult {
@@ -800,5 +832,32 @@ mod tests {
             )
             .unwrap();
         assert_eq!(count_eksemplar(&conn, id), 0);
+    }
+
+    #[test]
+    fn buku_import_creates_missing_ddc_and_keeps_going_on_bad_rows() {
+        let mut conn = setup_db();
+        let mut with_ddc = import_item("B-FK-1", "Buku DDC Baru", Some(1));
+        with_ddc.kode_ddc = Some("999.99".into());
+        let dup = import_item("B-FK-1", "Duplikat", Some(1));
+
+        let result = buku_import_into_conn(&mut conn, &[with_ddc, dup]).expect("import");
+
+        // First row inserted (and the DDC code auto-created).
+        assert_eq!(result.inserted, 1);
+        // Second row skipped (duplicate code) without aborting the batch.
+        assert_eq!(result.skipped, 1);
+        let ddc_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM ddc WHERE kode = '999.99'", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(ddc_count, 1);
+        let linked: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM buku WHERE kode_buku = 'B-FK-1' AND kode_ddc = '999.99'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(linked, 1);
     }
 }
