@@ -13,6 +13,13 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+### Added
+
+- **Sumber ISBN: Perpustakaan Darul Ilmi (SLiMS/Senayan)** — pencarian via
+  ISBN (varian ber-hyphen) lalu mem-parse metadata Dublin Core pada halaman
+  detail: judul, pengarang, penerbit, halaman, subjek, bahasa, **DDC asli**
+  (`Classification`), dan **cover**.
+
 ## [1.3.4] - 2026-10-24
 
 ### Added

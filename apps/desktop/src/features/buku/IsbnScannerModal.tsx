@@ -26,6 +26,7 @@ function sourceLabel(source: string): string {
   const map: Record<string, string> = {
     perpusnas: 'Perpusnas (Registry ISBN Indonesia)',
     jakarta: 'Perpustakaan Jakarta (JAKLITERA)',
+    darulilmi: 'Perpustakaan Darul Ilmi (SLiMS)',
     google_books: 'Google Books',
     google_books_html: 'Google Books',
     open_library: 'Open Library',
