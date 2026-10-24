@@ -63,6 +63,12 @@ export interface StocktakeScanResult {
   session: StocktakeSessionRow;
 }
 
+export interface StocktakeMarkInput {
+  sessionId: number;
+  eksemplarId: number;
+  status: StocktakeItemStatus;
+}
+
 export interface StocktakeFinishInput {
   sessionId: number;
   status?: 'selesai' | 'dibatalkan';
@@ -75,6 +81,7 @@ export interface StocktakeRpc {
   sessionGet(sessionId: number): Promise<StocktakeSessionRow>;
   itemList(args: StocktakeItemListArgs): Promise<StocktakeItemRow[]>;
   scan(input: StocktakeScanInput): Promise<StocktakeScanResult>;
+  mark(input: StocktakeMarkInput): Promise<StocktakeScanResult>;
   finish(input: StocktakeFinishInput): Promise<StocktakeSessionRow>;
   delete(sessionId: number): Promise<void>;
 }
@@ -99,6 +106,10 @@ const tauriRpc: StocktakeRpc = {
   async scan(input) {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<StocktakeScanResult>('stocktake_scan', { input });
+  },
+  async mark(input) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<StocktakeScanResult>('stocktake_mark', { input });
   },
   async finish(input) {
     const { invoke } = await import('@tauri-apps/api/core');
@@ -343,6 +354,54 @@ const mockRpc: StocktakeRpc = {
     } else {
       item.status = 'ditemukan';
       if (!item.tanggalScan) item.tanggalScan = nowIso();
+    }
+    writeMock(state);
+    const itemRow: StocktakeItemRow = {
+      id: item.id,
+      sessionId: item.sessionId,
+      eksemplarId: item.eksemplarId,
+      eksemplarKode: e.kode,
+      bukuId: e.bukuId,
+      bukuJudul: e.bukuJudul,
+      bukuPengarang: e.bukuPengarang,
+      status: item.status,
+      eksemplarStatus: e.status,
+      tanggalScan: item.tanggalScan,
+      catatan: item.catatan,
+    };
+    return { item: itemRow, alreadyScanned, session: toRow(state, input.sessionId) };
+  },
+  async mark(input) {
+    const state = readMock();
+    const session = state.sessions.find((s) => s.id === input.sessionId);
+    if (!session) throw new Error(`session ${input.sessionId} not found`);
+    if (session.status !== 'berlangsung') {
+      throw new Error(`sesi stocktake sudah ${session.status}, tidak bisa diubah`);
+    }
+    const e = state.pool.find((p) => p.id === input.eksemplarId);
+    if (!e) throw new Error(`eksemplar id=${input.eksemplarId} tidak ditemukan`);
+    let item = state.items.find(
+      (i) => i.sessionId === input.sessionId && i.eksemplarId === e.id,
+    );
+    const alreadyScanned = item?.status === 'ditemukan';
+    if (!item) {
+      state.itemSeq += 1;
+      item = {
+        id: state.itemSeq,
+        sessionId: input.sessionId,
+        eksemplarId: e.id,
+        status: input.status,
+        tanggalScan: input.status === 'ditemukan' ? nowIso() : null,
+        catatan: null,
+      };
+      state.items.push(item);
+    } else {
+      item.status = input.status;
+      if (input.status === 'ditemukan') {
+        if (!item.tanggalScan) item.tanggalScan = nowIso();
+      } else {
+        item.tanggalScan = null;
+      }
     }
     writeMock(state);
     const itemRow: StocktakeItemRow = {

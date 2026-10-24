@@ -20,11 +20,17 @@ import type { LibraryIdentity } from '@/stores/identityStore';
 // Loan rules (Aturan Peminjaman)
 // ---------------------------------------------------------------------------
 
+export type DendaMode = 'uang' | 'poin';
+
 export interface LoanRules {
   maksBukuPinjam: number;
   lamaPinjamHari: number;
   dendaPerHari: number;
   hariLibur: number[]; // 0=Sun..6=Sat (akan di-skip dari hitungan denda)
+  /** Jenis denda keterlambatan: uang (Rp) atau poin. */
+  modeDenda: DendaMode;
+  /** Poin per hari terlambat (dipakai bila modeDenda = 'poin'). */
+  poinPerHari: number;
 }
 
 export const DEFAULT_LOAN_RULES: LoanRules = {
@@ -32,6 +38,8 @@ export const DEFAULT_LOAN_RULES: LoanRules = {
   lamaPinjamHari: 7,
   dendaPerHari: 500,
   hariLibur: [0],
+  modeDenda: 'uang',
+  poinPerHari: 1,
 };
 
 const LOAN_RULES_KEYS = {
@@ -39,6 +47,8 @@ const LOAN_RULES_KEYS = {
   lama: 'transaksi.lama_pinjam_hari',
   denda: 'transaksi.denda_per_hari',
   libur: 'transaksi.hari_libur',
+  modeDenda: 'transaksi.mode_denda',
+  poinPerHari: 'transaksi.poin_per_hari',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -470,7 +480,9 @@ const mockApi: SettingsApi = {
   },
 
   async getLoanRules() {
-    return readMock<LoanRules>(MOCK_KEYS.loanRules, DEFAULT_LOAN_RULES);
+    // Merge with defaults so installs saved before `modeDenda`/`poinPerHari`
+    // existed still get sane values.
+    return { ...DEFAULT_LOAN_RULES, ...readMock<Partial<LoanRules>>(MOCK_KEYS.loanRules, {}) };
   },
   async saveLoanRules(rules) {
     writeMock(MOCK_KEYS.loanRules, rules);
@@ -725,6 +737,10 @@ const tauriApi: SettingsApi = {
       lamaPinjamHari: parseInt(rows[LOAN_RULES_KEYS.lama] ?? '', 10) || DEFAULT_LOAN_RULES.lamaPinjamHari,
       dendaPerHari: parseInt(rows[LOAN_RULES_KEYS.denda] ?? '', 10) || DEFAULT_LOAN_RULES.dendaPerHari,
       hariLibur: parseHariLibur(rows[LOAN_RULES_KEYS.libur] ?? ''),
+      modeDenda:
+        (rows[LOAN_RULES_KEYS.modeDenda] ?? '').trim() === 'poin' ? 'poin' : 'uang',
+      poinPerHari:
+        parseInt(rows[LOAN_RULES_KEYS.poinPerHari] ?? '', 10) || DEFAULT_LOAN_RULES.poinPerHari,
     };
   },
   async saveLoanRules(rules) {
@@ -735,6 +751,8 @@ const tauriApi: SettingsApi = {
         [LOAN_RULES_KEYS.lama]: String(rules.lamaPinjamHari),
         [LOAN_RULES_KEYS.denda]: String(rules.dendaPerHari),
         [LOAN_RULES_KEYS.libur]: rules.hariLibur.join(','),
+        [LOAN_RULES_KEYS.modeDenda]: rules.modeDenda,
+        [LOAN_RULES_KEYS.poinPerHari]: String(rules.poinPerHari),
       },
     });
     return rules;

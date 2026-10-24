@@ -159,4 +159,41 @@ describe('stocktake helpers', () => {
     expect(isTerminal('selesai')).toBe(true);
     expect(isTerminal('dibatalkan')).toBe(true);
   });
+
+  it('mark toggles an item manually without scanning', async () => {
+    const session = await stocktakeApi.start({ nama: 'Opname Manual' });
+    const items = await stocktakeApi.itemList({ sessionId: session.id });
+    const first = items[0]!;
+
+    const marked = await stocktakeApi.mark({
+      sessionId: session.id,
+      eksemplarId: first.eksemplarId,
+      status: 'ditemukan',
+    });
+    expect(marked.item.status).toBe('ditemukan');
+    expect(marked.item.tanggalScan).toBeTruthy();
+    expect(marked.session.ditemukan).toBe(1);
+
+    const unmarked = await stocktakeApi.mark({
+      sessionId: session.id,
+      eksemplarId: first.eksemplarId,
+      status: 'belum_scan',
+    });
+    expect(unmarked.item.status).toBe('belum_scan');
+    expect(unmarked.item.tanggalScan).toBeFalsy();
+    expect(unmarked.session.ditemukan).toBe(0);
+  });
+
+  it('mark is rejected once the session is finished', async () => {
+    const session = await stocktakeApi.start({ nama: 'Selesai' });
+    const items = await stocktakeApi.itemList({ sessionId: session.id });
+    await stocktakeApi.finish({ sessionId: session.id, status: 'selesai' });
+    await expect(
+      stocktakeApi.mark({
+        sessionId: session.id,
+        eksemplarId: items[0]!.eksemplarId,
+        status: 'ditemukan',
+      }),
+    ).rejects.toThrow();
+  });
 });

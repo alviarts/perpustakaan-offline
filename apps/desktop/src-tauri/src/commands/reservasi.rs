@@ -38,6 +38,7 @@ use serde_json::json;
 use tauri::State;
 
 use crate::commands::kas::insert_audit_log;
+use crate::commands::peminjaman::create_peminjaman_in_tx;
 use crate::error::{AppError, AppResult};
 use crate::AppState;
 
@@ -318,6 +319,14 @@ pub fn reservasi_mark_diambil_inner(
     }
 
     let tx = conn.transaction()?;
+    // Picking up a reservation *is* a loan: create the peminjaman row (header,
+    // item, eksemplar status, stock, kunjungan) before marking it collected.
+    let peminjaman_id = create_peminjaman_in_tx(
+        &tx,
+        anggota_id,
+        buku_id,
+        Some("Peminjaman dari reservasi"),
+    )?;
     tx.execute(
         "UPDATE reservasi_buku SET status = 'diambil', \
          updated_at = datetime('now') WHERE id = ?1",
@@ -328,6 +337,7 @@ pub fn reservasi_mark_diambil_inner(
         "after": { "status": "diambil" },
         "anggota_id": anggota_id,
         "buku_id": buku_id,
+        "peminjaman_id": peminjaman_id,
     });
     insert_audit_log(&tx, user_id, "mark_diambil", "reservasi_buku", Some(id), &detail)?;
     tx.commit()?;
@@ -910,5 +920,87 @@ mod tests {
         let rows = reservasi_list_active_inner(&conn).expect("list");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].anggota_id, a2);
+    }
+
+    #[test]
+    fn mark_diambil_creates_peminjaman_and_consumes_stock() {
+        let mut conn = setup_db();
+        let borrower = seed_anggota(&conn, "A000", "Peminjam Lama");
+        let aid = seed_anggota(&conn, "A100", "Pemesan");
+        let bid = seed_buku(&conn, "B100", "Buku Reservasi");
+        seed_active_loan(&conn, borrower, bid);
+
+        let r = reservasi_create_inner(
+            &mut conn,
+            &ReservasiCreateInput {
+                anggota_id: aid,
+                buku_id: bid,
+                catatan: None,
+            },
+            None,
+        )
+        .expect("create reservasi");
+
+        // The copy comes back and the reservation is ready to collect.
+        conn.execute(
+            "INSERT INTO eksemplar (buku_id, kode_eksemplar, status) \
+             VALUES (?1, 'B100-01', 'tersedia')",
+            params![bid],
+        )
+        .expect("seed eksemplar");
+        conn.execute(
+            "UPDATE buku SET jumlah_tersedia = 1 WHERE id = ?1",
+            params![bid],
+        )
+        .expect("stock");
+        conn.execute(
+            "UPDATE reservasi_buku SET status = 'siap_diambil' WHERE id = ?1",
+            params![r.id],
+        )
+        .expect("mark siap_diambil");
+
+        reservasi_mark_diambil_inner(&mut conn, r.id, None).expect("mark diambil");
+
+        // Reservation is now 'diambil'.
+        let status: String = conn
+            .query_row(
+                "SELECT status FROM reservasi_buku WHERE id = ?1",
+                params![r.id],
+                |row| row.get(0),
+            )
+            .expect("status");
+        assert_eq!(status, "diambil");
+
+        // A peminjaman row exists for this member + book, with an item.
+        let (pmj_id, pmj_status): (i64, String) = conn
+            .query_row(
+                "SELECT p.id, p.status FROM peminjaman p \
+                 JOIN peminjaman_item pi ON pi.peminjaman_id = p.id \
+                 WHERE p.anggota_id = ?1 AND pi.buku_id = ?2 \
+                 ORDER BY p.id DESC LIMIT 1",
+                params![aid, bid],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .expect("peminjaman created");
+        assert!(pmj_id > 0);
+        assert_eq!(pmj_status, "dipinjam");
+
+        // Stock decremented and the copy is on loan.
+        let tersedia: i64 = conn
+            .query_row(
+                "SELECT jumlah_tersedia FROM buku WHERE id = ?1",
+                params![bid],
+                |row| row.get(0),
+            )
+            .expect("stock");
+        assert_eq!(tersedia, 0);
+        let eks_status: String = conn
+            .query_row(
+                "SELECT status FROM eksemplar WHERE buku_id = ?1",
+                params![bid],
+                |row| row.get(0),
+            )
+            .expect("eks status");
+        assert_eq!(eks_status, "dipinjam");
     }
 }

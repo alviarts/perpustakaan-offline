@@ -15,6 +15,7 @@ import {
   Monitor,
   FlaskConical,
   GraduationCap,
+  Printer,
 } from 'lucide-react';
 
 /**
@@ -61,6 +62,13 @@ export const SECTIONS: SectionDef[] = [
       'hari libur',
       'holiday',
     ],
+  },
+  {
+    id: 'template-nota',
+    to: '/settings/template-nota',
+    i18nKey: 'nota',
+    Icon: Printer,
+    keywords: ['nota', 'struk', 'receipt', 'template', 'cetak', 'print', 'kertas', 'thermal'],
   },
   {
     id: 'master-data',

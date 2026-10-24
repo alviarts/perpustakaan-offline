@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { Wand2 } from 'lucide-react';
+import { Search, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { bukuFormSchema, type BukuFormValues } from './schema';
 import type { Buku } from '@/lib/buku';
 import type { MasterItem } from '@/lib/masterData';
 import { generateCatalog, type ExistingBook } from '@/lib/katalog';
+import { buildCoverSearchUrl, openExternal } from '@/lib/external';
 import { cn } from '@/lib/utils';
 
 interface BukuFormProps {
@@ -392,19 +393,44 @@ export function BukuForm({
               control={control}
               name="coverPath"
               render={({ field }) => (
-                <FilePickerInput
-                  value={field.value || null}
-                  onChange={(v) => field.onChange(v ?? '')}
-                  category="buku"
-                  pickLabel={t('buku:fields.coverPick', {
-                    defaultValue: 'Pilih cover…',
-                  })}
-                  clearLabel={t('buku:fields.coverClear', {
-                    defaultValue: 'Hapus cover',
-                  })}
-                  previewSize={120}
-                  testId="field-coverPath"
-                />
+                <div className="space-y-2">
+                  <FilePickerInput
+                    value={field.value || null}
+                    onChange={(v) => field.onChange(v ?? '')}
+                    category="buku"
+                    pickLabel={t('buku:fields.coverPick', {
+                      defaultValue: 'Pilih cover…',
+                    })}
+                    clearLabel={t('buku:fields.coverClear', {
+                      defaultValue: 'Hapus cover',
+                    })}
+                    previewSize={120}
+                    testId="field-coverPath"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const values = getValues();
+                      void openExternal(
+                        buildCoverSearchUrl({
+                          judul: values.judul,
+                          pengarang: values.pengarang,
+                          isbn: values.isbn,
+                        }),
+                      );
+                    }}
+                    data-testid="cari-cover-google"
+                    title={t('buku:fields.cariCoverHint', {
+                      defaultValue:
+                        'Buka Google Images untuk mencari cover, lalu unduh & pilih di sini',
+                    })}
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    {t('buku:fields.cariCover', { defaultValue: 'Cari cover di Google' })}
+                  </Button>
+                </div>
               )}
             />
           </Field>

@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as IzinRouteImport } from './routes/izin'
+import { Route as AktivasiRouteImport } from './routes/aktivasi'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedWishlistRouteImport } from './routes/_authed/wishlist'
@@ -29,6 +31,7 @@ import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
 import { Route as AuthedAkreditasiIndexRouteImport } from './routes/_authed/akreditasi/index'
 import { Route as AuthedSettingsTentangRouteImport } from './routes/_authed/settings/tentang'
+import { Route as AuthedSettingsTemplateNotaRouteImport } from './routes/_authed/settings/template-nota'
 import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/settings/tampilan'
 import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
 import { Route as AuthedSettingsSandboxRouteImport } from './routes/_authed/settings/sandbox'
@@ -74,6 +77,16 @@ import { Route as AuthedAkreditasiArsipRouteImport } from './routes/_authed/akre
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IzinRoute = IzinRouteImport.update({
+  id: '/izin',
+  path: '/izin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AktivasiRoute = AktivasiRouteImport.update({
+  id: '/aktivasi',
+  path: '/aktivasi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
@@ -170,6 +183,12 @@ const AuthedSettingsTentangRoute = AuthedSettingsTentangRouteImport.update({
   path: '/tentang',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsTemplateNotaRoute =
+  AuthedSettingsTemplateNotaRouteImport.update({
+    id: '/template-nota',
+    path: '/template-nota',
+    getParentRoute: () => AuthedSettingsRoute,
+  } as any)
 const AuthedSettingsTampilanRoute = AuthedSettingsTampilanRouteImport.update({
   id: '/tampilan',
   path: '/tampilan',
@@ -386,6 +405,8 @@ const AuthedAkreditasiArsipRoute = AuthedAkreditasiArsipRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aktivasi': typeof AktivasiRoute
+  '/izin': typeof IzinRoute
   '/login': typeof LoginRoute
   '/akreditasi': typeof AuthedAkreditasiRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
@@ -435,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/settings/template-nota': typeof AuthedSettingsTemplateNotaRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
   '/akreditasi/': typeof AuthedAkreditasiIndexRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
@@ -448,6 +470,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aktivasi': typeof AktivasiRoute
+  '/izin': typeof IzinRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
@@ -494,6 +518,7 @@ export interface FileRoutesByTo {
   '/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/settings/template-nota': typeof AuthedSettingsTemplateNotaRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
   '/akreditasi': typeof AuthedAkreditasiIndexRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
@@ -509,6 +534,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
+  '/aktivasi': typeof AktivasiRoute
+  '/izin': typeof IzinRoute
   '/login': typeof LoginRoute
   '/_authed/akreditasi': typeof AuthedAkreditasiRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
@@ -558,6 +585,7 @@ export interface FileRoutesById {
   '/_authed/settings/sandbox': typeof AuthedSettingsSandboxRoute
   '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/_authed/settings/tampilan': typeof AuthedSettingsTampilanRoute
+  '/_authed/settings/template-nota': typeof AuthedSettingsTemplateNotaRoute
   '/_authed/settings/tentang': typeof AuthedSettingsTentangRoute
   '/_authed/akreditasi/': typeof AuthedAkreditasiIndexRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
@@ -573,6 +601,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/aktivasi'
+    | '/izin'
     | '/login'
     | '/akreditasi'
     | '/dashboard'
@@ -622,6 +652,7 @@ export interface FileRouteTypes {
     | '/settings/sandbox'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
+    | '/settings/template-nota'
     | '/settings/tentang'
     | '/akreditasi/'
     | '/anggota/'
@@ -635,6 +666,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aktivasi'
+    | '/izin'
     | '/login'
     | '/dashboard'
     | '/kunjungan'
@@ -681,6 +714,7 @@ export interface FileRouteTypes {
     | '/settings/sandbox'
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
+    | '/settings/template-nota'
     | '/settings/tentang'
     | '/akreditasi'
     | '/anggota'
@@ -695,6 +729,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/aktivasi'
+    | '/izin'
     | '/login'
     | '/_authed/akreditasi'
     | '/_authed/dashboard'
@@ -744,6 +780,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/sandbox'
     | '/_authed/settings/sinkronisasi'
     | '/_authed/settings/tampilan'
+    | '/_authed/settings/template-nota'
     | '/_authed/settings/tentang'
     | '/_authed/akreditasi/'
     | '/_authed/anggota/'
@@ -759,6 +796,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  AktivasiRoute: typeof AktivasiRoute
+  IzinRoute: typeof IzinRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -769,6 +808,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/izin': {
+      id: '/izin'
+      path: '/izin'
+      fullPath: '/izin'
+      preLoaderRoute: typeof IzinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aktivasi': {
+      id: '/aktivasi'
+      path: '/aktivasi'
+      fullPath: '/aktivasi'
+      preLoaderRoute: typeof AktivasiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -902,6 +955,13 @@ declare module '@tanstack/react-router' {
       path: '/tentang'
       fullPath: '/settings/tentang'
       preLoaderRoute: typeof AuthedSettingsTentangRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/template-nota': {
+      id: '/_authed/settings/template-nota'
+      path: '/template-nota'
+      fullPath: '/settings/template-nota'
+      preLoaderRoute: typeof AuthedSettingsTemplateNotaRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
     '/_authed/settings/tampilan': {
@@ -1266,6 +1326,7 @@ interface AuthedSettingsRouteChildren {
   AuthedSettingsSandboxRoute: typeof AuthedSettingsSandboxRoute
   AuthedSettingsSinkronisasiRoute: typeof AuthedSettingsSinkronisasiRoute
   AuthedSettingsTampilanRoute: typeof AuthedSettingsTampilanRoute
+  AuthedSettingsTemplateNotaRoute: typeof AuthedSettingsTemplateNotaRoute
   AuthedSettingsTentangRoute: typeof AuthedSettingsTentangRoute
   AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
 }
@@ -1287,6 +1348,7 @@ const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsSandboxRoute: AuthedSettingsSandboxRoute,
   AuthedSettingsSinkronisasiRoute: AuthedSettingsSinkronisasiRoute,
   AuthedSettingsTampilanRoute: AuthedSettingsTampilanRoute,
+  AuthedSettingsTemplateNotaRoute: AuthedSettingsTemplateNotaRoute,
   AuthedSettingsTentangRoute: AuthedSettingsTentangRoute,
   AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
 }
@@ -1351,6 +1413,8 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  AktivasiRoute: AktivasiRoute,
+  IzinRoute: IzinRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

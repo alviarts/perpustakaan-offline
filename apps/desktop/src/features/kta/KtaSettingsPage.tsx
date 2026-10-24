@@ -1,9 +1,16 @@
-import { Crop, LayoutGrid, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { Crop, LayoutGrid, Pencil, Plus, SlidersHorizontal, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast-manager';
 import { anggotaApi, type Anggota } from '@/lib/anggota';
 import { assetsApi } from '@/lib/assets';
@@ -15,9 +22,25 @@ import {
   type KtaTemplate,
 } from '@/lib/kta';
 import { useIdentityStore } from '@/stores/identityStore';
+import { KtaPreview } from './KtaPreview';
 import { PresetGallery } from './PresetGallery';
 import type { KtaPreset } from './presets';
 import { TemplateEditor } from './TemplateEditor';
+
+/** Ukuran kartu ID-1 (ATM/kredit) — dikunci agar hasil cetak konsisten. */
+const CARD_W_MM = 85.6;
+const CARD_H_MM = 53.98;
+
+function lockCardSize(layout: KtaLayout): KtaLayout {
+  return {
+    ...layout,
+    widthMm: CARD_W_MM,
+    heightMm: CARD_H_MM,
+    back: layout.back
+      ? { ...layout.back, widthMm: CARD_W_MM, heightMm: CARD_H_MM }
+      : layout.back,
+  };
+}
 
 export function KtaSettingsPage() {
   const { t } = useTranslation();
@@ -31,6 +54,7 @@ export function KtaSettingsPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [refitBusy, setRefitBusy] = useState(false);
 
   useEffect(() => {
@@ -52,7 +76,7 @@ export function KtaSettingsPage() {
     setActive(tpl);
     setName(tpl.nama);
     setDescription(tpl.deskripsi ?? '');
-    setLayout(parseLayout(tpl.layoutJson));
+    setLayout(lockCardSize(parseLayout(tpl.layoutJson)));
   };
 
   const handleNew = () => {
@@ -66,7 +90,7 @@ export function KtaSettingsPage() {
     setActive(null);
     setName(preset.nama);
     setDescription(preset.deskripsi);
-    setLayout(preset.layout);
+    setLayout(lockCardSize(preset.layout));
     showToast({
       title: t('kta:gallery.applied', 'Template dimuat'),
       description: t(
@@ -84,7 +108,7 @@ export function KtaSettingsPage() {
     const payload = {
       nama: name.trim(),
       deskripsi: description.trim() || null,
-      layoutJson: JSON.stringify(layout),
+      layoutJson: JSON.stringify(lockCardSize(layout)),
       isDefault: active?.isDefault ?? false,
     };
     try {
@@ -247,11 +271,63 @@ export function KtaSettingsPage() {
             </div>
           </div>
 
-          <TemplateEditor
-            layout={layout}
-            onChange={setLayout}
-            preview={{ anggota: previewAnggota, identity }}
-          />
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-4">
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold">Kartu (ukuran tetap)</h3>
+              <p className="text-sm text-muted-foreground">
+                ID-1 standar ATM/kredit: 85,6 × 53,98 mm. Ukuran tidak bisa diubah agar
+                hasil cetak konsisten.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setAdvancedOpen(true)}
+                data-testid="kta-open-advanced"
+              >
+                <SlidersHorizontal className="size-4 mr-1" />
+                Advanced (layout manual)
+              </Button>
+            </div>
+          </div>
+
+          {/* Preview ukuran fix (ID-1) — pengaturan detail ada di popup Advanced. */}
+          <div className="rounded-lg border border-border bg-card p-4">
+            <KtaPreview
+              layout={layout}
+              anggota={previewAnggota}
+              identity={identity}
+              fitToWidth
+            />
+            {layout.back && (
+              <div className="mt-4 border-t border-border pt-4">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">Sisi belakang</p>
+                <KtaPreview
+                  layout={layout.back}
+                  anggota={previewAnggota}
+                  identity={identity}
+                  fitToWidth
+                />
+              </div>
+            )}
+          </div>
+
+          <Dialog open={advancedOpen} onOpenChange={setAdvancedOpen}>
+            <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Advanced — Layout Manual</DialogTitle>
+                <DialogDescription>
+                  Ubah posisi, ukuran, dan isi setiap elemen kartu. Perubahan di sini
+                  langsung terlihat pada pratinjau.
+                </DialogDescription>
+              </DialogHeader>
+              <TemplateEditor
+                layout={layout}
+                onChange={(next) => setLayout({ ...next, widthMm: 85.6, heightMm: 53.98 })}
+                preview={{ anggota: previewAnggota, identity }}
+              />
+            </DialogContent>
+          </Dialog>
 
           <div className="flex items-center justify-end gap-2">
             {active && !active.isDefault && (

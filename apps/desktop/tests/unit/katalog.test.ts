@@ -32,6 +32,10 @@ const DDC: DdcEntry[] = [
   { kode: '830', nama: 'Sastra Jerman' },
   { kode: '900', nama: 'Sejarah & Geografi' },
   { kode: '959.8', nama: 'Sejarah Indonesia' },
+  { kode: '959.82', nama: 'Sejarah Jakarta' },
+  { kode: '398', nama: 'Folklor & Cerita Rakyat' },
+  { kode: '320', nama: 'Ilmu Politik' },
+  { kode: '499', nama: 'Bahasa Nusantara' },
 ];
 
 const EMPTY: ExistingBook[] = [];
@@ -208,7 +212,8 @@ describe('generateCatalog', () => {
     expect(result.kodeDdc).toBe('741.6');
   });
 
-  it('maps topics to sharper DDC subdivisions', () => {    const cases: Array<{ judul: string; subjects: string[]; expected: string }> = [
+  it('maps topics to sharper DDC subdivisions', () => {
+    const cases: Array<{ judul: string; subjects: string[]; expected: string }> = [
       { judul: 'Jaringan Komputer', subjects: ['Jaringan komputer'], expected: '004.6' },
       { judul: 'Basis Data MySQL', subjects: ['Basis data', 'database'], expected: '005.74' },
       { judul: 'Fikih Ibadah', subjects: ['Fikih', 'Agama Islam'], expected: '297.4' },
@@ -216,6 +221,10 @@ describe('generateCatalog', () => {
       { judul: 'Matematika Diskrit', subjects: ['Matematika'], expected: '510' },
       { judul: 'Sejarah Indonesia Modern', subjects: ['Sejarah Indonesia'], expected: '959.8' },
       { judul: 'Psikologi Remaja', subjects: ['Psikologi'], expected: '150' },
+      { judul: 'Sejarah Jakarta Tempo Doeloe', subjects: ['Sejarah Jakarta'], expected: '959.82' },
+      { judul: 'Kumpulan Cerita Rakyat Nusantara', subjects: ['Cerita rakyat'], expected: '398' },
+      { judul: 'Pendidikan Pancasila dan Kewarganegaraan', subjects: ['PPKn'], expected: '320' },
+      { judul: 'Bahasa Jawa untuk SMP', subjects: ['Bahasa daerah'], expected: '499' },
     ];
     for (const c of cases) {
       const r = generateCatalog({

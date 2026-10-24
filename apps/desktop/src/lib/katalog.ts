@@ -40,7 +40,7 @@ export interface CatalogInput {
    * call number). When present it is used verbatim and beats the heuristics.
    */
   sourceDdc?: string | null;
-  /** Number of copies (jumlah eksemplar) — embedded as a 2-digit field. */
+  /** Number of copies (jumlah eksemplar) â€” embedded as a 2-digit field. */
   qty?: number | null;
   /** Current shelf value from the form; when set it is used for the code. */
   rak?: string | null;
@@ -67,10 +67,10 @@ interface KeywordRule {
   prefer?: string;
 }
 
-/** Keyword → DDC class (Indonesian + English terms). Order matters: the most
+/** Keyword â†’ DDC class (Indonesian + English terms). Order matters: the most
  *  specific rules come first so they win over the generic ones. */
 const KEYWORD_RULES: readonly KeywordRule[] = [
-  // 000 — komputer, perpustakaan, media
+  // 000 â€” komputer, perpustakaan, media
   { re: /jaringan komputer|computer network|networking/i, cls: '000', label: 'jaringan komputer', prefer: '004.6' },
   { re: /internet|website|web|html|css/i, cls: '000', label: 'internet/web', prefer: '004.678' },
   { re: /basis data|database|sql/i, cls: '000', label: 'basis data', prefer: '005.74' },
@@ -86,7 +86,7 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /jurnalisme|jurnalistik|media|journalism/i, cls: '000', label: 'jurnalisme', prefer: '070' },
   { re: /organisasi|asosiasi|association/i, cls: '000', label: 'organisasi', prefer: '060' },
 
-  // 100 — filsafat & psikologi
+  // 100 â€” filsafat & psikologi
   { re: /psikologi perkembangan|developmental psycholog/i, cls: '100', label: 'psikologi perkembangan', prefer: '155' },
   { re: /kecerdasan|proses mental|mental process|cognitive/i, cls: '100', label: 'proses mental', prefer: '153' },
   { re: /psikologi terapan|applied psycholog/i, cls: '100', label: 'psikologi terapan', prefer: '158' },
@@ -97,7 +97,7 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /epistemologi|epistemolog/i, cls: '100', label: 'epistemologi', prefer: '120' },
   { re: /filsafat|philosoph/i, cls: '100', label: 'filsafat', prefer: '100' },
 
-  // 200 — agama
+  // 200 â€” agama
   { re: /qur'?an|al-?qur'?an|quran/i, cls: '200', label: 'Al-Qur\'an', prefer: '297.1' },
   { re: /hadis|hadith/i, cls: '200', label: 'hadis', prefer: '297.2' },
   { re: /tauhid|aqidah|akidah|creed/i, cls: '200', label: 'aqidah/tauhid', prefer: '297.3' },
@@ -107,7 +107,7 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /alkitab|bibel|bible|kristen|christian/i, cls: '200', label: 'kristen', prefer: '220' },
   { re: /islam|muslim|religion|agama|teologi|theolog/i, cls: '200', label: 'agama', prefer: '200' },
 
-  // 300 — ilmu sosial
+  // 300 â€” ilmu sosial
   { re: /sosiologi|antropologi|sociolog|anthropolog/i, cls: '300', label: 'sosiologi', prefer: '301' },
   { re: /budaya|kebudayaan|culture|adat/i, cls: '300', label: 'budaya', prefer: '306' },
   { re: /statistik|statistic/i, cls: '300', label: 'statistik', prefer: '310' },
@@ -115,21 +115,24 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /ekonomi|econom/i, cls: '300', label: 'ekonomi', prefer: '330' },
   { re: /hukum|law|legal/i, cls: '300', label: 'hukum', prefer: '340' },
   { re: /administrasi publik|public administration/i, cls: '300', label: 'administrasi publik', prefer: '350' },
+  { re: /ppkn|pkn|kewarganegaraan|pancasila|civic/i, cls: '300', label: 'PPKn', prefer: '320' },
   { re: /pendidikan|education/i, cls: '300', label: 'pendidikan', prefer: '370' },
   { re: /perdagangan|komunikasi|commerce|communication/i, cls: '300', label: 'perdagangan', prefer: '380' },
   { re: /folklor|cerita rakyat|folklore/i, cls: '300', label: 'folklor', prefer: '398' },
   { re: /sosial|masyarakat|society|social/i, cls: '300', label: 'ilmu sosial', prefer: '300' },
 
-  // 400 — bahasa
+  // 400 â€” bahasa
   { re: /kamus|dictionary/i, cls: '400', label: 'kamus', prefer: '413' },
   { re: /tata bahasa|grammar/i, cls: '400', label: 'tata bahasa', prefer: '415' },
   { re: /linguistik|linguistic/i, cls: '400', label: 'linguistik', prefer: '410' },
   { re: /bahasa inggris|english/i, cls: '400', label: 'bahasa Inggris', prefer: '420' },
   { re: /bahasa jerman|german/i, cls: '400', label: 'bahasa Jerman', prefer: '430' },
   { re: /bahasa prancis|french/i, cls: '400', label: 'bahasa Prancis', prefer: '440' },
+  { re: /bahasa indonesia|tata bahasa indonesia|eyd|puebi/i, cls: '400', label: 'bahasa Indonesia', prefer: '499' },
+  { re: /bahasa jawa|bahasa sunda|bahasa bali|bahasa daerah|nusantara/i, cls: '400', label: 'bahasa daerah', prefer: '499' },
   { re: /bahasa|language/i, cls: '400', label: 'bahasa', prefer: '400' },
 
-  // 500 — sains
+  // 500 â€” sains
   { re: /aljabar|algebra/i, cls: '500', label: 'aljabar', prefer: '512' },
   { re: /geometri|geometry/i, cls: '500', label: 'geometri', prefer: '516' },
   { re: /kalkulus|calculus|analisis matematika/i, cls: '500', label: 'kalkulus', prefer: '515' },
@@ -144,7 +147,7 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /biologi|biolog/i, cls: '500', label: 'biologi', prefer: '570' },
   { re: /sains|science/i, cls: '500', label: 'sains', prefer: '500' },
 
-  // 600 — teknologi
+  // 600 â€” teknologi
   { re: /anatomi|anatomy/i, cls: '600', label: 'anatomi', prefer: '611' },
   { re: /fisiologi|physiolog/i, cls: '600', label: 'fisiologi', prefer: '612' },
   { re: /penyakit|disease/i, cls: '600', label: 'penyakit', prefer: '616' },
@@ -162,7 +165,7 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /konstruksi|construction/i, cls: '600', label: 'konstruksi', prefer: '690' },
   { re: /teknologi|teknik|engineering|technology/i, cls: '600', label: 'teknologi', prefer: '600' },
 
-  // 700 — seni & olahraga
+  // 700 â€” seni & olahraga
   { re: /ilustrasi|illustration|ilustrator|illustrator/i, cls: '700', label: 'ilustrasi', prefer: '741.4' },
   { re: /komik|kartun|karikatur|manga|comic|cartoon/i, cls: '700', label: 'komik/kartun', prefer: '741.5' },
   { re: /desain grafis|graphic design|poster|seni grafis|ilustrasi buku/i, cls: '700', label: 'desain grafis', prefer: '741.6' },
@@ -175,11 +178,11 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /arsitektur|architecture/i, cls: '700', label: 'arsitektur', prefer: '720' },
   { re: /seni|art|hiburan|rekreasi|craft|kerajinan/i, cls: '700', label: 'seni', prefer: '700' },
 
-  // 800 — sastra (subdivisi dipilih per bahasa di `sastraTarget`)
+  // 800 â€” sastra (subdivisi dipilih per bahasa di `sastraTarget`)
   { re: /puisi|sajak|poetry|poem/i, cls: '800', label: 'puisi', prefer: '808' },
   { re: /fiksi|novel|cerpen|cerita|sastra|fiction/i, cls: '800', label: 'fiksi/sastra' },
 
-  // 900 — sejarah & geografi
+  // 900 â€” sejarah & geografi
   { re: /sejarah indonesia|indonesian history/i, cls: '900', label: 'sejarah Indonesia', prefer: '959.8' },
   { re: /sejarah eropa|european history/i, cls: '900', label: 'sejarah Eropa', prefer: '940' },
   { re: /sejarah asia|asian history/i, cls: '900', label: 'sejarah Asia', prefer: '950' },
@@ -189,6 +192,24 @@ const KEYWORD_RULES: readonly KeywordRule[] = [
   { re: /sejarah dunia|world history/i, cls: '900', label: 'sejarah dunia', prefer: '909' },
   { re: /sejarah|history/i, cls: '900', label: 'sejarah', prefer: '900' },
 
+  // --- Topik Indonesia & mata pelajaran sekolah ---
+  { re: /sejarah jakarta|betawi/i, cls: '900', label: 'sejarah Jakarta', prefer: '959.82' },
+  { re: /sejarah nusantara|sejarah nusantara|kerajaan (majapahit|sriwijaya|mataram)/i, cls: '900', label: 'sejarah Nusantara', prefer: '959.8' },
+  { re: /cerita rakyat|legenda|dongeng|folklore|myth/i, cls: '300', label: 'cerita rakyat', prefer: '398' },
+  { re: /puisi|pantun|sajak|poetry/i, cls: '800', label: 'puisi', prefer: '808' },
+  { re: /ips|ilmu pengetahuan sosial|social studies/i, cls: '300', label: 'IPS', prefer: '300' },
+  { re: /ipa|ilmu pengetahuan alam|natural science/i, cls: '500', label: 'IPA', prefer: '500' },
+  { re: /prakarya|keterampilan|kerajinan tangan|craft/i, cls: '700', label: 'prakarya', prefer: '745' },
+  { re: /informatika|tik|teknologi informasi|computer science/i, cls: '000', label: 'informatika', prefer: '004' },
+  { re: /bimbingan konseling|bk|konseling|counseling/i, cls: '300', label: 'bimbingan konseling', prefer: '370' },
+  { re: /kesehatan reproduksi|pubertas|sex education/i, cls: '600', label: 'kesehatan reproduksi', prefer: '613' },
+  { re: /anti korupsi|integritas|karakter|character building/i, cls: '300', label: 'pendidikan karakter', prefer: '370' },
+  { re: /literasi keuangan|keuangan pribadi|financial literacy/i, cls: '300', label: 'literasi keuangan', prefer: '330' },
+  { re: /kewirausahaan|entrepreneur|wirausaha/i, cls: '300', label: 'kewirausahaan', prefer: '330' },
+  { re: /statistika|statistik|data analysis/i, cls: '300', label: 'statistika', prefer: '310' },
+  { re: /lingkungan|ekologi|ecology|environment/i, cls: '500', label: 'lingkungan', prefer: '570' },
+  { re: /astronomi|tata surya|outer space/i, cls: '500', label: 'astronomi', prefer: '520' },
+
   // Generic fallbacks
   { re: /referensi|umum|reference|general|karya umum/i, cls: '000', label: 'karya umum', prefer: '000' },
 ];
@@ -197,7 +218,7 @@ function norm(s: string | null | undefined): string {
   return (s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
-/** First three digits of a DDC code (e.g. "813.5" → "813", "2X3.8" → "2X3"). */
+/** First three digits of a DDC code (e.g. "813.5" â†’ "813", "2X3.8" â†’ "2X3"). */
 export function mainClass(kodeDdc: string | null | undefined): string {
   const k = (kodeDdc ?? '').trim();
   const digits = k.match(/\d{3}/);
@@ -212,7 +233,7 @@ function keywordClass(text: string): KeywordRule | null {
   return null;
 }
 
-/** Normalise a free-form language field to a short code ("Indonesia" → "id"). */
+/** Normalise a free-form language field to a short code ("Indonesia" â†’ "id"). */
 function langCode(language?: string | null): string | null {
   const v = norm(language);
   if (!v) return null;
@@ -324,12 +345,12 @@ function pickRak(kodeDdc: string, existing: ExistingBook[]): { rak: string; lear
   );
   if (byClass) return { rak: byClass, learned: true };
 
-  // No rak data in the collection: use "0" (spec: empty shelf → 0).
+  // No rak data in the collection: use "0" (spec: empty shelf â†’ 0).
   return { rak: '0', learned: false };
 }
 
 /**
- * Append a 2-digit serial (`-01`, `-02`, …) until the code is unique.
+ * Append a 2-digit serial (`-01`, `-02`, â€¦) until the code is unique.
  * Only `[A-Z0-9-]` is used so the value is safe for a CODE128 barcode/scan.
  */
 function nextSerialCode(base: string, existing: ExistingBook[], exclude?: string | null): string {
@@ -347,7 +368,7 @@ function nextSerialCode(base: string, existing: ExistingBook[], exclude?: string
   return `${base}-${Date.now().toString().slice(-3)}`;
 }
 
-/** Clean a DDC code: trim + remove spaces; empty → "000". */
+/** Clean a DDC code: trim + remove spaces; empty â†’ "000". */
 export function normalizeDdc(raw?: string | null): string {
   const v = (raw ?? '').trim().replace(/\s+/g, '');
   return v || '000';
@@ -366,7 +387,7 @@ const ARTICLES = new Set([
   'ke',
 ]);
 
-/** First meaningful letter of a title (skips articles: The/A/An/Si/Sang/…). */
+/** First meaningful letter of a title (skips articles: The/A/An/Si/Sang/â€¦). */
 export function judulInitial(judul: string): string {
   const words = (judul ?? '')
     .toLowerCase()
@@ -381,7 +402,7 @@ export function judulInitial(judul: string): string {
   return words[0]?.[0]?.toUpperCase() ?? 'X';
 }
 
-/** Normalise a shelf code: drop the word RAK and spaces. Empty → "0". */
+/** Normalise a shelf code: drop the word RAK and spaces. Empty â†’ "0". */
 export function normalizeRak(raw?: string | null): string {
   const v = (raw ?? '')
     .toUpperCase()
@@ -398,7 +419,7 @@ function pad2(n: number): string {
 /**
  * Generate DDC, shelf location, call number and a unique book code.
  * Never returns a DDC code that is absent from `ddcList` unless `sourceDdc`
- * (a catalogue-provided class) is supplied — the caller then ensures it
+ * (a catalogue-provided class) is supplied â€” the caller then ensures it
  * exists in the master table before saving.
  */
 export function generateCatalog(input: CatalogInput): CatalogResult {
