@@ -11,6 +11,43 @@ The `release-v2` job in `.github/workflows/ci-v2.yml` runs
 as the GitHub Release body. If a tag has no matching section, the workflow falls
 back to GitHub's auto-generated release notes.
 
+## [Unreleased]
+
+## [1.3.6] - 2026-10-24
+
+### Added
+
+- **Lisensi & trial 30 hari** — kode aktivasi Ed25519 (500 kode, maks 2
+  perangkat) diverifikasi lokal + didaftarkan lewat Google Apps Script/Sheets;
+  layar Aktivasi dan gate trial. Tanpa lisensi, aplikasi berjalan 30 hari lalu
+  terkunci.
+- **Layar izin awal** — meminta izin kamera dan menjelaskan bahwa unduh/cetak
+  memakai dialog sistem.
+- **Denda uang atau poin** — jenis denda dapat dipilih di Aturan Peminjaman
+  (denda per hari Rp atau poin per hari), tersimpan per item & header.
+- **Nota peminjaman: cetak massal & template** — cetak semua hasil filter
+  sekaligus; template mengatur ukuran kertas (A4/A5/thermal 80/58), nota per
+  halaman (1/2/4), kop, footer, dan tanda tangan.
+- **Stocktake manual** — checklist per eksemplar tanpa scan (search realtime
+  sudah tersedia).
+- **KTA** — kartu ukuran tetap ID-1 (85,6 × 53,98 mm, ATM/kredit) dengan editor
+  layout lewat popup **Advanced**; biodata (TTL, JK, agama, alamat, telepon,
+  berlaku s.d.) kini ikut tercetak.
+- **Cari cover di Google** — tombol membuka Google Images di browser saat
+  cover buku tidak tersedia.
+- **DDC lebih tajam** — aturan topik Indonesia & mata pelajaran (sejarah
+  Jakarta 959.82, cerita rakyat 398, PPKn 320, bahasa daerah 499, dll).
+
+### Fixed
+
+- **Reservasi "tandai diambil"** kini membuat baris peminjaman (item, stok,
+  status eksemplar, kunjungan).
+- **Impor buku** gagal `FOREIGN KEY constraint failed` karena `kode_ddc` belum
+  ada di master — DDC dibuat otomatis dan tiap baris diisolasi (baris buruk
+  tidak menggagalkan seluruh impor).
+- Pemetaan kata kunci DDC tidak lagi memilih kelas umum ketika ada subdivisi
+  yang lebih tepat.
+
 ## [1.3.5] - 2026-10-24
 
 ### Added
