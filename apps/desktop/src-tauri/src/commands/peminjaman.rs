@@ -23,6 +23,8 @@ use crate::AppState;
 const DEFAULT_LAMA_PINJAM_HARI: i64 = 7;
 const DEFAULT_DENDA_PER_HARI: i64 = 500;
 const DEFAULT_MAKS_PINJAM: i64 = 3;
+/// Denda poin (alternatif denda uang) — bisa diatur di Aturan Peminjaman.
+const DEFAULT_POIN_PER_HARI: i64 = 1;
 /// Minggu (`0`) is the default hari libur, matching frontend.
 const DEFAULT_HARI_LIBUR: &[u32] = &[0];
 
@@ -321,6 +323,37 @@ fn setting_int(conn: &rusqlite::Connection, key: &str, default: i64) -> i64 {
 /// `"0"` / `"false"` / `"no"` as false (case-insensitive). Falls back to
 /// `default` for missing or unparseable values so a partially-migrated
 /// settings row never crashes the perpanjang flow.
+/// Hitung denda keterlambatan sesuai mode (`uang` atau `poin`).
+/// Mengembalikan `(denda_rupiah, denda_poin)` — salah satunya selalu 0.
+fn hitung_denda(
+    hari_telat: i64,
+    mode: &str,
+    denda_per_hari: i64,
+    poin_per_hari: i64,
+) -> (i64, i64) {
+    let hari = hari_telat.max(0);
+    if mode == "poin" {
+        (0, hari * poin_per_hari.max(0))
+    } else {
+        (hari * denda_per_hari.max(0), 0)
+    }
+}
+
+/// Read a plain string setting, falling back to `default` when unset/empty.
+fn setting_string(conn: &rusqlite::Connection, key: &str, default: &str) -> String {
+    let row: Option<String> = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = ?1",
+            params![key],
+            |r| r.get(0),
+        )
+        .optional()
+        .unwrap_or(None);
+    row.map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| default.to_string())
+}
+
 fn setting_bool(conn: &rusqlite::Connection, key: &str, default: bool) -> bool {
     let row: Option<String> = conn
         .query_row(
@@ -1039,12 +1072,16 @@ pub fn peminjaman_kembalikan(
         .ok_or_else(|| AppError::NotFound(format!("peminjaman id={}", input.peminjaman_id)))?;
 
     let denda_per_hari = setting_int(&conn, "transaksi.denda_per_hari", DEFAULT_DENDA_PER_HARI);
+    // Mode denda: "uang" (default) atau "poin".
+    let mode_denda = setting_string(&conn, "transaksi.mode_denda", "uang");
+    let poin_per_hari = setting_int(&conn, "transaksi.poin_per_hari", DEFAULT_POIN_PER_HARI);
     let hari_libur = setting_hari_libur(&conn);
     let today = chrono::Local::now().date_naive();
     let bayar = input.bayar.unwrap_or(0).max(0);
 
     let tx = conn.transaction()?;
     let mut total_denda = 0_i64;
+    let mut total_poin = 0_i64;
     let mut returned_buku_ids: Vec<i64> = Vec::new();
 
     for item_id in &input.item_ids {
@@ -1071,13 +1108,19 @@ pub fn peminjaman_kembalikan(
         }
         let jt = parse_date(&tgl_jt)?;
         let hari_telat = billable_late_days(jt, today, &hari_libur);
-        let denda = hari_telat * denda_per_hari;
+        let (denda, poin) = hitung_denda(
+            hari_telat,
+            &mode_denda,
+            denda_per_hari,
+            poin_per_hari,
+        );
         total_denda += denda;
+        total_poin += poin;
 
         tx.execute(
             "UPDATE peminjaman_item SET status = 'dikembalikan', \
-             tanggal_kembali = ?1, denda = ?2 WHERE id = ?3",
-            params![today.format("%Y-%m-%d").to_string(), denda, id],
+             tanggal_kembali = ?1, denda = ?2, poin = ?3 WHERE id = ?4",
+            params![today.format("%Y-%m-%d").to_string(), denda, poin, id],
         )?;
         if let Some(eid) = eksemplar_id {
             tx.execute(
@@ -1096,9 +1139,10 @@ pub fn peminjaman_kembalikan(
     }
 
     tx.execute(
-        "UPDATE peminjaman SET total_denda = total_denda + ?1, total_bayar = total_bayar + ?2, \
-         updated_at = datetime('now') WHERE id = ?3",
-        params![total_denda, bayar, input.peminjaman_id],
+        "UPDATE peminjaman SET total_denda = total_denda + ?1, \
+         total_bayar = total_bayar + ?2, total_poin = total_poin + ?3, \
+         updated_at = datetime('now') WHERE id = ?4",
+        params![total_denda, bayar, total_poin, input.peminjaman_id],
     )?;
     if bayar > 0 {
         tx.execute(
@@ -2483,5 +2527,21 @@ mod tests {
             )
             .unwrap();
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn hitung_denda_uang_mode() {
+        assert_eq!(hitung_denda(3, "uang", 500, 1), (1500, 0));
+        assert_eq!(hitung_denda(0, "uang", 500, 1), (0, 0));
+        assert_eq!(hitung_denda(-2, "uang", 500, 1), (0, 0));
+    }
+
+    #[test]
+    fn hitung_denda_poin_mode() {
+        assert_eq!(hitung_denda(4, "poin", 500, 2), (0, 8));
+        assert_eq!(hitung_denda(0, "poin", 500, 2), (0, 0));
+        // Negative settings never produce negative rewards.
+        assert_eq!(hitung_denda(2, "poin", 500, -3), (0, 0));
+        assert_eq!(hitung_denda(2, "uang", -500, 1), (0, 0));
     }
 }

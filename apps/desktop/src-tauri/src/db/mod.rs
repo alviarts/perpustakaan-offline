@@ -720,6 +720,10 @@ fn apply_additive_migrations(conn: &Connection) -> AppResult<()> {
     // digital) for per-jenjang collection composition. NULL on existing rows.
     add_column_if_missing(conn, "anggota", "tipe", "TEXT")?;
     add_column_if_missing(conn, "buku", "jenis_material", "TEXT")?;
+    // Denda berupa poin (alternatif denda uang). Disimpan per item dan
+    // diakumulasi di header agar bisa dilaporkan tanpa menghitung ulang.
+    add_column_if_missing(conn, "peminjaman", "total_poin", "INTEGER NOT NULL DEFAULT 0")?;
+    add_column_if_missing(conn, "peminjaman_item", "poin", "INTEGER NOT NULL DEFAULT 0")?;
     Ok(())
 }
 

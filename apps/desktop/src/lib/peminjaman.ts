@@ -11,6 +11,8 @@ export interface PeminjamanRow {
   tanggalKembali?: string | null;
   status: 'dipinjam' | 'sebagian' | 'dikembalikan' | 'terlambat' | 'hilang';
   totalDenda: number;
+  /** Denda dalam poin (mode denda = poin). */
+  totalPoin?: number;
   totalBayar: number;
   totalItem: number;
   itemDipinjam: number;
@@ -58,6 +60,8 @@ export interface PeminjamanItemRow {
   status: 'dipinjam' | 'dikembalikan' | 'hilang';
   tanggalKembali?: string | null;
   denda: number;
+  /** Denda poin untuk item ini. */
+  poin?: number;
   catatan?: string | null;
 }
 
@@ -90,7 +94,7 @@ export interface PeminjamanCreateInput {
    * Optional per-row physical-copy override paired with `bukuIds`. When
    * provided, the i-th `eksemplarId` is the exact `eksemplar.id` to mark
    * as borrowed for the i-th `bukuId`. The Sirkulasi (webcam) flow uses
-   * this so the scanned barcode is the one actually recorded on-loan —
+ * this so the scanned barcode is the one actually recorded on-loan (Tauri-only).
    * without it, the backend silently picks the lowest-id available copy
    * via FIFO and the operator's later return scan can fail to find an
    * active loan.
@@ -113,7 +117,7 @@ export interface PeminjamanReturnResult {
   totalBayar: number;
   statusHeader: string;
   /**
-   * FEAT-18: any reservasi rows promoted from `menunggu` → `siap_diambil`
+   * FEAT-18: any reservasi rows promoted from "menunggu" to "siap_diambil"
    * by this return. Empty when no buku in this peminjaman had an active
    * antrian. The UI uses this to render the "Buku ini di-reserve oleh
    * X, simpan di rak Y" toast.
@@ -470,7 +474,7 @@ const mockRpc: PeminjamanRpc = {
     const days = input.days && input.days > 0 ? input.days : 7;
     const max = 1;
     if (header.kaliPerpanjangan >= max) {
-      throw new Error(`Sudah tidak bisa diperpanjang (maksimum ${max}×)`);
+    throw new Error(`Sudah tidak bisa diperpanjang (maksimum ${max}x)`);
     }
     const old = header.tanggalJatuhTempo;
     const baru = new Date(
@@ -628,7 +632,7 @@ const mockRpc: PeminjamanRpc = {
     };
   },
   async resolveEksemplar() {
-    // Mock store doesn't track eksemplar — circulation flow is Tauri-only.
+    // Mock store does not track eksemplar (circulation flow is Tauri-only).
     return null;
   },
   async aktifByEksemplar() {

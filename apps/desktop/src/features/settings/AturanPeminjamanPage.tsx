@@ -26,7 +26,7 @@ export function AturanPeminjamanPage(): JSX.Element {
   }, []);
 
   const handleNumber =
-    (key: keyof Omit<LoanRules, 'hariLibur'>) =>
+    (key: keyof Omit<LoanRules, 'hariLibur' | 'modeDenda'>) =>
     (e: React.ChangeEvent<HTMLInputElement>): void => {
       const n = parseInt(e.target.value, 10);
       setRules((prev) => ({ ...prev, [key]: Number.isFinite(n) ? n : 0 }));
@@ -109,21 +109,68 @@ export function AturanPeminjamanPage(): JSX.Element {
           />
         </FieldRow>
         <FieldRow
-          label={t('sections.aturanPeminjaman.fields.dendaPerHari', {
-            defaultValue: 'Denda per hari (Rp)',
+          label={t('sections.aturanPeminjaman.fields.modeDenda', {
+            defaultValue: 'Jenis denda keterlambatan',
           })}
-          htmlFor="aturan-denda"
+          help={t('sections.aturanPeminjaman.fields.modeDendaHelp', {
+            defaultValue: 'Pilih apakah keterlambatan dikenakan denda uang atau poin.',
+          })}
         >
-          <Input
-            id="aturan-denda"
-            type="number"
-            min={0}
-            step={100}
-            value={rules.dendaPerHari}
-            onChange={handleNumber('dendaPerHari')}
-            data-testid="aturan-denda"
-          />
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            value={rules.modeDenda}
+            onChange={(e) =>
+              setRules((prev) => ({
+                ...prev,
+                modeDenda: e.target.value === 'poin' ? 'poin' : 'uang',
+              }))
+            }
+            data-testid="aturan-mode-denda"
+          >
+            <option value="uang">
+              {t('sections.aturanPeminjaman.fields.modeUang', { defaultValue: 'Denda uang (Rp)' })}
+            </option>
+            <option value="poin">
+              {t('sections.aturanPeminjaman.fields.modePoin', { defaultValue: 'Denda poin' })}
+            </option>
+          </select>
         </FieldRow>
+
+        {rules.modeDenda === 'uang' ? (
+          <FieldRow
+            label={t('sections.aturanPeminjaman.fields.dendaPerHari', {
+              defaultValue: 'Denda per hari (Rp)',
+            })}
+            htmlFor="aturan-denda"
+          >
+            <Input
+              id="aturan-denda"
+              type="number"
+              min={0}
+              step={100}
+              value={rules.dendaPerHari}
+              onChange={handleNumber('dendaPerHari')}
+              data-testid="aturan-denda"
+            />
+          </FieldRow>
+        ) : (
+          <FieldRow
+            label={t('sections.aturanPeminjaman.fields.poinPerHari', {
+              defaultValue: 'Poin per hari terlambat',
+            })}
+            htmlFor="aturan-poin"
+          >
+            <Input
+              id="aturan-poin"
+              type="number"
+              min={0}
+              step={1}
+              value={rules.poinPerHari}
+              onChange={handleNumber('poinPerHari')}
+              data-testid="aturan-poin"
+            />
+          </FieldRow>
+        )}
       </div>
 
       <FieldRow
