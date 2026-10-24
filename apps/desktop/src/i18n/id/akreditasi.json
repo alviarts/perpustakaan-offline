@@ -1,0 +1,129 @@
+{
+  "title": "Akreditasi",
+  "subtitle": "Persiapan akreditasi perpustakaan: profil, data, dan bukti fisik",
+  "nav": {
+    "ringkasan": "Ringkasan",
+    "butir": "Butir Penilaian",
+    "skor": "Skor & Predikat",
+    "manual": "Data Manual",
+    "bukti": "Bukti Fisik",
+    "bukuBukti": "Buku Bukti",
+    "arsip": "Arsip"
+  },
+  "butirPenilaian": {
+    "progress": "Terjawab: {{done}}/{{total}}",
+    "reset": "Reset Jawaban",
+    "resetDone": "Jawaban direset.",
+    "noInstrumen": "Instrumen untuk jenjang ini belum tersedia.",
+    "saveError": "Gagal menyimpan jawaban.",
+    "skorMaks": "Skor maks",
+    "bobot": "Bobot",
+    "skor": "skor",
+    "bukti": "Bukti fisik yang diperlukan",
+    "catatanPlaceholder": "Catatan / bukti pendukung"
+  },
+  "skor": {
+    "title": "Skor Proyeksi Akreditasi",
+    "nilaiAkhir": "Nilai akhir",
+    "predikat": "Predikat (proyeksi)",
+    "predikatHelp": "Proyeksi, bukan predikat resmi SiPAPI.",
+    "progress": "Terjawab",
+    "tidak": "Belum terakreditasi",
+    "gap": "Prioritas Perbaikan",
+    "gapHelp": "Komponen dengan poin hilang terbesar",
+    "lost": "Poin hilang",
+    "table": {
+      "komponen": "Komponen",
+      "skor": "Skor",
+      "bobot": "Bobot",
+      "nilai": "Nilai",
+      "terjawab": "Terjawab"
+    }
+  },
+  "profil": {
+    "jenjang": "Jenjang / Jenis Perpustakaan",
+    "jenjangHelp": "Menentukan standar (SNP) & instrumen akreditasi yang berlaku.",
+    "tahunAjaranAwal": "Bulan Awal Tahun Ajaran",
+    "tahunAjaranAwalHelp": "Dipakai untuk preset periode laporan (Semester Ganjil/Genap/Tahun Ajaran).",
+    "npp": "Nomor Pokok Perpustakaan (NPP)",
+    "nppHelp": "Wajib untuk pendaftaran akreditasi.",
+    "skPendirian": "SK Pendirian",
+    "skPendirianHelp": "Nomor/tanggal SK pendirian perpustakaan atau sekolah.",
+    "catatan": "Catatan",
+    "butir": "butir",
+    "skorMaks": "Skor maks",
+    "provisional": "bobot provisional",
+    "saveSuccess": "Profil akreditasi tersimpan.",
+    "saveError": "Gagal menyimpan profil."
+  },
+  "ringkasan": {
+    "profil": "Profil Perpustakaan",
+    "belumDiatur": "Jenjang belum diatur",
+    "atur": "Atur di Pengaturan",
+    "sk": "SK Pendirian",
+    "standar": "Standar",
+    "butir": "Jumlah butir",
+    "bukti": "Bukti Fisik",
+    "buktiWajib": "Wajib",
+    "tenaga": "Tenaga & Sarana",
+    "totalTenaga": "Total tenaga",
+    "komputer": "Komputer"
+  },
+  "manual": {
+    "tenaga": "Tenaga",
+    "tenagaHelp": "Jumlah tenaga perpustakaan & kualifikasinya",
+    "pustakawan": "Pustakawan",
+    "kualifikasi": "Berkualifikasi",
+    "guru": "Guru",
+    "tendik": "Tenaga kependidikan",
+    "sarpras": "Sarana & Prasarana",
+    "luas": "Luas ruang (m²)",
+    "komputer": "Jumlah komputer",
+    "anggaran": "Anggaran 3 Tahun Terakhir",
+    "anggaranHelp": "Di luar belanja pegawai & pemeliharaan gedung. Index 1 = tahun lalu.",
+    "sekolah": "Sekolah",
+    "perpus": "Perpustakaan",
+    "catatan": "Catatan",
+    "save": "Simpan",
+    "saveSuccess": "Data akreditasi tersimpan.",
+    "saveError": "Gagal menyimpan data."
+  },
+  "bukti": {
+    "title": "Checklist Bukti Fisik",
+    "subtitle": "Tandai dokumen yang sudah tersedia untuk keperluan akreditasi",
+    "wajib": "wajib",
+    "catatanPlaceholder": "Catatan / nomor dokumen",
+    "saveError": "Gagal menyimpan bukti.",
+    "uploadError": "Gagal mengunggah berkas.",
+    "buka": "Buka",
+    "ganti": "Ganti",
+    "hapus": "Hapus",
+    "lampirkan": "Lampirkan berkas"
+  },
+  "bukuBukti": {
+    "title": "Buku Bukti Akreditasi",
+    "subtitle": "Dokumen lengkap: profil, skor per komponen, butir penilaian, dan bukti fisik.",
+    "penandatangan": "Penandatangan",
+    "jabatan": "Jabatan",
+    "print": "Cetak / PDF",
+    "archive": "Sahkan & Arsipkan",
+    "arsipDone": "Laporan disahkan & diarsipkan.",
+    "arsipError": "Gagal mengarsipkan."
+  },
+  "arsip": {
+    "title": "Arsip Laporan Tersahkan",
+    "subtitle": "Snapshot laporan yang tidak berubah meski data bertambah",
+    "empty": "Belum ada laporan diarsipkan.",
+    "jenjang": "Jenjang",
+    "penandatangan": "Penandatangan",
+    "tanggal": "Tanggal"
+  },
+  "komponen": {
+    "koleksi": "Koleksi",
+    "sarpras": "Sarana & Prasarana",
+    "pelayanan": "Pelayanan",
+    "tenaga": "Tenaga",
+    "penyelenggaraan": "Penyelenggaraan",
+    "pengelolaan": "Pengelolaan"
+  }
+}

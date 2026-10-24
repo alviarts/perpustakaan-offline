@@ -7,8 +7,78 @@
     "eksekutif": "Eksekutif",
     "topPeminjam": "Top Peminjam",
     "topBuku": "Top Buku",
+    "koleksi": "Koleksi",
+    "pemanfaatan": "Pemanfaatan",
+    "kinerja": "Kinerja",
     "kas": "Kas",
     "backup": "Backup"
+  },
+  "preset": {
+    "ganjil": "Semester Ganjil",
+    "genap": "Semester Genap",
+    "tahunAjaran": "Tahun Ajaran"
+  },
+  "koleksi": {
+    "periode": "Sampai",
+    "belumDdc": "Belum ber-DDC",
+    "rasio": {
+      "title": "Rasio Koleksi",
+      "subtitle": "Perbandingan jumlah koleksi terhadap warga perpustakaan",
+      "judul": "Judul",
+      "eksemplar": "Eksemplar",
+      "siswa": "Siswa aktif",
+      "perSiswa": "Eksemplar / siswa"
+    },
+    "ddc": {
+      "title": "Komposisi Koleksi per DDC",
+      "kode": "DDC",
+      "klas": "Kelas",
+      "judul": "Judul",
+      "eksemplar": "Eksemplar",
+      "persen": "%"
+    },
+    "dimensi": {
+      "title": "Komposisi per Dimensi",
+      "kategori": "Kategori",
+      "bahasa": "Bahasa",
+      "sumber": "Sumber perolehan",
+      "material": "Jenis material"
+    },
+    "sebaran": {
+      "title": "Sebaran Jumlah Eksemplar",
+      "bucket": "Eksemplar / judul"
+    }
+  },
+  "pemanfaatan": {
+    "subjek": {
+      "title": "Peminjaman per Subjek (DDC) × Bulan",
+      "subtitle": "Jumlah buku dipinjam per kelas DDC setiap bulan"
+    },
+    "kategori": {
+      "title": "Peminjaman per Kategori × Bulan"
+    },
+    "turnover": {
+      "title": "Turnover per Eksemplar",
+      "subtitle": "Jumlah peminjaman tiap copy pada rentang terpilih",
+      "kode": "Kode eksemplar"
+    },
+    "idle": {
+      "title": "Buku Tidak Dipinjam pada Rentang Ini",
+      "subtitle": "Kandidat weeding / promosi koleksi",
+      "eksemplar": "Eksemplar",
+      "terakhir": "Terakhir dipinjam",
+      "never": "Belum pernah"
+    },
+    "masalah": {
+      "title": "Eksemplar Rusak / Hilang",
+      "subtitle": "Kandidat penyusutan koleksi"
+    }
+  },
+  "kinerja": {
+    "title": "Laporan Kinerja — Kunjungan",
+    "subtitle": "Kunjungan per kelompok × bulan (jumlah orang)",
+    "kelompok": "Kelompok",
+    "total": "Total kunjungan"
   },
   "eksekutif": {
     "title": "Laporan Eksekutif",
@@ -32,7 +102,8 @@
     "buku": "Buku",
     "jumlah": "Jumlah",
     "keterangan": "Keterangan",
-    "nominal": "Nominal"
+    "nominal": "Nominal",
+    "status": "Status"
   },
   "grafik": {
     "title": "Grafik Aktivitas",

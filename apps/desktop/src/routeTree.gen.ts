@@ -18,6 +18,7 @@ import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedLaporanRouteImport } from './routes/_authed/laporan'
 import { Route as AuthedKunjunganRouteImport } from './routes/_authed/kunjungan'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedAkreditasiRouteImport } from './routes/_authed/akreditasi'
 import { Route as AuthedSirkulasiIndexRouteImport } from './routes/_authed/sirkulasi/index'
 import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
 import { Route as AuthedReservasiIndexRouteImport } from './routes/_authed/reservasi/index'
@@ -26,6 +27,7 @@ import { Route as AuthedPeminjamanIndexRouteImport } from './routes/_authed/pemi
 import { Route as AuthedLaporanIndexRouteImport } from './routes/_authed/laporan/index'
 import { Route as AuthedBukuIndexRouteImport } from './routes/_authed/buku/index'
 import { Route as AuthedAnggotaIndexRouteImport } from './routes/_authed/anggota/index'
+import { Route as AuthedAkreditasiIndexRouteImport } from './routes/_authed/akreditasi/index'
 import { Route as AuthedSettingsTentangRouteImport } from './routes/_authed/settings/tentang'
 import { Route as AuthedSettingsTampilanRouteImport } from './routes/_authed/settings/tampilan'
 import { Route as AuthedSettingsSinkronisasiRouteImport } from './routes/_authed/settings/sinkronisasi'
@@ -42,10 +44,14 @@ import { Route as AuthedSettingsAuditLogRouteImport } from './routes/_authed/set
 import { Route as AuthedSettingsAturanPeminjamanRouteImport } from './routes/_authed/settings/aturan-peminjaman'
 import { Route as AuthedSettingsAkunRouteImport } from './routes/_authed/settings/akun'
 import { Route as AuthedSettingsAksesModeRouteImport } from './routes/_authed/settings/akses-mode'
+import { Route as AuthedSettingsAkreditasiRouteImport } from './routes/_authed/settings/akreditasi'
 import { Route as AuthedPeminjamanNewRouteImport } from './routes/_authed/peminjaman/new'
 import { Route as AuthedPeminjamanIdRouteImport } from './routes/_authed/peminjaman/$id'
 import { Route as AuthedLaporanTopPeminjamRouteImport } from './routes/_authed/laporan/top-peminjam'
 import { Route as AuthedLaporanTopBukuRouteImport } from './routes/_authed/laporan/top-buku'
+import { Route as AuthedLaporanPemanfaatanRouteImport } from './routes/_authed/laporan/pemanfaatan'
+import { Route as AuthedLaporanKoleksiRouteImport } from './routes/_authed/laporan/koleksi'
+import { Route as AuthedLaporanKinerjaRouteImport } from './routes/_authed/laporan/kinerja'
 import { Route as AuthedLaporanKasRouteImport } from './routes/_authed/laporan/kas'
 import { Route as AuthedLaporanGrafikRouteImport } from './routes/_authed/laporan/grafik'
 import { Route as AuthedLaporanEksekutifRouteImport } from './routes/_authed/laporan/eksekutif'
@@ -57,6 +63,13 @@ import { Route as AuthedBukuIdRouteImport } from './routes/_authed/buku/$id'
 import { Route as AuthedAnggotaNewRouteImport } from './routes/_authed/anggota/new'
 import { Route as AuthedAnggotaCetakKtaRouteImport } from './routes/_authed/anggota/cetak-kta'
 import { Route as AuthedAnggotaIdRouteImport } from './routes/_authed/anggota/$id'
+import { Route as AuthedAkreditasiSkorRouteImport } from './routes/_authed/akreditasi/skor'
+import { Route as AuthedAkreditasiRingkasanRouteImport } from './routes/_authed/akreditasi/ringkasan'
+import { Route as AuthedAkreditasiManualRouteImport } from './routes/_authed/akreditasi/manual'
+import { Route as AuthedAkreditasiButirRouteImport } from './routes/_authed/akreditasi/butir'
+import { Route as AuthedAkreditasiBukuBuktiRouteImport } from './routes/_authed/akreditasi/buku-bukti'
+import { Route as AuthedAkreditasiBuktiRouteImport } from './routes/_authed/akreditasi/bukti'
+import { Route as AuthedAkreditasiArsipRouteImport } from './routes/_authed/akreditasi/arsip'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -102,6 +115,11 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAkreditasiRoute = AuthedAkreditasiRouteImport.update({
+  id: '/akreditasi',
+  path: '/akreditasi',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedSirkulasiIndexRoute = AuthedSirkulasiIndexRouteImport.update({
   id: '/sirkulasi/',
   path: '/sirkulasi/',
@@ -141,6 +159,11 @@ const AuthedAnggotaIndexRoute = AuthedAnggotaIndexRouteImport.update({
   id: '/anggota/',
   path: '/anggota/',
   getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAkreditasiIndexRoute = AuthedAkreditasiIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedAkreditasiRoute,
 } as any)
 const AuthedSettingsTentangRoute = AuthedSettingsTentangRouteImport.update({
   id: '/tentang',
@@ -225,6 +248,12 @@ const AuthedSettingsAksesModeRoute = AuthedSettingsAksesModeRouteImport.update({
   path: '/akses-mode',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsAkreditasiRoute =
+  AuthedSettingsAkreditasiRouteImport.update({
+    id: '/akreditasi',
+    path: '/akreditasi',
+    getParentRoute: () => AuthedSettingsRoute,
+  } as any)
 const AuthedPeminjamanNewRoute = AuthedPeminjamanNewRouteImport.update({
   id: '/peminjaman/new',
   path: '/peminjaman/new',
@@ -244,6 +273,22 @@ const AuthedLaporanTopPeminjamRoute =
 const AuthedLaporanTopBukuRoute = AuthedLaporanTopBukuRouteImport.update({
   id: '/top-buku',
   path: '/top-buku',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
+const AuthedLaporanPemanfaatanRoute =
+  AuthedLaporanPemanfaatanRouteImport.update({
+    id: '/pemanfaatan',
+    path: '/pemanfaatan',
+    getParentRoute: () => AuthedLaporanRoute,
+  } as any)
+const AuthedLaporanKoleksiRoute = AuthedLaporanKoleksiRouteImport.update({
+  id: '/koleksi',
+  path: '/koleksi',
+  getParentRoute: () => AuthedLaporanRoute,
+} as any)
+const AuthedLaporanKinerjaRoute = AuthedLaporanKinerjaRouteImport.update({
+  id: '/kinerja',
+  path: '/kinerja',
   getParentRoute: () => AuthedLaporanRoute,
 } as any)
 const AuthedLaporanKasRoute = AuthedLaporanKasRouteImport.update({
@@ -301,16 +346,61 @@ const AuthedAnggotaIdRoute = AuthedAnggotaIdRouteImport.update({
   path: '/anggota/$id',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAkreditasiSkorRoute = AuthedAkreditasiSkorRouteImport.update({
+  id: '/skor',
+  path: '/skor',
+  getParentRoute: () => AuthedAkreditasiRoute,
+} as any)
+const AuthedAkreditasiRingkasanRoute =
+  AuthedAkreditasiRingkasanRouteImport.update({
+    id: '/ringkasan',
+    path: '/ringkasan',
+    getParentRoute: () => AuthedAkreditasiRoute,
+  } as any)
+const AuthedAkreditasiManualRoute = AuthedAkreditasiManualRouteImport.update({
+  id: '/manual',
+  path: '/manual',
+  getParentRoute: () => AuthedAkreditasiRoute,
+} as any)
+const AuthedAkreditasiButirRoute = AuthedAkreditasiButirRouteImport.update({
+  id: '/butir',
+  path: '/butir',
+  getParentRoute: () => AuthedAkreditasiRoute,
+} as any)
+const AuthedAkreditasiBukuBuktiRoute =
+  AuthedAkreditasiBukuBuktiRouteImport.update({
+    id: '/buku-bukti',
+    path: '/buku-bukti',
+    getParentRoute: () => AuthedAkreditasiRoute,
+  } as any)
+const AuthedAkreditasiBuktiRoute = AuthedAkreditasiBuktiRouteImport.update({
+  id: '/bukti',
+  path: '/bukti',
+  getParentRoute: () => AuthedAkreditasiRoute,
+} as any)
+const AuthedAkreditasiArsipRoute = AuthedAkreditasiArsipRouteImport.update({
+  id: '/arsip',
+  path: '/arsip',
+  getParentRoute: () => AuthedAkreditasiRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/akreditasi': typeof AuthedAkreditasiRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
   '/laporan': typeof AuthedLaporanRouteWithChildren
   '/settings': typeof AuthedSettingsRouteWithChildren
   '/stocktake': typeof AuthedStocktakeRoute
   '/wishlist': typeof AuthedWishlistRoute
+  '/akreditasi/arsip': typeof AuthedAkreditasiArsipRoute
+  '/akreditasi/bukti': typeof AuthedAkreditasiBuktiRoute
+  '/akreditasi/buku-bukti': typeof AuthedAkreditasiBukuBuktiRoute
+  '/akreditasi/butir': typeof AuthedAkreditasiButirRoute
+  '/akreditasi/manual': typeof AuthedAkreditasiManualRoute
+  '/akreditasi/ringkasan': typeof AuthedAkreditasiRingkasanRoute
+  '/akreditasi/skor': typeof AuthedAkreditasiSkorRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
@@ -322,10 +412,14 @@ export interface FileRoutesByFullPath {
   '/laporan/eksekutif': typeof AuthedLaporanEksekutifRoute
   '/laporan/grafik': typeof AuthedLaporanGrafikRoute
   '/laporan/kas': typeof AuthedLaporanKasRoute
+  '/laporan/kinerja': typeof AuthedLaporanKinerjaRoute
+  '/laporan/koleksi': typeof AuthedLaporanKoleksiRoute
+  '/laporan/pemanfaatan': typeof AuthedLaporanPemanfaatanRoute
   '/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/akreditasi': typeof AuthedSettingsAkreditasiRoute
   '/settings/akses-mode': typeof AuthedSettingsAksesModeRoute
   '/settings/akun': typeof AuthedSettingsAkunRoute
   '/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
@@ -342,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
+  '/akreditasi/': typeof AuthedAkreditasiIndexRoute
   '/anggota/': typeof AuthedAnggotaIndexRoute
   '/buku/': typeof AuthedBukuIndexRoute
   '/laporan/': typeof AuthedLaporanIndexRoute
@@ -358,6 +453,13 @@ export interface FileRoutesByTo {
   '/kunjungan': typeof AuthedKunjunganRoute
   '/stocktake': typeof AuthedStocktakeRoute
   '/wishlist': typeof AuthedWishlistRoute
+  '/akreditasi/arsip': typeof AuthedAkreditasiArsipRoute
+  '/akreditasi/bukti': typeof AuthedAkreditasiBuktiRoute
+  '/akreditasi/buku-bukti': typeof AuthedAkreditasiBukuBuktiRoute
+  '/akreditasi/butir': typeof AuthedAkreditasiButirRoute
+  '/akreditasi/manual': typeof AuthedAkreditasiManualRoute
+  '/akreditasi/ringkasan': typeof AuthedAkreditasiRingkasanRoute
+  '/akreditasi/skor': typeof AuthedAkreditasiSkorRoute
   '/anggota/$id': typeof AuthedAnggotaIdRoute
   '/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/anggota/new': typeof AuthedAnggotaNewRoute
@@ -369,10 +471,14 @@ export interface FileRoutesByTo {
   '/laporan/eksekutif': typeof AuthedLaporanEksekutifRoute
   '/laporan/grafik': typeof AuthedLaporanGrafikRoute
   '/laporan/kas': typeof AuthedLaporanKasRoute
+  '/laporan/kinerja': typeof AuthedLaporanKinerjaRoute
+  '/laporan/koleksi': typeof AuthedLaporanKoleksiRoute
+  '/laporan/pemanfaatan': typeof AuthedLaporanPemanfaatanRoute
   '/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
   '/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/settings/akreditasi': typeof AuthedSettingsAkreditasiRoute
   '/settings/akses-mode': typeof AuthedSettingsAksesModeRoute
   '/settings/akun': typeof AuthedSettingsAkunRoute
   '/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
@@ -389,6 +495,7 @@ export interface FileRoutesByTo {
   '/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/settings/tampilan': typeof AuthedSettingsTampilanRoute
   '/settings/tentang': typeof AuthedSettingsTentangRoute
+  '/akreditasi': typeof AuthedAkreditasiIndexRoute
   '/anggota': typeof AuthedAnggotaIndexRoute
   '/buku': typeof AuthedBukuIndexRoute
   '/laporan': typeof AuthedLaporanIndexRoute
@@ -403,12 +510,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authed/akreditasi': typeof AuthedAkreditasiRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/kunjungan': typeof AuthedKunjunganRoute
   '/_authed/laporan': typeof AuthedLaporanRouteWithChildren
   '/_authed/settings': typeof AuthedSettingsRouteWithChildren
   '/_authed/stocktake': typeof AuthedStocktakeRoute
   '/_authed/wishlist': typeof AuthedWishlistRoute
+  '/_authed/akreditasi/arsip': typeof AuthedAkreditasiArsipRoute
+  '/_authed/akreditasi/bukti': typeof AuthedAkreditasiBuktiRoute
+  '/_authed/akreditasi/buku-bukti': typeof AuthedAkreditasiBukuBuktiRoute
+  '/_authed/akreditasi/butir': typeof AuthedAkreditasiButirRoute
+  '/_authed/akreditasi/manual': typeof AuthedAkreditasiManualRoute
+  '/_authed/akreditasi/ringkasan': typeof AuthedAkreditasiRingkasanRoute
+  '/_authed/akreditasi/skor': typeof AuthedAkreditasiSkorRoute
   '/_authed/anggota/$id': typeof AuthedAnggotaIdRoute
   '/_authed/anggota/cetak-kta': typeof AuthedAnggotaCetakKtaRoute
   '/_authed/anggota/new': typeof AuthedAnggotaNewRoute
@@ -420,10 +535,14 @@ export interface FileRoutesById {
   '/_authed/laporan/eksekutif': typeof AuthedLaporanEksekutifRoute
   '/_authed/laporan/grafik': typeof AuthedLaporanGrafikRoute
   '/_authed/laporan/kas': typeof AuthedLaporanKasRoute
+  '/_authed/laporan/kinerja': typeof AuthedLaporanKinerjaRoute
+  '/_authed/laporan/koleksi': typeof AuthedLaporanKoleksiRoute
+  '/_authed/laporan/pemanfaatan': typeof AuthedLaporanPemanfaatanRoute
   '/_authed/laporan/top-buku': typeof AuthedLaporanTopBukuRoute
   '/_authed/laporan/top-peminjam': typeof AuthedLaporanTopPeminjamRoute
   '/_authed/peminjaman/$id': typeof AuthedPeminjamanIdRoute
   '/_authed/peminjaman/new': typeof AuthedPeminjamanNewRoute
+  '/_authed/settings/akreditasi': typeof AuthedSettingsAkreditasiRoute
   '/_authed/settings/akses-mode': typeof AuthedSettingsAksesModeRoute
   '/_authed/settings/akun': typeof AuthedSettingsAkunRoute
   '/_authed/settings/aturan-peminjaman': typeof AuthedSettingsAturanPeminjamanRoute
@@ -440,6 +559,7 @@ export interface FileRoutesById {
   '/_authed/settings/sinkronisasi': typeof AuthedSettingsSinkronisasiRoute
   '/_authed/settings/tampilan': typeof AuthedSettingsTampilanRoute
   '/_authed/settings/tentang': typeof AuthedSettingsTentangRoute
+  '/_authed/akreditasi/': typeof AuthedAkreditasiIndexRoute
   '/_authed/anggota/': typeof AuthedAnggotaIndexRoute
   '/_authed/buku/': typeof AuthedBukuIndexRoute
   '/_authed/laporan/': typeof AuthedLaporanIndexRoute
@@ -454,12 +574,20 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/akreditasi'
     | '/dashboard'
     | '/kunjungan'
     | '/laporan'
     | '/settings'
     | '/stocktake'
     | '/wishlist'
+    | '/akreditasi/arsip'
+    | '/akreditasi/bukti'
+    | '/akreditasi/buku-bukti'
+    | '/akreditasi/butir'
+    | '/akreditasi/manual'
+    | '/akreditasi/ringkasan'
+    | '/akreditasi/skor'
     | '/anggota/$id'
     | '/anggota/cetak-kta'
     | '/anggota/new'
@@ -471,10 +599,14 @@ export interface FileRouteTypes {
     | '/laporan/eksekutif'
     | '/laporan/grafik'
     | '/laporan/kas'
+    | '/laporan/kinerja'
+    | '/laporan/koleksi'
+    | '/laporan/pemanfaatan'
     | '/laporan/top-buku'
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/akreditasi'
     | '/settings/akses-mode'
     | '/settings/akun'
     | '/settings/aturan-peminjaman'
@@ -491,6 +623,7 @@ export interface FileRouteTypes {
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
     | '/settings/tentang'
+    | '/akreditasi/'
     | '/anggota/'
     | '/buku/'
     | '/laporan/'
@@ -507,6 +640,13 @@ export interface FileRouteTypes {
     | '/kunjungan'
     | '/stocktake'
     | '/wishlist'
+    | '/akreditasi/arsip'
+    | '/akreditasi/bukti'
+    | '/akreditasi/buku-bukti'
+    | '/akreditasi/butir'
+    | '/akreditasi/manual'
+    | '/akreditasi/ringkasan'
+    | '/akreditasi/skor'
     | '/anggota/$id'
     | '/anggota/cetak-kta'
     | '/anggota/new'
@@ -518,10 +658,14 @@ export interface FileRouteTypes {
     | '/laporan/eksekutif'
     | '/laporan/grafik'
     | '/laporan/kas'
+    | '/laporan/kinerja'
+    | '/laporan/koleksi'
+    | '/laporan/pemanfaatan'
     | '/laporan/top-buku'
     | '/laporan/top-peminjam'
     | '/peminjaman/$id'
     | '/peminjaman/new'
+    | '/settings/akreditasi'
     | '/settings/akses-mode'
     | '/settings/akun'
     | '/settings/aturan-peminjaman'
@@ -538,6 +682,7 @@ export interface FileRouteTypes {
     | '/settings/sinkronisasi'
     | '/settings/tampilan'
     | '/settings/tentang'
+    | '/akreditasi'
     | '/anggota'
     | '/buku'
     | '/laporan'
@@ -551,12 +696,20 @@ export interface FileRouteTypes {
     | '/'
     | '/_authed'
     | '/login'
+    | '/_authed/akreditasi'
     | '/_authed/dashboard'
     | '/_authed/kunjungan'
     | '/_authed/laporan'
     | '/_authed/settings'
     | '/_authed/stocktake'
     | '/_authed/wishlist'
+    | '/_authed/akreditasi/arsip'
+    | '/_authed/akreditasi/bukti'
+    | '/_authed/akreditasi/buku-bukti'
+    | '/_authed/akreditasi/butir'
+    | '/_authed/akreditasi/manual'
+    | '/_authed/akreditasi/ringkasan'
+    | '/_authed/akreditasi/skor'
     | '/_authed/anggota/$id'
     | '/_authed/anggota/cetak-kta'
     | '/_authed/anggota/new'
@@ -568,10 +721,14 @@ export interface FileRouteTypes {
     | '/_authed/laporan/eksekutif'
     | '/_authed/laporan/grafik'
     | '/_authed/laporan/kas'
+    | '/_authed/laporan/kinerja'
+    | '/_authed/laporan/koleksi'
+    | '/_authed/laporan/pemanfaatan'
     | '/_authed/laporan/top-buku'
     | '/_authed/laporan/top-peminjam'
     | '/_authed/peminjaman/$id'
     | '/_authed/peminjaman/new'
+    | '/_authed/settings/akreditasi'
     | '/_authed/settings/akses-mode'
     | '/_authed/settings/akun'
     | '/_authed/settings/aturan-peminjaman'
@@ -588,6 +745,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/sinkronisasi'
     | '/_authed/settings/tampilan'
     | '/_authed/settings/tentang'
+    | '/_authed/akreditasi/'
     | '/_authed/anggota/'
     | '/_authed/buku/'
     | '/_authed/laporan/'
@@ -669,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/akreditasi': {
+      id: '/_authed/akreditasi'
+      path: '/akreditasi'
+      fullPath: '/akreditasi'
+      preLoaderRoute: typeof AuthedAkreditasiRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/sirkulasi/': {
       id: '/_authed/sirkulasi/'
       path: '/sirkulasi'
@@ -724,6 +889,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/anggota/'
       preLoaderRoute: typeof AuthedAnggotaIndexRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/_authed/akreditasi/': {
+      id: '/_authed/akreditasi/'
+      path: '/'
+      fullPath: '/akreditasi/'
+      preLoaderRoute: typeof AuthedAkreditasiIndexRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
     }
     '/_authed/settings/tentang': {
       id: '/_authed/settings/tentang'
@@ -837,6 +1009,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsAksesModeRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
+    '/_authed/settings/akreditasi': {
+      id: '/_authed/settings/akreditasi'
+      path: '/akreditasi'
+      fullPath: '/settings/akreditasi'
+      preLoaderRoute: typeof AuthedSettingsAkreditasiRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
     '/_authed/peminjaman/new': {
       id: '/_authed/peminjaman/new'
       path: '/peminjaman/new'
@@ -863,6 +1042,27 @@ declare module '@tanstack/react-router' {
       path: '/top-buku'
       fullPath: '/laporan/top-buku'
       preLoaderRoute: typeof AuthedLaporanTopBukuRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/pemanfaatan': {
+      id: '/_authed/laporan/pemanfaatan'
+      path: '/pemanfaatan'
+      fullPath: '/laporan/pemanfaatan'
+      preLoaderRoute: typeof AuthedLaporanPemanfaatanRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/koleksi': {
+      id: '/_authed/laporan/koleksi'
+      path: '/koleksi'
+      fullPath: '/laporan/koleksi'
+      preLoaderRoute: typeof AuthedLaporanKoleksiRouteImport
+      parentRoute: typeof AuthedLaporanRoute
+    }
+    '/_authed/laporan/kinerja': {
+      id: '/_authed/laporan/kinerja'
+      path: '/kinerja'
+      fullPath: '/laporan/kinerja'
+      preLoaderRoute: typeof AuthedLaporanKinerjaRouteImport
       parentRoute: typeof AuthedLaporanRoute
     }
     '/_authed/laporan/kas': {
@@ -942,14 +1142,91 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAnggotaIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/akreditasi/skor': {
+      id: '/_authed/akreditasi/skor'
+      path: '/skor'
+      fullPath: '/akreditasi/skor'
+      preLoaderRoute: typeof AuthedAkreditasiSkorRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
+    '/_authed/akreditasi/ringkasan': {
+      id: '/_authed/akreditasi/ringkasan'
+      path: '/ringkasan'
+      fullPath: '/akreditasi/ringkasan'
+      preLoaderRoute: typeof AuthedAkreditasiRingkasanRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
+    '/_authed/akreditasi/manual': {
+      id: '/_authed/akreditasi/manual'
+      path: '/manual'
+      fullPath: '/akreditasi/manual'
+      preLoaderRoute: typeof AuthedAkreditasiManualRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
+    '/_authed/akreditasi/butir': {
+      id: '/_authed/akreditasi/butir'
+      path: '/butir'
+      fullPath: '/akreditasi/butir'
+      preLoaderRoute: typeof AuthedAkreditasiButirRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
+    '/_authed/akreditasi/buku-bukti': {
+      id: '/_authed/akreditasi/buku-bukti'
+      path: '/buku-bukti'
+      fullPath: '/akreditasi/buku-bukti'
+      preLoaderRoute: typeof AuthedAkreditasiBukuBuktiRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
+    '/_authed/akreditasi/bukti': {
+      id: '/_authed/akreditasi/bukti'
+      path: '/bukti'
+      fullPath: '/akreditasi/bukti'
+      preLoaderRoute: typeof AuthedAkreditasiBuktiRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
+    '/_authed/akreditasi/arsip': {
+      id: '/_authed/akreditasi/arsip'
+      path: '/arsip'
+      fullPath: '/akreditasi/arsip'
+      preLoaderRoute: typeof AuthedAkreditasiArsipRouteImport
+      parentRoute: typeof AuthedAkreditasiRoute
+    }
   }
 }
+
+interface AuthedAkreditasiRouteChildren {
+  AuthedAkreditasiArsipRoute: typeof AuthedAkreditasiArsipRoute
+  AuthedAkreditasiBuktiRoute: typeof AuthedAkreditasiBuktiRoute
+  AuthedAkreditasiBukuBuktiRoute: typeof AuthedAkreditasiBukuBuktiRoute
+  AuthedAkreditasiButirRoute: typeof AuthedAkreditasiButirRoute
+  AuthedAkreditasiManualRoute: typeof AuthedAkreditasiManualRoute
+  AuthedAkreditasiRingkasanRoute: typeof AuthedAkreditasiRingkasanRoute
+  AuthedAkreditasiSkorRoute: typeof AuthedAkreditasiSkorRoute
+  AuthedAkreditasiIndexRoute: typeof AuthedAkreditasiIndexRoute
+}
+
+const AuthedAkreditasiRouteChildren: AuthedAkreditasiRouteChildren = {
+  AuthedAkreditasiArsipRoute: AuthedAkreditasiArsipRoute,
+  AuthedAkreditasiBuktiRoute: AuthedAkreditasiBuktiRoute,
+  AuthedAkreditasiBukuBuktiRoute: AuthedAkreditasiBukuBuktiRoute,
+  AuthedAkreditasiButirRoute: AuthedAkreditasiButirRoute,
+  AuthedAkreditasiManualRoute: AuthedAkreditasiManualRoute,
+  AuthedAkreditasiRingkasanRoute: AuthedAkreditasiRingkasanRoute,
+  AuthedAkreditasiSkorRoute: AuthedAkreditasiSkorRoute,
+  AuthedAkreditasiIndexRoute: AuthedAkreditasiIndexRoute,
+}
+
+const AuthedAkreditasiRouteWithChildren =
+  AuthedAkreditasiRoute._addFileChildren(AuthedAkreditasiRouteChildren)
 
 interface AuthedLaporanRouteChildren {
   AuthedLaporanBackupRoute: typeof AuthedLaporanBackupRoute
   AuthedLaporanEksekutifRoute: typeof AuthedLaporanEksekutifRoute
   AuthedLaporanGrafikRoute: typeof AuthedLaporanGrafikRoute
   AuthedLaporanKasRoute: typeof AuthedLaporanKasRoute
+  AuthedLaporanKinerjaRoute: typeof AuthedLaporanKinerjaRoute
+  AuthedLaporanKoleksiRoute: typeof AuthedLaporanKoleksiRoute
+  AuthedLaporanPemanfaatanRoute: typeof AuthedLaporanPemanfaatanRoute
   AuthedLaporanTopBukuRoute: typeof AuthedLaporanTopBukuRoute
   AuthedLaporanTopPeminjamRoute: typeof AuthedLaporanTopPeminjamRoute
   AuthedLaporanIndexRoute: typeof AuthedLaporanIndexRoute
@@ -960,6 +1237,9 @@ const AuthedLaporanRouteChildren: AuthedLaporanRouteChildren = {
   AuthedLaporanEksekutifRoute: AuthedLaporanEksekutifRoute,
   AuthedLaporanGrafikRoute: AuthedLaporanGrafikRoute,
   AuthedLaporanKasRoute: AuthedLaporanKasRoute,
+  AuthedLaporanKinerjaRoute: AuthedLaporanKinerjaRoute,
+  AuthedLaporanKoleksiRoute: AuthedLaporanKoleksiRoute,
+  AuthedLaporanPemanfaatanRoute: AuthedLaporanPemanfaatanRoute,
   AuthedLaporanTopBukuRoute: AuthedLaporanTopBukuRoute,
   AuthedLaporanTopPeminjamRoute: AuthedLaporanTopPeminjamRoute,
   AuthedLaporanIndexRoute: AuthedLaporanIndexRoute,
@@ -970,6 +1250,7 @@ const AuthedLaporanRouteWithChildren = AuthedLaporanRoute._addFileChildren(
 )
 
 interface AuthedSettingsRouteChildren {
+  AuthedSettingsAkreditasiRoute: typeof AuthedSettingsAkreditasiRoute
   AuthedSettingsAksesModeRoute: typeof AuthedSettingsAksesModeRoute
   AuthedSettingsAkunRoute: typeof AuthedSettingsAkunRoute
   AuthedSettingsAturanPeminjamanRoute: typeof AuthedSettingsAturanPeminjamanRoute
@@ -990,6 +1271,7 @@ interface AuthedSettingsRouteChildren {
 }
 
 const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
+  AuthedSettingsAkreditasiRoute: AuthedSettingsAkreditasiRoute,
   AuthedSettingsAksesModeRoute: AuthedSettingsAksesModeRoute,
   AuthedSettingsAkunRoute: AuthedSettingsAkunRoute,
   AuthedSettingsAturanPeminjamanRoute: AuthedSettingsAturanPeminjamanRoute,
@@ -1014,6 +1296,7 @@ const AuthedSettingsRouteWithChildren = AuthedSettingsRoute._addFileChildren(
 )
 
 interface AuthedRouteChildren {
+  AuthedAkreditasiRoute: typeof AuthedAkreditasiRouteWithChildren
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedKunjunganRoute: typeof AuthedKunjunganRoute
   AuthedLaporanRoute: typeof AuthedLaporanRouteWithChildren
@@ -1038,6 +1321,7 @@ interface AuthedRouteChildren {
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAkreditasiRoute: AuthedAkreditasiRouteWithChildren,
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedKunjunganRoute: AuthedKunjunganRoute,
   AuthedLaporanRoute: AuthedLaporanRouteWithChildren,

@@ -21,6 +21,7 @@ import idOpac from './id/opac.json';
 import idErrors from './id/errors.json';
 import idSurat from './id/surat.json';
 import idWishlist from './id/wishlist.json';
+import idAkreditasi from './id/akreditasi.json';
 
 import enCommon from './en/common.json';
 import enAuth from './en/auth.json';
@@ -42,6 +43,7 @@ import enOpac from './en/opac.json';
 import enErrors from './en/errors.json';
 import enSurat from './en/surat.json';
 import enWishlist from './en/wishlist.json';
+import enAkreditasi from './en/akreditasi.json';
 
 export const NAMESPACES = [
   'common',
@@ -64,6 +66,7 @@ export const NAMESPACES = [
   'errors',
   'surat',
   'wishlist',
+  'akreditasi',
 ] as const;
 
 export const SUPPORTED_LOCALES = ['id', 'en'] as const;
@@ -91,6 +94,7 @@ const resources = {
     errors: idErrors,
     surat: idSurat,
     wishlist: idWishlist,
+    akreditasi: idAkreditasi,
   },
   en: {
     common: enCommon,
@@ -113,6 +117,7 @@ const resources = {
     errors: enErrors,
     surat: enSurat,
     wishlist: enWishlist,
+    akreditasi: enAkreditasi,
   },
 } as const;
 

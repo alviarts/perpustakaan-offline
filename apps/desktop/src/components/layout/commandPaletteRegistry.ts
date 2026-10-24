@@ -24,6 +24,7 @@ import {
   Database,
   FileBarChart,
   FilePlus,
+  GraduationCap,
   HardDriveDownload,
   Heart,
   History,
@@ -87,6 +88,7 @@ export const COMMAND_PALETTE_ROUTES: readonly CommandPaletteRouteEntry[] = [
   { key: 'peminjaman', to: '/peminjaman', icon: ArrowLeftRight },
   { key: 'sirkulasi', to: '/sirkulasi', icon: ScanLine },
   { key: 'laporan', to: '/laporan', icon: BarChart3 },
+  { key: 'akreditasiModul', to: '/akreditasi', icon: GraduationCap },
   { key: 'pengembalian', to: '/pengembalian', icon: Undo2 },
   { key: 'reservasi', to: '/reservasi', icon: BookMarked },
   { key: 'wishlist', to: '/wishlist', icon: Heart },
@@ -98,6 +100,7 @@ export const COMMAND_PALETTE_ROUTES: readonly CommandPaletteRouteEntry[] = [
   { key: 'kta', to: '/settings/kta', icon: IdCard },
   { key: 'manual', to: '/settings/manual', icon: BookOpen },
   { key: 'tentang', to: '/settings/tentang', icon: Database },
+  { key: 'akreditasi', to: '/settings/akreditasi', icon: GraduationCap },
 ] as const;
 
 /** Number of entries from `COMMAND_PALETTE_ROUTES` shown when query is empty. */

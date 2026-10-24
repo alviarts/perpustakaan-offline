@@ -7,8 +7,78 @@
     "eksekutif": "Executive",
     "topPeminjam": "Top Borrowers",
     "topBuku": "Top Books",
+    "koleksi": "Collection",
+    "pemanfaatan": "Usage",
+    "kinerja": "Performance",
     "kas": "Cash",
     "backup": "Backup"
+  },
+  "preset": {
+    "ganjil": "Odd Semester",
+    "genap": "Even Semester",
+    "tahunAjaran": "School Year"
+  },
+  "koleksi": {
+    "periode": "As of",
+    "belumDdc": "No DDC yet",
+    "rasio": {
+      "title": "Collection Ratio",
+      "subtitle": "Collection size relative to library members",
+      "judul": "Titles",
+      "eksemplar": "Copies",
+      "siswa": "Active students",
+      "perSiswa": "Copies / student"
+    },
+    "ddc": {
+      "title": "Collection Composition by DDC",
+      "kode": "DDC",
+      "klas": "Class",
+      "judul": "Titles",
+      "eksemplar": "Copies",
+      "persen": "%"
+    },
+    "dimensi": {
+      "title": "Composition by Dimension",
+      "kategori": "Category",
+      "bahasa": "Language",
+      "sumber": "Acquisition source",
+      "material": "Material type"
+    },
+    "sebaran": {
+      "title": "Copy Count Distribution",
+      "bucket": "Copies / title"
+    }
+  },
+  "pemanfaatan": {
+    "subjek": {
+      "title": "Loans per Subject (DDC) × Month",
+      "subtitle": "Books borrowed per DDC class each month"
+    },
+    "kategori": {
+      "title": "Loans per Category × Month"
+    },
+    "turnover": {
+      "title": "Turnover per Copy",
+      "subtitle": "Loan count for each copy in the selected range",
+      "kode": "Copy code"
+    },
+    "idle": {
+      "title": "Books Not Borrowed in This Range",
+      "subtitle": "Weeding / collection promotion candidates",
+      "eksemplar": "Copies",
+      "terakhir": "Last borrowed",
+      "never": "Never"
+    },
+    "masalah": {
+      "title": "Damaged / Lost Copies",
+      "subtitle": "Collection disposal candidates"
+    }
+  },
+  "kinerja": {
+    "title": "Performance Report — Visits",
+    "subtitle": "Visits per group × month (people)",
+    "kelompok": "Group",
+    "total": "Total visits"
   },
   "eksekutif": {
     "title": "Executive Report",
@@ -32,7 +102,8 @@
     "buku": "Books",
     "jumlah": "Count",
     "keterangan": "Note",
-    "nominal": "Amount"
+    "nominal": "Amount",
+    "status": "Status"
   },
   "grafik": {
     "title": "Activity Chart",

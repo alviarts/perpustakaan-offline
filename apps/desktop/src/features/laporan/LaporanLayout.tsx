@@ -1,6 +1,6 @@
 import { Link, Outlet } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, Database, FileBarChart, LineChart, ReceiptText, Users } from 'lucide-react';
+import { BarChart3, CalendarCheck, Database, FileBarChart, LineChart, Library, ReceiptText, TrendingUp, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -15,6 +15,9 @@ const NAV: NavItem[] = [
   { to: '/laporan/eksekutif', labelKey: 'laporan:nav.eksekutif', defaultLabel: 'Eksekutif', Icon: FileBarChart },
   { to: '/laporan/top-peminjam', labelKey: 'laporan:nav.topPeminjam', defaultLabel: 'Top Peminjam', Icon: Users },
   { to: '/laporan/top-buku', labelKey: 'laporan:nav.topBuku', defaultLabel: 'Top Buku', Icon: BarChart3 },
+  { to: '/laporan/koleksi', labelKey: 'laporan:nav.koleksi', defaultLabel: 'Koleksi', Icon: Library },
+  { to: '/laporan/pemanfaatan', labelKey: 'laporan:nav.pemanfaatan', defaultLabel: 'Pemanfaatan', Icon: TrendingUp },
+  { to: '/laporan/kinerja', labelKey: 'laporan:nav.kinerja', defaultLabel: 'Kinerja', Icon: CalendarCheck },
   { to: '/laporan/kas', labelKey: 'laporan:nav.kas', defaultLabel: 'Kas', Icon: ReceiptText },
   { to: '/laporan/backup', labelKey: 'laporan:nav.backup', defaultLabel: 'Backup', Icon: Database },
 ];

@@ -1,0 +1,129 @@
+{
+  "title": "Accreditation",
+  "subtitle": "Library accreditation prep: profile, data, and physical evidence",
+  "nav": {
+    "ringkasan": "Summary",
+    "butir": "Assessment Items",
+    "skor": "Score & Rating",
+    "manual": "Manual Data",
+    "bukti": "Evidence",
+    "bukuBukti": "Evidence Book",
+    "arsip": "Archive"
+  },
+  "butirPenilaian": {
+    "progress": "Answered: {{done}}/{{total}}",
+    "reset": "Reset Answers",
+    "resetDone": "Answers reset.",
+    "noInstrumen": "No instrument available for this jenjang yet.",
+    "saveError": "Failed to save answer.",
+    "skorMaks": "Max score",
+    "bobot": "Weight",
+    "skor": "score",
+    "bukti": "Required evidence",
+    "catatanPlaceholder": "Notes / supporting evidence"
+  },
+  "skor": {
+    "title": "Projected Accreditation Score",
+    "nilaiAkhir": "Final score",
+    "predikat": "Rating (projected)",
+    "predikatHelp": "A projection, not the official SiPAPI rating.",
+    "progress": "Answered",
+    "tidak": "Not yet accredited",
+    "gap": "Improvement Priorities",
+    "gapHelp": "Components with the largest lost points",
+    "lost": "Lost points",
+    "table": {
+      "komponen": "Component",
+      "skor": "Score",
+      "bobot": "Weight",
+      "nilai": "Value",
+      "terjawab": "Answered"
+    }
+  },
+  "profil": {
+    "jenjang": "Jenjang / Library Type",
+    "jenjangHelp": "Determines the applicable SNP standard and accreditation instrument.",
+    "tahunAjaranAwal": "School-Year Start Month",
+    "tahunAjaranAwalHelp": "Used for report period presets (Odd/Even Semester, School Year).",
+    "npp": "Library Registration Number (NPP)",
+    "nppHelp": "Required to register for accreditation.",
+    "skPendirian": "Establishment Decree",
+    "skPendirianHelp": "Number/date of the library or school establishment decree.",
+    "catatan": "Notes",
+    "butir": "items",
+    "skorMaks": "Max score",
+    "provisional": "provisional weights",
+    "saveSuccess": "Accreditation profile saved.",
+    "saveError": "Failed to save profile."
+  },
+  "ringkasan": {
+    "profil": "Library Profile",
+    "belumDiatur": "Jenjang not set",
+    "atur": "Configure in Settings",
+    "sk": "Establishment Decree",
+    "standar": "Standard",
+    "butir": "Item count",
+    "bukti": "Physical Evidence",
+    "buktiWajib": "Required",
+    "tenaga": "Staff & Facilities",
+    "totalTenaga": "Total staff",
+    "komputer": "Computers"
+  },
+  "manual": {
+    "tenaga": "Staff",
+    "tenagaHelp": "Library staff count and qualifications",
+    "pustakawan": "Librarians",
+    "kualifikasi": "Qualified",
+    "guru": "Teachers",
+    "tendik": "Education staff",
+    "sarpras": "Facilities & Infrastructure",
+    "luas": "Floor area (m²)",
+    "komputer": "Computers",
+    "anggaran": "Budget — Last 3 Years",
+    "anggaranHelp": "Excluding personnel & building maintenance. Index 1 = last year.",
+    "sekolah": "School",
+    "perpus": "Library",
+    "catatan": "Notes",
+    "save": "Save",
+    "saveSuccess": "Accreditation data saved.",
+    "saveError": "Failed to save data."
+  },
+  "bukti": {
+    "title": "Physical Evidence Checklist",
+    "subtitle": "Mark documents already available for accreditation",
+    "wajib": "required",
+    "catatanPlaceholder": "Notes / document number",
+    "saveError": "Failed to save evidence.",
+    "uploadError": "Failed to upload file.",
+    "buka": "Open",
+    "ganti": "Replace",
+    "hapus": "Remove",
+    "lampirkan": "Attach file"
+  },
+  "bukuBukti": {
+    "title": "Accreditation Evidence Book",
+    "subtitle": "Complete document: profile, per-component score, assessment items, and physical evidence.",
+    "penandatangan": "Signatory",
+    "jabatan": "Position",
+    "print": "Print / PDF",
+    "archive": "Sign & Archive",
+    "arsipDone": "Report signed & archived.",
+    "arsipError": "Failed to archive."
+  },
+  "arsip": {
+    "title": "Signed Report Archive",
+    "subtitle": "Report snapshots that stay fixed as data grows",
+    "empty": "No archived reports yet.",
+    "jenjang": "Jenjang",
+    "penandatangan": "Signatory",
+    "tanggal": "Date"
+  },
+  "komponen": {
+    "koleksi": "Collection",
+    "sarpras": "Facilities & Infrastructure",
+    "pelayanan": "Services",
+    "tenaga": "Staff",
+    "penyelenggaraan": "Administration",
+    "pengelolaan": "Management"
+  }
+}

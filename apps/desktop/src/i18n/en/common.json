@@ -53,6 +53,7 @@
     "sirkulasi": "Circulation (Webcam)",
     "kunjungan": "Visits",
     "laporan": "Reports",
+    "akreditasi": "Accreditation",
     "kta": "Member Card",
     "wishlist": "Wishlist",
     "stocktake": "Stocktake",
@@ -224,11 +225,19 @@
         "label": "Manual",
         "description": "User guide"
       },
-      "tentang": {
-        "label": "About",
-        "description": "Application version and license"
-      }
-    },
+        "tentang": {
+          "label": "About",
+          "description": "Application version and license"
+        },
+        "akreditasi": {
+          "label": "Library & Accreditation",
+          "description": "Jenjang, NPP, establishment decree, school year"
+        },
+        "akreditasiModul": {
+          "label": "Accreditation",
+          "description": "Accreditation prep: manual data & physical evidence"
+        }
+      },
     "action": {
       "backupSekarang": {
         "label": "Backup Now",

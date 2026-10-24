@@ -55,6 +55,10 @@
       "label": "Master Data",
       "summary": "DDC, categories, languages, majors, classes, religions."
     },
+    "akreditasi": {
+      "label": "Library & Accreditation",
+      "summary": "Jenjang, NPP, establishment decree, and school-year start for accreditation reports."
+    },
     "kta": {
       "label": "Member Card (KTA)",
       "summary": "Card template, barcode, fonts."

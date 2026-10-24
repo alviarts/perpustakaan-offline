@@ -14,6 +14,7 @@ import {
   BookOpen,
   Monitor,
   FlaskConical,
+  GraduationCap,
 } from 'lucide-react';
 
 /**
@@ -67,6 +68,13 @@ export const SECTIONS: SectionDef[] = [
     i18nKey: 'masterData',
     Icon: Database,
     keywords: ['master data', 'ddc', 'kategori', 'bahasa', 'jurusan', 'kelas', 'agama'],
+  },
+  {
+    id: 'akreditasi',
+    to: '/settings/akreditasi',
+    i18nKey: 'akreditasi',
+    Icon: GraduationCap,
+    keywords: ['akreditasi', 'npp', 'snp', 'jenjang', 'tahun ajaran', 'sk pendirian', 'perpusnas'],
   },
   {
     id: 'kta',

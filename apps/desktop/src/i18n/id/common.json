@@ -53,6 +53,7 @@
     "sirkulasi": "Sirkulasi (Webcam)",
     "kunjungan": "Kunjungan",
     "laporan": "Laporan",
+    "akreditasi": "Akreditasi",
     "kta": "KTA",
     "wishlist": "Wishlist",
     "stocktake": "Stocktake",
@@ -224,11 +225,19 @@
         "label": "Manual",
         "description": "Buku panduan pengguna"
       },
-      "tentang": {
-        "label": "Tentang",
-        "description": "Versi aplikasi dan lisensi"
-      }
-    },
+        "tentang": {
+          "label": "Tentang",
+          "description": "Versi aplikasi dan lisensi"
+        },
+        "akreditasi": {
+          "label": "Perpustakaan & Akreditasi",
+          "description": "Jenjang, NPP, SK pendirian, tahun ajaran"
+        },
+        "akreditasiModul": {
+          "label": "Akreditasi",
+          "description": "Persiapan akreditasi: data manual & bukti fisik"
+        }
+      },
     "action": {
       "backupSekarang": {
         "label": "Backup Sekarang",

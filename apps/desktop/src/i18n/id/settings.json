@@ -55,6 +55,10 @@
       "label": "Master Data",
       "summary": "DDC, kategori, bahasa, jurusan, kelas, agama."
     },
+    "akreditasi": {
+      "label": "Perpustakaan & Akreditasi",
+      "summary": "Jenjang, NPP, SK pendirian, dan tahun ajaran untuk laporan akreditasi."
+    },
     "kta": {
       "label": "Kartu Tanda Anggota",
       "summary": "Template kartu, barcode, font."

@@ -109,9 +109,68 @@ export interface BackupCloudUploadResult {
   stderr: string;
 }
 
+// --- Fase 2: laporan koleksi & pemanfaatan -------------------------------
+
+export type KoleksiDimensi = 'kategori' | 'bahasa' | 'sumber' | 'material';
+
+export interface KoleksiDdcRow {
+  kode: string;
+  deskripsi: string | null;
+  judul: number;
+  eksemplar: number;
+}
+
+export interface KoleksiDimensiRow {
+  label: string;
+  judul: number;
+  eksemplar: number;
+}
+
+export interface RasioKoleksi {
+  totalJudul: number;
+  totalEksemplar: number;
+  siswaAktif: number;
+  guru: number;
+  tendik: number;
+}
+
+export interface SebaranEksemplarRow {
+  bucket: string;
+  judul: number;
+}
+
+/** Long-format monthly row from the Rust side; frontend pivots into a matrix. */
+export interface BulanCountRow {
+  label: string;
+  /** "YYYY-MM" */
+  bulan: string;
+  jumlah: number;
+}
+
+export interface TurnoverCopyRow {
+  kodeEksemplar: string;
+  judul: string;
+  status: string;
+  jumlah: number;
+}
+
+export interface BukuIdleRow {
+  bukuId: number;
+  kode: string;
+  judul: string;
+  pengarang: string | null;
+  jumlahEksemplar: number;
+  terakhir: string | null;
+}
+
+export interface EksemplarMasalahRow {
+  kodeEksemplar: string;
+  judul: string;
+  status: string;
+}
+
 export type KasJenis = 'masuk' | 'keluar';
 export type KasSumber = 'manual' | 'denda' | 'hilang' | 'modal';
-
 export interface KasMutationInput {
   tanggal: string;
   keterangan: string;
@@ -147,6 +206,17 @@ export interface LaporanRpc {
   backupCloudSettingsGet: () => Promise<BackupCloudSettings>;
   backupCloudSettingsSet: (settings: BackupCloudSettings) => Promise<BackupCloudSettings>;
   backupCloudUpload: (input: BackupCloudUploadInput) => Promise<BackupCloudUploadResult>;
+  // Fase 2: koleksi & pemanfaatan
+  koleksiDdc: () => Promise<KoleksiDdcRow[]>;
+  koleksiDimensi: (dimensi: KoleksiDimensi) => Promise<KoleksiDimensiRow[]>;
+  rasioKoleksi: () => Promise<RasioKoleksi>;
+  sebaranEksemplar: () => Promise<SebaranEksemplarRow[]>;
+  pinjamSubjekBulan: (from: string, to: string) => Promise<BulanCountRow[]>;
+  pinjamKategoriBulan: (from: string, to: string) => Promise<BulanCountRow[]>;
+  kunjunganKelompokBulan: (from: string, to: string) => Promise<BulanCountRow[]>;
+  turnoverCopy: (from: string, to: string, limit?: number) => Promise<TurnoverCopyRow[]>;
+  bukuIdle: (from: string, to: string, limit?: number) => Promise<BukuIdleRow[]>;
+  eksemplarBermasalah: () => Promise<EksemplarMasalahRow[]>;
 }
 
 const tauriRpc: LaporanRpc = {
@@ -186,19 +256,49 @@ const tauriRpc: LaporanRpc = {
     }),
   backupCloudUpload: (input) =>
     invoke<BackupCloudUploadResult>('backup_cloud_upload', { input }),
+  koleksiDdc: () => invoke<KoleksiDdcRow[]>('laporan_koleksi_ddc'),
+  koleksiDimensi: (dimensi) => invoke<KoleksiDimensiRow[]>('laporan_koleksi_dimensi', { dimensi }),
+  rasioKoleksi: () => invoke<RasioKoleksi>('laporan_rasio_koleksi'),
+  sebaranEksemplar: () => invoke<SebaranEksemplarRow[]>('laporan_sebaran_eksemplar'),
+  pinjamSubjekBulan: (from, to) =>
+    invoke<BulanCountRow[]>('laporan_pinjam_subjek_bulan', { from, to }),
+  pinjamKategoriBulan: (from, to) =>
+    invoke<BulanCountRow[]>('laporan_pinjam_kategori_bulan', { from, to }),
+  kunjunganKelompokBulan: (from, to) =>
+    invoke<BulanCountRow[]>('laporan_kunjungan_kelompok_bulan', { from, to }),
+  turnoverCopy: (from, to, limit) =>
+    invoke<TurnoverCopyRow[]>('laporan_turnover_copy', { from, to, limit }),
+  bukuIdle: (from, to, limit) => invoke<BukuIdleRow[]>('laporan_buku_idle', { from, to, limit }),
+  eksemplarBermasalah: () => invoke<EksemplarMasalahRow[]>('laporan_eksemplar_bermasalah'),
 };
 
-const mockRpc: LaporanRpc = {
-  async grafik(from, to, granularity = 'day') {
+function mockMonthBuckets(from: string, to: string): string[] {
+  const out: string[] = [];
+  const start = new Date(`${from}T00:00:00`);
+  const end = new Date(`${to}T00:00:00`);
+  const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const last = new Date(end.getFullYear(), end.getMonth(), 1);
+  let i = 0;
+  while (cur <= last && i < 60) {
+    out.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`);
+    cur.setMonth(cur.getMonth() + 1);
+    i += 1;
+  }
+  return out;
+}
+
+const mockRpc: LaporanRpc = {  async grafik(from, to, granularity = 'day') {
     const start = new Date(`${from}T00:00:00`);
     const end = new Date(`${to}T00:00:00`);
+    const bucketOf = (d: Date): string =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const result: GrafikBucket[] = [];
     if (granularity === 'day') {
       const cur = new Date(start);
       let i = 0;
       while (cur <= end) {
         result.push({
-          bucket: cur.toISOString().slice(0, 10),
+          bucket: bucketOf(cur),
           kunjungan: 12 + ((i * 5 + 7) % 18),
           peminjaman: 3 + ((i * 3 + 2) % 9),
         });
@@ -441,6 +541,128 @@ const mockRpc: LaporanRpc = {
       stdout: 'mock upload OK',
       stderr: '',
     };
+  },
+  async koleksiDdc() {
+    const seed: Array<[string, string, number, number]> = [
+      ['000', 'Karya Umum', 42, 60],
+      ['100', 'Filsafat & Psikologi', 30, 44],
+      ['200', 'Agama', 120, 180],
+      ['300', 'Ilmu Sosial', 88, 132],
+      ['400', 'Bahasa', 36, 50],
+      ['500', 'Sains', 74, 101],
+      ['600', 'Teknologi', 58, 90],
+      ['700', 'Seni & Olahraga', 26, 38],
+      ['800', 'Sastra', 150, 220],
+      ['900', 'Sejarah & Geografi', 48, 66],
+      ['belum', '', 12, 18],
+    ];
+    return seed.map(([kode, deskripsi, judul, eksemplar]) => ({
+      kode,
+      deskripsi: kode === 'belum' ? null : deskripsi,
+      judul,
+      eksemplar,
+    }));
+  },
+  async koleksiDimensi(dimensi) {
+    const table: Record<KoleksiDimensi, Array<[string, number, number]>> = {
+      kategori: [
+        ['Fiksi', 210, 320],
+        ['Non-Fiksi', 260, 380],
+        ['Referensi', 60, 80],
+        ['Pelajaran', 90, 140],
+      ],
+      bahasa: [
+        ['Indonesia', 420, 640],
+        ['Inggris', 140, 210],
+        ['Arab', 40, 60],
+      ],
+      sumber: [
+        ['BOS', 380, 560],
+        ['Hibah', 120, 200],
+        ['Swadaya', 60, 90],
+      ],
+      material: [
+        ['Buku', 500, 800],
+        ['Serial', 40, 60],
+      ],
+    };
+    return table[dimensi].map(([label, judul, eksemplar]) => ({ label, judul, eksemplar }));
+  },
+  async rasioKoleksi() {
+    return {
+      totalJudul: 684,
+      totalEksemplar: 1020,
+      siswaAktif: 720,
+      guru: 48,
+      tendik: 14,
+    };
+  },
+  async sebaranEksemplar() {
+    return [
+      { bucket: '0', judul: 12 },
+      { bucket: '1', judul: 320 },
+      { bucket: '2-3', judul: 240 },
+      { bucket: '4-5', judul: 80 },
+      { bucket: '6+', judul: 32 },
+    ];
+  },
+  async pinjamSubjekBulan(from, to) {
+    const months = mockMonthBuckets(from, to);
+    const subjects = ['000', '100', '200', '300', '800'];
+    const rows: BulanCountRow[] = [];
+    subjects.forEach((label, si) => {
+      months.forEach((bulan, mi) => {
+        rows.push({ label, bulan, jumlah: 5 + ((si * 3 + mi * 4) % 22) });
+      });
+    });
+    return rows;
+  },
+  async pinjamKategoriBulan(from, to) {
+    const months = mockMonthBuckets(from, to);
+    const cats = ['Fiksi', 'Non-Fiksi', 'Referensi'];
+    const rows: BulanCountRow[] = [];
+    cats.forEach((label, si) => {
+      months.forEach((bulan, mi) => {
+        rows.push({ label, bulan, jumlah: 8 + ((si * 5 + mi * 3) % 30) });
+      });
+    });
+    return rows;
+  },
+  async kunjunganKelompokBulan(from, to) {
+    const months = mockMonthBuckets(from, to);
+    const groups = ['X IPA 1', 'XI IPS 2', '(non-anggota)'];
+    const rows: BulanCountRow[] = [];
+    groups.forEach((label, si) => {
+      months.forEach((bulan, mi) => {
+        rows.push({ label, bulan, jumlah: 20 + ((si * 7 + mi * 6) % 60) });
+      });
+    });
+    return rows;
+  },
+  async turnoverCopy(_from, _to, limit = 200) {
+    const seed = [
+      { kodeEksemplar: '813-HIR-L-02-A-01', judul: 'Laskar Pelangi', status: 'tersedia', jumlah: 9 },
+      { kodeEksemplar: '813-HIR-L-02-A-02', judul: 'Laskar Pelangi', status: 'tersedia', jumlah: 7 },
+      { kodeEksemplar: '899-TOE-B-03-B-01', judul: 'Bumi Manusia', status: 'dipinjam', jumlah: 6 },
+      { kodeEksemplar: '500-CLE-A-01-A-01', judul: 'Atomic Habits', status: 'tersedia', jumlah: 4 },
+      { kodeEksemplar: '200-HAM-T-05-A-01', judul: 'Tenggelamnya Kapal Van Der Wijck', status: 'tersedia', jumlah: 2 },
+      { kodeEksemplar: '004-PRA-F-01-A-01', judul: 'Filosofi Teras', status: 'tersedia', jumlah: 0 },
+    ];
+    return seed.slice(0, limit);
+  },
+  async bukuIdle(_from, _to, limit = 300) {
+    const seed: BukuIdleRow[] = [
+      { bukuId: 1, kode: '004-PRA-F-01-A', judul: 'Filosofi Teras', pengarang: 'Henry Manampiring', jumlahEksemplar: 1, terakhir: null },
+      { bukuId: 2, kode: '500-SAG-S-01-A', judul: 'Sapiens', pengarang: 'Yuval Noah Harari', jumlahEksemplar: 2, terakhir: '2023-04-11' },
+      { bukuId: 3, kode: '900-KOE-C-01-A', judul: 'Sejarah Indonesia Modern', pengarang: 'M. C. Ricklefs', jumlahEksemplar: 1, terakhir: '2022-01-08' },
+    ];
+    return seed.slice(0, limit);
+  },
+  async eksemplarBermasalah() {
+    return [
+      { kodeEksemplar: '800-HIR-L-02-A-03', judul: 'Laskar Pelangi', status: 'rusak' },
+      { kodeEksemplar: '200-HAM-T-05-A-02', judul: 'Tenggelamnya Kapal Van Der Wijck', status: 'hilang' },
+    ];
   },
 };
 

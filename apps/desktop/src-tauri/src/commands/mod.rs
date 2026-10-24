@@ -1,3 +1,4 @@
+pub mod akreditasi;
 pub mod anggota;
 pub mod assets;
 pub mod auth;
@@ -19,6 +20,8 @@ pub mod kunjungan;
 pub mod label_buku;
 pub mod label_buku_export;
 pub mod laporan;
+pub mod laporan_koleksi;
+pub mod laporan_pemanfaatan;
 pub mod master_data;
 pub mod peminjaman;
 pub mod reservasi;

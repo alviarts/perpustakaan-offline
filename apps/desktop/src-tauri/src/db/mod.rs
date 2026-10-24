@@ -91,6 +91,7 @@ pub fn run_migrations(conn: &Connection) -> AppResult<()> {
     conn.execute_batch(SYNC_SQL)?;
     conn.execute_batch(SANDBOX_AUDIT_SQL)?;
     conn.execute_batch(BUKU_PILIHAN_SQL)?;
+    conn.execute_batch(AKREDITASI_SQL)?;
     apply_additive_migrations(conn)?;
     backfill_missing_eksemplar(conn)?;
     seed_master_data(conn)?;
@@ -201,6 +202,67 @@ CREATE TABLE IF NOT EXISTS buku_pilihan (
     FOREIGN KEY (buku_id) REFERENCES buku(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_buku_pilihan_position ON buku_pilihan(position ASC);
+"#;
+
+/// "Akreditasi" module — library jenjang profile (single row, id=1). Holds the
+/// accreditation-specific identity (which jenjang/SNP applies, NPP, SK
+/// pendirian, and the school-year start month used by compliance reports).
+/// General identity (nama, alamat, NPSN, logo) lives in the `settings` table.
+const AKREDITASI_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS akreditasi_profil (
+    id                 INTEGER PRIMARY KEY CHECK (id = 1),
+    jenjang            TEXT,
+    npp                TEXT,
+    sk_pendirian       TEXT,
+    tahun_ajaran_awal  INTEGER NOT NULL DEFAULT 7,
+    catatan            TEXT,
+    updated_at         TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Data akreditasi non-operasional (tenaga, anggaran, sarana) yang tak ada di
+-- tabel inti. Disimpan sebagai JSON blob agar fleksibel lintas jenjang.
+CREATE TABLE IF NOT EXISTS akreditasi_manual (
+    id         INTEGER PRIMARY KEY CHECK (id = 1),
+    data_json  TEXT NOT NULL DEFAULT '{}',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Checklist bukti fisik (legalitas/POS/laporan). `kode` mengacu ke registry
+-- BUKTI_WAJIB di @perpustakaan/shared.
+CREATE TABLE IF NOT EXISTS akreditasi_bukti (
+    kode       TEXT PRIMARY KEY,
+    ada        INTEGER NOT NULL DEFAULT 0,
+    catatan    TEXT,
+    file_path  TEXT,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Jawaban butir penilaian per jenjang. `jawaban` = 'a'|'b'|'c'|'d' (NULL =
+-- belum dijawab). Skor/predikat dihitung di frontend dari katalog instrumen.
+CREATE TABLE IF NOT EXISTS akreditasi_butir (
+    jenjang    TEXT    NOT NULL,
+    komponen   INTEGER NOT NULL,
+    butir      INTEGER NOT NULL,
+    jawaban    TEXT,
+    catatan    TEXT,
+    updated_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (jenjang, komponen, butir)
+);
+
+-- Arsip laporan/buku bukti yang sudah "disahkan" (snapshot immutable):
+-- menyimpan hasil lengkap dalam JSON agar tak berubah saat data bertambah.
+CREATE TABLE IF NOT EXISTS laporan_arsip (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    jenis         TEXT NOT NULL,
+    jenjang       TEXT,
+    periode       TEXT,
+    nilai         REAL,
+    predikat      TEXT,
+    konten_json   TEXT NOT NULL,
+    penandatangan TEXT,
+    jabatan       TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
 "#;
 
 const KTA_SQL: &str = r#"
@@ -653,6 +715,11 @@ fn apply_additive_migrations(conn: &Connection) -> AppResult<()> {
         "INTEGER NOT NULL DEFAULT 0",
     )?;
     add_column_if_missing(conn, "peminjaman", "tanggal_perpanjangan_terakhir", "TEXT")?;
+    // Akreditasi module: member type (siswa|guru|tendik) for rasio tenaga/warga
+    // sekolah + visitor reports, and material type (buku|serial|multimedia|
+    // digital) for per-jenjang collection composition. NULL on existing rows.
+    add_column_if_missing(conn, "anggota", "tipe", "TEXT")?;
+    add_column_if_missing(conn, "buku", "jenis_material", "TEXT")?;
     Ok(())
 }
 
