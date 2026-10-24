@@ -340,6 +340,28 @@ export function StocktakePage() {
       if (session?.status === 'berlangsung') scanRef.current?.focus();
     }, [session?.status, refreshKey]);
 
+    // Checklist manual: tandai satu eksemplar tanpa scan.
+    const markItem = useCallback(
+      async (row: StocktakeItemRow, status: StocktakeItemStatus) => {
+        try {
+          const result = await stocktakeApi.mark({
+            sessionId,
+            eksemplarId: row.eksemplarId,
+            status,
+          });
+          setSession(result.session);
+          setRefreshKey((n) => n + 1);
+        } catch (err) {
+          showToast({
+            variant: 'destructive',
+            title: t('stocktake:feedback.scanError', { defaultValue: 'Gagal menandai' }),
+            description: formatTauriError(err),
+          });
+        }
+      },
+      [sessionId],
+    );
+
     const submitKode = useCallback(
       async (rawKode: string) => {
         const kode = rawKode.trim();
@@ -699,18 +721,21 @@ export function StocktakePage() {
                   <TableHead>{t('stocktake:session.table.pengarang')}</TableHead>
                   <TableHead>{t('stocktake:session.table.status')}</TableHead>
                   <TableHead>{t('stocktake:session.table.tanggalScan')}</TableHead>
+                  <TableHead className="w-24 text-right">
+                    {t('stocktake:session.table.aksi', { defaultValue: 'Aksi' })}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading && items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
                       {t('common:status.loading', { defaultValue: 'Loading...' })}
                     </TableCell>
                   </TableRow>
                 ) : items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
                       {t('stocktake:list.empty')}
                     </TableCell>
                   </TableRow>
@@ -725,6 +750,31 @@ export function StocktakePage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {row.tanggalScan ?? '-'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {session?.status === 'berlangsung' ? (
+                          <label
+                            className="inline-flex cursor-pointer items-center gap-2"
+                            title={t('stocktake:session.checklistHint', {
+                              defaultValue: 'Centang jika fisik ditemukan',
+                            })}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 accent-primary"
+                              checked={row.status === 'ditemukan'}
+                              onChange={(e) =>
+                                void markItem(
+                                  row,
+                                  e.target.checked ? 'ditemukan' : 'belum_scan',
+                                )
+                              }
+                              data-testid={`stocktake-check-${row.eksemplarKode}`}
+                            />
+                          </label>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

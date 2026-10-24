@@ -483,6 +483,112 @@ fn stocktake_item_for(
     .map_err(|e| AppError::Internal(e.to_string()))
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StocktakeMarkInput {
+    pub session_id: i64,
+    pub eksemplar_id: i64,
+    /// `ditemukan` | `tidak_ditemukan` | `belum_scan`
+    pub status: String,
+}
+
+const ALLOWED_MARK_STATUSES: &[&str] = &["ditemukan", "tidak_ditemukan", "belum_scan"];
+
+/// Tandai status satu eksemplar secara manual (checklist), tanpa scan.
+#[tauri::command]
+pub fn stocktake_mark(
+    state: State<'_, AppState>,
+    input: StocktakeMarkInput,
+) -> AppResult<StocktakeScanResult> {
+    let mut conn = state
+        .db
+        .lock()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+
+    if !ALLOWED_MARK_STATUSES.contains(&input.status.as_str()) {
+        return Err(AppError::Validation(format!(
+            "status '{}' tidak valid (ditemukan|tidak_ditemukan|belum_scan)",
+            input.status
+        )));
+    }
+
+    let session_status: Option<String> = conn
+        .query_row(
+            "SELECT status FROM stocktake_session WHERE id = ?1",
+            params![input.session_id],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    let session_status = session_status.ok_or_else(|| {
+        AppError::NotFound(format!("stocktake_session {} not found", input.session_id))
+    })?;
+    if session_status != "berlangsung" {
+        return Err(AppError::Validation(format!(
+            "sesi stocktake sudah {session_status}, tidak bisa diubah"
+        )));
+    }
+
+    let exists: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM eksemplar WHERE id = ?1",
+            params![input.eksemplar_id],
+            |row| row.get(0),
+        )
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    if exists == 0 {
+        return Err(AppError::NotFound(format!(
+            "eksemplar id={} tidak ditemukan",
+            input.eksemplar_id
+        )));
+    }
+
+    let tx = conn
+        .transaction()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    let already = tx
+        .query_row(
+            "SELECT status FROM stocktake_item WHERE session_id = ?1 AND eksemplar_id = ?2",
+            params![input.session_id, input.eksemplar_id],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+
+    let stamp = if input.status == "ditemukan" {
+        "COALESCE(tanggal_scan, datetime('now'))"
+    } else {
+        "NULL"
+    };
+    let updated = tx
+        .execute(
+            &format!(
+                "UPDATE stocktake_item SET status = ?1, tanggal_scan = {stamp} \
+                 WHERE session_id = ?2 AND eksemplar_id = ?3"
+            ),
+            params![input.status, input.session_id, input.eksemplar_id],
+        )
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    if updated == 0 {
+        tx.execute(
+            "INSERT INTO stocktake_item (session_id, eksemplar_id, status, tanggal_scan) \
+             VALUES (?1, ?2, ?3, CASE WHEN ?3 = 'ditemukan' THEN datetime('now') ELSE NULL END)",
+            params![input.session_id, input.eksemplar_id, input.status],
+        )
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    }
+    tx.commit()
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+
+    let item = stocktake_item_for(&conn, input.session_id, input.eksemplar_id)?;
+    let session = load_session(&conn, input.session_id)?;
+    Ok(StocktakeScanResult {
+        item,
+        already_scanned: already.as_deref() == Some("ditemukan"),
+        session,
+    })
+}
+
 #[tauri::command]
 pub fn stocktake_finish(
     state: State<'_, AppState>,

@@ -300,6 +300,7 @@ pub fn run() {
             commands::stocktake::stocktake_session_get,
             commands::stocktake::stocktake_item_list,
             commands::stocktake::stocktake_scan,
+            commands::stocktake::stocktake_mark,
             commands::stocktake::stocktake_finish,
             commands::stocktake::stocktake_session_delete,
             commands::surat::surat_check_eligibility,
