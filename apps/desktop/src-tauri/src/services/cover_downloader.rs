@@ -1,50 +1,93 @@
 ﻿/// Cover image downloader and storage service
 use std::path::{Path, PathBuf};
 use std::fs;
+use std::io::Read;
 use crate::error::AppError;
 
-/// Download cover image from URL and save to local storage
-/// Returns the local file path
+const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+                  (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+/// Some WAF-protected hosts (e.g. JAKLITERA) drop connections that carry a full
+/// Chrome UA but accept this bare one.
+const UA_SIMPLE: &str = "Mozilla/5.0";
+
+/// Some providers answer HTTP 200 with a tiny placeholder (Open Library and
+/// Amazon both return a ~43-byte GIF/JPEG when a cover is missing). Anything
+/// below this threshold is treated as "no cover".
+const MIN_COVER_BYTES: usize = 2048;
+
+/// Fetch raw image bytes. Retries with a bare User-Agent (some hosts drop
+/// connections that carry a full Chrome UA) and uses the platform TLS stack,
+/// because rustls rejects servers that close without `close_notify`.
+fn fetch_bytes(url: &str) -> Result<Vec<u8>, AppError> {
+    let connector = ureq::native_tls::TlsConnector::new()
+        .map_err(|e| AppError::Internal(format!("TLS init failed: {e}")))?;
+    let agent = ureq::builder()
+        .tls_connector(std::sync::Arc::new(connector))
+        .timeout(std::time::Duration::from_secs(30))
+        .build();
+
+    let mut last = AppError::NotFound("cover fetch failed".to_string());
+    for ua in [UA, UA_SIMPLE] {
+        match agent
+            .get(url)
+            .set("User-Agent", ua)
+            .set("Accept", "image/avif,image/webp,image/jpeg,image/png,*/*;q=0.8")
+            .call()
+        {
+            Ok(resp) => {
+                let mut bytes = Vec::new();
+                match resp.into_reader().read_to_end(&mut bytes) {
+                    Ok(_) if bytes.len() >= MIN_COVER_BYTES => return Ok(bytes),
+                    Ok(_) => {
+                        last = AppError::NotFound(format!(
+                            "cover placeholder too small ({} bytes)",
+                            bytes.len()
+                        ))
+                    }
+                    Err(e) => last = AppError::Internal(format!("read body: {e}")),
+                }
+            }
+            Err(e) => last = AppError::Internal(format!("HTTP error: {e}")),
+        }
+    }
+    Err(last)
+}
+
+/// Download cover image from URL and save to local storage.
+/// Returns the local file path. Rejects placeholder images.
 pub fn download_cover(cover_url: &str, isbn: &str, covers_dir: &Path) -> Result<PathBuf, AppError> {
     // Create covers directory if not exists
     fs::create_dir_all(covers_dir)
         .map_err(|e| AppError::Internal(format!("Failed to create covers directory: {}", e)))?;
 
-    // Determine file extension from URL
-    let extension = if cover_url.contains(".jpg") || cover_url.contains("jpeg") {
-        "jpg"
-    } else if cover_url.contains(".png") {
-        "png"
-    } else if cover_url.contains(".webp") {
-        "webp"
-    } else {
-        "jpg" // default
-    };
-
-    let filename = format!("{}.{}", isbn, extension);
-    let file_path = covers_dir.join(&filename);
-
     // Skip if already downloaded
-    if file_path.exists() {
-        return Ok(file_path);
+    let existing = covers_dir.join(format!("{}.jpg", isbn));
+    if existing.exists() {
+        return Ok(existing);
     }
 
     // Download image
-    let response = ureq::get(cover_url)
-        .timeout(std::time::Duration::from_secs(30))
-        .call()
-        .map_err(|e| AppError::Internal(format!("Failed to download cover: {}", e)))?;
+    let bytes = fetch_bytes(cover_url)?;
 
-    // Read image bytes
-    let mut bytes = Vec::new();
-    response
-        .into_reader()
-        .read_to_end(&mut bytes)
-        .map_err(|e| AppError::Internal(format!("Failed to read cover data: {}", e)))?;
+    if bytes.len() < MIN_COVER_BYTES {
+        return Err(AppError::NotFound(format!(
+            "cover placeholder too small ({} bytes)",
+            bytes.len()
+        )));
+    }
 
     // Validate image (try to decode)
     let img = image::load_from_memory(&bytes)
         .map_err(|e| AppError::Internal(format!("Invalid image data: {}", e)))?;
+
+    // Reject near-empty images (e.g. 1x1 px placeholders).
+    if img.width() < 40 || img.height() < 40 {
+        return Err(AppError::NotFound(format!(
+            "cover too small ({}x{})",
+            img.width(),
+            img.height()
+        )));
+    }
 
     // Save as JPEG (compressed, smaller file size)
     let output_path = covers_dir.join(format!("{}.jpg", isbn));
@@ -52,6 +95,37 @@ pub fn download_cover(cover_url: &str, isbn: &str, covers_dir: &Path) -> Result<
         .map_err(|e| AppError::Internal(format!("Failed to save cover: {}", e)))?;
 
     Ok(output_path)
+}
+
+/// Try each candidate URL in order and return the first valid cover.
+///
+/// Providers frequently lack a cover (or answer with a placeholder), so the
+/// caller passes several sources — the first one that yields a real image wins.
+pub fn download_cover_with_fallbacks(
+    isbn: &str,
+    candidates: &[String],
+    covers_dir: &Path,
+) -> Result<PathBuf, AppError> {
+    let existing = covers_dir.join(format!("{}.jpg", isbn));
+    if existing.exists() {
+        return Ok(existing);
+    }
+
+    let mut last_err = AppError::NotFound("no cover candidates".to_string());
+    for url in candidates {
+        let url = url.trim();
+        if url.is_empty() {
+            continue;
+        }
+        match download_cover(url, isbn, covers_dir) {
+            Ok(path) => return Ok(path),
+            Err(e) => {
+                log::info!("cover candidate failed ({url}): {e}");
+                last_err = e;
+            }
+        }
+    }
+    Err(last_err)
 }
 
 /// Get cover path if exists, otherwise return None
@@ -95,6 +169,21 @@ mod tests {
         let path = result.unwrap();
         assert!(path.exists());
         assert_eq!(path.extension().unwrap(), "jpg");
+    }
+
+    #[test]
+    fn fallback_errors_without_candidates() {
+        let temp_dir = tempdir().unwrap();
+        let result = download_cover_with_fallbacks("0000000000", &[], temp_dir.path());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn fallback_skips_blank_candidates() {
+        let temp_dir = tempdir().unwrap();
+        let candidates = vec!["".to_string(), "   ".to_string()];
+        let result = download_cover_with_fallbacks("0000000000", &candidates, temp_dir.path());
+        assert!(result.is_err());
     }
 
     #[test]
