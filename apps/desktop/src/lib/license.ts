@@ -26,7 +26,7 @@ const MACHINE_KEY = 'perpustakaan.machine.id';
 
 /** Web App URL (bisa dioverride dari Pengaturan). */
 export const DEFAULT_ACTIVATION_URL =
-  'https://script.google.com/macros/s/AKfycbxIEBiCM6WSLFmnpjJobxINR8SvpHgRpr4v1hIyBrJVP_mb2YtVzSidwPxOdF78Yhfamg/exec';
+  'https://script.google.com/macros/s/AKfycbySODQa1DMBhgn5I_YiLjwlhqH3upSN2_VNrz1qJW8TBxbT12TFTqYp2mdFGshy4kOT1w/exec';
 
 export interface LicensePayload {
   v: number;
