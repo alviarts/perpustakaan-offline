@@ -13,6 +13,8 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.3.4] - 2026-10-24
+
 ### Added
 
 - **Cover buku selalu diusahakan ada** — saat impor via ISBN, cover dicari
