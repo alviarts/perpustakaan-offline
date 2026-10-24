@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as IzinRouteImport } from './routes/izin'
 import { Route as AktivasiRouteImport } from './routes/aktivasi'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
@@ -75,6 +76,11 @@ import { Route as AuthedAkreditasiArsipRouteImport } from './routes/_authed/akre
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IzinRoute = IzinRouteImport.update({
+  id: '/izin',
+  path: '/izin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AktivasiRoute = AktivasiRouteImport.update({
@@ -393,6 +399,7 @@ const AuthedAkreditasiArsipRoute = AuthedAkreditasiArsipRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aktivasi': typeof AktivasiRoute
+  '/izin': typeof IzinRoute
   '/login': typeof LoginRoute
   '/akreditasi': typeof AuthedAkreditasiRouteWithChildren
   '/dashboard': typeof AuthedDashboardRoute
@@ -456,6 +463,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aktivasi': typeof AktivasiRoute
+  '/izin': typeof IzinRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/kunjungan': typeof AuthedKunjunganRoute
@@ -518,6 +526,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
   '/aktivasi': typeof AktivasiRoute
+  '/izin': typeof IzinRoute
   '/login': typeof LoginRoute
   '/_authed/akreditasi': typeof AuthedAkreditasiRouteWithChildren
   '/_authed/dashboard': typeof AuthedDashboardRoute
@@ -583,6 +592,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/aktivasi'
+    | '/izin'
     | '/login'
     | '/akreditasi'
     | '/dashboard'
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/aktivasi'
+    | '/izin'
     | '/login'
     | '/dashboard'
     | '/kunjungan'
@@ -707,6 +718,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authed'
     | '/aktivasi'
+    | '/izin'
     | '/login'
     | '/_authed/akreditasi'
     | '/_authed/dashboard'
@@ -772,6 +784,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
   AktivasiRoute: typeof AktivasiRoute
+  IzinRoute: typeof IzinRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -782,6 +795,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/izin': {
+      id: '/izin'
+      path: '/izin'
+      fullPath: '/izin'
+      preLoaderRoute: typeof IzinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aktivasi': {
@@ -1372,6 +1392,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
   AktivasiRoute: AktivasiRoute,
+  IzinRoute: IzinRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
