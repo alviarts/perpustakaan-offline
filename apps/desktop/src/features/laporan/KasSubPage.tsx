@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChartPie } from '@/components/shared/ChartPie';
 import { useToast } from '@/components/ui/toast-manager';
 import { laporanApi, toCsv, type KasRow, type KasSummary } from '@/lib/laporan';
+import { exportXlsx } from '@/lib/exportExcel';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
 import { formatTauriError } from '@/lib/errors';
@@ -96,6 +97,16 @@ export function LaporanKas() {
     downloadText(csv, `laporan-kas-${range.from}_${range.to}.csv`, 'text/csv');
   }
 
+  async function handleExportExcel(): Promise<void> {
+    if (!data) return;
+    await exportXlsx({
+      filename: `laporan-kas-${range.from}_${range.to}.xlsx`,
+      sheetName: 'Kas',
+      headers: ['Tanggal', 'Keterangan', 'Jenis', 'Sumber', 'Nominal'],
+      rows: data.rows.map((r) => [r.tanggal, r.keterangan, r.jenis, r.sumber, r.nominal]),
+    });
+  }
+
   function handleExportPdf(): void {
     if (!data) return;
     const html = buildLaporanPdfHtml({
@@ -120,6 +131,7 @@ export function LaporanKas() {
         range={range}
         onRangeChange={setRange}
         onExportCsv={handleExportCsv}
+        onExportExcel={handleExportExcel}
         onExportPdf={handleExportPdf}
         exportDisabled={!data || data.rows.length === 0}
       />

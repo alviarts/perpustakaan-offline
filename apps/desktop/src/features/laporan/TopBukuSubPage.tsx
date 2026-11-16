@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChartBar } from '@/components/shared/ChartBar';
 import { useToast } from '@/components/ui/toast-manager';
 import { laporanApi, toCsv, type TopBukuRow } from '@/lib/laporan';
+import { exportXlsx } from '@/lib/exportExcel';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
 import { formatTauriError } from '@/lib/errors';
@@ -48,6 +49,15 @@ export function LaporanTopBuku() {
     downloadText(csv, `laporan-top-buku-${range.from}_${range.to}.csv`, 'text/csv');
   }
 
+  async function handleExportExcel(): Promise<void> {
+    await exportXlsx({
+      filename: `laporan-top-buku-${range.from}_${range.to}.xlsx`,
+      sheetName: 'Top Buku',
+      headers: ['#', 'Kode', 'Judul', 'Pengarang', 'Jumlah'],
+      rows: rows.map((r, i) => [i + 1, r.kode, r.judul, r.pengarang ?? '-', r.jumlah]),
+    });
+  }
+
   function handleExportPdf(): void {
     const html = buildLaporanPdfHtml({
       title: t('laporan:topBuku.title', { defaultValue: 'Top Buku' }),
@@ -66,6 +76,7 @@ export function LaporanTopBuku() {
         range={range}
         onRangeChange={setRange}
         onExportCsv={handleExportCsv}
+        onExportExcel={handleExportExcel}
         onExportPdf={handleExportPdf}
         exportDisabled={rows.length === 0}
       />

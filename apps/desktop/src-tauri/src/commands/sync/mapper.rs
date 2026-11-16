@@ -887,8 +887,10 @@ mod tests {
 
     #[test]
     fn from_cells_pads_missing_columns_with_empty_strings() {
-        let partial = vec!["X0001".to_string(), "Foo".to_string()];
+        // ANGGOTA_HEADER starts with `id`, then `kode_anggota`, `nama`, …
+        let partial = vec!["7".to_string(), "X0001".to_string(), "Foo".to_string()];
         let row = AnggotaRow::from_cells(&partial);
+        assert_eq!(row.id, 7);
         assert_eq!(row.kode_anggota, "X0001");
         assert_eq!(row.nama, "Foo");
         assert_eq!(row.kelas, "");

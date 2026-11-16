@@ -14,6 +14,7 @@ import { KunjunganBackdrop } from './KunjunganBackdrop';
 import { KunjunganQuickStatsBar } from './QuickStats';
 import { KunjunganDialog } from './KunjunganDialog';
 import { formatTauriError } from '@/lib/errors';
+import { ExportExcelButton } from '@/components/shared/ExportExcelButton';
 
 const SUMBER_TONE: Record<KunjunganRow['sumber'], string> = {
   manual: 'bg-primary/10 text-primary',
@@ -95,10 +96,27 @@ export function KunjunganPage() {
             })}
           </p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} data-testid="kunjungan-add">
-          <Plus className="mr-2 h-4 w-4" />
-          {t('kunjungan:action.add', { defaultValue: 'Tambah Kunjungan' })}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportExcelButton
+            filename={`kunjungan-${range.from}_${range.to}`}
+            sheetName="Kunjungan"
+            headers={[
+              'Tanggal', 'Jam', 'Nama', 'Kode', 'Kelas', 'Keperluan', 'Sumber',
+              'Jumlah Orang', 'Catatan',
+            ]}
+            rows={rows}
+            toRow={(r) => [
+              r.tanggal, r.jam, r.anggotaNama ?? '', r.anggotaKode ?? '',
+              r.kelas ?? r.anggotaKelas ?? '', r.keperluan ?? '', r.sumber,
+              r.jumlahOrang, r.catatan ?? '',
+            ]}
+            data-testid="kunjungan-export-excel"
+          />
+          <Button onClick={() => setDialogOpen(true)} data-testid="kunjungan-add">
+            <Plus className="mr-2 h-4 w-4" />
+            {t('kunjungan:action.add', { defaultValue: 'Tambah Kunjungan' })}
+          </Button>
+        </div>
       </div>
 
       <KunjunganQuickStatsBar refreshKey={refreshKey} />

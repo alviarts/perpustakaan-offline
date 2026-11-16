@@ -12,6 +12,11 @@
 📱 **[Download APK Android →](https://github.com/alviarts/perpustakaan-offline/releases/latest)**
 📖 **[Manual pengguna lengkap →](docs/manual.md)**
 
+> **Baru di v1.4.0:** pilih layout/warna tema saat pertama menjalankan aplikasi,
+> transisi halaman halus ala macOS, ekspor Excel di semua daftar & laporan,
+> editor Advanced untuk label barcode, pemilih kamera pada pemindai ISBN, dan
+> notifikasi hitung mundur trial. Lihat [CHANGELOG.md](CHANGELOG.md) untuk detail lengkap.
+
 ---
 
 ## 🎯 Untuk Siapa Aplikasi Ini?
@@ -36,7 +41,9 @@ otomatis ke USB / Google Drive.
 
 - Master data buku + cover + klasifikasi DDC + kategori + bahasa.
 - **Bulk import dari Excel / CSV** + **bulk import via ISBN** (Open Library + Google Books, fallback offline).
-- Cetak label barcode per eksemplar (single atau batch, format Code-128).
+- **Bulk ekspor ke Excel (.xlsx)** dari daftar buku.
+- Cetak label barcode per eksemplar (single atau batch, format Code-128) dengan **editor template Advanced** (posisi, layer, duplikat field).
+- Pemindai ISBN kini bisa memilih **sumber kamera** bila lebih dari satu tersedia.
 - Filter, sort, dan **pencarian fuzzy** (Ctrl+K, palette global).
 - **Buku Pilihan / Featured** — admin pin sampai 5 buku untuk carousel di OPAC.
 
@@ -46,7 +53,7 @@ otomatis ke USB / Google Drive.
 <summary><b>👥 Anggota</b></summary>
 
 - Master data anggota + foto + KTA per anggota.
-- **Bulk import Excel / CSV** dengan mode "perbarui anggota yang sudah ada".
+- **Bulk import & ekspor Excel / CSV** dengan mode "perbarui anggota yang sudah ada".
 - **Naik kelas batch** (akhir tahun ajaran) + **Surat Bebas Pustaka (SBP)** otomatis.
 - **Cetak KTA** single atau batch dari **20+ template** desain (front + back editor visual).
 - **Sinkronisasi Google Sheets** dua-arah (last-write-wins, optional).
@@ -69,13 +76,25 @@ otomatis ke USB / Google Drive.
 <details open>
 <summary><b>📊 Dashboard & Laporan</b></summary>
 
-- **Real-time KPI** (clickable): Total Anggota, Total Buku, Buku Dipinjam.
+- **Real-time KPI** (clickable): Total Anggota, Total Buku, Buku Dipinjam — dihitung langsung dari data perpustakaan (bukan angka demo).
 - **Trend chart** 30/90/365 hari + **heatmap kalender** aktivitas.
 - **Insight cards**: Buku Terlaris, Peminjam Teraktif (clickable ke detail).
 - **Quote-of-the-day** rotasi 2 menit + tombol manual next.
 - **System Health card** — ukuran DB, backup terakhir, reservasi tertunda, versi.
 - **Laporan Top Peminjam, Top Buku, Grafik Kunjungan, Kas** (auto dari denda).
 - **Laporan Eksekutif PDF** 3-halaman (cover + KPI / charts / action items) buat rapat bulanan.
+
+</details>
+
+<details open>
+<summary><b>🎨 Tampilan, Trial & Lisensi</b></summary>
+
+- **Pilih Tampilan** saat pertama kali aplikasi dijalankan: 3 layout
+  (Klasik/Ringkas/Modern) + 5 warna tema, semuanya tombol; bisa diubah di
+  Pengaturan → Tampilan.
+- **Transisi halaman halus** saat berpindah fitur (menghormati *Reduce Motion*).
+- **Trial 30 hari** dengan badge hitung mundur di header; setelah habis aplikasi
+  terkunci permanen sampai dimasukkan kode aktivasi Ed25519.
 
 </details>
 

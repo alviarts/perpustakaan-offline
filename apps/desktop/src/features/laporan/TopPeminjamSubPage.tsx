@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChartBar } from '@/components/shared/ChartBar';
 import { useToast } from '@/components/ui/toast-manager';
 import { laporanApi, toCsv, type TopPeminjamRow } from '@/lib/laporan';
+import { exportXlsx } from '@/lib/exportExcel';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
 import { formatTauriError } from '@/lib/errors';
@@ -48,6 +49,15 @@ export function LaporanTopPeminjam() {
     downloadText(csv, `laporan-top-peminjam-${range.from}_${range.to}.csv`, 'text/csv');
   }
 
+  async function handleExportExcel(): Promise<void> {
+    await exportXlsx({
+      filename: `laporan-top-peminjam-${range.from}_${range.to}.xlsx`,
+      sheetName: 'Top Peminjam',
+      headers: ['#', 'Nama', 'Kode', 'Kelas', 'Pinjam', 'Buku'],
+      rows: rows.map((r, i) => [i + 1, r.nama, r.kodeAnggota, r.kelas ?? '-', r.jumlahPinjam, r.jumlahBuku]),
+    });
+  }
+
   function handleExportPdf(): void {
     const html = buildLaporanPdfHtml({
       title: t('laporan:topPeminjam.title', { defaultValue: 'Top Peminjam' }),
@@ -66,6 +76,7 @@ export function LaporanTopPeminjam() {
         range={range}
         onRangeChange={setRange}
         onExportCsv={handleExportCsv}
+        onExportExcel={handleExportExcel}
         onExportPdf={handleExportPdf}
         exportDisabled={rows.length === 0}
       />

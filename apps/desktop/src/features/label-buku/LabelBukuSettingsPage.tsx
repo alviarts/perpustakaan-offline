@@ -1,7 +1,14 @@
-import { LayoutGrid, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { LayoutGrid, Pencil, Plus, SlidersHorizontal, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast-manager';
@@ -14,6 +21,7 @@ import {
   type LabelBukuTemplate,
 } from '@/lib/labelBuku';
 import { useIdentityStore } from '@/stores/identityStore';
+import { LabelBukuPreview } from './LabelBukuPreview';
 import { PresetGallery } from './PresetGallery';
 import type { LabelBukuPreset } from './presets';
 import { TemplateEditor } from './TemplateEditor';
@@ -29,6 +37,7 @@ export function LabelBukuSettingsPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const sample = useMemo(() => defaultBukuSample(), []);
 
   useEffect(() => {
@@ -206,11 +215,59 @@ export function LabelBukuSettingsPage() {
             </div>
           </div>
 
-          <TemplateEditor
-            layout={layout}
-            onChange={setLayout}
-            preview={{ buku: sample, identity }}
-          />
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-4">
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold">
+                {t('settings.advancedTitle', { defaultValue: 'Label (ukuran fleksibel)' })}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('settings.advancedHint', {
+                  defaultValue:
+                    'Atur ukuran label, posisi teks, kode, dan barcode/QR. Klik Advanced untuk mengedit layout manual.',
+                })}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setAdvancedOpen(true)}
+              data-testid="label-buku-open-advanced"
+            >
+              <SlidersHorizontal className="size-4 mr-1" />
+              {t('settings.openAdvanced', { defaultValue: 'Advanced (layout manual)' })}
+            </Button>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t('settings.previewLabel', { defaultValue: 'Pratinjau' })}
+            </p>
+            <div className="flex items-center justify-center rounded-md bg-muted/40 p-6 overflow-auto">
+              <LabelBukuPreview layout={layout} buku={sample} identity={identity} scale={2.2} />
+            </div>
+          </div>
+
+          <Dialog open={advancedOpen} onOpenChange={setAdvancedOpen}>
+            <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {t('settings.advancedDialogTitle', {
+                    defaultValue: 'Advanced — Layout Manual Label Buku',
+                  })}
+                </DialogTitle>
+                <DialogDescription>
+                  {t('settings.advancedDialogHint', {
+                    defaultValue:
+                      'Ubah posisi, ukuran, dan isi setiap elemen label. Perubahan langsung terlihat pada pratinjau.',
+                  })}
+                </DialogDescription>
+              </DialogHeader>
+              <TemplateEditor
+                layout={layout}
+                onChange={setLayout}
+                preview={{ buku: sample, identity }}
+              />
+            </DialogContent>
+          </Dialog>
 
           <div className="flex items-center justify-end gap-2">
             {active && !active.isDefault && (

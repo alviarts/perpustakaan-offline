@@ -12,7 +12,13 @@
     "fieldDescription": "Deskripsi",
     "save": "Simpan",
     "delete": "Hapus",
-    "setDefault": "Jadikan Default"
+    "setDefault": "Jadikan Default",
+    "advancedTitle": "Label (ukuran fleksibel)",
+    "advancedHint": "Atur ukuran label, posisi teks, kode, dan barcode/QR. Klik Advanced untuk mengedit layout manual.",
+    "openAdvanced": "Advanced (layout manual)",
+    "previewLabel": "Pratinjau",
+    "advancedDialogTitle": "Advanced — Layout Manual Label Buku",
+    "advancedDialogHint": "Ubah posisi, ukuran, dan isi setiap elemen label. Perubahan langsung terlihat pada pratinjau."
   },
   "gallery": {
     "open": "Galeri Template",

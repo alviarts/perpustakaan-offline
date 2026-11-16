@@ -36,7 +36,7 @@ test.describe('peminjaman happy path (browser dev mode)', () => {
   test('shows validation errors on empty submit', async ({ page }) => {
     await page.goto('/peminjaman/new');
     await page.getByTestId('peminjaman-submit').click();
-    await expect(page.getByText(/Pilih anggota/i)).toBeVisible();
-    await expect(page.getByText(/Pilih minimal 1 buku/i)).toBeVisible();
+    await expect(page.getByText('Pilih anggota terlebih dahulu').first()).toBeVisible();
+    await expect(page.getByText('Pilih minimal 1 buku')).toBeVisible();
   });
 });

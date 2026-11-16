@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { ProfilDialog } from '@/features/profile/ProfilDialog';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
 import { OverdueBell } from '@/components/layout/OverdueBell';
+import { TrialBadge } from '@/features/license/TrialBadge';
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'common:menu.dashboard',
@@ -167,6 +168,7 @@ export function Header() {
 
       {/* Global search trigger — opens the cmdk command palette (Ctrl+K). */}
       <div className="ml-auto flex items-center gap-2">
+        <TrialBadge />
         <button
           type="button"
           onClick={() => setSearchOpen(true)}

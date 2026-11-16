@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-manager';
 import { laporanApi, toCsv, type GrafikBucket, type Granularity } from '@/lib/laporan';
+import { exportXlsx } from '@/lib/exportExcel';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { buildLaporanPdfHtml, downloadText, printHtml } from './utils';
 import { formatTauriError } from '@/lib/errors';
@@ -53,6 +54,15 @@ export function LaporanGrafik() {
     downloadText(csv, `laporan-grafik-${range.from}_${range.to}.csv`, 'text/csv');
   }
 
+  async function handleExportExcel(): Promise<void> {
+    await exportXlsx({
+      filename: `laporan-grafik-${range.from}_${range.to}.xlsx`,
+      sheetName: 'Grafik Aktivitas',
+      headers: ['Periode', 'Kunjungan', 'Peminjaman'],
+      rows: data.map((d) => [d.bucket, d.kunjungan, d.peminjaman]),
+    });
+  }
+
   function handleExportPdf(): void {
     const html = buildLaporanPdfHtml({
       title: t('laporan:grafik.title', { defaultValue: 'Grafik Aktivitas' }),
@@ -75,6 +85,7 @@ export function LaporanGrafik() {
         range={range}
         onRangeChange={setRange}
         onExportCsv={handleExportCsv}
+        onExportExcel={handleExportExcel}
         onExportPdf={handleExportPdf}
         exportDisabled={data.length === 0}
       />

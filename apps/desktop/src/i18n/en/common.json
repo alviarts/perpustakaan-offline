@@ -16,6 +16,10 @@
     "export": "Export",
     "import": "Import"
   },
+  "license": {
+    "trialBadge": "Trial · {{days}} days left",
+    "trialTooltip": "The {{total}}-day trial ends on {{date}}. Click to activate."
+  },
   "titleBar": {
     "minimize": "Minimize",
     "maximize": "Maximize",

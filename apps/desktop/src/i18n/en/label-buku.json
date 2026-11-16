@@ -12,7 +12,13 @@
     "fieldDescription": "Description",
     "save": "Save",
     "delete": "Delete",
-    "setDefault": "Set as Default"
+    "setDefault": "Set as Default",
+    "advancedTitle": "Label (flexible size)",
+    "advancedHint": "Set label size and the position of text, codes, and barcode/QR. Click Advanced for manual layout editing.",
+    "openAdvanced": "Advanced (manual layout)",
+    "previewLabel": "Preview",
+    "advancedDialogTitle": "Advanced — Manual Layout for Book Labels",
+    "advancedDialogHint": "Change the position, size, and content of each label element. Changes appear in the preview immediately."
   },
   "gallery": {
     "open": "Template Gallery",

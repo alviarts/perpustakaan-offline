@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Select,
@@ -9,9 +9,13 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-manager';
 import { useThemeStore, type Theme } from '@/stores/themeStore';
+import { AppearancePicker } from '@/features/appearance/AppearancePicker';
+import { applyAppearance } from '@/lib/appearance';
 import {
   DEFAULT_CLOSE_BEHAVIOR,
   DEFAULT_DISPLAY_PREFS,
+  type AccentColor,
+  type AppLayout,
   type CloseBehavior,
   type DisplayPrefs,
   settingsApi,
@@ -21,23 +25,23 @@ import { FieldRow, SettingsSection } from './SettingsSection';
 const FONT_SCALES = [0.85, 0.9, 1.0, 1.1, 1.2, 1.3];
 
 function applyDisplayPrefs(prefs: DisplayPrefs): void {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  root.style.setProperty('--app-font-scale', String(prefs.fontScale));
-  root.style.fontSize = `${prefs.fontScale * 100}%`;
-  root.dataset.density = prefs.density;
+  applyAppearance(prefs);
 }
 
 export function TampilanPage(): JSX.Element {
   const { t } = useTranslation('settings');
   const { showToast } = useToast();
   const { theme, setTheme } = useThemeStore();
-  const [prefs, setPrefs] = React.useState<DisplayPrefs>(DEFAULT_DISPLAY_PREFS);
-  const [closeBehavior, setCloseBehavior] = React.useState<CloseBehavior>(
+  const [prefs, setPrefs] = useState<DisplayPrefs>(DEFAULT_DISPLAY_PREFS);
+  const [closeBehavior, setCloseBehavior] = useState<CloseBehavior>(
     DEFAULT_CLOSE_BEHAVIOR,
   );
+  const prefsRef = useRef(prefs);
+  useEffect(() => {
+    prefsRef.current = prefs;
+  }, [prefs]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     settingsApi.getDisplayPrefs().then((p) => {
       setPrefs(p);
       applyDisplayPrefs(p);
@@ -59,6 +63,7 @@ export function TampilanPage(): JSX.Element {
   };
 
   const handleSavePrefs = async (next: DisplayPrefs): Promise<void> => {
+    prefsRef.current = next;
     setPrefs(next);
     applyDisplayPrefs(next);
     try {
@@ -70,6 +75,13 @@ export function TampilanPage(): JSX.Element {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleAppearanceChange = (next: { layout?: AppLayout; accent?: AccentColor }) => {
+    // Merge dari ref agar klik beruntun (layout + aksen) tidak saling timpa.
+    const merged: DisplayPrefs = { ...prefsRef.current, ...next };
+    prefsRef.current = merged;
+    void handleSavePrefs(merged);
   };
 
   const handleReset = async (): Promise<void> => {
@@ -170,6 +182,23 @@ export function TampilanPage(): JSX.Element {
               : t('sections.tampilan.closeBehavior.exitHint', {
                   defaultValue: 'Aplikasi benar-benar keluar dari Task Manager.',
                 })}
+          </p>
+        </FieldRow>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <FieldRow
+          label={t('sections.tampilan.fields.layout', { defaultValue: 'Tata letak' })}
+        >
+          <AppearancePicker
+            value={{ layout: prefs.layout, accent: prefs.accent }}
+            onChange={handleAppearanceChange}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t('sections.tampilan.fields.layoutHint', {
+              defaultValue:
+                'Tiga gaya shell (Klasik / Ringkas / Modern) + warna tema — tersimpan otomatis.',
+            })}
           </p>
         </FieldRow>
       </div>

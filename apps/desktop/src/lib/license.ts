@@ -22,6 +22,8 @@ MCowBQYDK2VwAyEA3OoGzyyJNPoZehrV5Gp34xAD6hXkZCqA26em93J76WI=
 export const TRIAL_DAYS = 30;
 const LS_STATE = 'perpustakaan.license.v1';
 const LS_TRIAL_START = 'perpustakaan.trial.start';
+/** Penanda permanen bahwa trial pernah dipakai di perangkat ini. */
+const LS_TRIAL_USED = 'perpustakaan.trial.used';
 const MACHINE_KEY = 'perpustakaan.machine.id';
 
 /** Web App URL (bisa dioverride dari Pengaturan). */
@@ -103,10 +105,26 @@ export function trialStart(): Date {
   const now = new Date();
   try {
     s?.setItem(LS_TRIAL_START, now.toISOString());
+    // Marker ini sengaja terpisah: menghapus `trial.start` saja TIDAK boleh
+    // menyebabkan trial 30 hari dimulai ulang.
+    s?.setItem(LS_TRIAL_USED, '1');
   } catch {
     // ignore
   }
   return now;
+}
+
+/** True bila trial pernah dijalankan di perangkat ini. */
+export function trialEverStarted(): boolean {
+  const s = storage();
+  return s?.getItem(LS_TRIAL_USED) === '1';
+}
+
+/** Tanggal berakhirnya trial (30 hari setelah hari pertama pemakaian). */
+export function trialEndsAt(): Date {
+  const end = trialStart();
+  end.setDate(end.getDate() + TRIAL_DAYS);
+  return end;
 }
 
 export function trialDaysLeft(now: Date = new Date()): number {
@@ -118,6 +136,13 @@ export function trialDaysLeft(now: Date = new Date()): number {
 
 export function readLicenseState(): LicenseState {
   const saved = readJson<LicenseState>(LS_STATE);
+
+  // Lisensi yang sudah kedaluwarsa / trial yang sudah terkunci bersifat final.
+  // Jangan pernah jatuh lagi ke mode trial hanya karena state dihapus.
+  if (saved?.status === 'kedaluwarsa' || saved?.status === 'terkunci') {
+    return saved;
+  }
+
   if (saved?.status === 'aktif' && saved.expires) {
     const exp = new Date(`${saved.expires}T23:59:59`);
     if (!Number.isNaN(exp.getTime()) && new Date() > exp) {
@@ -125,6 +150,13 @@ export function readLicenseState(): LicenseState {
     }
     return saved;
   }
+
+  // Trial START dihapus tetapi penanda pemakaian masih ada → tidak boleh
+  // memulai trial baru.
+  if (trialEverStarted() && !storage()?.getItem(LS_TRIAL_START)) {
+    return { status: 'terkunci' };
+  }
+
   const left = trialDaysLeft();
   return { status: left > 0 ? 'trial' : 'terkunci' };
 }

@@ -741,7 +741,7 @@ mod tests {
         // items with status='dipinjam', not headers).
         conn.execute(
             "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, tanggal_jatuh_tempo, status)
-             VALUES (printf('P%010d', abs(random())), ?1, date('now'), date('now', '+7 days'), 'dipinjam')",
+             VALUES (printf('P%010d', abs(random())), ?1, date('now', 'localtime'), date('now', 'localtime', '+7 days'), 'dipinjam')",
             params![anggota_id],
         )
         .expect("insert peminjaman header");
@@ -836,7 +836,7 @@ mod tests {
         // We push it through `date(?2)` so all three forms work.
         conn.execute(
             "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, tanggal_jatuh_tempo, status)
-             VALUES (printf('P%010d', abs(random())), ?1, date(?2), date(?2, '+7 days'), 'dipinjam')",
+             VALUES (printf('P%010d', abs(random())), ?1, date(?2, 'localtime'), date(?2, 'localtime', '+7 days'), 'dipinjam')",
             params![anggota_id, tanggal_pinjam],
         )
         .expect("insert peminjaman header");

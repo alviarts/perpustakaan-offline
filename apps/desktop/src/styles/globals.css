@@ -68,6 +68,85 @@
   }
 }
 
+/*
+ * Warna aksen (dipilih saat onboarding awal / Settings → Tampilan).
+ * Hanya menimpa `--primary` / `--ring`; warna lain tetap mengikuti tema
+ * terang/gelap. `biru` = default (tanpa override).
+ */
+:root[data-accent='hijau'] {
+  --primary: 142 71% 45%;
+  --ring: 142 71% 45%;
+}
+:root[data-accent='hijau'].dark {
+  --primary: 143 64% 40%;
+  --ring: 143 64% 40%;
+}
+:root[data-accent='ungu'] {
+  --primary: 262 83% 58%;
+  --ring: 262 83% 58%;
+}
+:root[data-accent='ungu'].dark {
+  --primary: 263 70% 60%;
+  --ring: 263 70% 60%;
+}
+:root[data-accent='oranye'] {
+  --primary: 24 95% 53%;
+  --ring: 24 95% 53%;
+}
+:root[data-accent='oranye'].dark {
+  --primary: 28 90% 55%;
+  --ring: 28 90% 55%;
+}
+:root[data-accent='mawar'] {
+  --primary: 346 84% 61%;
+  --ring: 346 84% 61%;
+}
+:root[data-accent='mawar'].dark {
+  --primary: 346 77% 62%;
+  --ring: 346 77% 62%;
+}
+
+/*
+ * Variasi layout (dipilih saat onboarding awal / Settings → Tampilan).
+ *
+ * - klasik : sidebar lebar 240px dengan label + tagline (bawaan).
+ * - ringkas: sidebar 64px, ikon saja, tagline hilang, nav lebih padat
+ *            (AppShell mengatur state collapsed awalnya).
+ * - modern : sidebar TETAP lebar dengan label, latar bernuansa warna aksen,
+ *            item nav berbentuk pill dan item aktif penuh warna aksen.
+ */
+:root[data-layout='ringkas'] [data-testid='sidebar'] .sidebar-tagline {
+  display: none;
+}
+:root[data-layout='ringkas'] [data-testid='sidebar'] nav a {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  border-radius: 0.5rem;
+}
+:root[data-layout='ringkas'] [data-testid='sidebar'] nav {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+:root[data-layout='modern'] [data-testid='sidebar'] {
+  background: hsl(var(--primary) / 0.06);
+  border-right-color: hsl(var(--primary) / 0.2);
+}
+:root[data-layout='modern'] [data-testid='sidebar'] nav a {
+  border-radius: 9999px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+:root[data-layout='modern'] [data-testid='sidebar'] a[aria-current='page'] {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.25);
+}
+:root[data-layout='modern'] [data-testid='sidebar'] .sidebar-brand-icon {
+  border-radius: 9999px;
+}
+
 @layer base {
   * {
     @apply border-border;

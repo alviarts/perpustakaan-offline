@@ -4,6 +4,7 @@ import { Heart, Plus, ThumbsUp, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ExportExcelButton } from '@/components/shared/ExportExcelButton';
 import {
   Dialog,
   DialogContent,
@@ -154,6 +155,20 @@ export function WishlistAdminPage(): React.ReactElement {
           <p className="text-sm text-muted-foreground">{t('wishlist:subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <ExportExcelButton
+            filename={`wishlist-${new Date().toISOString().slice(0, 10)}`}
+            sheetName="Wishlist"
+            headers={[
+              'Anggota', 'Kode Anggota', 'Judul', 'Pengarang', 'ISBN', 'Alasan',
+              'Status', 'Upvote', 'Catatan Admin', 'Dibuat',
+            ]}
+            rows={rows}
+            toRow={(r) => [
+              r.anggotaNama, r.anggotaKode, r.judul, r.pengarang ?? '', r.isbn ?? '',
+              r.alasan ?? '', r.status, r.upvoteCount, r.catatanAdmin ?? '', r.createdAt,
+            ]}
+            data-testid="wishlist-export-excel"
+          />
           <Select value={filter} onValueChange={(v) => setFilter(v as StatusFilter)}>
             <SelectTrigger className="w-44" data-testid="wishlist-filter">
               <SelectValue />

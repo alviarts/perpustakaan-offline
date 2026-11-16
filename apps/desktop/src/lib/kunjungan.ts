@@ -194,28 +194,36 @@ const mockRpc: KunjunganRpc = {
 
 export const kunjunganApi: KunjunganRpc = isTauri() ? tauriRpc : mockRpc;
 
+/** Format a Date as local YYYY-MM-DD (never UTC — see rangeForPreset). */
+function toLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function rangeForPreset(
   preset: 'today' | 'week' | 'month' | 'year',
 ): { from: string; to: string } {
   const now = new Date();
-  const to = now.toISOString().slice(0, 10);
+  const to = toLocalDate(now);
   switch (preset) {
     case 'today':
       return { from: to, to };
     case 'week': {
       const d = new Date(now);
       d.setDate(d.getDate() - 6);
-      return { from: d.toISOString().slice(0, 10), to };
+      return { from: toLocalDate(d), to };
     }
     case 'month': {
       const d = new Date(now);
       d.setDate(1);
-      return { from: d.toISOString().slice(0, 10), to };
+      return { from: toLocalDate(d), to };
     }
     case 'year': {
       const d = new Date(now);
       d.setMonth(0, 1);
-      return { from: d.toISOString().slice(0, 10), to };
+      return { from: toLocalDate(d), to };
     }
   }
 }

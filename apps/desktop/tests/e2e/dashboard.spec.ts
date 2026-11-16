@@ -24,6 +24,25 @@ test.describe('dashboard page', () => {
     await expect(cards).toHaveCount(3);
   });
 
+  test('total anggota KPI follows the real anggota list (no hardcoded 128)', async ({ page }) => {
+    const readKpi = async (): Promise<number> => {
+      await page.goto('/dashboard');
+      const text = await page.getByTestId('kpi-card').first().innerText();
+      return Number.parseInt(text.match(/\d+/)?.[0] ?? '0', 10);
+    };
+
+    const before = await readKpi();
+    expect(before).not.toBe(128);
+
+    await page.goto('/anggota/new');
+    await page.getByTestId('field-kodeAnggota').fill('KPICHECK1');
+    await page.getByTestId('field-nama').fill('Cek KPI Anggota');
+    await page.getByTestId('form-submit').click();
+
+    const after = await readKpi();
+    expect(after).toBe(before + 1);
+  });
+
   test('renders donut and bar charts', async ({ page }) => {
     await expect(page.getByTestId('chart-pie')).toBeVisible();
     await expect(page.getByTestId('chart-bar')).toBeVisible();

@@ -2,8 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// @ts-expect-error - .mjs file outside the desktop workspace, no type defs
-import { extractSection, normalizeVersion } from '../../../../scripts/extract-changelog.mjs';
+// Load the real script through Node's native ESM loader via a `data:` URL.
+// Vite's transform pipeline chokes on the script's `#!/usr/bin/env node`
+// shebang on Windows (SyntaxError: Invalid or unexpected token at the import
+// site), while Node handles both the shebang and the data URL natively. We
+// strip the shebang from the __read__ bytes only — the file on disk is
+// untouched, so the tests still lock the true source contract.
+const _MODULE_SOURCE = readFileSync(
+  resolve(__dirname, '../../../..', 'scripts/extract-changelog.mjs'),
+  'utf8',
+).replace(/^#!.*\r?\n/, '');
+const { extractSection, normalizeVersion } = await import(
+  'data:text/javascript;base64,' + Buffer.from(_MODULE_SOURCE).toString('base64'),
+);
 
 /**
  * Guard for `scripts/extract-changelog.mjs`. The CI release-v2 job feeds the

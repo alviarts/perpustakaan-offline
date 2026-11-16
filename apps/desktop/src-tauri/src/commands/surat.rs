@@ -468,7 +468,7 @@ mod tests {
     fn seed_active_loan(conn: &Connection, anggota_id: i64, buku_id: i64) -> i64 {
         conn.execute(
             "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, tanggal_jatuh_tempo, status, total_denda, total_bayar) \
-             VALUES ('P-001', ?1, date('now'), date('now', '+7 days'), 'dipinjam', 0, 0)",
+             VALUES ('P-001', ?1, date('now', 'localtime'), date('now', 'localtime', '+7 days'), 'dipinjam', 0, 0)",
             params![anggota_id],
         )
         .expect("seed peminjaman header");
@@ -485,7 +485,7 @@ mod tests {
     fn seed_paid_loan(conn: &Connection, anggota_id: i64, denda: i64, bayar: i64) {
         conn.execute(
             "INSERT INTO peminjaman (nomor_pinjam, anggota_id, tanggal_pinjam, tanggal_jatuh_tempo, status, total_denda, total_bayar) \
-             VALUES ('P-002', ?1, date('now'), date('now', '+7 days'), 'dikembalikan', ?2, ?3)",
+             VALUES ('P-002', ?1, date('now', 'localtime'), date('now', 'localtime', '+7 days'), 'dikembalikan', ?2, ?3)",
             params![anggota_id, denda, bayar],
         )
         .expect("seed paid loan");

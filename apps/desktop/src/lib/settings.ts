@@ -57,14 +57,24 @@ const LOAN_RULES_KEYS = {
 
 export type Density = 'compact' | 'comfortable';
 
+/** Gaya tata letak shell (dipilih saat onboarding awal / Settings → Tampilan). */
+export type AppLayout = 'klasik' | 'ringkas' | 'modern';
+
+/** Warna aksen tema (--primary / --ring). */
+export type AccentColor = 'biru' | 'hijau' | 'ungu' | 'oranye' | 'mawar';
+
 export interface DisplayPrefs {
   fontScale: number; // 0.8..1.4
   density: Density;
+  layout: AppLayout;
+  accent: AccentColor;
 }
 
 export const DEFAULT_DISPLAY_PREFS: DisplayPrefs = {
   fontScale: 1.0,
   density: 'comfortable',
+  layout: 'klasik',
+  accent: 'biru',
 };
 
 // ---------------------------------------------------------------------------
@@ -494,7 +504,9 @@ const mockApi: SettingsApi = {
   },
 
   async getDisplayPrefs() {
-    return readMock<DisplayPrefs>(MOCK_KEYS.display, DEFAULT_DISPLAY_PREFS);
+    // Merge with defaults so installs saved before `layout`/`accent`
+    // existed still get sane values.
+    return { ...DEFAULT_DISPLAY_PREFS, ...readMock<Partial<DisplayPrefs>>(MOCK_KEYS.display, {}) };
   },
   async saveDisplayPrefs(prefs) {
     writeMock(MOCK_KEYS.display, prefs);
@@ -764,13 +776,20 @@ const tauriApi: SettingsApi = {
   async getDisplayPrefs() {
     const { invoke } = await import('@tauri-apps/api/core');
     const rows = await invoke<Record<string, string>>('settings_get_many', {
-      keys: ['ui.font_scale', 'ui.density'],
+      keys: ['ui.font_scale', 'ui.density', 'ui.layout', 'ui.accent'],
     });
     const fontScale = parseFloat(rows['ui.font_scale'] ?? '');
     const density = (rows['ui.density'] ?? '') as Density;
+    const layout = (rows['ui.layout'] ?? '') as AppLayout;
+    const accent = (rows['ui.accent'] ?? '') as AccentColor;
+    const validLayouts: AppLayout[] = ['klasik', 'ringkas', 'modern'];
+    const validAccents: AccentColor[] = ['biru', 'hijau', 'ungu', 'oranye', 'mawar'];
     return {
-      fontScale: Number.isFinite(fontScale) && fontScale > 0 ? fontScale : DEFAULT_DISPLAY_PREFS.fontScale,
+      fontScale:
+        Number.isFinite(fontScale) && fontScale > 0 ? fontScale : DEFAULT_DISPLAY_PREFS.fontScale,
       density: density === 'compact' || density === 'comfortable' ? density : DEFAULT_DISPLAY_PREFS.density,
+      layout: validLayouts.includes(layout) ? layout : DEFAULT_DISPLAY_PREFS.layout,
+      accent: validAccents.includes(accent) ? accent : DEFAULT_DISPLAY_PREFS.accent,
     };
   },
   async saveDisplayPrefs(prefs) {
@@ -779,6 +798,8 @@ const tauriApi: SettingsApi = {
       entries: {
         'ui.font_scale': String(prefs.fontScale),
         'ui.density': prefs.density,
+        'ui.layout': prefs.layout,
+        'ui.accent': prefs.accent,
       },
     });
     return prefs;

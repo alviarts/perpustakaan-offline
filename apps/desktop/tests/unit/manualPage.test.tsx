@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, expect, it, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
@@ -58,12 +58,16 @@ describe('ManualPage', () => {
     const search = screen.getByTestId('manual-search');
     await user.type(search, 'Login');
     const toc = screen.getByTestId('manual-toc');
-    const buttons = within(toc).getAllByRole('button');
-    // Every visible TOC entry should mention "login" (case-insensitive).
-    for (const btn of buttons) {
-      expect(btn.textContent?.toLowerCase()).toContain('login');
-    }
-  });
+    // Filtering can be debounced — wait until it has applied.
+    await waitFor(() => {
+      const buttons = within(toc).getAllByRole('button');
+      expect(buttons.length).toBeGreaterThan(0);
+      // Every visible TOC entry should mention "login" (case-insensitive).
+      for (const btn of buttons) {
+        expect(btn.textContent?.toLowerCase()).toContain('login');
+      }
+    });
+  }, 20_000);
 
   it(
     'shows an empty-state message when the search has no matches',

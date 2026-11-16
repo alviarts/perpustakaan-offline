@@ -11,6 +11,7 @@ import { calculateDenda, peminjamanApi, type PeminjamanDetail, type PeminjamanRo
 import { formatTauriError } from '@/lib/errors';
 import { DEFAULT_LOAN_RULES, settingsApi, type LoanRules } from '@/lib/settings';
 import { DendaQuickPresetRow } from '@/components/shared/DendaQuickPresetRow';
+import { ExportExcelButton } from '@/components/shared/ExportExcelButton';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -145,15 +146,31 @@ export function PengembalianPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6" data-testid="pengembalian-page">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {t('peminjaman:pengembalian.title', { defaultValue: 'Pengembalian' })}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t('peminjaman:pengembalian.subtitle', {
-            defaultValue: 'Cari peminjaman aktif lalu pilih item yang dikembalikan',
-          })}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            {t('peminjaman:pengembalian.title', { defaultValue: 'Pengembalian' })}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t('peminjaman:pengembalian.subtitle', {
+              defaultValue: 'Cari peminjaman aktif lalu pilih item yang dikembalikan',
+            })}
+          </p>
+        </div>
+        <ExportExcelButton
+          filename={`pengembalian-${todayIso()}`}
+          sheetName="Pengembalian"
+          headers={[
+            'No. Pinjam', 'Anggota', 'Kode Anggota', 'Tanggal Pinjam', 'Jatuh Tempo',
+            'Status', 'Total Item', 'Denda (Rp)', 'Dibayar (Rp)',
+          ]}
+          rows={results}
+          toRow={(r) => [
+            r.nomorPinjam, r.anggotaNama, r.anggotaKode, r.tanggalPinjam, r.tanggalJatuhTempo,
+            r.status, r.totalItem, r.totalDenda, r.totalBayar,
+          ]}
+          data-testid="pengembalian-export-excel"
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

@@ -13,6 +13,44 @@ back to GitHub's auto-generated release notes.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-17
+
+### Added
+
+- **Pilih Tampilan saat instalasi awal** — 3 layout (Klasik, Ringkas, Modern)
+  dan 5 warna tema, semuanya berupa tombol. Preferensi tersimpan dan juga bisa
+  diubah kapan saja lewat Pengaturan → Tampilan. Layout kini benar-benar
+  berbeda: Ringkas menyisakan ikon, Modern memakai sidebar bernuansa aksen
+  dengan pill aktif.
+- **Transisi halaman ala macOS** — fade + sedikit geser saat berpindah fitur,
+  otomatis mati bila sistem mengatur *Reduce Motion*.
+- **Ekspor Excel di seluruh fitur** — tombol Ekspor Excel ditambahkan ke
+  Peminjaman, Pengembalian, Kunjungan, Reservasi, Wishlist, dan Buku.
+  Semua laporan kini punya ekspor Excel (termasuk Pemanfaatan & Eksekutif).
+  Wizard impor Excel tersedia di Anggota & Buku dengan template, mapping kolom,
+  preview, dan laporan error.
+- **Editor template Label Buku/barcode setara KTA** — tombol **Advanced
+  (layout manual)** membuka popup editor penuh; field bisa diurutkan,
+  diduplikat, dan diberi nama jenis yang ramah.
+- **Pemilih kamera di pemindai ISBN** — dropdown sumber kamera saat memindai
+  barcode ISBN (selain Sirkulasi & KTA yang sudah memilikinya).
+- **Notifikasi trial** — badge hitung mundur "Trial · N hari tersisa" di
+  header, kuning saat ≤7 hari, klik menuju Aktivasi. Setelah habis, trial
+  bersifat final dan tidak bisa diulang/diperpanjang.
+
+### Changed
+
+- KPI dashboard tidak lagi memakai angka demo (128/412/24). Total Anggota,
+  Buku, Eksemplar, Dipinjam, DDC, Top Peminjam/Buku, dan kunjungan 7 hari
+  kini dihitung dari data yang sebenarnya.
+
+### Fixed
+
+- Ekspor Anggota di mode browser tidak lagi memanggil perintah Tauri yang
+  tidak tersedia (fallback unduh langsung).
+- State sidebar tidak lagi tertinggal saat mengganti layout.
+- Angka KPI dashboard kini konsisten dengan daftar Anggota yang sebenarnya.
+
 ## [1.3.6] - 2026-10-24
 
 ### Added

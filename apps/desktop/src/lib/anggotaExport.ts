@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { save as saveDialog } from '@tauri-apps/plugin-dialog';
 
 import { isTauri } from '@/lib/auth';
+import { triggerDownload } from '@/lib/importWizard';
 import { anggotaApi, type Anggota, type AnggotaListArgs } from '@/lib/anggota';
 
 export interface AnggotaExportRow {
@@ -124,24 +125,27 @@ export async function runAnggotaExport(
   const bytes = buildAnggotaWorkbookBytes(items);
 
   const defaultName = defaultExportFilename();
-  let target: string;
-  if (isTauri()) {
-    const picked = await saveDialog({
-      defaultPath: defaultName,
-      filters: [{ name: 'Excel', extensions: ['xlsx'] }],
-      title: 'Ekspor Anggota ke Excel',
-    });
-    if (!picked) return null;
-    target = picked;
-  } else {
-    // Browser-mode fallback — used by Vitest. Just return a synthetic path.
-    target = `/tmp/${defaultName}`;
+
+  // Browser/dev mode (Vitest, `pnpm dev`): there is no Tauri dialog nor
+  // `export_write_bytes` command, so fall back to a plain anchor download.
+  // Calling `invoke()` here used to throw (`__TAURI_INTERNALS__ undefined`)
+  // even though the workbook itself was built successfully.
+  if (!isTauri()) {
+    triggerDownload(defaultName, bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    return { path: defaultName, count: items.length, bytes: bytes.length };
   }
 
+  const picked = await saveDialog({
+    defaultPath: defaultName,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+    title: 'Ekspor Anggota ke Excel',
+  });
+  if (!picked) return null;
+
   const written = await invoke<number>('export_write_bytes', {
-    destPath: target,
+    destPath: picked,
     bytes: Array.from(bytes),
   });
 
-  return { path: target, count: items.length, bytes: written };
+  return { path: picked, count: items.length, bytes: written };
 }

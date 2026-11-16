@@ -7,7 +7,9 @@ import {
   BookOpenText,
   ChevronLeft,
   ChevronRight,
+  Download,
   FileSpreadsheet,
+  Loader2,
   Pencil,
   Plus,
   Printer,
@@ -28,6 +30,7 @@ import {
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { bukuApi, type Buku, type BukuDetail } from '@/lib/buku';
+import { runBukuExport } from '@/lib/bukuExport';
 import { masterDataApi, type MasterItem } from '@/lib/masterData';
 import { assetsApi } from '@/lib/assets';
 import { hurufJudul, kodePengarang } from '@/lib/labelBuku';
@@ -151,6 +154,7 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
   const [kategoriOptions, setKategoriOptions] = useState<MasterItem[]>([]);
   const [bahasaOptions, setBahasaOptions] = useState<MasterItem[]>([]);
   const [importOpen, setImportOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [isbnImportOpen, setIsbnImportOpen] = useState(false);
   const [detail, setDetail] = useState<BukuDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -215,6 +219,38 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  const handleExport = useCallback(async (): Promise<void> => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const res = await runBukuExport({
+        query: debouncedQuery,
+        kategori: search.kategori || undefined,
+        bahasa: search.bahasa || undefined,
+        sortBy: sort?.key ?? 'judul',
+        sortDir: sort?.dir,
+      });
+      if (!res) return; // user cancelled the save dialog
+      showToast({
+        title: t('buku:feedback.exportSuccess', {
+          defaultValue: 'Ekspor selesai: {{count}} buku.',
+          count: res.count,
+        }),
+        description: res.path,
+      });
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('buku:feedback.exportError', {
+          defaultValue: 'Gagal mengekspor buku.',
+        }),
+        description: formatTauriError(err),
+      });
+    } finally {
+      setExporting(false);
+    }
+  }, [exporting, debouncedQuery, search.kategori, search.bahasa, sort, showToast, t]);
 
   useEffect(() => {
     void Promise.all([
@@ -316,6 +352,21 @@ export function BukuList({ search, onSearchChange }: BukuListProps) {
           <Button variant="outline" onClick={() => setImportOpen(true)} data-testid="buku-import">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             {t('buku:list.import')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => void handleExport()}
+            disabled={exporting}
+            data-testid="buku-export"
+          >
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {exporting
+              ? t('buku:list.exportBusy', { defaultValue: 'Mengekspor…' })
+              : t('buku:list.export', { defaultValue: 'Ekspor Excel' })}
           </Button>
           <Button
             variant="outline"

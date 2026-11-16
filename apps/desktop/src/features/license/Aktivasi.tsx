@@ -87,7 +87,9 @@ export function Aktivasi() {
                   state.expires ? ` · berlaku s.d. ${state.expires}` : ''
                 }`
               : locked
-                ? 'Masa trial sudah berakhir. Masukkan kode aktivasi untuk melanjutkan.'
+                ? state.status === 'kedaluwarsa' && state.expires
+                  ? `Lisensi sudah kedaluwarsa (${state.expires}). Masukkan kode aktivasi baru untuk melanjutkan.`
+                  : 'Masa trial 30 hari sudah berakhir dan tidak dapat diulang atau diperpanjang. Masukkan kode aktivasi untuk melanjutkan.'
                 : `Mode trial: ${daysLeft} dari ${TRIAL_DAYS} hari tersisa.`}
           </p>
         </div>

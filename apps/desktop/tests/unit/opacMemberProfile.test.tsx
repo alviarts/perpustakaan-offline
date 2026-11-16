@@ -80,7 +80,11 @@ describe('OpacMemberProfile', () => {
   });
 
   it('shows active loans with overdue badge when past due date', async () => {
-    const yesterday = new Date(Date.now() - 86_400_000 * 3).toISOString().slice(0, 10);
+    // Due date = 3 local days ago (use local date parts — `toISOString()`
+    // would shift the day in UTC+ timezones before 07:00 local).
+    const due = new Date();
+    due.setDate(due.getDate() - 3);
+    const dueLocal = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
     (peminjamanApi.anggotaLoanHistory as Mock).mockResolvedValue({
       ...baseHistory,
       history: [
@@ -88,7 +92,7 @@ describe('OpacMemberProfile', () => {
           peminjamanId: 1,
           nomorPinjam: 'PJ-001',
           tanggalPinjam: '2025-01-01',
-          tanggalJatuhTempo: yesterday,
+          tanggalJatuhTempo: dueLocal,
           status: 'dipinjam',
           totalItem: 1,
           totalDenda: 0,

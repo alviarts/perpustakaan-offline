@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,9 @@ interface Props {
   onChange: (next: LabelBukuLayout) => void;
   preview: { buku: BukuSample; identity: LibraryIdentity };
 }
+
+const fieldLabel = (kind: LabelBukuFieldKind): string =>
+  FIELD_KINDS.find((k) => k.value === kind)?.label ?? kind;
 
 const FIELD_KINDS: { value: LabelBukuFieldKind; label: string }[] = [
   { value: 'static', label: 'Teks Statis' },
@@ -82,6 +85,30 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
     if (selectedId === id) setSelectedId(null);
   };
 
+  /** Render order = array order; memindah slot mengubah layer depan/belakang. */
+  const moveField = (id: string, dir: -1 | 1): void => {
+    const idx = layout.fields.findIndex((f) => f.id === id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= layout.fields.length) return;
+    const next = [...layout.fields];
+    const item = next[idx];
+    if (!item) return;
+    next.splice(idx, 1);
+    next.splice(target, 0, item);
+    onChange({ ...layout, fields: next });
+  };
+
+  const duplicateField = (id: string): void => {
+    const idx = layout.fields.findIndex((f) => f.id === id);
+    const source = layout.fields[idx];
+    if (!source) return;
+    const copy = { ...source, id: `f-${Date.now()}`, x: source.x + 3, y: source.y + 3 };
+    const next = [...layout.fields];
+    next.splice(idx + 1, 0, copy);
+    onChange({ ...layout, fields: next });
+    setSelectedId(copy.id);
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="rounded-lg border border-border bg-muted/40 p-6">
@@ -111,33 +138,89 @@ export function TemplateEditor({ layout, onChange, preview }: Props) {
             </Button>
           </div>
           <ul className="space-y-1 max-h-56 overflow-auto">
-            {layout.fields.map((f) => (
+            {layout.fields.map((f, idx) => (
               <li
                 key={f.id}
                 className={`flex items-center justify-between rounded-md px-2 py-1.5 text-sm cursor-pointer ${
                   selectedId === f.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
                 }`}
                 onClick={() => setSelectedId(f.id)}
+                data-testid={`label-buku-field-row-${f.id}`}
               >
                 <span className="truncate">
-                  <span className="text-xs uppercase tracking-wide opacity-60 mr-2">{f.kind}</span>
+                  <span className="text-xs uppercase tracking-wide opacity-60 mr-2">
+                    {fieldLabel(f.kind)}
+                  </span>
                   {f.kind === 'static' ? f.text : f.id}
                 </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeField(f.id);
-                      }}
-                      aria-label="Hapus field"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>Hapus field</TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-0.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          moveField(f.id, -1);
+                        }}
+                        disabled={idx === 0}
+                        aria-label="Pindah ke atas"
+                        data-testid={`label-buku-field-up-${f.id}`}
+                      >
+                        <ArrowUp className="size-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Pindah ke atas</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          moveField(f.id, 1);
+                        }}
+                        disabled={idx === layout.fields.length - 1}
+                        aria-label="Pindah ke bawah"
+                        data-testid={`label-buku-field-down-${f.id}`}
+                      >
+                        <ArrowDown className="size-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Pindah ke bawah</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateField(f.id);
+                        }}
+                        aria-label="Duplikat field"
+                        data-testid={`label-buku-field-duplicate-${f.id}`}
+                      >
+                        <Copy className="size-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Duplikat field</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeField(f.id);
+                        }}
+                        aria-label="Hapus field"
+                        data-testid={`label-buku-field-remove-${f.id}`}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Hapus field</TooltipContent>
+                  </Tooltip>
+                </div>
               </li>
             ))}
           </ul>

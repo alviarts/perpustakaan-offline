@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookMarked, CalendarClock, Plus, RotateCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ExportExcelButton } from '@/components/shared/ExportExcelButton';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -277,6 +278,21 @@ export function ReservasiPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <ExportExcelButton
+            filename={`reservasi-${new Date().toISOString().slice(0, 10)}`}
+            sheetName="Reservasi"
+            headers={[
+              'Anggota', 'Kode Anggota', 'Judul Buku', 'Kode Buku', 'Urutan',
+              'Status', 'Slot Rak', 'Tanggal Request', 'Siap Diambil', 'Kedaluwarsa', 'Catatan',
+            ]}
+            rows={rows}
+            toRow={(r) => [
+              r.anggotaNama, r.anggotaKode, r.bukuJudul, r.bukuKode, r.urutan,
+              r.status, r.slotRak ?? '', r.tanggalRequest, r.tanggalSiapDiambil ?? '',
+              r.expiredAt ?? '', r.catatan ?? '',
+            ]}
+            data-testid="reservasi-export-excel"
+          />
           <Select value={filter} onValueChange={(v) => setFilter(v as FilterValue)}>
             <SelectTrigger className="w-44" data-testid="reservasi-filter">
               <SelectValue placeholder={t('reservasi:filter.all')} />

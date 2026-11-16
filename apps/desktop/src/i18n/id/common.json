@@ -16,6 +16,10 @@
     "export": "Ekspor",
     "import": "Impor"
   },
+  "license": {
+    "trialBadge": "Trial · {{days}} hari tersisa",
+    "trialTooltip": "Masa trial {{total}} hari berakhir {{date}}. Klik untuk mengaktifkan."
+  },
   "titleBar": {
     "minimize": "Minimalkan",
     "maximize": "Maksimalkan",

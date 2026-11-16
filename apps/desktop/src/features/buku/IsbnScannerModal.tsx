@@ -63,6 +63,11 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraAttempt, setCameraAttempt] = useState(0);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  // Ref dipakai oleh effect scanner supaya mengganti kamera tidak perlu
+  // menambahkan `selectedDeviceId` ke deps (yang akan memicu restart loop).
+  const selectedDeviceRef = useRef<string | null>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
   // Render the freshly-downloaded local cover via a data URL. The `asset://`
@@ -101,6 +106,7 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         setCameraError(null);
 
         const videoInputDevices = await codeReader.listVideoInputDevices();
+        setDevices(videoInputDevices);
         if (videoInputDevices.length === 0) {
           setCameraError(
             'Kamera tidak terdeteksi. Pastikan kamera terpasang dan izin akses kamera diizinkan.',
@@ -109,14 +115,18 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
           return;
         }
 
-        // Use first camera (usually back camera on mobile)
-        const firstDevice = videoInputDevices[0];
-        if (!firstDevice) {
+        // Pakai kamera yang dipilih pengguna; fallback ke kamera pertama.
+        const preferred = videoInputDevices.find(
+          (d) => d.deviceId === selectedDeviceRef.current,
+        );
+        const chosen = preferred ?? videoInputDevices[0];
+        if (!chosen) {
           setCameraError('Tidak dapat mengakses kamera. Coba reset pengaturan kamera.');
           setIsScanning(false);
           return;
         }
-        const selectedDeviceId = firstDevice.deviceId;
+        selectedDeviceRef.current = chosen.deviceId;
+        setSelectedDeviceId(chosen.deviceId);
 
         if (!videoRef.current) {
           setCameraError('Kamera belum siap. Coba reset pengaturan kamera.');
@@ -125,7 +135,7 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
         }
 
         await codeReader.decodeFromVideoDevice(
-          selectedDeviceId,
+          chosen.deviceId,
           videoRef.current,
           async (result) => {
             if (!result) return;
@@ -217,6 +227,15 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
     onClose();
   };
 
+  // Ganti sumber kamera. Stream lama di-reset oleh cleanup effect, lalu effect
+  // dijalankan ulang dengan `deviceId` baru lewat `cameraAttempt`.
+  const handleDeviceChange = (deviceId: string): void => {
+    selectedDeviceRef.current = deviceId;
+    setSelectedDeviceId(deviceId);
+    setCameraError(null);
+    setCameraAttempt((n) => n + 1);
+  };
+
   // Re-request camera access and restart the scanner. Useful when the user
   // accidentally denied the permission or the OS camera setting is off.
   const handleResetCamera = async () => {
@@ -297,7 +316,31 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
 
           {/* Scanner / Manual Input */}
           {scanMode === 'camera' ? (
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+            <div className="space-y-2">
+              {devices.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <label
+                    htmlFor="isbn-camera-select"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Kamera
+                  </label>
+                  <select
+                    id="isbn-camera-select"
+                    data-testid="isbn-camera-select"
+                    value={selectedDeviceId ?? ''}
+                    onChange={(e) => handleDeviceChange(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  >
+                    {devices.map((d) => (
+                      <option key={d.deviceId} value={d.deviceId}>
+                        {d.label || `Kamera ${d.deviceId.slice(0, 6)}…`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
               <video
                 ref={videoRef}
                 className="w-full h-full object-cover"
@@ -342,6 +385,7 @@ export function IsbnScannerModal({ isOpen, onClose, onBookFound }: IsbnScannerMo
                   </button>
                 </div>
               )}
+              </div>
             </div>
           ) : (
             <div className="space-y-4">

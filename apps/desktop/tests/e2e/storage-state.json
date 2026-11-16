@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:1420",
+      "localStorage": [
+        {
+          "name": "perpustakaan.permissions.done",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

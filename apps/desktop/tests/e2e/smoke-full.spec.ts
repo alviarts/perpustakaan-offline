@@ -73,7 +73,9 @@ test.describe('smoke-full happy path (browser dev mode)', () => {
 
     // --- Pengembalian list ------------------------------------------------
     await page.goto('/pengembalian');
-    await expect(page.getByRole('heading', { name: /Pengembalian/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Pengembalian', exact: true }),
+    ).toBeVisible();
 
     // --- Laporan: layout + sub pages -------------------------------------
     await page.goto('/laporan');

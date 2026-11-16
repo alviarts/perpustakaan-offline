@@ -1,5 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '@/lib/auth';
+import { anggotaApi } from '@/lib/anggota';
+import { bukuApi } from '@/lib/buku';
+import { peminjamanApi } from '@/lib/peminjaman';
+import { kunjunganApi } from '@/lib/kunjungan';
 
 export interface DashboardKpi {
   totalAnggota: number;
@@ -123,64 +127,129 @@ function pctDelta(current: number, previous: number): number {
   return ((current - previous) / previous) * 100;
 }
 
+/** Hitung delta bulan ini vs bulan lalu dari tanggal pada data nyata. */
+function monthDeltas(dates: string[]): [number, number] {
+  const now = new Date();
+  const startThis = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const startPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+  let thisMonth = 0;
+  let prevMonth = 0;
+  for (const raw of dates) {
+    const t = new Date(raw).getTime();
+    if (Number.isNaN(t)) continue;
+    if (t >= startThis) thisMonth += 1;
+    else if (t >= startPrev) prevMonth += 1;
+  }
+  return [pctDelta(thisMonth, prevMonth), thisMonth];
+}
+
 const mockRpc: DashboardRpc = {
   async kpi() {
+    // KPI harus konsisten dengan daftar Anggota/Buku/Peminjaman. Sebelumnya
+    // angka hardcode (128/412/24) membuat dashboard tidak cocok dengan data
+    // yang sebenarnya tersimpan di mock storage.
+    const [anggota, buku, pinjam] = await Promise.all([
+      anggotaApi.list({ aktif: true, limit: 10_000 }),
+      bukuApi.list({ limit: 10_000 }),
+      peminjamanApi.list({ limit: 10_000 }),
+    ]);
+    const totalAnggota = anggota.items.length;
+    const totalBuku = buku.items.length;
+    const totalEksemplar = buku.items.reduce(
+      (sum, b) => sum + (b.jumlahEksemplar ?? 0),
+      0,
+    );
+    const bukuDipinjam = pinjam.items.reduce(
+      (sum, p) => sum + (p.status === 'dipinjam' ? p.itemDipinjam : 0),
+      0,
+    );
+    const [deltaAnggotaPct] = monthDeltas(anggota.items.map((a) => a.createdAt));
+    const [deltaBukuPct] = monthDeltas(buku.items.map((b) => b.createdAt));
+    const [deltaPinjamPct] = monthDeltas(pinjam.items.map((p) => p.tanggalPinjam));
     return {
-      totalAnggota: 128,
-      totalBuku: 412,
-      totalEksemplar: 1843,
-      bukuDipinjam: 24,
-      deltaAnggotaPct: pctDelta(128, 120),
-      deltaBukuPct: pctDelta(412, 401),
-      deltaPinjamPct: pctDelta(24, 18),
+      totalAnggota,
+      totalBuku,
+      totalEksemplar,
+      bukuDipinjam,
+      deltaAnggotaPct,
+      deltaBukuPct,
+      deltaPinjamPct,
     };
   },
   async ddc() {
-    const seed: Array<[string, number]> = [
-      ['0', 32],
-      ['1', 18],
-      ['2', 64],
-      ['3', 121],
-      ['4', 22],
-      ['5', 88],
-      ['6', 47],
-      ['7', 12],
-      ['8', 36],
-      ['9', 19],
-    ];
-    return seed.map(([kelas, count]) => ({
-      kelas,
-      label: DDC_LABELS[kelas] ?? kelas,
-      count,
-    }));
+    const buku = await bukuApi.list({ limit: 10_000 });
+    const counts = new Map<string, number>();
+    for (const b of buku.items) {
+      const kelas = (b.kodeDdc ?? '?').trim().charAt(0) || '?';
+      counts.set(kelas, (counts.get(kelas) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([kelas, count]) => ({ kelas, label: DDC_LABELS[kelas] ?? kelas, count }))
+      .sort((a, b) => b.count - a.count);
   },
   async kunjungan7d() {
     const today = new Date();
-    return Array.from({ length: 7 }, (_, i) => {
+    const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(today);
-      d.setDate(today.getDate() - (6 - i));
-      const tanggal = d.toISOString().slice(0, 10);
-      const jumlah = 8 + ((i * 7 + 11) % 14);
-      return { tanggal, jumlah };
+      d.setDate(d.getDate() - (6 - i));
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     });
+    const rows = await kunjunganApi.list({
+      from: days[0],
+      to: days[days.length - 1],
+      limit: 10_000,
+    });
+    return days.map((tanggal) => ({
+      tanggal,
+      jumlah: rows.items
+        .filter((r) => r.tanggal === tanggal)
+        .reduce((sum, r) => sum + r.jumlahOrang, 0),
+    }));
   },
-  async topPeminjam() {
-    return [
-      { anggotaId: 1, nama: 'Adelia Putri', kodeAnggota: 'A0007', kelas: 'XI IPA 1', jumlah: 14 },
-      { anggotaId: 2, nama: 'Bagas Saputra', kodeAnggota: 'A0012', kelas: 'X IPS 2', jumlah: 11 },
-      { anggotaId: 3, nama: 'Citra Lestari', kodeAnggota: 'A0021', kelas: 'XII IPA 3', jumlah: 9 },
-      { anggotaId: 4, nama: 'Dani Pratama', kodeAnggota: 'A0034', kelas: 'X IPA 1', jumlah: 8 },
-      { anggotaId: 5, nama: 'Erika Yulianti', kodeAnggota: 'A0045', kelas: 'XI IPS 1', jumlah: 6 },
-    ];
+  async topPeminjam(limit = 5) {
+    const [anggota, pinjam] = await Promise.all([
+      anggotaApi.list({ limit: 10_000 }),
+      peminjamanApi.list({ limit: 10_000 }),
+    ]);
+    const acc = new Map<number, number>();
+    for (const p of pinjam.items) acc.set(p.anggotaId, (acc.get(p.anggotaId) ?? 0) + 1);
+    return Array.from(acc.entries())
+      .map(([anggotaId, jumlah]) => {
+        const a = anggota.items.find((it) => it.id === anggotaId);
+        return {
+          anggotaId,
+          nama: a?.nama ?? `Anggota #${anggotaId}`,
+          kodeAnggota: a?.kodeAnggota ?? '',
+          kelas: a?.kelas ?? null,
+          jumlah,
+        };
+      })
+      .sort((a, b) => b.jumlah - a.jumlah)
+      .slice(0, limit);
   },
-  async topBuku() {
-    return [
-      { bukuId: 1, kode: 'B0042', judul: 'Bumi Manusia', pengarang: 'Pramoedya A. Toer', jumlah: 21 },
-      { bukuId: 2, kode: 'B0017', judul: 'Laskar Pelangi', pengarang: 'Andrea Hirata', jumlah: 17 },
-      { bukuId: 3, kode: 'B0089', judul: 'Negeri 5 Menara', pengarang: 'Ahmad Fuadi', jumlah: 13 },
-      { bukuId: 4, kode: 'B0123', judul: 'Atomic Habits', pengarang: 'James Clear', jumlah: 11 },
-      { bukuId: 5, kode: 'B0211', judul: 'Sapiens', pengarang: 'Yuval Noah Harari', jumlah: 9 },
-    ];
+  async topBuku(limit = 5) {
+    const pinjam = await peminjamanApi.list({ limit: 10_000 });
+    const details = await Promise.all(
+      pinjam.items.map((p) => peminjamanApi.get(p.id).catch(() => null)),
+    );
+    const acc = new Map<number, TopBuku>();
+    for (const detail of details) {
+      for (const item of detail?.items ?? []) {
+        const current = acc.get(item.bukuId);
+        if (current) current.jumlah += 1;
+        else
+          acc.set(item.bukuId, {
+            bukuId: item.bukuId,
+            kode: item.bukuKode,
+            judul: item.bukuJudul,
+            pengarang: null,
+            jumlah: 1,
+          });
+      }
+    }
+    return Array.from(acc.values())
+      .sort((a, b) => b.jumlah - a.jumlah)
+      .slice(0, limit);
   },
   async trend(window) {
     const today = new Date();

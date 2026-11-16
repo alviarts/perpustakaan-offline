@@ -1371,20 +1371,20 @@ pub fn peminjaman_quick_stats(state: State<'_, AppState>) -> AppResult<Peminjama
     )?;
     let aktif_today: i64 = conn.query_row(
         "SELECT COUNT(*) FROM peminjaman p \
-         WHERE p.tanggal_pinjam = date('now')",
+         WHERE p.tanggal_pinjam = date('now', 'localtime')",
         [],
         |r| r.get(0),
     )?;
     let aktif_week: i64 = conn.query_row(
         "SELECT COUNT(*) FROM peminjaman p \
-         WHERE p.tanggal_pinjam >= date('now', '-6 days')",
+         WHERE p.tanggal_pinjam >= date('now', '-6 days', 'localtime')",
         [],
         |r| r.get(0),
     )?;
     let overdue: i64 = conn.query_row(
         "SELECT COUNT(*) FROM peminjaman_item pi \
          JOIN peminjaman p ON p.id = pi.peminjaman_id \
-         WHERE pi.status = 'dipinjam' AND p.tanggal_jatuh_tempo < date('now')",
+         WHERE pi.status = 'dipinjam' AND p.tanggal_jatuh_tempo < date('now', 'localtime')",
         [],
         |r| r.get(0),
     )?;
@@ -1404,13 +1404,13 @@ pub fn peminjaman_overdue_list_inner(
     let mut stmt = conn.prepare(
         "SELECT p.id, pi.id, p.nomor_pinjam, a.id, a.nama, a.kode_anggota, a.kelas, \
                 b.id, b.judul, b.kode_buku, p.tanggal_pinjam, p.tanggal_jatuh_tempo, \
-                CAST(julianday(date('now')) - julianday(p.tanggal_jatuh_tempo) AS INTEGER) AS hari_terlambat \
+                CAST(julianday(date('now', 'localtime')) - julianday(p.tanggal_jatuh_tempo) AS INTEGER) AS hari_terlambat \
          FROM peminjaman_item pi \
          JOIN peminjaman p ON p.id = pi.peminjaman_id \
          JOIN anggota a ON a.id = p.anggota_id \
          JOIN buku b ON b.id = pi.buku_id \
          WHERE pi.status = 'dipinjam' \
-           AND p.tanggal_jatuh_tempo < date('now') \
+           AND p.tanggal_jatuh_tempo < date('now', 'localtime') \
          ORDER BY hari_terlambat DESC, p.tanggal_jatuh_tempo ASC \
          LIMIT ?1",
     )?;
@@ -1493,7 +1493,7 @@ pub fn anggota_loan_history_inner(
             COALESCE(COUNT(*), 0), \
             COALESCE(SUM(CASE WHEN pi.status = 'dipinjam' THEN 1 ELSE 0 END), 0), \
             COALESCE(SUM(CASE WHEN pi.status = 'dipinjam' \
-                              AND p.tanggal_jatuh_tempo < date('now') THEN 1 ELSE 0 END), 0) \
+                              AND p.tanggal_jatuh_tempo < date('now', 'localtime') THEN 1 ELSE 0 END), 0) \
          FROM peminjaman_item pi \
          JOIN peminjaman p ON p.id = pi.peminjaman_id \
          WHERE p.anggota_id = ?1",
@@ -1618,7 +1618,7 @@ pub fn anggota_summary(state: State<'_, AppState>, id: i64) -> AppResult<Anggota
         "SELECT COUNT(*) FROM peminjaman_item pi \
          JOIN peminjaman p ON p.id = pi.peminjaman_id \
          WHERE p.anggota_id = ?1 AND pi.status = 'dipinjam' \
-           AND p.tanggal_jatuh_tempo < date('now')",
+           AND p.tanggal_jatuh_tempo < date('now', 'localtime')",
         params![id],
         |r| r.get(0),
     )?;

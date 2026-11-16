@@ -4,6 +4,11 @@ async function adminLogin(page: import('@playwright/test').Page): Promise<void> 
   await page.goto('/login');
   await page.evaluate(() => {
     localStorage.clear();
+    // Re-seed the one-time "Layar izin awal" gate flag that storageState
+    // provided at context creation (settings.spec intentionally clears all
+    // localStorage for a deterministic mock reset; wiping this flag would
+    // redirect every reload to /izin and break the login flow).
+    localStorage.setItem('perpustakaan.permissions.done', '1');
   });
   await page.reload();
   await page.getByLabel(/Nama Pengguna|Username/).fill('admin');
@@ -25,11 +30,13 @@ test.describe('settings — search & navigation', () => {
     await expect(page.getByTestId('settings-section-identitas')).toBeVisible();
   });
 
-  test('sidebar lists 12 settings sections', async ({ page }) => {
+  test('sidebar lists all settings sections', async ({ page }) => {
     const nav = page.getByTestId('settings-nav');
     await expect(nav).toBeVisible();
     const links = nav.locator('a');
-    await expect(links).toHaveCount(12);
+    // The app now ships 18 settings sections (v1.3.6 adds akreditasi, kta,
+    // label-buku, sinkronisasi, template-nota, akses-mode, sandbox, …).
+    await expect(links).toHaveCount(18);
   });
 
   test('search "denda" filters down to Aturan Peminjaman', async ({ page }) => {
@@ -50,13 +57,14 @@ test.describe('settings — search & navigation', () => {
     await page.getByTestId('settings-nav-tampilan').click();
     await expect(page).toHaveURL(/\/settings\/tampilan/);
     await page.getByTestId('settings-reset-tampilan').click();
-    await expect(page.getByRole('alertdialog')).toBeVisible();
+    // SettingsSection uses the shared ConfirmDialog (Radix Dialog → role=dialog).
+    await expect(page.getByRole('dialog')).toBeVisible();
   });
 
-  test('navigates to Tentang and shows credit + manual button', async ({ page }) => {
+  test('navigates to Tentang and shows credit + repo link', async ({ page }) => {
     await page.getByTestId('settings-nav-tentang').click();
     await expect(page).toHaveURL(/\/settings\/tentang/);
     await expect(page.getByText(/alvi arts/i)).toBeVisible();
-    await expect(page.getByTestId('tentang-open-manual')).toBeVisible();
+    await expect(page.getByRole('link', { name: /Repositori GitHub/i })).toBeVisible();
   });
 });

@@ -11,6 +11,7 @@ import {
   type TurnoverCopyRow,
 } from '@/lib/laporan';
 import { formatTauriError } from '@/lib/errors';
+import { exportXlsx } from '@/lib/exportExcel';
 import { presetRangeMonth, RangeToolbar } from './RangeToolbar';
 import { pivotBulan } from './utils';
 import { akreditasiApi, DEFAULT_AKREDITASI_PROFIL } from '@/lib/akreditasi';
@@ -112,12 +113,28 @@ export function LaporanPemanfaatan(): JSX.Element {
   const subjekPivot = useMemo(() => pivotBulan(subjek), [subjek]);
   const kategoriPivot = useMemo(() => pivotBulan(kategori), [kategori]);
 
+  async function handleExportExcel(): Promise<void> {
+    const rows: (string | number)[][] = [];
+    for (const r of subjekPivot.rows) rows.push(['Subjek DDC', r.label, '', r.total]);
+    for (const r of kategoriPivot.rows) rows.push(['Kategori', r.label, '', r.total]);
+    for (const r of turnover) rows.push(['Turnover', r.kodeEksemplar, r.judul, r.jumlah]);
+    for (const r of idle) rows.push(['Buku Idle', r.kode, r.judul, r.jumlahEksemplar]);
+    for (const r of masalah) rows.push(['Eksemplar Masalah', r.kodeEksemplar, r.judul, r.status]);
+    await exportXlsx({
+      filename: `laporan-pemanfaatan-${range.from}_${range.to}.xlsx`,
+      sheetName: 'Pemanfaatan',
+      headers: ['Bagian', 'Kode/Label', 'Keterangan', 'Jumlah/Status'],
+      rows,
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4" data-testid="laporan-pemanfaatan">
       <RangeToolbar
         range={range}
         onRangeChange={setRange}
         awalBulanTahunAjaran={awalBulan}
+        onExportExcel={handleExportExcel}
         exportDisabled={loading}
       />
 

@@ -11,6 +11,10 @@ export default defineConfig({
     baseURL: 'http://localhost:1420',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // The v1.3.6 "Layar izin awal" gate (/izin) redirects /login until the
+    // one-time `perpustakaan.permissions.done` flag is set. Seed it via
+    // storageState so every test starts past the gate (browser dev mode).
+    storageState: './tests/e2e/storage-state.json',
   },
   projects: [
     {

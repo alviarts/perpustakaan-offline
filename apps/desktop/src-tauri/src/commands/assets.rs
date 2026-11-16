@@ -492,6 +492,19 @@ pub(crate) fn save_inner(
     })
 }
 
+/// True when `path` looks absolute on any platform. On Windows,
+/// `Path::is_absolute()` does not recognise POSIX-style paths like
+/// `/home/user/old-foto.jpg`, which legacy v1 data may still contain —
+/// they must be treated as absolute so they round-trip instead of being
+/// re-interpreted relative to `app_data`.
+fn is_absolute_like(path: &Path) -> bool {
+    if path.is_absolute() {
+        return true;
+    }
+    let s = path.to_string_lossy();
+    s.starts_with('/') || s.starts_with('\\')
+}
+
 /// Pure helper for unit tests: validate `rel_path` and join with
 /// `app_data`. Absolute legacy paths are passed through unchanged.
 pub(crate) fn resolve_inner(app_data: &Path, rel_path: &str) -> AppResult<String> {
@@ -499,7 +512,7 @@ pub(crate) fn resolve_inner(app_data: &Path, rel_path: &str) -> AppResult<String
         return Ok(String::new());
     }
     let candidate = Path::new(rel_path);
-    if candidate.is_absolute() {
+    if is_absolute_like(candidate) {
         return Ok(rel_path.to_string());
     }
     validate_rel_path(rel_path)?;
@@ -538,7 +551,7 @@ pub(crate) fn read_data_url_inner(app_data: &Path, rel_path: &str) -> AppResult<
         return Err(AppError::Validation("rel_path must not be empty".into()));
     }
     let candidate = Path::new(rel_path);
-    let abs = if candidate.is_absolute() {
+    let abs = if is_absolute_like(candidate) {
         candidate.to_path_buf()
     } else {
         validate_rel_path(rel_path)?;
@@ -582,7 +595,7 @@ pub(crate) fn delete_inner(app_data: &Path, rel_path: &str) -> AppResult<()> {
     if rel_path.is_empty() {
         return Ok(());
     }
-    if Path::new(rel_path).is_absolute() {
+    if is_absolute_like(Path::new(rel_path)) {
         return Ok(());
     }
     validate_rel_path(rel_path)?;

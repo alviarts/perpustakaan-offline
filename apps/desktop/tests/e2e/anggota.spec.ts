@@ -34,13 +34,17 @@ test.describe('anggota CRUD (browser dev mode)', () => {
     await expect(table.getByText('Bagas Pratama')).toHaveCount(0);
   });
 
-  test('header global search jumps to /anggota?q=…', async ({ page }) => {
+  test('header global search opens command palette and jumps to member detail', async ({ page }) => {
     await page.goto('/dashboard');
-    const headerSearch = page.getByTestId('header-search');
-    await headerSearch.fill('bagas');
-    await headerSearch.press('Enter');
-    await expect(page).toHaveURL(/\/anggota\?q=bagas/);
-    await expect(page.getByTestId('anggota-table').getByText('Bagas Pratama')).toBeVisible();
+    await page.getByTestId('header-search').click();
+    await page.getByTestId('global-search-input').fill('bagas');
+    // Seed row "Bagas Pratama" has id 2 (see src/lib/anggota.ts seedMockData).
+    const hit = page.getByTestId('global-search-item-anggota:2');
+    await expect(hit).toBeVisible();
+    await hit.click();
+    await expect(page).toHaveURL(/\/anggota\/2/);
+    // Detail page is the edit form — nama is an input value, not a text node.
+    await expect(page.getByTestId('field-nama')).toHaveValue('Bagas Pratama');
   });
 
   test('creates a new member end-to-end', async ({ page }) => {

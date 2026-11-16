@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileBarChart, Loader2 } from 'lucide-react';
+import { Download, FileBarChart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -19,6 +19,7 @@ import {
   type LaporanEksekutifWeekly,
 } from '@/lib/pdf/laporanEksekutif';
 import { formatTauriError } from '@/lib/errors';
+import { exportXlsx } from '@/lib/exportExcel';
 
 function isoWeekLabel(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
@@ -162,6 +163,48 @@ export function LaporanEksekutif() {
     }
   }, [range, showToast, t]);
 
+  const handleExportExcel = useCallback(async (): Promise<void> => {
+    setBusy(true);
+    try {
+      const [kpi, topBuku, topPeminjam, peminjamanRows, reservasi] = await Promise.all([
+        dashboardApi.kpi(),
+        dashboardApi.topBuku(5),
+        dashboardApi.topPeminjam(5),
+        fetchAllPeminjaman(range.from, range.to),
+        reservasiApi.listActive().catch(() => []),
+      ]);
+      const dendaOutstanding = peminjamanRows.reduce(
+        (acc, r) => acc + Math.max(0, (r.totalDenda ?? 0) - (r.totalBayar ?? 0)),
+        0,
+      );
+      const rows: (string | number)[][] = [
+        ['KPI', 'Anggota aktif', '', kpi.totalAnggota],
+        ['KPI', 'Total buku', '', kpi.totalBuku],
+        ['KPI', 'Peminjaman periode', '', peminjamanRows.length],
+        ['KPI', 'Denda outstanding', '', dendaOutstanding],
+      ];
+      for (const w of bucketWeekly(peminjamanRows)) rows.push(['Tren mingguan', w.bucket, '', w.count]);
+      for (const b of topBuku) rows.push(['Top buku', b.judul, '', b.jumlah]);
+      for (const a of topPeminjam) rows.push(['Top anggota', a.nama, a.kelas ?? '', a.jumlah]);
+      for (const d of aggregateDendaTinggi(peminjamanRows)) rows.push(['Denda tinggi', d.nama, '', d.outstanding]);
+      for (const b of aggregateBukuTanpaStok(reservasi)) rows.push(['Reservasi tanpa stok', b.judul, '', b.reservasiCount]);
+      await exportXlsx({
+        filename: `laporan-eksekutif-${range.from}_${range.to}.xlsx`,
+        sheetName: 'Laporan Eksekutif',
+        headers: ['Bagian', 'Label', 'Keterangan', 'Nilai'],
+        rows,
+      });
+    } catch (err) {
+      showToast({
+        variant: 'destructive',
+        title: t('laporan:error.load', { defaultValue: 'Gagal memuat data' }),
+        description: formatTauriError(err),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }, [range, showToast, t]);
+
   useEffect(() => {
     // Pre-warm settings cache so first click feels snappier.
     void settingsApi.getIdentity();
@@ -188,21 +231,32 @@ export function LaporanEksekutif() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <DateRangePicker value={range} onChange={setRange} />
-          <Button
-            onClick={handlePrint}
-            disabled={busy}
-            className="w-fit"
-            data-testid="laporan-eksekutif-cetak"
-          >
-            {busy ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('laporan:eksekutif.preparing', { defaultValue: 'Menyiapkan…' })}
-              </>
-            ) : (
-              t('laporan:eksekutif.cetak', { defaultValue: 'Cetak PDF' })
-            )}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => void handleExportExcel()}
+              disabled={busy}
+              data-testid="laporan-eksekutif-excel"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Ekspor Excel
+            </Button>
+            <Button
+              onClick={handlePrint}
+              disabled={busy}
+              className="w-fit"
+              data-testid="laporan-eksekutif-cetak"
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('laporan:eksekutif.preparing', { defaultValue: 'Menyiapkan…' })}
+                </>
+              ) : (
+                t('laporan:eksekutif.cetak', { defaultValue: 'Cetak PDF' })
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

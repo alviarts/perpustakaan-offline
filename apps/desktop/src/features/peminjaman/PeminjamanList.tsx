@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
+import { ExportExcelButton } from '@/components/shared/ExportExcelButton';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { useToast } from '@/components/ui/toast-manager';
 import { peminjamanApi, type PeminjamanRow } from '@/lib/peminjaman';
@@ -206,6 +207,22 @@ export function PeminjamanList() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ExportExcelButton
+            filename={`peminjaman-${new Date().toISOString().slice(0, 10)}`}
+            sheetName="Peminjaman"
+            headers={[
+              'No. Pinjam', 'Anggota', 'Kode Anggota', 'Tanggal Pinjam', 'Jatuh Tempo',
+              'Tanggal Kembali', 'Status', 'Denda (Rp)', 'Dibayar (Rp)', 'Total Item',
+              'Catatan',
+            ]}
+            rows={items}
+            toRow={(r) => [
+              r.nomorPinjam, r.anggotaNama, r.anggotaKode, r.tanggalPinjam, r.tanggalJatuhTempo,
+              r.tanggalKembali ?? '', r.status, r.totalDenda, r.totalBayar, r.totalItem,
+              r.catatan ?? '',
+            ]}
+            data-testid="peminjaman-export-excel"
+          />
           <Button
             type="button"
             variant="outline"

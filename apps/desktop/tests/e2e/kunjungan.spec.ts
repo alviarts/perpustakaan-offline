@@ -36,7 +36,10 @@ test.describe('kunjungan page (browser dev mode)', () => {
   test('adds a manual visit which appears in table and bumps stats', async ({ page }) => {
     await page.getByTestId('kunjungan-add').click();
     await page.getByTestId('kunjungan-submit').click();
-    // Dialog should close + new row visible
-    await expect(page.getByText(/Membaca/)).toBeVisible({ timeout: 5000 });
+    // Dialog should close + new row visible (scope to the table — the same
+    // "Membaca" text also exists inside the dialog's select trigger).
+    await expect(page.getByTestId('kunjungan-table').getByText('Membaca')).toBeVisible({
+      timeout: 5000,
+    });
   });
 });

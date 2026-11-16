@@ -70,7 +70,7 @@ export function Sidebar() {
         <div className="flex h-16 items-center gap-3 border-b border-border px-3">
           <div
             className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground',
+              'sidebar-brand-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground',
             )}
           >
             <Library className="h-5 w-5" />
@@ -78,7 +78,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{identity.nama}</p>
-              <p className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+              <p className="sidebar-tagline truncate text-[10px] uppercase tracking-wider text-muted-foreground">
                 {t('common:tagline')}
               </p>
             </div>

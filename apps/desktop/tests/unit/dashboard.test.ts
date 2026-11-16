@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calcDeltaPct, dashboardApi, DDC_LABEL_MAP } from '@/lib/dashboard';
+import { bukuApi } from '@/lib/buku';
 
 describe('calcDeltaPct', () => {
   it('returns 0 when both current and previous are zero', () => {
@@ -51,20 +52,23 @@ describe('dashboardApi (browser mock)', () => {
     expect(kpi.totalEksemplar).toBeGreaterThanOrEqual(kpi.totalBuku);
   });
 
-  it('ddc returns 10 main DDC slices', async () => {
+  it('ddc returns slices derived from the actual buku collection', async () => {
     const ddc = await dashboardApi.ddc();
-    expect(ddc.length).toBe(10);
+    const buku = await bukuApi.list({ limit: 10_000 });
+    const total = ddc.reduce((sum, slice) => sum + slice.count, 0);
+    expect(total).toBe(buku.total);
     for (const slice of ddc) {
       expect(slice.label).toBeTypeOf('string');
-      expect(slice.count).toBeGreaterThanOrEqual(0);
+      expect(slice.count).toBeGreaterThan(0);
     }
   });
 
-  it('kunjungan7d returns exactly 7 contiguous days ending today', async () => {
+  it('kunjungan7d returns exactly 7 contiguous days ending today (local date)', async () => {
     const days = await dashboardApi.kunjungan7d();
     expect(days).toHaveLength(7);
     const lastIso = days[days.length - 1]!.tanggal;
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     expect(lastIso).toBe(today);
   });
 
